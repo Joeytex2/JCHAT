@@ -1,0 +1,2918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHAT - My Wallet</title>
+
+    <!-- Google Fonts: Poppins for headings, Inter for body text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        /* Universal box-sizing for consistent layout */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Global CSS Variables for easy theme switching (consistent with other JCHAT pages) */
+        :root {
+            --pink: #ff2e92;
+            --blue: #00d5ff;
+            --glass-black: rgba(10, 10, 10, .75);
+            --glass-blue: rgba(0, 213, 255, .15);
+            --radius: 20px;
+            --transition: .3s ease;
+
+            /* These variables will be overridden by theme classes */
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, .7);
+            --background-main: rgba(10, 10, 10, .75);
+            --background-gradient-1: #00d5ff;
+            --background-gradient-2: #ff2e92;
+            --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            --header-background: linear-gradient(135deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .75));
+            --border-light: rgba(255, 255, 255, .05);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --button-background: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+
+            /* NEW: Consistent theming variables from Profile.html */
+            --background-color-primary: #1a1a2e;
+            --background-color-secondary: #0f0f1f;
+            --header-background-color: #2a2a4a;
+            --footer-background-color: #2a2a4a;
+            --content-background-color: #20203a;
+            --card-background-color: #2a2a4a;
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --notification-badge-color: #ff2e92;
+            --status-online: #4CAF50;
+            --status-offline: #6c757d;
+            --status-away: #FFC107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+            --accent-color: #00d5ff; /* A bright cyan */
+            --accent-color-dark: #00aaff;
+            --border-color: #3a3a5a;
+
+            /* Specific wallet colors */
+            --jcoin-color: #ffd700; /* Gold for JCoins */
+            --gas-color: #00d5ff; /* Blue for Gas/XP */
+            --transaction-positive: #4CAF50; /* Green for income */
+            --transaction-negative: #F44336; /* Red for expenses */
+            --bonus-color: #00d5ff; /* Blue for bonus text */
+            --withdraw-button-color: #28a745; /* Green for withdraw button */
+        }
+
+        /* --- Theme Definitions (Light and Dark Mode) --- */
+        /* Light Mode */
+        body.theme-light-mode {
+            --background-main: #f0f2f5;
+            --background-gradient-1: #e0e2e5;
+            --background-gradient-2: #d0d2d5;
+            --white: #333;
+            --text-light: #666;
+            --card-background: rgba(255, 255, 255, 0.95);
+            --header-background: rgba(255, 255, 255, 0.98);
+            --border-light: rgba(0, 0, 0, 0.1);
+            --input-background: rgba(0, 0, 0, 0.05);
+            --button-background: linear-gradient(90deg, #6dd5ed, #2193b0);
+            --button-shadow: 0 4px 15px rgba(109, 213, 237, 0.4), 0 4px 15px rgba(33, 147, 176, 0.4);
+
+            /* New variables override for light mode */
+            --background-color-primary: #f0f2f5;
+            --background-color-secondary: #e0e2e5;
+            --header-background-color: #ffffff;
+            --footer-background-color: #ffffff;
+            --content-background-color: #f7f9fb;
+            --card-background-color: #ffffff;
+            --text-color-primary: #333333;
+            --text-color-secondary: #666666;
+            --text-color-light: #999999;
+            --accent-color: #007bff;
+            --accent-color-dark: #0056b3;
+            --border-color: #e0e0e0;
+            --input-background-color: #f0f0f0;
+            --button-background: #e9ecef;
+            --button-hover-background: #dee2e6;
+            --active-item-background: rgba(0, 123, 255, 0.1);
+            --notification-badge-color: #dc3545;
+            --status-online: #28a745;
+            --status-offline: #6c757d;
+            --status-away: #ffc107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+            --withdraw-button-color: #28a745;
+        }
+
+        /* Dark Mode */
+        body.theme-dark-mode {
+            --background-main: #1a1a2e;
+            --background-gradient-1: #16213e;
+            --background-gradient-2: #0f3460;
+            --white: #e0e0e0;
+            --text-light: #a0a0a0;
+            --card-background: rgba(25, 25, 40, 0.7);
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75));
+            --border-light: rgba(255, 255, 255, 0.08);
+            --input-background: rgba(255, 255, 255, 0.08);
+            --button-background: linear-gradient(90deg, #e94560, #ba2f49);
+            --button-shadow: 0 4px 15px rgba(233, 69, 96, 0.4), 0 4px 15px rgba(186, 47, 73, 0.4);
+
+            /* New variables override for dark mode */
+            --background-color-primary: #121212;
+            --background-color-secondary: #1e1e1e;
+            --header-background-color: #2c2c2c;
+            --footer-background-color: #2c2c2c;
+            --content-background-color: #242424;
+            --card-background-color: #2c2c2c;
+            --text-color-primary: #ffffff;
+            --text-color-secondary: #bbbbbb;
+            --accent-color: #bb86fc;
+            --accent-color-dark: #9a67ea;
+            --border-color: #444444;
+            --input-background-color: #383838;
+            --button-background: #383838;
+            --button-hover-background: #505050;
+            --active-item-background: rgba(187, 134, 252, 0.2);
+            --notification-badge-color: #cf6679;
+            --delete-button-color: #f44336;
+            --warning-color: #ffeb3b;
+            --withdraw-button-color: #28a745;
+        }
+
+        /* Glass Mode specific variables */
+        body.theme-glass-mode {
+            --background-main: rgba(10, 10, 10, 0.75);
+            background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important;
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            backdrop-filter: blur(10px);
+            --card-background: rgba(25, 25, 40, 0.7);
+            --white: #e0e0e0;
+            --text-light: rgba(255, 255, 255, 0.7);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.1);
+            --button-background: linear-gradient(90deg, var(--pink), var(--blue));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
+
+            /* New variables override for glass mode */
+            --background-color-primary: rgba(10, 10, 10, 0.75);
+            --background-color-secondary: rgba(10, 10, 10, 0.6);
+            --header-background-color: rgba(10, 10, 10, 0.85);
+            --footer-background-color: rgba(10, 10, 10, 0.85);
+            --content-background-color: rgba(10, 10, 10, 0.75);
+            --card-background-color: rgba(25, 25, 40, 0.7);
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --accent-color: #00d5ff;
+            --accent-color-dark: #00aaff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-background-color: rgba(255, 255, 255, 0.05);
+            --button-background: rgba(0, 213, 255, 0.15);
+            --button-hover-background: rgba(0, 213, 255, 0.25);
+            --active-item-background: rgba(0, 213, 255, 0.1);
+            --withdraw-button-color: #28a745;
+        }
+
+        /* Sunset Theme */
+        body.theme-sunset-mode {
+            background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
+            --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
+            --card-background: rgba(255, 255, 255, 0.15);
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, 0.8);
+            --input-background: rgba(255, 255, 255, 0.1);
+            --border-light: rgba(255, 255, 255, 0.3);
+            --button-background: linear-gradient(90deg, #fd746c, #ff9068);
+            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 4px 15px rgba(255, 144, 104, 0.4);
+
+            /* New variables override for sunset mode */
+            --background-color-primary: #ff7e5f;
+            --background-color-secondary: #feb47b;
+            --header-background-color: rgba(255, 126, 95, 0.9);
+            --footer-background-color: rgba(255, 126, 95, 0.9);
+            --content-background-color: rgba(255, 126, 95, 0.85);
+            --card-background-color: rgba(255, 255, 255, 0.15);
+            --text-color-primary: #fff;
+            --text-color-secondary: rgba(255, 255, 255, 0.8);
+            --accent-color: #ffd700;
+            --accent-color-dark: #ccaa00;
+            --border-color: rgba(255, 255, 255, 0.3);
+            --input-background-color: rgba(255, 255, 255, 0.1);
+            --button-background: rgba(255, 255, 255, 0.2);
+            --button-hover-background: rgba(255, 255, 255, 0.3);
+            --active-item-background: rgba(255, 215, 0, 0.1);
+            --withdraw-button-color: #28a745;
+        }
+
+        /* Always show scrollbar to prevent layout shifts */
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding-bottom: 120px; /* Space for nav bar (60px) + toggle button (60px) */
+            background-color: var(--background-main);
+            background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
+                              radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
+            color: var(--white);
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* Header Styling (consistent with other JCHAT pages) */
+        header {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 55px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        header .header-content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+        }
+
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
+            text-decoration: none;
+        }
+
+        header nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 25px;
+        }
+
+        header nav ul li a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 5px 0;
+            position: relative;
+            transition: color var(--transition);
+        }
+
+        header nav ul li a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 0;
+            height: 3px;
+            background: var(--blue);
+            border-radius: 2px;
+            transition: width var(--transition);
+        }
+
+        header nav ul li a:hover {
+            color: var(--blue);
+        }
+
+        header nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-profile-header #profileLink {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--white);
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: var(--radius);
+        }
+
+        .user-profile-header #profileLink:hover {
+            opacity: 0.8;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile-header img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--blue);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: opacity 0.3s ease;
+        }
+
+        .user-profile-header i {
+            font-size: 30px;
+            color: var(--text-light);
+        }
+
+        .user-profile-header span {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        #adminIconLink {
+            display: none;
+            margin-right: 15px;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        #adminIconLink:hover {
+            transform: scale(1.1);
+        }
+
+        /* Main Content Area */
+        main {
+            flex-grow: 1;
+            padding: 40px 0;
+            padding-top: 55px; /* Adjust for fixed header */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+        }
+
+        .content-wrapper {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        /* Wallet Section Styling */
+        .wallet-section {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: center;
+        }
+
+        .wallet-section h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin: 0;
+        }
+
+        .balance-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 1rem;
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            border: 1px solid var(--border-light);
+            width: 100%;
+        }
+
+        .balance-label {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .jcoin-value {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--jcoin-color); /* Gold color for JCoins */
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            line-height: 1;
+        }
+
+        .gas-value { /* NEW: Style for Gas/XP value */
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gas-color); /* Blue for Gas */
+            text-shadow: 0 0 8px rgba(0, 213, 255, 0.5);
+            line-height: 1;
+            margin-top: 10px; /* Space between JCoins and Gas */
+        }
+
+        .usd-value {
+            font-size: 1.5rem;
+            color: var(--white);
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .wallet-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .wallet-action-button {
+            background: var(--button-background);
+            color: var(--white);
+            border: none;
+            border-radius: 15px;
+            padding: 0.8rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--button-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wallet-action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
+        }
+
+        .wallet-action-button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .wallet-action-button.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .transaction-history-section {
+            width: 100%;
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .transaction-history-section h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .transaction-list {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .transaction-item {
+            display: flex;
+            flex-direction: column; /* Stack details vertically */
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .transaction-description {
+            font-size: 0.95rem;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .transaction-amount {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-left: 15px;
+            white-space: nowrap;
+        }
+
+        .transaction-amount.positive {
+            color: var(--transaction-positive);
+        }
+
+        .transaction-amount.negative {
+            color: var(--transaction-negative);
+        }
+
+        .transaction-timestamp {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0px;
+        }
+
+        .no-transactions-message {
+            text-align: center;
+            color: var(--text-light);
+            padding: 20px;
+        }
+
+        /* Buy JCoins Panel Styles */
+        .buy-jcoins-panel {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: center;
+        }
+
+        .buy-jcoins-panel h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin-top: 0;
+        }
+
+        .bank-details-section {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            width: 100%;
+            text-align: left;
+            border: 1px solid var(--border-light);
+        }
+
+        .bank-details-section h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            color: var(--jcoin-color);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .bank-details-section p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+
+        .bank-details-section .copy-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-left: 10px;
+        }
+
+        .bank-details-section .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Manual Buy Section Styles */
+        .manual-buy-section {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .manual-buy-section h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            color: var(--jcoin-color);
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .manual-buy-section .input-group {
+            text-align: left;
+        }
+
+        .manual-buy-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .manual-buy-section input[type="number"],
+        .manual-buy-section input[type="text"] { /* Added text type for bank details */
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            background-color: var(--input-background);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .manual-buy-section input[type="number"]:focus,
+        .manual-buy-section input[type="text"]:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+        /* NEW: File input wrapper for receipt */
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--input-background);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .file-input-wrapper:hover {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+        .file-input-wrapper i {
+            color: var(--text-light);
+        }
+        .file-name {
+            flex-grow: 1;
+            color: var(--text-light);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .receipt-preview {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-top: 10px;
+            border: 1px solid var(--border-light);
+            display: none; /* Hidden by default */
+        }
+
+
+        .manual-buy-section .whatsapp-info {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .manual-buy-section .whatsapp-info a {
+            color: var(--bonus-color);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.2s ease;
+        }
+
+        .manual-buy-section .whatsapp-info a:hover {
+            color: var(--pink);
+        }
+
+
+        .calculated-jcoins {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .calculated-jcoins p {
+            margin: 5px 0;
+            font-size: 1rem;
+            color: var(--white);
+        }
+
+        .calculated-jcoins #calculatedJCoins {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jcoin-color);
+        }
+
+        .calculated-jcoins #calculatedBonus {
+            font-size: 0.9rem;
+            color: var(--bonus-color);
+            font-weight: 600;
+        }
+        .calculated-jcoins #calculatedBonus.no-bonus {
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        /* JCoin Packages Grid (for pre-defined options) */
+        .jcoin-packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            width: 100%;
+            margin-top: 1.5rem;
+        }
+
+        .jcoin-package-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .jcoin-package-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .package-price {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--white);
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .package-jcoins {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--jcoin-color);
+        }
+
+        .package-bonus {
+            font-size: 0.85rem;
+            color: var(--bonus-color);
+            font-weight: 600;
+        }
+        .package-bonus.no-bonus {
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        /* NEW: Withdrawal Section Styles */
+        .withdrawal-section {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: center;
+        }
+
+        .withdrawal-section h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--pink), var(--blue)); /* Reversed gradient for contrast */
+            margin-top: 0;
+        }
+
+        .withdrawal-info {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            font-weight: 600; /* Make it bold */
+        }
+
+        .withdrawal-info strong {
+            color: var(--jcoin-color);
+            font-size: 1.1rem;
+        }
+
+        .withdrawal-button {
+            background-color: var(--withdraw-button-color); /* Green color */
+            color: var(--white);
+            border: none;
+            border-radius: 15px;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4); /* Green shadow */
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+
+        .withdrawal-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+        }
+
+        .withdrawal-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+            /* Optional: Add a specific background for disabled pending state */
+            background-color: #6c757d; /* Grey out when disabled */
+        }
+
+        .withdrawal-message {
+            font-size: 0.9rem;
+            color: var(--warning-color);
+            margin-top: 10px;
+            font-weight: 600;
+            display: none; /* Hidden by default */
+        }
+        .withdrawal-message.show {
+            display: block;
+        }
+
+
+        /* Bank Details Form */
+        .bank-details-form {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            text-align: left;
+            border: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 1rem;
+        }
+
+        .bank-details-form h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            color: var(--jcoin-color);
+            margin-top: 0;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .bank-details-form .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .bank-details-form .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            background-color: var(--input-background);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .bank-details-form .input-group input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+        .bank-details-form .save-button {
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            color: var(--white);
+            border: none;
+            border-radius: 15px;
+            padding: 0.8rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--button-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .bank-details-form .save-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
+        }
+        .bank-details-form .save-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+
+        /* Custom Message Box Styles (consistent with other JCHAT pages) */
+        #messageBox {
+            position: fixed;
+            top: 50%; /* Center vertically */
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center both horizontally and vertically */
+            background-color: var(--card-background-color); /* Default background, will be overridden for success */
+            color: var(--text-color-primary); /* Default text color */
+            padding: 20px 30px; /* Increased padding for a more substantial box */
+            border-radius: 15px; /* More rounded corners, slightly squarer */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); /* Enhanced shadow */
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            min-width: 280px; /* Ensure a decent minimum width */
+            max-width: 90%;
+            text-align: center;
+            flex-direction: column; /* Stack icon and text vertically */
+            align-items: center;
+            gap: 15px; /* Space between icon and text */
+        }
+        #messageBox.show {
+            opacity: 1;
+            display: flex;
+        }
+        /* Success message box specific styling */
+        #messageBox.success {
+            background-image: linear-gradient(45deg, var(--pink), var(--blue)); /* Pink and blue gradient */
+            color: var(--white); /* White text for contrast on gradient */
+            border: none; /* No border for gradient background */
+            box-shadow: 0 8px 30px rgba(0, 213, 255, 0.5), 0 8px 30px rgba(255, 46, 146, 0.5); /* Glowing shadow */
+        }
+        #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+
+        #messageBox i {
+            font-size: 2.5rem; /* Larger icon for prominence */
+            margin-bottom: 5px; /* Space between icon and text */
+            /* Apply gradient to message box icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+        #messageBox.success i { color: var(--white); } /* White icon for success */
+        #messageBox.error i { color: var(--delete-button-color); }
+        #messageBox.info i { color: var(--accent-color); }
+        #messageBox.warning i { color: var(--warning-color); }
+
+        #messageBox span {
+            font-size: 1.1rem; /* Slightly larger text */
+            font-weight: 600;
+        }
+
+        @keyframes pulse-bg {
+            0% { background-color: var(--accent-color); }
+            50% { background-color: rgba(0, 213, 255, 0.7); }
+            100% { background-color: var(--accent-color); }
+        }
+        #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
+
+        /* Loader styles for buttons (consistent with other JCHAT pages) */
+        .button-loader {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid var(--white);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+            flex-shrink: 0;
+        }
+        .button-loader.active { display: block; }
+        .button-text { display: block; }
+        .loading .button-text { display: none; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* NEW: Send JCoins Modal Styles */
+        #sendJCoinsModal.modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+            position: fixed; /* Ensure it covers the whole screen */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000; /* Ensure it's on top of other content */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #sendJCoinsModal.modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #sendJCoinsModal .modal-content {
+            max-width: 450px;
+            text-align: left;
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        #sendJCoinsModal.modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        #sendJCoinsModal .modal-content h3 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #sendJCoinsModal .modal-content h3 i {
+            margin-right: 10px;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #sendJCoinsModal .modal-content .input-group {
+            margin-bottom: 1rem;
+        }
+        #sendJCoinsModal .modal-content .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        #sendJCoinsModal .modal-content .input-group input[type="text"],
+        #sendJCoinsModal .modal-content .input-group input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            background-color: var(--input-background);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        #sendJCoinsModal .modal-content .input-group input[type="text"]:focus,
+        #sendJCoinsModal .modal-content .input-group input[type="number"]:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+        #sendJCoinsModal .modal-content .current-balance-info {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 5px;
+            text-align: right;
+        }
+        #sendJCoinsModal .modal-content .current-balance-info span {
+            font-weight: 700;
+            color: var(--jcoin-color);
+        }
+        #sendJCoinsModal .modal-content .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+        #sendJCoinsModal .modal-content .modal-button {
+            flex: 1;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        #sendJCoinsModal .modal-content .modal-button.confirm-button {
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            color: var(--white);
+            box-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+        }
+        #sendJCoinsModal .modal-content .modal-button.confirm-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
+        }
+        #sendJCoinsModal .modal-content .modal-button.cancel-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        #sendJCoinsModal .modal-content .modal-button.cancel-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Bottom Navigation Bar (consistent with other JCHAT pages) */
+        #bottomNavBar {
+            position: fixed;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: var(--header-background);
+            border-top: 1px solid var(--border-light);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 50;
+            bottom: 60px;
+            transition: bottom 0.3s ease-out;
+        }
+
+        #bottomNavBar.nav-bar-hidden-full {
+            bottom: -60px;
+        }
+
+        .nav-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: color 0.2s ease;
+            flex: 1;
+            max-width: 80px;
+        }
+
+        .nav-icon-item:hover {
+            color: var(--white);
+        }
+
+        .nav-icon-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .nav-icon-item:hover .nav-icon-circle {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px var(--blue), 0 44px 12px var(--pink);
+        }
+
+        .nav-icon-item.active .nav-icon-circle {
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+            box-shadow: 0 4px 12px var(--pink), 0 44px 12px var(--blue);
+        }
+        .nav-icon-item.active {
+            color: var(--white);
+        }
+
+        /* Navigation Toggle Button (consistent with other JCHAT pages) */
+        #navToggleBtn {
+            position: fixed;
+            bottom: 0px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+            color: var(--white);
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            cursor: pointer;
+            z-index: 60;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+        }
+
+        #navToggleBtn:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+        }
+
+        #navToggleBtn i {
+            transition: transform 0.3s ease;
+        }
+
+        #navToggleBtn.rotated i {
+            transform: rotate(180deg);
+        }
+
+        /* Responsive Adjustments (consistent with other JCHAT pages) */
+        @media (max-width: 600px) {
+            header .header-content-wrapper {
+                padding: 0 20px;
+            }
+            .logo {
+                font-size: 1.6rem;
+            }
+            header nav ul {
+                gap: 15px;
+            }
+            header nav ul li a {
+                font-size: 1.1rem;
+            }
+            .user-profile-header #profileLink {
+                padding: 5px;
+            }
+            .user-profile-header span {
+                max-width: 90px;
+            }
+            .user-profile-header img {
+                width: 30px;
+                height: 30px;
+            }
+            .user-profile-header i {
+                font-size: 25px;
+            }
+            .wallet-section, .buy-jcoins-panel, .withdrawal-section {
+                padding: 1.5rem;
+            }
+            .wallet-section h1, .buy-jcoins-panel h2, .withdrawal-section h2 {
+                font-size: 2rem;
+            }
+            .jcoin-value {
+                font-size: 2.8rem;
+            }
+            .gas-value {
+                font-size: 2rem;
+            }
+            .usd-value {
+                font-size: 1.2rem;
+            }
+            .wallet-action-button, .withdrawal-button, .bank-details-form .save-button {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.8rem;
+            }
+            .transaction-history-section h2 {
+                font-size: 1.5rem;
+            }
+            .transaction-description {
+                font-size: 0.85rem;
+            }
+            .transaction-amount {
+                font-size: 0.9rem;
+            }
+            .jcoin-packages-grid {
+                grid-template-columns: 1fr; /* Stack packages on small screens */
+            }
+            .package-price {
+                font-size: 1.5rem;
+            }
+            .package-jcoins {
+                font-size: 1rem;
+            }
+            .package-bonus {
+                font-size: 0.75rem;
+            }
+            .bank-details-section h3, .bank-details-form h3 {
+                font-size: 1.1rem;
+            }
+            .bank-details-section p, .bank-details-form .input-group label {
+                font-size: 0.85rem;
+            }
+            .bank-details-section .copy-button {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
+            #bottomNavBar {
+                height: 55px;
+                padding: 0 5px;
+                bottom: 55px;
+            }
+            #bottomNavBar.nav-bar-hidden-full {
+                bottom: -55px;
+            }
+            #navToggleBtn {
+                width: 55px;
+                height: 55px;
+                font-size: 1.5rem;
+            }
+            .nav-icon-circle {
+                width: 40px;
+                height: 40px;
+            }
+            .nav-icon-circle i {
+                font-size: 1.2rem;
+            }
+            .nav-icon-item {
+                font-size: 0.7rem;
+            }
+            body {
+                padding-bottom: 110px;
+            }
+            #sendJCoinsModal .modal-content {
+                padding: 20px;
+            }
+            #sendJCoinsModal .modal-content h3 {
+                font-size: 1.5rem;
+            }
+            #sendJCoinsModal .modal-content .modal-button {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body class="theme-dark-mode">
+
+    <header>
+        <div class="header-content-wrapper">
+            <a href="/home.html" class="logo">JCHAT</a>
+            <nav>
+                <ul>
+                    <li><a href="/home.html">Home</a></li>
+                    <li><a href="/profile.html" id="headerNavLinkProfile">Profile</a></li>
+                </ul>
+            </nav>
+            <div class="user-profile-header">
+                <a href="/admin.html" id="adminIconLink" aria-label="Admin Dashboard">
+                    <i class="fas fa-user-cog"></i>
+                </a>
+                <a href="/profile.html" id="profileLink">
+                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
+                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                    <span id="headerDisplayName">Loading...</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="content-wrapper">
+            <div class="wallet-section">
+                <h1>My JCHAT Wallet</h1>
+                <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                    Your personal JCoin balance and transaction history.
+                </p>
+
+                <div class="balance-display">
+                    <span class="balance-label">Current Balance</span>
+                    <span id="jcoinBalance" class="jcoin-value">0</span>
+                    <span id="gasBalance" class="gas-value">0 Gas (XP)</span>
+                    <span id="usdBalance" class="usd-value">$0.00 USD</span>
+                </div>
+
+                <div class="wallet-buttons">
+                    <button id="sendJCoinsButton" class="wallet-action-button">
+                        <i class="fas fa-paper-plane"></i> Send JCoins
+                    </button>
+                    <a href="/profile.html" id="requestJCoinsLink" class="wallet-action-button secondary">
+                        <i class="fas fa-coins"></i> Request JCoins
+                    </a>
+                </div>
+
+                <div class="transaction-history-section">
+                    <h2>Transaction History</h2>
+                    <div id="transactionList" class="transaction-list">
+                        <p class="no-transactions-message" id="noTransactionsMessage">No transactions yet.</p>
+                        <!-- Transaction items will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buy JCoins Panel -->
+            <div class="buy-jcoins-panel">
+                <h2>Buy JCoins</h2>
+                <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem;">
+                    Select a package or enter a custom amount below to add JCoins to your wallet.
+                </p>
+
+                <div class="bank-details-section">
+                    <h3>Bank Details</h3>
+                    <p><strong>Bank Name:</strong> Opay</p>
+                    <p><strong>Account Name:</strong> ELECHI JOSHUA</p>
+                    <p>
+                        <strong>Account Number:</strong> <span id="bankAccountNumber">8111609765</span>
+                        <button class="copy-button" onclick="copyToClipboard('8111609765')">Copy</button>
+                    </p>
+                    <p>
+                        <strong>Reference:</strong> Your JCHAT User ID (<span id="userReferenceId">Loading...</span>)
+                        <button class="copy-button" onclick="copyToClipboard(document.getElementById('userReferenceId').textContent)">Copy</button>
+                    </p>
+                    <p style="font-size: 0.8rem; margin-top: 10px; color: var(--bonus-color);">
+                        <i class="fas fa-info-circle"></i> After making a transfer, please fill the form below and upload your payment receipt.
+                    </p>
+                </div>
+
+                <!-- Manual Buy Section -->
+                <div class="manual-buy-section">
+                    <h3>Custom Purchase</h3>
+                    <div class="input-group">
+                        <label for="nairaInput">Amount Paid (NGN):</label>
+                        <input type="number" id="nairaInput" min="75" step="1" placeholder="e.g., 75, 1000, 5000">
+                    </div>
+                    <!-- Receipt Upload Input -->
+                    <div class="input-group">
+                        <label for="receiptUploadInput">Upload Payment Receipt:</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="receiptUploadInput" accept="image/*" style="display: none;">
+                            <i class="fas fa-upload"></i>
+                            <span class="file-name" id="receiptFileName">No file chosen</span>
+                        </div>
+                        <img id="receiptPreview" class="receipt-preview" style="display: none;">
+                    </div>
+                    <div class="calculated-jcoins">
+                        <p>You will get: <span id="calculatedJCoins">0</span> JCoins</p>
+                        <p id="calculatedBonus" class="package-bonus no-bonus">No Bonus</p>
+                    </div>
+                    <button id="sendManualBuyRequestButton" class="wallet-action-button">
+                        <span class="button-text">Send Purchase Request</span>
+                        <div class="button-loader"></div>
+                    </button>
+                    <div class="whatsapp-info">
+                        <p>For support or issues with your purchase, contact:</p>
+                        <a href="https://wa.me/2349013790707" target="_blank">
+                            <i class="fab fa-whatsapp"></i> +234 901 379 0707
+                        </a>
+                    </div>
+                </div>
+                <!-- End Manual Buy Section -->
+
+                <!-- JCoin Packages Grid (for pre-defined options) -->
+                <div class="jcoin-packages-grid" id="jcoinPackagesGrid">
+                    <!-- JCoin packages will be dynamically loaded here -->
+                </div>
+            </div>
+            <!-- END Buy JCoins Panel -->
+
+            <!-- NEW: Withdrawal Section -->
+            <div class="withdrawal-section">
+                <h2>Withdraw JCoins</h2>
+                <p class="withdrawal-info">
+                    Withdrawal Rate: <strong>2000 JCoins</strong> = <strong>#10,000 NGN</strong>.
+                </p>
+
+                <!-- Bank Details Form -->
+                <div class="bank-details-form">
+                    <h3>Your Bank Details</h3>
+                    <div class="input-group">
+                        <label for="bankNameInput">Bank Name:</label>
+                        <input type="text" id="bankNameInput" placeholder="e.g., Opay, Zenith Bank" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="accountNameInput">Account Name:</label>
+                        <input type="text" id="accountNameInput" placeholder="Your Account Name" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="accountNumberInput">Account Number:</label>
+                        <input type="text" id="accountNumberInput" placeholder="Your Account Number" required>
+                    </div>
+                    <button id="saveBankDetailsButton" class="save-button">
+                        <span class="button-text">Save Bank Details</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </div>
+
+                <button id="withdrawButton" class="withdrawal-button" disabled>
+                    <span class="button-text">Withdraw 2000 JCoins</span>
+                    <div class="button-loader"></div>
+                </button>
+                <p id="withdrawalMessage" class="withdrawal-message"></p>
+                <p id="pendingWithdrawalMessage" class="withdrawal-message" style="color: var(--bonus-color);"></p>
+            </div>
+            <!-- END Withdrawal Section -->
+
+        </div>
+    </main>
+
+    <!-- Custom Message Box -->
+    <div id="messageBox"></div>
+
+    <!-- NEW: Send JCoins Modal -->
+    <div id="sendJCoinsModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3><i class="fas fa-paper-plane"></i> Send JCoins</h3>
+            <p style="color: var(--text-light); font-size: 0.9rem; text-align: center;">
+                Transfer JCoins to another JCHAT user.
+            </p>
+            <div class="input-group">
+                <label for="recipientIdInput">Recipient User ID:</label>
+                <input type="text" id="recipientIdInput" placeholder="Enter recipient's User ID (e.g., 123abc456def)">
+            </div>
+            <div class="input-group">
+                <label for="sendAmountInput">Amount to Send:</label>
+                <input type="number" id="sendAmountInput" min="1" step="1" placeholder="e.g., 10, 50, 100">
+                <p class="current-balance-info">Your Balance: <span id="yourJCoinsBalance">0</span> JCoins</p>
+            </div>
+            <div class="button-group">
+                <button id="cancelSendJCoins" class="modal-button cancel-button">Cancel</button>
+                <button id="confirmSendJCoins" class="modal-button confirm-button">
+                    <span class="button-text">Send JCoins</span>
+                    <div class="button-loader"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bottom Navigation Bar -->
+    <nav id="bottomNavBar" class="nav-bar-hidden-full">
+        <a href="/home.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="/chat.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-comment-dots"></i></div>
+            <span>Chat</span>
+        </a>
+        <a href="/find_friends.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-users"></i></div>
+            <span>Users</span>
+        </a>
+        <a href="/friends.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-user-friends"></i></div>
+            <span>Friends</span>
+        </a>
+        <a href="/wallet.html" class="nav-icon-item active"> <!-- Set as active for Wallet -->
+            <div class="nav-icon-circle"><i class="fas fa-wallet"></i></div>
+            <span>Wallet</span>
+        </a>
+        <a href="/settings.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-cog"></i></div>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <!-- Navigation Toggle Button -->
+    <button id="navToggleBtn" aria-label="Toggle Navigation">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Tone.js for sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        // FIX: Added doc to the import list for transaction.set(doc(collectionRef))
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+        // --- Firebase & Canvas Environment Configuration ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+            authDomain: "jchat-1.firebaseapp.com",
+            projectId: "jchat-1",
+            storageBucket: "jchat-1.firebasestorage.app",
+            messagingSenderId: "328479683167",
+            appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+            measurementId: "G-S6Z9GG0R9P"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Cloudinary Configuration (for profile pictures in header and receipt uploads)
+        const cloudinaryConfig = {
+            cloudName: "dxld01rcp",
+            uploadPreset: "Storage_preset"
+        };
+
+        // Initialize Firebase services
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app); // Re-initialized Firebase Storage
+
+        // --- DOM Elements ---
+        const headerProfilePic = document.getElementById('headerProfilePic');
+        const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+        const headerDisplayName = document.getElementById('headerDisplayName');
+        const messageBox = document.getElementById('messageBox');
+        const headerNavLinkProfile = document.getElementById('headerNavLinkProfile');
+        const adminIconLink = document.getElementById('adminIconLink');
+
+        const jcoinBalanceElement = document.getElementById('jcoinBalance');
+        const gasBalanceElement = document.getElementById('gasBalance'); // NEW
+        const usdBalanceElement = document.getElementById('usdBalance');
+        const transactionListElement = document.getElementById('transactionList');
+        const noTransactionsMessage = document.getElementById('noTransactionsMessage');
+
+        // Wallet Buttons
+        const sendJCoinsButton = document.getElementById('sendJCoinsButton'); // NEW
+        const requestJCoinsLink = document.getElementById('requestJCoinsLink'); // NEW
+
+        // Buy JCoins Panel Elements
+        const bankAccountNumberSpan = document.getElementById('bankAccountNumber');
+        const userReferenceIdSpan = document.getElementById('userReferenceId');
+        const jcoinPackagesGrid = document.getElementById('jcoinPackagesGrid');
+
+        // Manual Buy Section Elements
+        const nairaInput = document.getElementById('nairaInput');
+        const receiptUploadInput = document.getElementById('receiptUploadInput'); // RESTORED
+        const receiptFileNameSpan = document.getElementById('receiptFileName'); // RESTORED
+        const receiptPreviewImg = document.getElementById('receiptPreview'); // RESTORED
+        const calculatedJCoinsSpan = document.getElementById('calculatedJCoins');
+        const calculatedBonusSpan = document.getElementById('calculatedBonus');
+        const sendManualBuyRequestButton = document.getElementById('sendManualBuyRequestButton');
+
+        // Send JCoins Modal Elements (NEW)
+        const sendJCoinsModal = document.getElementById('sendJCoinsModal');
+        const recipientIdInput = document.getElementById('recipientIdInput');
+        const sendAmountInput = document.getElementById('sendAmountInput');
+        const yourJCoinsBalanceSpan = document.getElementById('yourJCoinsBalance');
+        const cancelSendJCoinsButton = document.getElementById('cancelSendJCoins');
+        const confirmSendJCoinsButton = document.getElementById('confirmSendJCoins');
+
+        // Withdrawal Section Elements (NEW)
+        const withdrawalButton = document.getElementById('withdrawButton');
+        const withdrawalMessage = document.getElementById('withdrawalMessage');
+        const pendingWithdrawalMessage = document.getElementById('pendingWithdrawalMessage');
+
+        // Bank Details Form Elements (NEW)
+        const bankNameInput = document.getElementById('bankNameInput');
+        const accountNameInput = document.getElementById('accountNameInput');
+        const accountNumberInput = document.getElementById('accountNumberInput');
+        const saveBankDetailsButton = document.getElementById('saveBankDetailsButton');
+
+
+        // --- Global State ---
+        let isAuthReady = false;
+        let currentUser = null;
+        let currentUserProfile = null; // Store current user's profile data
+        let unsubscribeProfile = null; // To store unsubscribe function for profile listener
+        let unsubscribeTransactions = null; // To store unsubscribe function for transactions listener
+        let unsubscribePendingBuyRequests = null; // To store unsubscribe for buy requests
+        let unsubscribePendingWithdrawalRequests = null; // To store unsubscribe for withdrawal requests
+        let hasPendingBuyRequest = false; // Flag to prevent multiple pending buy requests
+        let hasPendingWithdrawalRequest = false; // Flag to prevent multiple pending withdrawal requests
+        let selectedReceiptFile = null; // To store the selected receipt file for upload
+
+        // --- Constants ---
+        const JCOIN_TO_USD_RATE = 0.005; // 1 JCoin = $0.005
+        const NAIRA_TO_JCOIN_RATE = 1 / 7.5; // 10 JCoins = #75 means 1 JCoin = #7.5, so 1 Naira = 1/7.5 JCoins
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID
+        const WITHDRAWAL_JCOIN_AMOUNT = 2000;
+        const WITHDRAWAL_NAIRA_AMOUNT = 10000;
+
+        // Define JCoin packages with Naira prices and bonuses
+        const JCOIN_PACKAGES = [
+            { nairaPrice: 75, baseJCoins: 10, bonusPercent: 0, description: "Starter Pack" },
+            { nairaPrice: 750, baseJCoins: 100, bonusPercent: 0, description: "Small Bundle" },
+            { nairaPrice: 1000, baseJCoins: Math.floor(1000 * NAIRA_TO_JCOIN_RATE), bonusPercent: 5, description: "Bronze Pack" },
+            { nairaPrice: 2500, baseJCoins: Math.floor(2500 * NAIRA_TO_JCOIN_RATE), bonusPercent: 7, description: "Bronze Plus" },
+            { nairaPrice: 5000, baseJCoins: Math.floor(5000 * NAIRA_TO_JCOIN_RATE), bonusPercent: 10, description: "Silver Pack" },
+            { nairaPrice: 10000, baseJCoins: Math.floor(10000 * NAIRA_TO_JCOIN_RATE), bonusPercent: 15, description: "Gold Pack" },
+            { nairaPrice: 25000, baseJCoins: Math.floor(25000 * NAIRA_TO_JCOIN_RATE), bonusPercent: 18, description: "Platinum Tier 1" },
+            { nairaPrice: 50000, baseJCoins: Math.floor(50000 * NAIRA_TO_JCOIN_RATE), bonusPercent: 20, description: "Platinum Tier 2" },
+            { nairaPrice: 75000, baseJCoins: Math.floor(75000 * NAIRA_TO_JCOIN_RATE), bonusPercent: 22, description: "Diamond Tier 1" },
+            { nairaPrice: 100000, baseJCoins: Math.floor(100000 * NAIRA_TO_JCOIN_RATE), bonusPercent: 25, description: "Diamond Tier 2" },
+            { nairaPrice: 250000, baseJCoins: Math.floor(250000 * NAIRA_TO_JCOIN_RATE), bonusPercent: 30, description: "Legendary Pack" },
+            { nairaPrice: 500000, baseJCoins: Math.floor(500000 * NAIRA_TO_JCOIN_RATE), bonusPercent: 35, description: "Mythic Pack" },
+            { nairaPrice: 1000000, baseJCoins: Math.floor(1000000 * NAIRA_TO_JCOIN_RATE), bonusPercent: 40, description: "Ultimate Pack" },
+        ];
+
+        // --- Utility Functions (consistent with other JCHAT pages) ---
+
+        /**
+         * Plays a short, success-like sound tone using Tone.js.
+         */
+        async function playSuccessTone() {
+            try {
+                // Ensure Tone.js is started (required for audio context)
+                await Tone.start();
+                const synth = new Tone.Synth().toDestination();
+                synth.triggerAttackRelease("C5", "8n"); // Play a C5 note for an 8th note duration
+                synth.triggerAttackRelease("E5", "8n", Tone.now() + 0.1); // Play an E5 note slightly after C5
+                synth.triggerAttackRelease("G5", "8n", Tone.now() + 0.2); // Play a G5 note slightly after E5
+            } catch (error) {
+                console.warn("JCHAT_WARN: Failed to play success tone:", error);
+            }
+        }
+
+        /**
+         * Plays a short, coin-like sound notification using Tone.js.
+         */
+        async function playCoinSound() {
+            try {
+                await Tone.start();
+                const synth = new Tone.MembraneSynth().toDestination(); // Use MembraneSynth for a "pop" or "coin" sound
+                synth.triggerAttackRelease("C4", "16n"); // A quick, sharp note
+            } catch (error) {
+                console.warn("JCHAT_WARN: Failed to play coin sound:", error);
+            }
+        }
+
+
+        /**
+         * Displays a temporary message box with a given message and type.
+         * @param {string} message - The message to display.
+         * @param {string} type - The type of message ('success', 'error', 'info', 'loading', 'warning').
+         * @param {boolean} [isPersistent=false] - If true, message stays until explicitly cleared or replaced.
+         * @param {number} [durationMs=3000] - Duration in milliseconds for the message to display if not persistent.
+         */
+        function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
+            if (messageBox.timeoutId) {
+                clearTimeout(messageBox.timeoutId);
+            }
+
+            messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
+            const messageBoxIcon = messageBox.querySelector('#messageBoxIcon');
+            const messageBoxText = messageBox.querySelector('#messageBoxText');
+
+            messageBoxText.textContent = message;
+            messageBox.className = 'message-box show ' + type; // Add type class for styling
+
+            // Set icon based on type
+            if (type === 'success') {
+                messageBoxIcon.classList.add('fas', 'fa-check-circle');
+            } else if (type === 'error') {
+                messageBoxIcon.classList.add('fas', 'fa-times-circle');
+            } else if (type === 'info') {
+                messageBoxIcon.classList.add('fas', 'fa-info-circle');
+            } else if (type === 'warning') {
+                messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
+            } else if (type === 'loading') {
+                 messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); // Spinner for loading
+            } else {
+                messageBoxIcon.className = ''; // No specific icon
+            }
+
+            if (type === 'loading') {
+                messageBox.classList.add('loading-pulse');
+            } else {
+                messageBox.classList.remove('loading-pulse');
+            }
+
+            messageBox.style.display = 'flex';
+            messageBox.style.opacity = '1';
+
+            if (!isPersistent) {
+                messageBox.timeoutId = setTimeout(() => {
+                    messageBox.style.opacity = '0';
+                    messageBox.addEventListener('transitionend', function handler() {
+                        messageBox.style.display = 'none';
+                        messageBox.removeEventListener('transitionend', handler);
+                        messageBox.classList.remove('loading-pulse');
+                    }, { once: true });
+                }, durationMs);
+            }
+        }
+
+        /**
+         * Copies text to the clipboard.
+         * @param {string} text - The text to copy.
+         */
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed'; // Avoid scrolling to bottom
+            textarea.style.opacity = '0'; // Hide it
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showMessageBox('Copied to clipboard!', 'success');
+                } else {
+                    showMessageBox('Failed to copy. Please try manually.', 'error');
+                }
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                showMessageBox('Failed to copy. Please try manually.', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        /**
+         * Constructs a Cloudinary URL for an image/video.
+         * @param {string} urlOrPublicId - The full Cloudinary URL or the public ID of the image on Cloudinary.
+         * @param {string} transformations - Optional Cloudinary transformations.
+         * @returns {string|null} The full Cloudinary URL or null if urlOrPublicId is not provided.
+         */
+        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
+            if (!urlOrPublicId) return null;
+            // Check if it's already a full URL (e.g., from Firebase Auth photoURL or existing Cloudinary URL)
+            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
+                // If it's a direct URL to a Cloudinary asset, we can insert transformations
+                // This is a simplified approach; a more robust one would parse the URL
+                if (urlOrPublicId.includes('res.cloudinary.com')) {
+                    const parts = urlOrPublicId.split('/upload/');
+                    if (parts.length === 2) {
+                        return `${parts[0]}/upload/${transformations}/${parts[1]}`;
+                    }
+                }
+                return urlOrPublicId; // Return as is if it's a general URL not from Cloudinary or already transformed
+            }
+            // Assume it's a public ID if not a full URL
+            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
+        }
+
+        /**
+         * Displays the profile picture or a default icon.
+         * @param {HTMLElement} imgElement - The <img> element to update.
+         * @param {HTMLElement} iconElement - The <i> element to display if no image.
+         * @param {string|null} profilePicId - The Cloudinary public ID or URL, or null.
+         * @param {string} usernameInitial - Initial for placeholder.
+         * @param {string} transformations - Cloudinary transformations.
+         */
+        function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
+            if (imgElement) { // Ensure imgElement exists
+                if (profilePicId) {
+                    const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
+                    imgElement.src = imageUrl;
+                    imgElement.style.display = 'block';
+                    if (iconElement) iconElement.style.display = 'none'; // Null check for iconElement
+                    imgElement.onerror = () => {
+                        console.error(`JCHAT_ERROR: Failed to load profile picture: ${profilePicId}. Using placeholder.`);
+                        imgElement.src = `https://placehold.co/40x40/CCCCCC/000000?text=${usernameInitial}`;
+                        imgElement.style.display = 'block';
+                        if (iconElement) iconElement.style.display = 'none'; // Null check for iconElement
+                    };
+                } else {
+                    imgElement.src = '';
+                    imgElement.style.display = 'none';
+                    if (iconElement) iconElement.style.display = 'block'; // Null check for iconElement
+                }
+            }
+        }
+
+        /**
+         * Fetches and displays the current user's profile data for the header.
+         * This function runs on every page to ensure header is consistent.
+         * @param {firebase.User} user - The authenticated Firebase user object.
+         */
+        async function fetchAndDisplayHeaderProfile(user) {
+            try {
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                const privateDocSnap = await getDoc(privateProfileDocRef);
+
+                let profileData = null;
+                if (privateDocSnap.exists()) {
+                    profileData = privateDocSnap.data();
+                    // Initialize missing fields if they don't exist
+                    if (profileData.jCoins === undefined) {
+                        await updateDoc(privateProfileDocRef, { jCoins: 0 });
+                        profileData.jCoins = 0;
+                    }
+                    if (profileData.gas === undefined) {
+                        await updateDoc(privateProfileDocRef, { gas: 0 });
+                        profileData.gas = 0;
+                    }
+                    if (profileData.totalGasEarned === undefined) {
+                        await updateDoc(privateProfileDocRef, { totalGasEarned: 0 });
+                        profileData.totalGasEarned = 0;
+                    }
+                    if (profileData.level === undefined) {
+                        await updateDoc(privateProfileDocRef, { level: 1 });
+                        profileData.level = 1;
+                    }
+                    if (profileData.walletUnlocked === undefined) {
+                        await updateDoc(privateProfileDocRef, { walletUnlocked: false });
+                        profileData.walletUnlocked = false;
+                    }
+                    if (profileData.unlockedBenefits === undefined) {
+                        await updateDoc(privateProfileDocRef, { unlockedBenefits: [] });
+                        profileData.unlockedBenefits = [];
+                    }
+                    if (profileData.bankDetails === undefined) { // NEW: Initialize bankDetails
+                        await updateDoc(privateProfileDocRef, { bankDetails: {} });
+                        profileData.bankDetails = {};
+                    }
+                    // Fix for createdAt if it's missing or malformed (not a Timestamp)
+                    if (!profileData.createdAt || typeof profileData.createdAt.toDate !== 'function') {
+                        console.warn("JCHAT_WARN: Private user_profile createdAt is missing or malformed. Attempting to fix.");
+                        await updateDoc(privateProfileDocRef, { createdAt: serverTimestamp() });
+                        // Re-fetch to get the correct Timestamp object
+                        const updatedSnap = await getDoc(privateProfileDocRef);
+                        profileData.createdAt = updatedSnap.data().createdAt;
+                    }
+
+                } else {
+                    // If private profile doesn't exist, create a basic one
+                    profileData = {
+                        username: user.displayName || `User_${user.uid.substring(0, 8)}`,
+                        email: user.email || "",
+                        profilePicId: user.photoURL || null,
+                        bio: "",
+                        location: "",
+                        friendsCount: 0,
+                        followersCount: 0,
+                        followingCount: 0,
+                        createdAt: serverTimestamp(), // Use serverTimestamp for consistency
+                        updatedAt: serverTimestamp(),
+                        inspirationType: "motivational",
+                        visibility: {
+                            displayName: true, profilePic: true, bio: false, location: false,
+                            emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
+                        },
+                        totalPosts: 0,
+                        jCoins: 0,
+                        gas: 0,
+                        totalGasEarned: 0,
+                        level: 1,
+                        walletUnlocked: false,
+                        unlockedBenefits: [],
+                        bankDetails: {} // NEW: Initialize bankDetails
+                    };
+                    await setDoc(privateProfileDocRef, profileData);
+                    console.log("JCHAT_DEBUG: Created new profile data for header:", profileData);
+
+                    // Also create/update public profile
+                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+                    await setDoc(publicProfileDocRef, {
+                        username: profileData.username,
+                        profilePicId: profileData.profilePicId,
+                        bio: profileData.bio,
+                        location: profileData.location,
+                        createdAt: profileData.createdAt,
+                        updatedAt: profileData.updatedAt,
+                        visibility: profileData.visibility,
+                        totalPosts: profileData.totalPosts,
+                        level: profileData.level,
+                        totalGasEarned: profileData.totalGasEarned
+                    }, { merge: true });
+                }
+
+                // Update header UI
+                const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
+                displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                headerDisplayName.textContent = profileData.username || "JCHAT User";
+                if (headerNavLinkProfile) headerNavLinkProfile.href = `/profile.html?userId=${user.uid}`; // Null check
+                if (document.getElementById('profileLink')) document.getElementById('profileLink').href = `/profile.html?userId=${user.uid}`; // Null check
+
+                // Show Admin Icon if current user is admin
+                if (adminIconLink) { // Null check
+                    if (user.uid === ADMIN_UID) {
+                        adminIconLink.style.display = 'block';
+                    } else {
+                        adminIconLink.style.display = 'none';
+                    }
+                }
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching or creating profile for header:", error);
+                const usernameInitial = (user.displayName || "J").charAt(0).toUpperCase();
+                displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                if (headerDisplayName) headerDisplayName.textContent = user.displayName || "JCHAT User"; // Null check
+                showMessageBox(`Error loading header profile: ${error.message}`, 'error');
+            }
+        }
+
+
+        /**
+         * Toggles loading state for a button.
+         * @param {HTMLElement} buttonElement - The button to toggle.
+         * @param {boolean} isLoading - True to show loading, false to hide.
+         */
+        function toggleButtonLoading(buttonElement, isLoading) {
+            if (!buttonElement) return;
+            const loader = buttonElement.querySelector('.button-loader');
+            const text = buttonElement.querySelector('.button-text');
+
+            if (isLoading) {
+                buttonElement.disabled = true;
+                buttonElement.classList.add('loading'); // Add loading class for general styling
+                if (loader) loader.classList.add('active');
+                if (text) text.style.display = 'none';
+            } else {
+                buttonElement.disabled = false;
+                buttonElement.classList.remove('loading');
+                if (loader) loader.classList.remove('active');
+                if (text) text.style.display = 'block';
+            }
+        }
+
+
+        // --- Wallet Page Specific Functions ---
+
+        /**
+         * Renders the JCoin packages in the grid.
+         */
+        function renderJCoinPackages() {
+            if (!jcoinPackagesGrid) return; // Null check
+            jcoinPackagesGrid.innerHTML = ''; // Clear existing packages
+
+            JCOIN_PACKAGES.forEach(pkg => {
+                const baseJCoins = Math.floor(pkg.nairaPrice * NAIRA_TO_JCOIN_RATE);
+                const bonusJCoins = Math.floor(baseJCoins * (pkg.bonusPercent / 100));
+                const totalJCoins = baseJCoins + bonusJCoins;
+
+                const packageCard = document.createElement('div');
+                packageCard.classList.add('jcoin-package-card');
+                packageCard.dataset.nairaPrice = pkg.nairaPrice;
+                packageCard.dataset.jcoins = totalJCoins;
+
+                packageCard.innerHTML = `
+                    <span class="package-price">#${pkg.nairaPrice.toLocaleString()}</span>
+                    <span class="package-jcoins">${totalJCoins.toLocaleString()} JCoins</span>
+                    <span class="package-bonus ${bonusJCoins === 0 ? 'no-bonus' : ''}">
+                        ${bonusJCoins > 0 ? `+${bonusJCoins.toLocaleString()} Bonus JCoins (${pkg.bonusPercent}%)` : 'No Bonus'}
+                    </span>
+                    <span style="font-size: 0.8rem; color: var(--text-light);">(${pkg.description})</span>
+                `;
+
+                packageCard.addEventListener('click', () => {
+                    // Pre-fill manual input and trigger request
+                    if (nairaInput) nairaInput.value = pkg.nairaPrice;
+                    calculateJCoinsForManualInput();
+                    // Optional: Scroll to manual buy section
+                    if (sendManualBuyRequestButton) sendManualBuyRequestButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+                jcoinPackagesGrid.appendChild(packageCard);
+            });
+        }
+
+        /**
+         * Calculates JCoins and bonus based on Naira input for the manual purchase.
+         */
+        function calculateJCoinsForManualInput() {
+            if (!nairaInput || !calculatedJCoinsSpan || !calculatedBonusSpan) return; // Null check
+
+            const nairaAmount = parseInt(nairaInput.value);
+            if (isNaN(nairaAmount) || nairaAmount < 0) {
+                calculatedJCoinsSpan.textContent = "0";
+                calculatedBonusSpan.textContent = "Invalid Amount";
+                calculatedBonusSpan.classList.add('no-bonus');
+                return;
+            }
+
+            let baseJCoins = Math.floor(nairaAmount * NAIRA_TO_JCOIN_RATE);
+            let bonusPercent = 0;
+
+            // Find the highest applicable bonus tier for custom amount
+            for (let i = JCOIN_PACKAGES.length - 1; i >= 0; i--) {
+                if (nairaAmount >= JCOIN_PACKAGES[i].nairaPrice) {
+                    bonusPercent = JCOIN_PACKAGES[i].bonusPercent;
+                    break;
+                }
+            }
+
+            const bonusJCoins = Math.floor(baseJCoins * (bonusPercent / 100));
+            const totalJCoins = baseJCoins + bonusJCoins;
+
+            calculatedJCoinsSpan.textContent = totalJCoins.toLocaleString();
+            if (bonusJCoins > 0) {
+                calculatedBonusSpan.textContent = `+${bonusJCoins.toLocaleString()} Bonus JCoins (${bonusPercent}%)`;
+                calculatedBonusSpan.classList.remove('no-bonus');
+            } else {
+                calculatedBonusSpan.textContent = "No Bonus";
+                calculatedBonusSpan.classList.add('no-bonus');
+            }
+        }
+
+        /**
+         * Handles the receipt file upload input change.
+         */
+        function handleReceiptUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedReceiptFile = file; // Store the file globally
+                if (receiptFileNameSpan) receiptFileNameSpan.textContent = file.name; // Null check
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (receiptPreviewImg) { // Null check
+                        receiptPreviewImg.src = e.target.result;
+                        receiptPreviewImg.style.display = 'block';
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                selectedReceiptFile = null;
+                if (receiptFileNameSpan) receiptFileNameSpan.textContent = 'No file chosen'; // Null check
+                if (receiptPreviewImg) { // Null check
+                    receiptPreviewImg.style.display = 'none';
+                    receiptPreviewImg.src = '';
+                }
+            }
+        }
+
+
+        /**
+         * Sends a buy JCoins request to the admin.
+         * This request expects manual payment and receipt submission via WhatsApp or Profile page.
+         * @param {number} nairaAmount - The Naira amount for the package.
+         * @param {number} jcoinAmount - The total JCoins in the package (including bonus).
+         */
+        async function sendBuyJCoinsRequest() {
+            if (!currentUser || !currentUserProfile) {
+                showMessageBox("Please log in to send a JCoin purchase request.", 'error');
+                return;
+            }
+
+            if (hasPendingBuyRequest) {
+                showMessageBox("You already have a pending purchase request. Please wait for it to be processed.", 'info');
+                return;
+            }
+
+            const nairaAmount = parseInt(nairaInput.value);
+            const jcoinAmount = parseInt(calculatedJCoinsSpan.textContent.replace(/,/g, '')); // Get calculated JCoins
+
+            if (isNaN(nairaAmount) || nairaAmount <= 0) {
+                showMessageBox("Please enter a valid Naira amount.", 'error');
+                return;
+            }
+            if (nairaAmount < 75) { // Minimum request amount
+                showMessageBox("Minimum purchase amount is #75.", 'warning');
+                return;
+            }
+            if (!selectedReceiptFile) {
+                showMessageBox("Please upload a payment receipt.", 'error');
+                return;
+            }
+
+            // Disable button and show loader to prevent double clicks
+            if (sendManualBuyRequestButton) toggleButtonLoading(sendManualBuyRequestButton, true); // Null check
+            document.querySelectorAll('.jcoin-package-card').forEach(card => card.style.pointerEvents = 'none');
+
+
+            showMessageBox(`Uploading receipt and sending purchase request...`, 'loading', true);
+
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedReceiptFile);
+                formData.append('upload_preset', cloudinaryConfig.uploadPreset);
+
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("JCHAT_ERROR: Cloudinary upload error:", errorData);
+                    throw new Error(`Cloudinary upload failed: ${errorData.error.message || response.statusText}`);
+                }
+
+                const data = await response.json();
+                const uploadedReceiptUrl = data.secure_url;
+
+                const buyRequestsCollectionRef = collection(db, "artifacts", appId, "public", "data", "jcoin_buy_requests");
+
+                await addDoc(buyRequestsCollectionRef, {
+                    userId: currentUser.uid,
+                    username: currentUserProfile.username || currentUser.displayName || "Unknown User",
+                    requestedNairaPrice: nairaAmount,
+                    requestedJCoins: jcoinAmount,
+                    receiptImageUrl: uploadedReceiptUrl, // Now includes the uploaded URL
+                    status: 'pending', // 'pending', 'completed', 'rejected'
+                    adminId: ADMIN_UID, // The specific admin UID to notify
+                    timestamp: serverTimestamp(),
+                });
+
+                hasPendingBuyRequest = true; // Set flag
+                showMessageBox(
+                    `Your request for ${jcoinAmount.toLocaleString()} JCoins has been sent! An admin will review it shortly.`,
+                    'success',
+                    true // Keep message persistent until user navigates or dismisses
+                );
+                playCoinSound(); // Play coin sound on successful request sent
+
+                // Clear input fields and receipt preview after successful request
+                if (nairaInput) nairaInput.value = ''; // Null check
+                calculateJCoinsForManualInput(); // Recalculate to reset display
+                if (receiptUploadInput) receiptUploadInput.value = ''; // Clear file input, null check
+                handleReceiptUpload({ target: { files: [] } }); // Reset receipt preview
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error sending JCoin purchase request:", error);
+                showMessageBox(`Failed to send purchase request: ${error.message}`, 'error');
+            } finally {
+                if (sendManualBuyRequestButton) toggleButtonLoading(sendManualBuyRequestButton, false); // Null check
+                // Button remains disabled if hasPendingRequest is true, re-enabled otherwise by onSnapshot
+            }
+        }
+
+        /**
+         * Shows the Send JCoins modal.
+         */
+        function showSendJCoinsModal() {
+            if (!currentUser || !currentUserProfile) {
+                showMessageBox("Please log in to send JCoins.", "warning");
+                return;
+            }
+            if (sendJCoinsModal) sendJCoinsModal.classList.add('active'); // Null check
+            if (recipientIdInput) recipientIdInput.value = ''; // Null check
+            if (sendAmountInput) sendAmountInput.value = ''; // Null check
+            if (yourJCoinsBalanceSpan) yourJCoinsBalanceSpan.textContent = (currentUserProfile.jCoins || 0).toLocaleString(); // Null check
+        }
+
+        /**
+         * Hides the Send JCoins modal.
+         */
+        function hideSendJCoinsModal() {
+            if (sendJCoinsModal) sendJCoinsModal.classList.remove('active'); // Null check
+        }
+
+        /**
+         * Handles sending JCoins from one user to another.
+         */
+        async function sendJCoins() {
+            if (!currentUser || !currentUserProfile) {
+                showMessageBox("You must be logged in to send JCoins.", 'error');
+                return;
+            }
+
+            const recipientId = recipientIdInput.value.trim();
+            const amount = parseInt(sendAmountInput.value);
+
+            if (!recipientId) {
+                showMessageBox("Please enter a recipient User ID.", 'error');
+                return;
+            }
+            if (recipientId === currentUser.uid) {
+                showMessageBox("You cannot send JCoins to yourself.", 'warning');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                showMessageBox("Please enter a valid positive amount to send.", 'error');
+                return;
+            }
+            if (amount > (currentUserProfile.jCoins || 0)) {
+                showMessageBox("Insufficient JCoins balance.", 'error');
+                return;
+            }
+
+            toggleButtonLoading(confirmSendJCoinsButton, true);
+            showMessageBox("Sending JCoins...", 'loading', true);
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const senderProfileRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+                    const recipientProfileRef = doc(db, "artifacts", appId, "users", recipientId, "profiles", "user_profile");
+
+                    const senderProfileSnap = await transaction.get(senderProfileRef);
+                    const recipientProfileSnap = await transaction.get(recipientProfileRef);
+
+                    if (!senderProfileSnap.exists()) {
+                        throw new Error("Sender profile not found.");
+                    }
+                    if (!recipientProfileSnap.exists()) {
+                        throw new Error("Recipient user ID not found. Please check the ID.");
+                    }
+
+                    const senderData = senderProfileSnap.data();
+                    const recipientData = recipientProfileSnap.data();
+
+                    const senderCurrentJCoins = senderData.jCoins || 0;
+                    const recipientCurrentJCoins = recipientData.jCoins || 0;
+
+                    if (senderCurrentJCoins < amount) {
+                        throw new Error("Insufficient JCoins balance. Transaction cancelled.");
+                    }
+
+                    // Update sender's balance
+                    transaction.update(senderProfileRef, {
+                        jCoins: senderCurrentJCoins - amount,
+                        updatedAt: serverTimestamp()
+                    });
+
+                    // Update recipient's balance
+                    transaction.update(recipientProfileRef, {
+                        jCoins: recipientCurrentJCoins + amount,
+                        updatedAt: serverTimestamp()
+                    });
+
+                    // Add transaction for sender (debit)
+                    const senderTransactionsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "transactions");
+                    // FIX: Changed transaction.add to transaction.set(doc(collectionRef))
+                    transaction.set(doc(senderTransactionsRef), {
+                        type: 'debit',
+                        amount: amount,
+                        description: `Sent JCoins to ${recipientData.username || recipientId}`,
+                        timestamp: serverTimestamp()
+                    });
+
+                    // Add transaction for recipient (credit)
+                    const recipientTransactionsRef = collection(db, "artifacts", appId, "users", recipientId, "transactions");
+                    // FIX: Changed transaction.add to transaction.set(doc(collectionRef))
+                    transaction.set(doc(recipientTransactionsRef), {
+                        type: 'credit',
+                        amount: amount,
+                        description: `Received JCoins from ${senderData.username || currentUser.uid}`,
+                        timestamp: serverTimestamp()
+                    });
+
+                    // Add notification for recipient
+                    const recipientNotificationsRef = collection(db, "artifacts", appId, "users", recipientId, "notifications");
+                    // FIX: Changed transaction.add to transaction.set(doc(collectionRef))
+                    transaction.set(doc(recipientNotificationsRef), {
+                        type: 'jcoin_transfer',
+                        message: `You received ${amount.toLocaleString()} JCoins from ${senderData.username || currentUser.uid}!`,
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        senderId: currentUser.uid,
+                        jcoinAmount: amount
+                    });
+                });
+
+                showMessageBox(`Successfully sent ${amount.toLocaleString()} JCoins to ${recipientId}!`, 'success');
+                playSuccessTone(); // Play success sound
+                hideSendJCoinsModal(); // Close modal
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error sending JCoins:", error);
+                showMessageBox(`Failed to send JCoins: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(confirmSendJCoinsButton, false);
+            }
+        }
+
+        /**
+         * Saves the user's bank details to their profile.
+         */
+        async function saveBankDetails() {
+            if (!currentUser || !currentUserProfile) {
+                showMessageBox("Please log in to save bank details.", 'error');
+                return;
+            }
+
+            const bankName = bankNameInput.value.trim();
+            const accountName = accountNameInput.value.trim();
+            const accountNumber = accountNumberInput.value.trim();
+
+            if (!bankName || !accountName || !accountNumber) {
+                showMessageBox("Please fill in all bank details.", 'error');
+                return;
+            }
+
+            toggleButtonLoading(saveBankDetailsButton, true);
+            showMessageBox("Saving bank details...", 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+                await updateDoc(userProfileDocRef, {
+                    bankDetails: {
+                        bankName: bankName,
+                        accountName: accountName,
+                        accountNumber: accountNumber
+                    },
+                    updatedAt: serverTimestamp()
+                });
+
+                showMessageBox("Bank details saved successfully!", 'success');
+                // Update local profile data
+                currentUserProfile.bankDetails = { bankName, accountName, accountNumber };
+                updateWithdrawalButtonState(); // Re-evaluate withdrawal button state
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error saving bank details:", error);
+                showMessageBox(`Failed to save bank details: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(saveBankDetailsButton, false);
+            }
+        }
+
+        /**
+         * Sends a withdrawal request for 2000 JCoins.
+         */
+        async function sendWithdrawalRequest() {
+            if (!currentUser || !currentUserProfile) {
+                showMessageBox("Please log in to withdraw JCoins.", 'error');
+                return;
+            }
+
+            if (hasPendingWithdrawalRequest) {
+                showMessageBox("You already have a pending withdrawal request. Please wait for it to be processed.", 'info');
+                return;
+            }
+
+            if ((currentUserProfile.jCoins || 0) < WITHDRAWAL_JCOIN_AMOUNT) {
+                showMessageBox(`You need at least ${WITHDRAWAL_JCOIN_AMOUNT} JCoins to withdraw.`, 'warning');
+                return;
+            }
+
+            const bankDetails = currentUserProfile.bankDetails;
+            if (!bankDetails || !bankDetails.bankName || !bankDetails.accountName || !bankDetails.accountNumber) {
+                showMessageBox("Please save your bank details before requesting a withdrawal.", 'warning');
+                // Optionally, scroll to bank details section
+                if (bankNameInput) bankNameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            toggleButtonLoading(withdrawalButton, true);
+            showMessageBox("Sending withdrawal request and deducting JCoins...", 'loading', true);
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const userProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+                    const withdrawalRequestsCollectionRef = collection(db, "artifacts", appId, "public", "data", "jcoin_withdrawal_requests");
+                    const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "transactions");
+                    const adminNotificationsCollectionRef = collection(db, "artifacts", appId, "users", ADMIN_UID, "notifications"); // Admin's notifications
+
+                    const userProfileSnap = await transaction.get(userProfileDocRef);
+                    if (!userProfileSnap.exists()) {
+                        throw new Error("User profile not found.");
+                    }
+
+                    const currentJCoins = userProfileSnap.data().jCoins || 0;
+                    if (currentJCoins < WITHDRAWAL_JCOIN_AMOUNT) {
+                        throw new Error("Insufficient JCoins balance for withdrawal.");
+                    }
+
+                    // Deduct JCoins from user's balance
+                    transaction.update(userProfileDocRef, {
+                        jCoins: currentJCoins - WITHDRAWAL_JCOIN_AMOUNT,
+                        updatedAt: serverTimestamp()
+                    });
+
+                    // Add a withdrawal request
+                    // FIX: Changed transaction.add to transaction.set(doc(collectionRef))
+                    transaction.set(doc(withdrawalRequestsCollectionRef), {
+                        userId: currentUser.uid,
+                        username: currentUserProfile.username || currentUser.displayName || "Unknown User",
+                        jcoinAmount: WITHDRAWAL_JCOIN_AMOUNT,
+                        nairaAmount: WITHDRAWAL_NAIRA_AMOUNT,
+                        bankDetails: bankDetails,
+                        status: 'pending',
+                        timestamp: serverTimestamp()
+                    });
+
+                    // Add a transaction record for the user's debit
+                    // FIX: Changed transaction.add to transaction.set(doc(collectionRef))
+                    transaction.set(doc(userTransactionsCollectionRef), {
+                        type: 'debit',
+                        amount: WITHDRAWAL_JCOIN_AMOUNT,
+                        description: `Withdrawal request for ${WITHDRAWAL_NAIRA_AMOUNT.toLocaleString()} NGN (Pending)`,
+                        timestamp: serverTimestamp()
+                    });
+
+                    // Notify admin
+                    // FIX: Changed transaction.add to transaction.set(doc(collectionRef))
+                    transaction.set(doc(adminNotificationsCollectionRef), {
+                        type: 'withdrawal_request',
+                        message: `New withdrawal request from ${currentUserProfile.username || currentUser.uid} for ${WITHDRAWAL_JCOIN_AMOUNT} JCoins (#${WITHDRAWAL_NAIRA_AMOUNT.toLocaleString()} NGN).`,
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        userId: currentUser.uid,
+                        jcoinAmount: WITHDRAWAL_JCOIN_AMOUNT
+                    });
+                });
+
+                showMessageBox(
+                    `${WITHDRAWAL_JCOIN_AMOUNT} JCoins deducted. Withdrawal request sent for #${WITHDRAWAL_NAIRA_AMOUNT.toLocaleString()} NGN! Awaiting admin approval.`,
+                    'success',
+                    true
+                );
+                playSuccessTone();
+                hasPendingWithdrawalRequest = true; // Set flag
+                updateWithdrawalButtonState(); // Update button state
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error sending withdrawal request:", error);
+                showMessageBox(`Failed to send withdrawal request: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(withdrawalButton, false);
+            }
+        }
+
+        /**
+         * Updates the state of the withdrawal button and messages.
+         */
+        function updateWithdrawalButtonState() {
+            if (!withdrawalButton || !withdrawalMessage || !pendingWithdrawalMessage) return; // Null checks
+
+            const currentJCoins = currentUserProfile ? (currentUserProfile.jCoins || 0) : 0;
+            const hasBankDetails = currentUserProfile && currentUserProfile.bankDetails &&
+                                   currentUserProfile.bankDetails.bankName &&
+                                   currentUserProfile.bankDetails.accountName &&
+                                   currentUserProfile.bankDetails.accountNumber;
+
+            // Hide all messages first
+            withdrawalMessage.classList.remove('show');
+            pendingWithdrawalMessage.classList.remove('show');
+
+            if (!currentUser) {
+                withdrawalButton.disabled = true;
+                withdrawalButton.classList.add('disabled-pending'); // Add class for visual cue
+                withdrawalMessage.textContent = "Please log in to withdraw JCoins.";
+                withdrawalMessage.classList.add('show');
+                return;
+            }
+
+            if (hasPendingWithdrawalRequest) {
+                withdrawalButton.disabled = true;
+                withdrawalButton.classList.add('disabled-pending'); // Add class for visual cue
+                pendingWithdrawalMessage.textContent = "You have a pending withdrawal request. Please wait for admin approval.";
+                pendingWithdrawalMessage.classList.add('show');
+                return;
+            }
+
+            if (currentJCoins < WITHDRAWAL_JCOIN_AMOUNT) {
+                withdrawalButton.disabled = true;
+                withdrawalButton.classList.remove('disabled-pending'); // Remove pending class if not pending
+                withdrawalMessage.textContent = `You need at least ${WITHDRAWAL_JCOIN_AMOUNT} JCoins to withdraw.`;
+                withdrawalMessage.classList.add('show');
+            } else if (!hasBankDetails) {
+                withdrawalButton.disabled = true;
+                withdrawalButton.classList.remove('disabled-pending'); // Remove pending class if not pending
+                withdrawalMessage.textContent = "Please save your bank details to enable withdrawal.";
+                withdrawalMessage.classList.add('show');
+            }
+            else {
+                withdrawalButton.disabled = false;
+                withdrawalButton.classList.remove('disabled-pending'); // Remove pending class if not pending
+                // No message needed if button is enabled
+            }
+        }
+
+
+        /**
+         * Fetches and displays the user's JCoin balance, Gas balance, and transaction history.
+         */
+        function fetchAndDisplayWallet() {
+            if (!currentUser) {
+                if (jcoinBalanceElement) jcoinBalanceElement.textContent = "0"; // Null check
+                if (gasBalanceElement) gasBalanceElement.textContent = "0 Gas (XP)"; // Null check
+                if (usdBalanceElement) usdBalanceElement.textContent = "$0.00 USD"; // Null check
+                if (noTransactionsMessage) noTransactionsMessage.style.display = 'block'; // Null check
+                if (noTransactionsMessage) noTransactionsMessage.textContent = "Please log in to view your wallet."; // Null check
+                if (userReferenceIdSpan) userReferenceIdSpan.textContent = "N/A"; // Hide user ID for non-logged in, null check
+                updateWithdrawalButtonState(); // Update withdrawal button for logged out state
+                return;
+            }
+
+            if (userReferenceIdSpan) userReferenceIdSpan.textContent = currentUser.uid; // Display user's ID for reference, null check
+
+            showMessageBox("Loading wallet...", 'loading', true);
+
+            const userProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+            const transactionsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "transactions");
+            const buyRequestsCollectionRef = collection(db, "artifacts", appId, "public", "data", "jcoin_buy_requests");
+            const withdrawalRequestsCollectionRef = collection(db, "artifacts", appId, "public", "data", "jcoin_withdrawal_requests");
+
+
+            // Listen for real-time updates to the user's profile (for JCoins, Gas, and Bank Details)
+            if (unsubscribeProfile) unsubscribeProfile(); // Unsubscribe previous listener if exists
+            unsubscribeProfile = onSnapshot(userProfileDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentUserProfile = docSnap.data(); // Keep profile data updated
+                    const jCoins = currentUserProfile.jCoins ?? 0;
+                    const gas = currentUserProfile.gas ?? 0; // NEW: Get gas balance
+
+                    if (jcoinBalanceElement) jcoinBalanceElement.textContent = jCoins.toLocaleString(); // Null check
+                    if (gasBalanceElement) gasBalanceElement.textContent = `${gas.toLocaleString()} Gas (XP)`; // Null check
+                    const usdValue = (jCoins * JCOIN_TO_USD_RATE).toFixed(2);
+                    if (usdBalanceElement) usdBalanceElement.textContent = `$${usdValue} USD`; // Null check
+
+                    // Populate bank details form
+                    if (bankNameInput) bankNameInput.value = currentUserProfile.bankDetails?.bankName || '';
+                    if (accountNameInput) accountNameInput.value = currentUserProfile.bankDetails?.accountName || '';
+                    if (accountNumberInput) accountNumberInput.value = currentUserProfile.bankDetails?.accountNumber || '';
+
+                    updateWithdrawalButtonState(); // Update withdrawal button state based on new balance/bank details
+                    showMessageBox("Wallet loaded!", 'success');
+                } else {
+                    currentUserProfile = null;
+                    if (jcoinBalanceElement) jcoinBalanceElement.textContent = "0"; // Null check
+                    if (gasBalanceElement) gasBalanceElement.textContent = "0 Gas (XP)"; // Null check
+                    if (usdBalanceElement) usdBalanceElement.textContent = "$0.00 USD"; // Null check
+                    showMessageBox("User profile not found. JCoins are 0.", 'info');
+                    updateWithdrawalButtonState(); // Update withdrawal button state
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to profile for wallet:", error);
+                showMessageBox(`Error loading wallet: ${error.message}`, 'error');
+            });
+
+            // Listen for real-time updates to the user's transactions
+            if (unsubscribeTransactions) unsubscribeTransactions(); // Unsubscribe previous listener if exists
+            const qTransactions = query(transactionsCollectionRef, orderBy("timestamp", "desc")); // Order by newest first
+            unsubscribeTransactions = onSnapshot(qTransactions, (snapshot) => {
+                if (transactionListElement) transactionListElement.innerHTML = ''; // Clear existing list, null check
+                if (snapshot.empty) {
+                    if (noTransactionsMessage) noTransactionsMessage.style.display = 'block'; // Null check
+                    if (noTransactionsMessage) noTransactionsMessage.textContent = "No transactions yet."; // Null check
+                } else {
+                    if (noTransactionsMessage) noTransactionsMessage.style.display = 'none'; // Null check
+                    snapshot.docs.forEach(doc => {
+                        const transaction = doc.data();
+                        const transactionItem = document.createElement('div');
+                        transactionItem.classList.add('transaction-item');
+
+                        const timestamp = transaction.timestamp ? new Date(transaction.timestamp.toDate()).toLocaleString() : 'N/A';
+
+                        transactionItem.innerHTML = `
+                            <div class="transaction-header">
+                                <span class="transaction-description">${transaction.description}</span>
+                                <span class="transaction-amount ${transaction.type === 'credit' ? 'positive' : 'negative'}">
+                                    ${transaction.type === 'credit' ? '+' : '-'}${transaction.amount.toLocaleString()} JCoins
+                                </span>
+                            </div>
+                            <span class="transaction-timestamp">${timestamp}</span>
+                        `;
+                        if (transactionListElement) transactionListElement.appendChild(transactionItem); // Null check
+                    });
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to transactions:", error);
+                showMessageBox(`Error loading transactions: ${error.message}`, 'error');
+            });
+
+            // Check for existing pending BUY requests from this user
+            if (unsubscribePendingBuyRequests) unsubscribePendingBuyRequests();
+            const qPendingBuyRequests = query(buyRequestsCollectionRef,
+                where("userId", "==", currentUser.uid),
+                where("status", "==", "pending")
+            );
+            unsubscribePendingBuyRequests = onSnapshot(qPendingBuyRequests, (snapshot) => {
+                if (snapshot.empty) {
+                    hasPendingBuyRequest = false;
+                    if (sendManualBuyRequestButton) sendManualBuyRequestButton.disabled = false; // Null check
+                    document.querySelectorAll('.jcoin-package-card').forEach(card => card.style.pointerEvents = 'auto');
+                } else {
+                    hasPendingBuyRequest = true;
+                    if (sendManualBuyRequestButton) sendManualBuyRequestButton.disabled = true; // Null check
+                    document.querySelectorAll('.jcoin-package-card').forEach(card => card.style.pointerEvents = 'none');
+                    showMessageBox("You have a pending JCoin purchase request. Please wait for it to be processed.", 'info', true);
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error checking pending buy requests:", error);
+            });
+
+            // Check for existing pending WITHDRAWAL requests from this user
+            if (unsubscribePendingWithdrawalRequests) unsubscribePendingWithdrawalRequests();
+            const qPendingWithdrawalRequests = query(withdrawalRequestsCollectionRef,
+                where("userId", "==", currentUser.uid),
+                where("status", "==", "pending")
+            );
+            unsubscribePendingWithdrawalRequests = onSnapshot(qPendingWithdrawalRequests, (snapshot) => {
+                if (snapshot.empty) {
+                    hasPendingWithdrawalRequest = false;
+                } else {
+                    hasPendingWithdrawalRequest = true;
+                }
+                updateWithdrawalButtonState(); // Update button state based on pending withdrawal status
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error checking pending withdrawal requests:", error);
+            });
+        }
+
+
+        // --- Authentication State Listener ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                isAuthReady = true;
+                console.log("JCHAT_DEBUG: User authenticated in Wallet Page:", user.uid);
+                await fetchAndDisplayHeaderProfile(user);
+                fetchAndDisplayWallet(); // Fetch wallet data and check pending requests
+                renderJCoinPackages(); // Render packages after user is loaded
+
+            } else {
+                console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("JCHAT_DEBUG: Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("JCHAT_DEBUG: Signed in anonymously.");
+                    }
+                    // onAuthStateChanged will be triggered again with the new user
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error during anonymous sign-in or custom token sign-in:", error);
+                    if (!auth.currentUser) {
+                        window.location.href = '/login.html';
+                    }
+                }
+                isAuthReady = false;
+                if (headerDisplayName) headerDisplayName.textContent = "Guest"; // Null check
+                if (headerProfilePic) headerProfilePic.style.display = 'none'; // Null check
+                if (headerAvatarIcon) headerAvatarIcon.style.display = 'block'; // Null check
+                if (adminIconLink) adminIconLink.style.display = 'none'; // Null check
+                showMessageBox("Please log in to view your wallet.", 'info', true);
+                if (jcoinBalanceElement) jcoinBalanceElement.textContent = "0"; // Null check
+                if (gasBalanceElement) gasBalanceElement.textContent = "0 Gas (XP)"; // Null check
+                if (usdBalanceElement) usdBalanceElement.textContent = "$0.00 USD"; // Null check
+                if (noTransactionsMessage) noTransactionsMessage.style.display = 'block'; // Null check
+                if (noTransactionsMessage) noTransactionsMessage.textContent = "Please log in to view your wallet."; // Null check
+                if (userReferenceIdSpan) userReferenceIdSpan.textContent = "N/A"; // Hide user ID for non-logged in, null check
+                if (jcoinPackagesGrid) jcoinPackagesGrid.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see JCoin packages.</p>'; // Null check
+                if (sendManualBuyRequestButton) sendManualBuyRequestButton.disabled = true; // Disable manual buy for guests, null check
+                updateWithdrawalButtonState(); // Update withdrawal button for logged out state
+            }
+        });
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply theme on load
+            const savedTheme = localStorage.getItem('jchat-theme');
+            const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+            if (savedTheme && themes.includes(savedTheme)) {
+                document.body.classList.remove(...themes);
+                document.body.classList.add(savedTheme);
+            } else {
+                document.body.classList.remove(...themes);
+                document.body.classList.add('theme-dark-mode');
+            }
+
+            // Manual Buy JCoins input listener
+            if (nairaInput) nairaInput.addEventListener('input', calculateJCoinsForManualInput); // Null check
+
+            // Receipt upload listener
+            if (receiptUploadInput) receiptUploadInput.addEventListener('change', handleReceiptUpload); // Null check
+            const fileInputWrapper = document.querySelector('.file-input-wrapper');
+            if (fileInputWrapper && receiptUploadInput) { // Null check
+                fileInputWrapper.addEventListener('click', () => {
+                    receiptUploadInput.click();
+                });
+            }
+
+            if (sendManualBuyRequestButton) { // Null check
+                sendManualBuyRequestButton.addEventListener('click', sendBuyJCoinsRequest);
+            }
+
+            // Send JCoins button and modal listeners
+            if (sendJCoinsButton) sendJCoinsButton.addEventListener('click', showSendJCoinsModal); // Null check
+            if (cancelSendJCoinsButton) cancelSendJCoinsButton.addEventListener('click', hideSendJCoinsModal); // Null check
+            if (confirmSendJCoinsButton) confirmSendJCoinsButton.addEventListener('click', sendJCoins); // Null check
+
+            // Withdrawal button listener
+            if (withdrawalButton) withdrawalButton.addEventListener('click', sendWithdrawalRequest); // Null check
+
+            // Save Bank Details button listener
+            if (saveBankDetailsButton) saveBankDetailsButton.addEventListener('click', saveBankDetails); // Null check
+        });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'jchat-theme') {
+                const newTheme = event.newValue || 'theme-dark-mode';
+                const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+                if (themes.includes(newTheme)) {
+                    document.body.classList.remove(...themes);
+                    document.body.classList.add(newTheme);
+                }
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (unsubscribeProfile) unsubscribeProfile();
+            if (unsubscribeTransactions) unsubscribeTransactions();
+            if (unsubscribePendingBuyRequests) unsubscribePendingBuyRequests();
+            if (unsubscribePendingWithdrawalRequests) unsubscribePendingWithdrawalRequests();
+        });
+
+        // --- Bottom Navigation Bar Toggle Logic (consistent with other JCHAT pages) ---
+        const bottomNavBar = document.getElementById('bottomNavBar');
+        const navToggleBtn = document.getElementById('navToggleBtn');
+
+        function toggleNavBarVisibility() {
+            const toggleIcon = navToggleBtn.querySelector('i');
+            const isHidden = bottomNavBar.classList.toggle('nav-bar-hidden-full');
+
+            if (isHidden) {
+                if (toggleIcon) toggleIcon.classList.remove('fa-chevron-down'); // Null check
+                if (toggleIcon) toggleIcon.classList.add('fa-chevron-up'); // Null check
+            } else {
+                if (toggleIcon) toggleIcon.classList.remove('fa-chevron-up'); // Null check
+                if (toggleIcon) toggleIcon.classList.add('fa-chevron-down'); // Null check
+            }
+        }
+
+        if (bottomNavBar) bottomNavBar.classList.add('nav-bar-hidden-full'); // Null check
+        if (navToggleBtn && navToggleBtn.querySelector('i')) { // Null check
+            navToggleBtn.querySelector('i').classList.remove('fa-chevron-down');
+            navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
+        }
+        if (navToggleBtn) navToggleBtn.addEventListener('click', toggleNavBarVisibility); // Null check
+    </script>
+</body>
+</html>

@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHAT - My Friends</title>
+
+    <!-- Google Fonts: Poppins for headings, Inter for body text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Tone.js for audio notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* Universal box-sizing for consistent layout */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Global CSS Variables for easy theme switching */
+        :root {
+            --pink: #ff2e92;
+            --blue: #00d5ff;
+            --glass-black: rgba(10, 10, 10, .75);
+            --glass-blue: rgba(0, 213, 255, .15);
+            --radius: 20px;
+            --transition: .3s ease;
+
+            /* These variables will be overridden by theme classes */
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, .7);
+            --background-main: rgba(10, 10, 10, .75);
+            --background-gradient-1: #00d5ff;
+            --background-gradient-2: #ff2e92;
+            --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            --header-background: linear-gradient(135deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .75));
+            --border-light: rgba(255, 255, 255, .05);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --button-background: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+
+            /* New variables for consistent theming */
+            --background-color-primary: #1a1a2e;
+            --background-color-secondary: #0f0f1f;
+            --header-background-color: #2a2a4a;
+            --footer-background-color: #2a2a4a;
+            --content-background-color: #20203a;
+            --card-background-color: #2a2a4a;
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --notification-badge-color: #ff2e92;
+            --status-online: #4CAF50;
+            --status-offline: #6c757d;
+            --status-away: #FFC107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+            --accent-color: #00d5ff; /* A bright cyan */
+            --accent-color-dark: #00aaff;
+            --border-color: #3a3a5a;
+        }
+
+        /* --- Theme Definitions (Light and Dark Mode) --- */
+        /* Light Mode */
+        body.theme-light-mode {
+            --background-main: #f0f2f5; /* Light gray background */
+            --background-gradient-1: #e0e2e5; /* Subtle lighter gradient */
+            --background-gradient-2: #d0d2d5; /* Subtle darker gradient */
+            --white: #333; /* Dark text for readability */
+            --text-light: #666; /* Lighter dark text */
+            --card-background: rgba(255, 255, 255, 0.95); /* Near white cards */
+            --header-background: rgba(255, 255, 255, 0.98); /* Near white header */
+            --border-light: rgba(0, 0, 0, 0.1); /* Light borders */
+            --input-background: rgba(0, 0, 0, 0.05); /* Light input background */
+            --button-background: linear-gradient(90deg, #6dd5ed, #2193b0); /* Blue gradient */
+            --button-shadow: 0 4px 15px rgba(109, 213, 237, 0.4), 0 4px 15px rgba(33, 147, 176, 0.4);
+
+            /* New variables override for light mode */
+            --background-color-primary: #f0f2f5;
+            --background-color-secondary: #e0e2e5;
+            --header-background-color: #ffffff;
+            --footer-background-color: #ffffff;
+            --content-background-color: #f7f9fb;
+            --card-background-color: #ffffff;
+            --text-color-primary: #333333;
+            --text-color-secondary: #666666;
+            --text-color-light: #999999;
+            --accent-color: #007bff;
+            --accent-color-dark: #0056b3;
+            --border-color: #e0e0e0;
+            --input-background-color: #f0f0f0;
+            --button-background: #e9ecef;
+            --button-hover-background: #dee2e6;
+            --active-item-background: rgba(0, 123, 255, 0.1);
+            --notification-badge-color: #dc3545;
+            --status-online: #28a745;
+            --status-offline: #6c757d;
+            --status-away: #ffc107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+
+        /* Dark Mode */
+        body.theme-dark-mode {
+            --background-main: #1a1a2e; /* Deep purple-dark blue */
+            --background-gradient-1: #16213e; /* Slightly lighter deep blue */
+            --background-gradient-2: #0f3460; /* Darker blue */
+            --white: #e0e0e0; /* Off-white text */
+            --text-light: #a0a0a0; /* Grayish text */
+            --card-background: rgba(25, 25, 40, 0.7); /* Darker, less transparent cards */
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75)); /* Original dark header */
+            --border-light: rgba(255, 255, 255, 0.08); /* Subtle white borders */
+            --input-background: rgba(255, 255, 255, 0.08);
+            --button-background: linear-gradient(90deg, #e94560, #ba2f49); /* Reddish gradient */
+            --button-shadow: 0 4px 15px rgba(233, 69, 96, 0.4), 0 44px 15px rgba(186, 47, 73, 0.4);
+
+            /* New variables override for dark mode */
+            --background-color-primary: #121212;
+            --background-color-secondary: #1e1e1e;
+            --header-background-color: #2c2c2c;
+            --footer-background-color: #2c2c2c;
+            --content-background-color: #242424;
+            --card-background-color: #2c2c2c;
+            --text-color-primary: #ffffff;
+            --text-color-secondary: #bbbbbb;
+            --accent-color: #bb86fc;
+            --accent-color-dark: #9a67ea;
+            --border-color: #444444;
+            --input-background-color: #383838;
+            --button-background: #383838;
+            --button-hover-background: #505050;
+            --active-item-background: rgba(187, 134, 252, 0.2);
+            --notification-badge-color: #cf6679;
+            --delete-button-color: #f44336;
+            --warning-color: #ffeb3b;
+        }
+
+        /* Glass Mode specific variables (from original Profile.html snippet, adapted) */
+        body.theme-glass-mode {
+            --background-main: rgba(10, 10, 10, 0.75);
+            background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important;
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            backdrop-filter: blur(10px);
+            --card-background: rgba(25, 25, 40, 0.7);
+            --white: #e0e0e0; /* text-color */
+            --text-light: rgba(255, 255, 255, 0.7);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.1); /* glass-border-color */
+            --button-background: linear-gradient(90deg, var(--pink), var(--blue));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5); /* Inner shadow for glass effect */
+
+            /* New variables override for glass mode */
+            --background-color-primary: rgba(10, 10, 10, 0.75);
+            --background-color-secondary: rgba(10, 10, 10, 0.6);
+            --header-background-color: rgba(10, 10, 10, 0.85);
+            --footer-background-color: rgba(10, 10, 10, 0.85);
+            --content-background-color: rgba(10, 10, 10, 0.75);
+            --card-background-color: rgba(25, 25, 40, 0.7);
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --accent-color: #00d5ff;
+            --accent-color-dark: #00aaff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-background-color: rgba(255, 255, 255, 0.05);
+            --button-background: rgba(0, 213, 255, 0.15); /* Glassy button */
+            --button-hover-background: rgba(0, 213, 255, 0.25);
+            --active-item-background: rgba(0, 213, 255, 0.1);
+        }
+
+        /* NEW: Sunset Theme (from original Profile.html snippet, adapted) */
+        body.theme-sunset-mode {
+            background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
+            --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
+            --card-background: rgba(255, 255, 255, 0.15); /* Slightly transparent white for contrast */
+            --white: #fff; /* White text for readability */
+            --text-light: rgba(255, 255, 255, 0.8);
+            --input-background: rgba(255, 255, 255, 0.1);
+            --border-light: rgba(255, 255, 255, 0.3);
+            --button-background: linear-gradient(90deg, #fd746c, #ff9068); /* Sunset gradient */
+            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 44px 15px rgba(255, 144, 104, 0.4);
+
+            /* New variables override for sunset mode */
+            --background-color-primary: #ff7e5f;
+            --background-color-secondary: #feb47b;
+            --header-background-color: rgba(255, 126, 95, 0.9);
+            --footer-background-color: rgba(255, 126, 95, 0.9);
+            --content-background-color: rgba(255, 126, 95, 0.85);
+            --card-background-color: rgba(255, 255, 255, 0.15);
+            --text-color-primary: #fff;
+            --text-color-secondary: rgba(255, 255, 255, 0.8);
+            --accent-color: #ffd700;
+            --accent-color-dark: #ccaa00;
+            --border-color: rgba(255, 255, 255, 0.3);
+            --input-background-color: rgba(255, 255, 255, 0.1);
+            --button-background: rgba(255, 255, 255, 0.2);
+            --button-hover-background: rgba(255, 255, 255, 0.3);
+            --active-item-background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Always show scrollbar to prevent layout shifts */
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            padding-bottom: 120px; /* Space for nav bar (60px) + toggle button (60px) */
+            background-color: var(--background-main);
+            background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
+                              radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
+            color: var(--white);
+            transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
+        }
+
+        /* Header Styling (from Home.html) */
+        header {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 55px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        header .header-content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+        }
+
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
+            text-decoration: none;
+        }
+
+        /* Header Navigation (from Home.html) */
+        header nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 25px;
+        }
+
+        header nav ul li a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 5px 0;
+            position: relative;
+            transition: color var(--transition);
+        }
+
+        header nav ul li a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 0;
+            height: 3px;
+            background: var(--blue);
+            border-radius: 2px;
+            transition: width var(--transition);
+        }
+
+        header nav ul li a:hover {
+            color: var(--blue);
+        }
+
+        header nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        /* User Profile Header Styling (from Home.html) */
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Notification Icon Styling (from Home.html) */
+        .notification-icon-wrapper {
+            position: relative;
+            margin-right: 15px; /* Space between notification and profile */
+        }
+
+        .notification-icon-wrapper a {
+            text-decoration: none; /* Remove underline from link */
+            color: inherit; /* Inherit color from parent */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-icon-wrapper i {
+            font-size: 1.5rem; /* Adjust size as needed */
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback for browsers that don't support background-clip: text on icons */
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .notification-icon-wrapper i:hover {
+            transform: scale(1.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--notification-badge-color); /* Use pink for notifications */
+            color: var(--white);
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Hide if no notifications */
+            display: none;
+        }
+
+        .user-profile-header #profileLink {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--white);
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: var(--radius);
+        }
+
+        .user-profile-header #profileLink:hover {
+            opacity: 0.8;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile-header img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color); /* Used accent-color for consistency */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: opacity 0.3s ease;
+        }
+
+        .user-profile-header i {
+            font-size: 30px;
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+
+        .user-profile-header span {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            /* Apply gradient to names */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+
+        /* NEW: Admin Icon Styling */
+        #adminIconLink {
+            display: none; /* Hidden by default */
+            margin-right: 15px; /* Space it out from other icons */
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+            font-size: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        #adminIconLink:hover {
+            transform: scale(1.1);
+        }
+
+
+        /* Logout Button Styling (from Home.html) */
+        #logoutButton {
+            background: linear-gradient(90deg, var(--pink), var(--blue));
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+            opacity: 0.8;
+            margin-left: 10px;
+        }
+
+        #logoutButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px var(--pink), 0 44px 15px var(--blue);
+            opacity: 1;
+        }
+
+        #logoutButton i {
+            color: var(--white);
+            font-size: 0.9rem;
+        }
+
+        /* Main Content Area */
+        main {
+            flex-grow: 1;
+            padding: 40px 0;
+            padding-top: 55px; /* Adjust for fixed header */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align content to top */
+            text-align: center;
+        }
+
+        .friends-container {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 2rem;
+            width: 90%; /* Responsive width */
+            max-width: 800px; /* Max width for larger screens */
+            margin-top: 80px; /* Space from header */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            text-align: left;
+        }
+
+        .friends-container h2 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        #friendsList {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: calc(100vh - 280px); /* Adjust max-height for scrollability, considering header/footer/padding */
+            overflow-y: auto; /* Enable vertical scrolling */
+            padding-right: 10px; /* Space for scrollbar */
+        }
+
+        /* Custom scrollbar for #friendsList */
+        #friendsList::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #friendsList::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        #friendsList::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--blue), var(--pink));
+            border-radius: 10px;
+        }
+
+        #friendsList::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, var(--pink), var(--blue));
+        }
+
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer; /* Indicate the whole item is clickable */
+        }
+
+        .friend-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .friend-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--pink);
+            flex-shrink: 0;
+            margin-right: 15px;
+        }
+
+        .friend-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .friend-username {
+            font-weight: 700;
+            color: var(--white);
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            /* No cursor: pointer here, as the whole item is clickable now */
+        }
+        .friend-username:hover {
+            color: var(--white); /* Keep white, as the whole item handles hover */
+        }
+
+        .friend-level {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .friend-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            margin-left: 15px;
+        }
+
+        .friend-action-btn {
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--white);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .friend-action-btn.unfriend-btn {
+            background: var(--delete-button-color);
+        }
+
+        .friend-action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .friend-action-btn i {
+            font-size: 1rem;
+        }
+
+        .no-results-message {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            padding: 20px;
+        }
+
+        /* Custom Message Box Styles (from Home.html) */
+        #messageBox {
+            position: fixed;
+            top: 50%; /* Center vertically */
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center both horizontally and vertically */
+            background-color: var(--card-background-color); /* Default background, will be overridden for success */
+            color: var(--text-color-primary); /* Default text color */
+            padding: 20px 30px; /* Increased padding for a more substantial box */
+            border-radius: 15px; /* More rounded corners, slightly squarer */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); /* Enhanced shadow */
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            min-width: 280px; /* Ensure a decent minimum width */
+            max-width: 90%;
+            text-align: center;
+            flex-direction: column; /* Stack icon and text vertically */
+            align-items: center;
+            gap: 15px; /* Space between icon and text */
+        }
+        #messageBox.show {
+            opacity: 1;
+            display: flex;
+        }
+        /* Success message box specific styling */
+        #messageBox.success {
+            background-image: linear-gradient(45deg, var(--pink), var(--blue)); /* Pink and blue gradient */
+            color: var(--white); /* White text for contrast on gradient */
+            border: none; /* No border for gradient background */
+            box-shadow: 0 8px 30px rgba(0, 213, 255, 0.5), 0 8px 30px rgba(255, 46, 146, 0.5); /* Glowing shadow */
+        }
+        #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+
+        #messageBox i {
+            font-size: 2.5rem; /* Larger icon for prominence */
+            margin-bottom: 5px; /* Space between icon and text */
+            /* Apply gradient to message box icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+        #messageBox.success i { color: var(--white); } /* White icon for success */
+        #messageBox.error i { color: var(--delete-button-color); }
+        #messageBox.info i { color: var(--accent-color); }
+        #messageBox.warning i { color: var(--warning-color); }
+
+        #messageBox span {
+            font-size: 1.1rem; /* Slightly larger text */
+            font-weight: 600;
+        }
+
+        @keyframes pulse-bg {
+            0% { background-color: var(--accent-color); }
+            50% { background-color: rgba(0, 213, 255, 0.7); }
+            100% { background-color: var(--accent-color); }
+        }
+        #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
+
+        /* Custom Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--card-background);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .modal-content h3 {
+            color: var(--white);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .modal-buttons button {
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .modal-buttons button.confirm-btn {
+            background: linear-gradient(90deg, var(--pink), var(--blue));
+            color: var(--white);
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+        }
+        .modal-buttons button.confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+        .modal-buttons button.cancel-btn {
+            background: var(--input-background);
+            color: var(--text-light);
+            border: 1px solid var(--border-light);
+        }
+        .modal-buttons button.cancel-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* --- Bottom Navigation Bar (reused from Home.html) --- */
+        #bottomNavBar {
+            position: fixed;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: var(--header-background);
+            border-top: 1px solid var(--border-light);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 50;
+            bottom: 60px; /* Positioned above the toggle button */
+            transition: bottom 0.3s ease-out; /* Smooth slide transition */
+        }
+
+        #bottomNavBar.nav-bar-hidden-full {
+            bottom: -60px; /* Move it completely off-screen below */
+        }
+
+        .nav-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: color 0.2s ease;
+            flex: 1;
+            max-width: 80px;
+        }
+
+        .nav-icon-item:hover {
+            color: var(--white);
+        }
+
+        .nav-icon-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .nav-icon-item:hover .nav-icon-circle {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px var(--blue), 0 44px 12px var(--pink);
+        }
+
+        .nav-icon-circle i {
+            color: var(--white);
+            font-size: 1.3rem;
+            transition: transform 0.2s ease;
+        }
+
+        .nav-icon-item.active .nav-icon-circle {
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+            box-shadow: 0 4px 12px var(--pink), 0 44px 12px var(--blue);
+        }
+        .nav-icon-item.active {
+            color: var(--white);
+        }
+
+        /* New Toggle Button (reused from Home.html) */
+        #navToggleBtn {
+            position: fixed;
+            bottom: 0px; /* Position at the very bottom */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px; /* Slightly larger button */
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--pink), var(--blue)); /* Pink to blue gradient */
+            color: var(--white);
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem; /* Larger icon */
+            cursor: pointer;
+            z-index: 60; /* Higher than nav bar */
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+        }
+
+        #navToggleBtn:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(45deg, var(--blue), var(--pink)); /* Reverse gradient on hover */
+        }
+
+        #navToggleBtn i {
+            transition: transform 0.3s ease; /* Smooth icon rotation */
+        }
+
+        #navToggleBtn.rotated i {
+            transform: rotate(180deg); /* Rotate icon when nav is hidden */
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 768px) {
+            .friends-container {
+                padding: 1.5rem;
+                margin-top: 70px;
+            }
+            .friends-container h2 {
+                font-size: 1.6rem;
+            }
+            .friend-item {
+                flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+                justify-content: center;
+                text-align: center;
+            }
+            .friend-info {
+                align-items: center;
+                margin-bottom: 10px; /* Space between info and buttons */
+            }
+            .friend-actions {
+                width: 100%; /* Full width for action buttons */
+                justify-content: center;
+                margin-left: 0;
+            }
+            .friend-avatar {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            #friendsList {
+                max-height: calc(100vh - 250px); /* Adjust for smaller screens */
+            }
+        }
+
+        @media (max-width: 480px) {
+            header .header-content-wrapper {
+                padding: 0 15px;
+            }
+            .logo {
+                font-size: 1.5rem;
+            }
+            header nav ul {
+                gap: 15px;
+            }
+            header nav ul li a {
+                font-size: 0.9rem;
+            }
+            .user-profile-header span {
+                max-width: 80px;
+            }
+            .friends-container {
+                padding: 1rem;
+                margin-top: 60px;
+            }
+            .friends-container h2 {
+                font-size: 1.4rem;
+            }
+            .friend-username {
+                font-size: 1rem;
+            }
+            .friend-level {
+                font-size: 0.75rem;
+            }
+            .friend-action-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+            #friendsList {
+                max-height: calc(100vh - 200px); /* Adjust for smallest screens */
+            }
+        }
+    </style>
+</head>
+<body class="theme-dark-mode">
+
+    <header>
+        <div class="header-content-wrapper">
+            <a href="/home.html" class="logo">JCHAT</a>
+            <nav>
+                <ul>
+                    <li><a href="/profile.html" id="headerNavLinkProfile">Profile</a></li>
+                </ul>
+            </nav>
+            <div class="user-profile-header">
+                <!-- NEW: Admin Icon Link (hidden by default) -->
+                <a href="/coin_management.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
+                    <i class="fas fa-user-cog"></i>
+                </a>
+                <!-- Notification Icon with Badge -->
+                <div class="notification-icon-wrapper">
+                    <a href="/notifications.html" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                    </a>
+                </div>
+                <!-- Logout Button -->
+                <button id="logoutButton" aria-label="Logout" disabled>
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <a href="/profile.html" id="profileLink">
+                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
+                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                    <span id="headerDisplayName">Loading...</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="friends-container">
+            <h2>My Friends</h2>
+            <div id="friendsList">
+                <p class="no-results-message" id="noFriendsMessage">You don't have any friends yet. Find users to connect!</p>
+                <!-- Friend items will be loaded here dynamically -->
+            </div>
+            <!-- Removed Load More button as per user request -->
+        </div>
+    </main>
+
+    <!-- Custom Message Box -->
+    <div id="messageBox"></div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="customConfirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="confirmModalMessage"></h3>
+            <div class="modal-buttons">
+                <button id="confirmYesBtn" class="confirm-btn">Yes</button>
+                <button id="confirmNoBtn" class="cancel-btn">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar (reused from Home.html) -->
+    <nav id="bottomNavBar" class="nav-bar-hidden-full">
+        <a href="/home.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="/chat.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-comment-dots"></i></div>
+            <span>Chat</span>
+        </a>
+        <a href="/find_friends.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-users"></i></div>
+            <span>Users</span>
+        </a>
+        <a href="/friends.html" class="nav-icon-item active">
+            <div class="nav-icon-circle"><i class="fas fa-user-friends"></i></div>
+            <span>Friends</span>
+        </a>
+        <a href="/jcoin_shop.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-store"></i></div>
+            <span>Shop</span>
+        </a>
+        <a href="/settings.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-cog"></i></div>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <!-- Navigation Toggle Button (reused from Home.html) -->
+    <button id="navToggleBtn" aria-label="Toggle Navigation">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, onSnapshot, serverTimestamp, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- Firebase & Canvas Environment Configuration ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+            authDomain: "jchat-1.firebaseapp.com",
+            projectId: "jchat-1",
+            storageBucket: "jchat-1.firebasestorage.app",
+            appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+            measurementId: "G-S6Z9GG0R9P"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Cloudinary Configuration
+        const cloudinaryConfig = {
+            cloudName: "dxld01rcp", // Your Cloudinary Cloud Name
+            uploadPreset: "Storage_preset" // Your Cloudinary Upload Preset
+        };
+
+        // Initialize Firebase services
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- DOM Elements ---
+        const headerProfilePic = document.getElementById('headerProfilePic');
+        const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+        const headerDisplayName = document.getElementById('headerDisplayName');
+        const logoutButton = document.getElementById('logoutButton');
+        const notificationCountElement = document.getElementById('notificationCount');
+        const messageBox = document.getElementById('messageBox');
+        const headerNavLinkProfile = document.getElementById('headerNavLinkProfile');
+        const adminIconLink = document.getElementById('adminIconLink');
+
+        const friendsListContainer = document.getElementById('friendsList');
+        const noFriendsMessage = document.getElementById('noFriendsMessage');
+        // const loadMoreFriendsBtn = document.getElementById('loadMoreFriendsBtn'); // Removed
+
+        // Custom Confirmation Modal elements
+        const customConfirmModal = document.getElementById('customConfirmModal');
+        const confirmModalMessage = document.getElementById('confirmModalMessage');
+        const confirmYesBtn = document.getElementById('confirmYesBtn');
+        const confirmNoBtn = document.getElementById('confirmNoBtn');
+
+        // --- Global State ---
+        let currentUser = null; // The currently authenticated user (Firebase Auth object)
+        let currentUserProfileData = null; // Current user's profile data
+        let isAuthReady = false; // Flag to indicate if auth state has been checked
+        let unsubscribeFriendsListener = null; // Listener for friends list
+
+        // --- Constants ---
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID
+
+        // --- Tone.js Synths for Notification Sounds ---
+        const successSynth = new Tone.Synth().toDestination();
+        const errorSynth = new Tone.Synth().toDestination();
+        const infoSynth = new Tone.Synth().toDestination();
+
+        // Set up basic sounds
+        successSynth.oscillator.type = "sine";
+        successSynth.envelope.attack = 0.01;
+        successSynth.envelope.decay = 0.2;
+        successSynth.envelope.sustain = 0.0;
+        successSynth.envelope.release = 0.5;
+
+        errorSynth.oscillator.type = "sawtooth";
+        errorSynth.envelope.attack = 0.01;
+        errorSynth.envelope.decay = 0.3;
+        errorSynth.envelope.sustain = 0.0;
+        errorSynth.envelope.release = 0.5;
+
+        infoSynth.oscillator.type = "triangle";
+        infoSynth.envelope.attack = 0.01;
+        infoSynth.envelope.decay = 0.1;
+        infoSynth.envelope.sustain = 0.0;
+        infoSynth.envelope.release = 0.3;
+
+        /**
+         * Plays a notification sound.
+         * @param {string} type - 'success', 'error', or 'info'.
+         */
+        function playNotificationSound(type) {
+            Tone.start(); // Ensure audio context is started
+            if (type === 'success') {
+                successSynth.triggerAttackRelease("C5", "8n");
+            } else if (type === 'error') {
+                errorSynth.triggerAttackRelease("C3", "8n");
+            } else if (type === 'info') {
+                infoSynth.triggerAttackRelease("E4", "16n");
+            }
+        }
+
+        /**
+         * Displays a temporary message box with a given message and type.
+         * @param {string} message - The message to display.
+         * @param {string} type - The type of message ('success', 'error', 'info', 'loading', 'warning').
+         * @param {boolean} [isPersistent=false] - If true, message stays until explicitly cleared or replaced.
+         * @param {number} [durationMs=3000] - Duration in milliseconds for the message to display if not persistent.
+         */
+        function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
+            if (messageBox.timeoutId) {
+                clearTimeout(messageBox.timeoutId);
+            }
+
+            messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
+            const messageBoxIcon = document.getElementById('messageBoxIcon');
+            const messageBoxText = document.getElementById('messageBoxText');
+
+            messageBoxText.textContent = message;
+            messageBox.className = 'message-box show ' + type; // Add type class for styling
+
+            // Set icon based on type
+            if (messageBoxIcon) { // Null check
+                if (type === 'success') {
+                    messageBoxIcon.classList.add('fas', 'fa-check-circle');
+                } else if (type === 'error') {
+                    messageBoxIcon.classList.add('fas', 'fa-times-circle');
+                } else if (type === 'info') {
+                    messageBoxIcon.classList.add('fas', 'fa-info-circle');
+                } else if (type === 'warning') {
+                    messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
+                } else if (type === 'loading') {
+                    messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); // Spinner for loading
+                } else {
+                    messageBoxIcon.className = ''; // No specific icon
+                }
+            }
+
+            if (type === 'loading') {
+                messageBox.classList.add('loading-pulse');
+            } else {
+                messageBox.classList.remove('loading-pulse');
+            }
+
+            messageBox.style.display = 'flex';
+            messageBox.style.opacity = '1';
+
+            if (!isPersistent) {
+                messageBox.timeoutId = setTimeout(() => {
+                    messageBox.style.opacity = '0';
+                    messageBox.addEventListener('transitionend', function handler() {
+                        messageBox.style.display = 'none';
+                        messageBox.removeEventListener('transitionend', handler);
+                        messageBox.classList.remove('loading-pulse');
+                    }, { once: true });
+                }, durationMs);
+            }
+        }
+
+        /**
+         * Displays a custom confirmation modal.
+         * @param {string} message - The message to display in the modal.
+         * @returns {Promise<boolean>} Resolves with true if 'Yes' is clicked, false if 'No'.
+         */
+        function showCustomConfirm(message) {
+            return new Promise((resolve) => {
+                if (!customConfirmModal || !confirmModalMessage || !confirmYesBtn || !confirmNoBtn) {
+                    console.error("JCHAT_ERROR: Custom confirmation modal elements not found.");
+                    resolve(false); // Fallback to false if elements are missing
+                    return;
+                }
+
+                confirmModalMessage.textContent = message;
+                customConfirmModal.classList.add('active');
+
+                const handleYes = () => {
+                    customConfirmModal.classList.remove('active');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(true);
+                };
+
+                const handleNo = () => {
+                    customConfirmModal.classList.remove('active');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(false);
+                };
+
+                confirmYesBtn.addEventListener('click', handleYes);
+                confirmNoBtn.addEventListener('click', handleNo);
+            });
+        }
+
+        /**
+         * Constructs a Cloudinary URL for an image/video.
+         * @param {string} urlOrPublicId - The full Cloudinary URL or the public ID of the image on Cloudinary.
+         * @param {string} transformations - Optional Cloudinary transformations.
+         * @returns {string|null} The full Cloudinary URL or null if urlOrPublicId is not provided.
+         */
+        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
+            if (!urlOrPublicId) return null;
+            // Check if it's already a full URL (e.g., from Firebase Auth photoURL or existing Cloudinary URL)
+            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
+                // If it's a direct URL to a Cloudinary asset, we can insert transformations
+                // This is a simplified approach; a more robust one would parse the URL
+                if (urlOrPublicId.includes('res.cloudinary.com')) {
+                    const parts = urlOrPublicId.split('/upload/');
+                    if (parts.length === 2) {
+                        return `${parts[0]}/upload/${transformations}/${parts[1]}`;
+                    }
+                }
+                return urlOrPublicId; // Return as is if it's a general URL not from Cloudinary or already transformed
+            }
+            // Assume it's a public ID if not a full URL
+            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
+        }
+
+        /**
+         * Displays the profile picture or a default icon.
+         * @param {HTMLElement} imgElement - The <img> element to update.
+         * @param {string|null} profilePicId - The Cloudinary public ID or URL, or null.
+         * @param {string} usernameInitial - Initial for placeholder.
+         * @param {string} transformations - Cloudinary transformations for the image.
+         * @param {HTMLElement} [iconElement=null] - Optional <i> element to show if no pic.
+         */
+        function displayProfilePicture(imgElement, profilePicId, usernameInitial, transformations, iconElement = null) {
+            if (imgElement) {
+                if (profilePicId) {
+                    const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
+                    imgElement.src = imageUrl;
+                    imgElement.style.display = 'block';
+                    if (iconElement) iconElement.style.display = 'none';
+                    imgElement.onerror = () => {
+                        console.error(`JCHAT_ERROR: Failed to load profile picture: ${profilePicId}. Using placeholder.`);
+                        imgElement.src = `https://placehold.co/50x50/CCCCCC/000000?text=${usernameInitial}`;
+                        imgElement.style.display = 'block';
+                        if (iconElement) iconElement.style.display = 'none';
+                    };
+                } else {
+                    imgElement.src = '';
+                    imgElement.style.display = 'none';
+                    if (iconElement) iconElement.style.display = 'block';
+                }
+            }
+        }
+
+        /**
+         * Fetches and displays the current user's profile data for the header.
+         * This function runs on every page to ensure header is consistent.
+         * @param {firebase.User} user - The authenticated Firebase user object.
+         */
+        async function fetchAndDisplayHeaderProfile(user) {
+            try {
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                const privateDocSnap = await getDoc(privateProfileDocRef);
+
+                let profileData = null;
+                if (privateDocSnap.exists()) {
+                    profileData = privateDocSnap.data();
+                    // Ensure 'jCoins', 'level', 'currentXp', 'walletUnlocked' exist, initialize if not
+                    const updates = {};
+                    if (profileData.jCoins === undefined) updates.jCoins = 0;
+                    if (profileData.level === undefined) updates.level = 1;
+                    if (profileData.currentXp === undefined) updates.currentXp = 0;
+                    if (profileData.walletUnlocked === undefined) updates.walletUnlocked = false;
+                    if (profileData.lastLoginBonusClaimed === undefined) updates.lastLoginBonusClaimed = null;
+
+                    if (Object.keys(updates).length > 0) {
+                        await updateDoc(privateProfileDocRef, updates);
+                        // Re-fetch to get the updated data
+                        const updatedSnap = await getDoc(privateProfileDocRef);
+                        profileData = updatedSnap.data();
+                    }
+                    console.log("JCHAT_DEBUG: Fetched existing profile data for header:", profileData);
+                } else {
+                    // If private profile doesn't exist, create a basic one
+                    profileData = {
+                        username: user.displayName || `User_${user.uid.substring(0, 8)}`,
+                        email: user.email || "",
+                        profilePicId: user.photoURL || null,
+                        bio: "",
+                        location: "",
+                        friendsCount: 0,
+                        followersCount: 0,
+                        followingCount: 0,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
+                        inspirationType: "motivational",
+                        visibility: {
+                            displayName: true, profilePic: true, bio: false, location: false,
+                            emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
+                        },
+                        totalPosts: 0,
+                        jCoins: 0,
+                        level: 1,
+                        currentXp: 0,
+                        walletUnlocked: false,
+                        lastLoginBonusClaimed: null
+                    };
+                    await setDoc(privateProfileDocRef, profileData);
+                    console.log("JCHAT_DEBUG: Created new profile data for header:", profileData);
+
+                    // Also create/update public profile
+                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+                    await setDoc(publicProfileDocRef, {
+                        username: profileData.username,
+                        profilePicId: profileData.profilePicId,
+                        bio: profileData.bio,
+                        location: profileData.location,
+                        createdAt: profileData.createdAt,
+                        updatedAt: profileData.updatedAt,
+                        visibility: profileData.visibility,
+                        totalPosts: profileData.totalPosts,
+                        level: profileData.level,
+                        currentXp: profileData.currentXp
+                    }, { merge: true });
+                }
+
+                // Store current user's profile data globally
+                currentUserProfileData = profileData;
+
+                // Update header UI
+                const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
+                displayProfilePicture(headerProfilePic, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max", headerAvatarIcon);
+                headerDisplayName.textContent = profileData.username || "JCHAT User";
+                if (headerNavLinkProfile) headerNavLinkProfile.href = `/profile.html?userId=${user.uid}`;
+                if (document.getElementById('profileLink')) document.getElementById('profileLink').href = `/profile.html?userId=${user.uid}`;
+
+                if (logoutButton) logoutButton.disabled = false;
+
+                // Show Admin Icon if current user is admin
+                if (adminIconLink) {
+                    if (user.uid === ADMIN_UID) {
+                        adminIconLink.style.display = 'block';
+                    } else {
+                        adminIconLink.style.display = 'none';
+                    }
+                }
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching or creating profile for header:", error);
+                const usernameInitial = (user.displayName || "J").charAt(0).toUpperCase();
+                displayProfilePicture(headerProfilePic, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max", headerAvatarIcon);
+                if (headerDisplayName) headerDisplayName.textContent = user.displayName || "JCHAT User";
+                showMessageBox(`Error loading header profile: ${error.message}`, 'error');
+                playNotificationSound('error');
+                if (logoutButton) logoutButton.disabled = false;
+            }
+        }
+
+        /**
+         * Fetches and displays the notification count for the current user.
+         * @param {string} userId - The UID of the current user.
+         */
+        async function fetchNotificationCount(userId) {
+            try {
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
+                const q = query(notificationsCollectionRef, where("read", "==", false));
+                const querySnapshot = await getDocs(q);
+                const unreadCount = querySnapshot.size;
+
+                if (unreadCount > 0) {
+                    if (notificationCountElement) {
+                        notificationCountElement.textContent = unreadCount;
+                        notificationCountElement.style.display = 'flex';
+                    }
+                } else {
+                    if (notificationCountElement) {
+                        notificationCountElement.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching notification count:", error);
+                if (notificationCountElement) notificationCountElement.style.display = 'none';
+            }
+        }
+
+        /**
+         * Handles user logout.
+         */
+        async function handleLogout() {
+            if (!isAuthReady) return;
+            try {
+                await signOut(auth);
+                showMessageBox("Logged out successfully! 👋", 'success');
+                playNotificationSound('success');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 1000);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error logging out:", error);
+                showMessageBox("Failed to log out. Please try again.", 'error');
+                playNotificationSound('error');
+            }
+        }
+
+        /**
+         * Renders a single friend item in the list.
+         * @param {object} friendData - The friend's public profile data.
+         */
+        function renderFriendItem(friendData) {
+            const friendItem = document.createElement('div');
+            friendItem.classList.add('friend-item');
+            friendItem.id = `friend-item-${friendData.userId}`;
+            friendItem.dataset.friendId = friendData.userId; // Store friend ID for click handling
+
+            const usernameInitial = (friendData.username || "U").charAt(0).toUpperCase();
+
+            friendItem.innerHTML = `
+                <img src="" alt="Friend Avatar" class="friend-avatar" id="friend-avatar-${friendData.userId}" style="display: none;">
+                <i class="fas fa-user-circle friend-avatar" id="friend-avatar-icon-${friendData.userId}"></i>
+                <div class="friend-info">
+                    <p class="friend-username">${friendData.username || 'Unknown User'}</p>
+                    <p class="friend-level">Level: ${friendData.level || 1}</p>
+                </div>
+                <div class="friend-actions">
+                    <button class="friend-action-btn unfriend-btn" data-user-id="${friendData.userId}">
+                        <i class="fas fa-user-minus"></i> Unfriend
+                    </button>
+                </div>
+            `;
+            friendsListContainer.appendChild(friendItem);
+
+            // Display profile picture
+            const avatarImg = friendItem.querySelector(`#friend-avatar-${friendData.userId}`);
+            const avatarIcon = friendItem.querySelector(`#friend-avatar-icon-${friendData.userId}`);
+            displayProfilePicture(avatarImg, friendData.profilePicId, usernameInitial, "w_100,h_100,c_fill,g_face,r_max", avatarIcon);
+
+            // Add event listener to the entire friend item to open chat
+            friendItem.addEventListener('click', () => {
+                if (!currentUser) {
+                    showMessageBox("Please log in to chat.", "warning");
+                    playNotificationSound('info');
+                    return;
+                }
+                // Construct the chat ID by sorting the two UIDs
+                const members = [currentUser.uid, friendData.userId].sort();
+                const chatId = members.join('_');
+                window.location.href = `/chat.html?chatId=${chatId}`;
+            });
+
+            // Add event listener for the unfriend button (prevent bubbling to parent)
+            friendItem.querySelector('.unfriend-btn').addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent triggering parent click (which would open chat)
+                handleUnfriend(friendData.userId, friendData.username);
+            });
+        }
+
+        /**
+         * Fetches and displays the current user's friends list (all at once).
+         */
+        async function fetchFriendsList() {
+            if (!currentUser) {
+                console.log("JCHAT_DEBUG: No current user, cannot fetch friends list.");
+                noFriendsMessage.style.display = 'block';
+                friendsListContainer.innerHTML = ''; // Clear existing list
+                return;
+            }
+
+            // Clear previous listener if exists
+            if (unsubscribeFriendsListener) {
+                unsubscribeFriendsListener();
+            }
+
+            friendsListContainer.innerHTML = ''; // Clear current list for a fresh load
+            showMessageBox("Loading friends...", "loading", true);
+
+            const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
+
+            // Fetch all friends. Note: For very large friend lists (thousands),
+            // this might become inefficient. For typical social apps, this is fine.
+            const q = query(friendsCollectionRef); // No limit or startAfter
+
+            // Use onSnapshot for real-time updates to the friends list
+            unsubscribeFriendsListener = onSnapshot(q, async (snapshot) => {
+                showMessageBox("Friends loaded.", "success", false, 1000); // Clear loading message
+
+                if (snapshot.empty) {
+                    noFriendsMessage.style.display = 'block';
+                    friendsListContainer.innerHTML = ''; // Ensure list is truly empty
+                    return;
+                } else {
+                    noFriendsMessage.style.display = 'none';
+                }
+
+                const friendIds = [];
+                snapshot.forEach(docSnap => {
+                    friendIds.push(docSnap.id); // Each document ID is a friend's UID
+                });
+
+                const friendPromises = friendIds.map(async (friendId) => {
+                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
+                    const publicProfileSnap = await getDoc(publicProfileDocRef);
+                    if (publicProfileSnap.exists()) {
+                        return { userId: friendId, ...publicProfileSnap.data() };
+                    }
+                    return null; // Friend's public profile not found
+                });
+
+                const friendsData = (await Promise.all(friendPromises)).filter(friend => friend !== null);
+
+                // Sort friends alphabetically by username (client-side sorting)
+                friendsData.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
+
+                // Re-render the entire list to ensure correct order after sorting
+                friendsListContainer.innerHTML = '';
+                friendsData.forEach(friend => {
+                    renderFriendItem(friend);
+                });
+
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error fetching friends list:", error);
+                showMessageBox(`Error loading friends: ${error.message}`, 'error');
+                playNotificationSound('error');
+                noFriendsMessage.textContent = "Failed to load friends. Please try again.";
+                noFriendsMessage.style.display = 'block';
+            });
+        }
+
+        /**
+         * Handles the unfriend action.
+         * @param {string} friendId - The UID of the friend to unfriend.
+         * @param {string} friendUsername - The username of the friend.
+         */
+        async function handleUnfriend(friendId, friendUsername) {
+            if (!currentUser || !currentUserProfileData) {
+                showMessageBox("You must be logged in to unfriend someone.", "warning");
+                playNotificationSound('info');
+                return;
+            }
+
+            const confirm = await showCustomConfirm(`Are you sure you want to unfriend ${friendUsername}? This action cannot be undone.`);
+            if (!confirm) {
+                return;
+            }
+
+            showMessageBox(`Unfriending ${friendUsername}...`, "loading", true);
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    // 1. Delete friend document from current user's friends subcollection
+                    const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", friendId);
+                    transaction.delete(currentUserFriendDocRef);
+
+                    // 2. Delete current user document from friend's friends subcollection
+                    const friendUserFriendDocRef = doc(db, "artifacts", appId, "users", friendId, "friends", currentUser.uid);
+                    transaction.delete(friendUserFriendDocRef);
+
+                    // 3. Decrement friendsCount for current user's private profile
+                    const currentUserPrivateProfileRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+                    const currentUserPrivateProfileSnap = await transaction.get(currentUserPrivateProfileRef);
+                    if (currentUserPrivateProfileSnap.exists()) {
+                        const currentFriendsCount = currentUserPrivateProfileSnap.data().friendsCount || 0;
+                        transaction.update(currentUserPrivateProfileRef, {
+                            friendsCount: Math.max(0, currentFriendsCount - 1),
+                            updatedAt: serverTimestamp()
+                        });
+                    }
+
+                    // 4. Decrement friendsCount for friend's private profile
+                    const friendPrivateProfileRef = doc(db, "artifacts", appId, "users", friendId, "profiles", "user_profile");
+                    const friendPrivateProfileSnap = await transaction.get(friendPrivateProfileRef);
+                    if (friendPrivateProfileSnap.exists()) {
+                        const friendFriendsCount = friendPrivateProfileSnap.data().friendsCount || 0;
+                        transaction.update(friendPrivateProfileRef, {
+                            friendsCount: Math.max(0, friendFriendsCount - 1),
+                            updatedAt: serverTimestamp()
+                        });
+                    }
+
+                    // 5. Decrement friendsCount for current user's public profile
+                    const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                    const currentUserPublicProfileSnap = await transaction.get(currentUserPublicProfileRef);
+                    if (currentUserPublicProfileSnap.exists()) {
+                        const currentFriendsCountPublic = currentUserPublicProfileSnap.data().friendsCount || 0;
+                        transaction.update(currentUserPublicProfileRef, {
+                            friendsCount: Math.max(0, currentFriendsCountPublic - 1),
+                            updatedAt: serverTimestamp()
+                        });
+                    }
+
+                    // 6. Decrement friendsCount for friend's public profile
+                    const friendPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
+                    const friendPublicProfileSnap = await transaction.get(friendPublicProfileRef);
+                    if (friendPublicProfileSnap.exists()) {
+                        const friendFriendsCountPublic = friendPublicProfileSnap.data().friendsCount || 0;
+                        transaction.update(friendPublicProfileRef, {
+                            friendsCount: Math.max(0, friendFriendsCountPublic - 1),
+                            updatedAt: serverTimestamp()
+                        });
+                    }
+                });
+
+                showMessageBox(`${friendUsername} has been unfriended.`, "success");
+                playNotificationSound('success');
+                // The onSnapshot listener will automatically re-render the list
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error unfriending user:", error);
+                showMessageBox(`Failed to unfriend ${friendUsername}: ${error.message}`, "error");
+                playNotificationSound('error');
+            }
+        }
+
+
+        // --- Authentication State Listener ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                isAuthReady = true;
+                console.log("JCHAT_DEBUG: User authenticated in Friends page:", user.uid);
+
+                await fetchAndDisplayHeaderProfile(user); // Load header profile
+                fetchNotificationCount(user.uid);
+                fetchFriendsList(); // Fetch and display ALL friends
+
+            } else {
+                console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("JCHAT_DEBUG: Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("JCHAT_DEBUG: Signed in anonymously.");
+                    }
+                    // onAuthStateChanged will be triggered again with the new user
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error during anonymous sign-in or custom token sign-in:", error);
+                    if (!auth.currentUser) {
+                        window.location.href = '/login.html';
+                    }
+                }
+                isAuthReady = false;
+                if (logoutButton) logoutButton.disabled = true;
+                if (headerDisplayName) headerDisplayName.textContent = "Guest";
+                if (headerProfilePic) headerProfilePic.style.display = 'none';
+                if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
+                if (adminIconLink) adminIconLink.style.display = 'none';
+                showMessageBox("Please log in to view your friends.", 'info', true);
+                noFriendsMessage.textContent = "Please log in to view your friends.";
+                noFriendsMessage.style.display = 'block';
+                friendsListContainer.innerHTML = ''; // Clear any previous content
+            }
+        });
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply theme on load
+            const savedTheme = localStorage.getItem('jchat-theme');
+            const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+            if (savedTheme && themes.includes(savedTheme)) {
+                document.body.classList.remove(...themes);
+                document.body.classList.add(savedTheme);
+            } else {
+                document.body.classList.remove(...themes);
+                document.body.classList.add('theme-dark-mode'); // Default
+            }
+
+            // Removed Load More button event listener
+        });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'jchat-theme') {
+                const newTheme = event.newValue || 'theme-dark-mode';
+                const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+                if (themes.includes(newTheme)) {
+                    document.body.classList.remove(...themes);
+                    document.body.classList.add(newTheme);
+                }
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            // Unsubscribe from Firestore listeners before page unload
+            if (unsubscribeFriendsListener) unsubscribeFriendsListener();
+        });
+
+        if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+
+        // --- Bottom Navigation Bar Toggle Logic (reused from Home.html) ---
+        const bottomNavBar = document.getElementById('bottomNavBar');
+        const navToggleBtn = document.getElementById('navToggleBtn');
+
+        function toggleNavBarVisibility() {
+            const toggleIcon = navToggleBtn.querySelector('i');
+            const isHidden = bottomNavBar.classList.toggle('nav-bar-hidden-full');
+
+            if (isHidden) {
+                if (toggleIcon) toggleIcon.classList.remove('fa-chevron-down');
+                if (toggleIcon) toggleIcon.classList.add('fa-chevron-up');
+            } else {
+                if (toggleIcon) toggleIcon.classList.remove('fa-chevron-up');
+                if (toggleIcon) toggleIcon.classList.add('fa-chevron-down');
+            }
+        }
+
+        // Initialize nav bar state
+        if (bottomNavBar) bottomNavBar.classList.add('nav-bar-hidden-full');
+        if (navToggleBtn && navToggleBtn.querySelector('i')) {
+            navToggleBtn.querySelector('i').classList.remove('fa-chevron-down');
+            navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
+        }
+        if (navToggleBtn) navToggleBtn.addEventListener('click', toggleNavBarVisibility);
+    </script>
+</body>
+</html>

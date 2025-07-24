@@ -1,0 +1,3939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHAT - Home</title>
+
+    <!-- Google Fonts: Poppins for headings, Inter for body text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+    <!-- Preconnect to Google APIs for LLM -->
+    <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossorigin>
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Tone.js for audio notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* Universal box-sizing for consistent layout */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Global CSS Variables for easy theme switching */
+        :root {
+            --pink: #ff2e92;
+            --blue: #00d5ff;
+            --glass-black: rgba(10, 10, 10, .75);
+            --glass-blue: rgba(0, 213, 255, .15);
+            --radius: 20px;
+            --transition: .3s ease;
+
+            /* These variables will be overridden by theme classes */
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, .7);
+            --background-main: rgba(10, 10, 10, .75);
+            --background-gradient-1: #00d5ff;
+            --background-gradient-2: #ff2e92;
+            --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            --header-background: linear-gradient(135deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .75));
+            --border-light: rgba(255, 255, 255, .05);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --button-background: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+
+            /* New variables for consistent theming (Added for consistency with Profile/Levels) */
+            --background-color-primary: #1a1a2e;
+            --background-color-secondary: #0f0f1f;
+            --header-background-color: #2a2a4a;
+            --footer-background-color: #2a2a4a;
+            --content-background-color: #20203a;
+            --card-background-color: #2a2a4a;
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --notification-badge-color: #ff2e92;
+            --status-online: #4CAF50;
+            --status-offline: #6c757d;
+            --status-away: #FFC107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+            --accent-color: #00d5ff; /* A bright cyan */
+            --accent-color-dark: #00aaff;
+            --border-color: #3a3a5a;
+        }
+
+        /* --- Theme Definitions (Light and Dark Mode) --- */
+        /* Light Mode */
+        body.theme-light-mode {
+            --background-main: #f0f2f5; /* Light gray background */
+            --background-gradient-1: #e0e2e5; /* Subtle lighter gradient */
+            --background-gradient-2: #d0d2d5; /* Subtle darker gradient */
+            --white: #333; /* Dark text for readability */
+            --text-light: #666; /* Lighter dark text */
+            --card-background: rgba(255, 255, 255, 0.95); /* Near white cards */
+            --header-background: rgba(255, 255, 255, 0.98); /* Near white header */
+            --border-light: rgba(0, 0, 0, 0.1); /* Light borders */
+            --input-background: rgba(0, 0, 0, 0.05); /* Light input background */
+            --button-background: linear-gradient(90deg, #6dd5ed, #2193b0); /* Blue gradient */
+            --button-shadow: 0 4px 15px rgba(109, 213, 237, 0.4), 0 4px 15px rgba(33, 147, 176, 0.4);
+
+            /* New variables override for light mode */
+            --background-color-primary: #f0f2f5;
+            --background-color-secondary: #e0e2e5;
+            --header-background-color: #ffffff;
+            --footer-background-color: #ffffff;
+            --content-background-color: #f7f9fb;
+            --card-background-color: #ffffff;
+            --text-color-primary: #333333;
+            --text-color-secondary: #666666;
+            --text-color-light: #999999;
+            --accent-color: #007bff;
+            --accent-color-dark: #0056b3;
+            --border-color: #e0e0e0;
+            --input-background-color: #f0f0f0;
+            --button-background: #e9ecef;
+            --button-hover-background: #dee2e6;
+            --active-item-background: rgba(0, 123, 255, 0.1);
+            --notification-badge-color: #dc3545;
+            --status-online: #28a745;
+            --status-offline: #6c757d;
+            --status-away: #ffc107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+
+        /* Dark Mode */
+        body.theme-dark-mode {
+            --background-main: #1a1a2e; /* Deep purple-dark blue */
+            --background-gradient-1: #16213e; /* Slightly lighter deep blue */
+            --background-gradient-2: #0f3460; /* Darker blue */
+            --white: #e0e0e0; /* Off-white text */
+            --text-light: #a0a0a0; /* Grayish text */
+            --card-background: rgba(25, 25, 40, 0.7); /* Darker, less transparent cards */
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75)); /* Original dark header */
+            --border-light: rgba(255, 255, 255, 0.08); /* Subtle white borders */
+            --input-background: rgba(255, 255, 255, 0.08); /* Dark input background */
+            --button-background: linear-gradient(90deg, #e94560, #ba2f49); /* Reddish gradient */
+            --button-shadow: 0 4px 15px rgba(233, 69, 96, 0.4), 0 4px 15px rgba(186, 47, 73, 0.4);
+
+            /* New variables override for dark mode */
+            --background-color-primary: #121212;
+            --background-color-secondary: #1e1e1e;
+            --header-background-color: #2c2c2c;
+            --footer-background-color: #2c2c2c;
+            --content-background-color: #242424;
+            --card-background-color: #2c2c2c;
+            --text-color-primary: #ffffff;
+            --text-color-secondary: #bbbbbb;
+            --accent-color: #bb86fc;
+            --accent-color-dark: #9a67ea;
+            --border-color: #444444;
+            --input-background-color: #383838;
+            --button-background: #383838;
+            --button-hover-background: #505050;
+            --active-item-background: rgba(187, 134, 252, 0.2);
+            --notification-badge-color: #cf6679;
+            --delete-button-color: #f44336;
+            --warning-color: #ffeb3b;
+        }
+
+        /* Glass Mode specific variables */
+        body.theme-glass-mode {
+            --background-main: rgba(10, 10, 10, 0.75);
+            background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important; /* Added !important */
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            backdrop-filter: blur(10px);
+            --card-background: rgba(25, 25, 40, 0.7);
+            --white: #e0e0e0; /* text-color */
+            --text-light: rgba(255, 255, 255, 0.7);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.1); /* glass-border-color */
+            --button-background: linear-gradient(90deg, var(--pink), var(--blue));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5); /* Inner shadow for glass effect */
+
+            /* New variables override for glass mode */
+            --background-color-primary: rgba(10, 10, 10, 0.75);
+            --background-color-secondary: rgba(10, 10, 10, 0.6);
+            --header-background-color: rgba(10, 10, 10, 0.85);
+            --footer-background-color: rgba(10, 10, 10, 0.85);
+            --content-background-color: rgba(10, 10, 10, 0.75);
+            --card-background-color: rgba(25, 25, 40, 0.7);
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --accent-color: #00d5ff;
+            --accent-color-dark: #00aaff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-background-color: rgba(255, 255, 255, 0.05);
+            --button-background: rgba(0, 213, 255, 0.15); /* Glassy button */
+            --button-hover-background: rgba(0, 213, 255, 0.25);
+            --active-item-background: rgba(0, 213, 255, 0.1);
+        }
+
+        /* Sunset Theme */
+        body.theme-sunset-mode {
+            background: linear-gradient(to top, #ff7e5f, #feb47b) !important; /* Added !important */
+            --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
+            --card-background: rgba(255, 255, 255, 0.15); /* Slightly transparent white for contrast */
+            --white: #fff; /* White text for readability */
+            --text-light: rgba(255, 255, 255, 0.8);
+            --input-background: rgba(255, 255, 255, 0.1);
+            --border-light: rgba(255, 255, 255, 0.3);
+            --button-background: linear-gradient(90deg, #fd746c, #ff9068); /* Sunset gradient */
+            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 4px 15px rgba(255, 144, 104, 0.4);
+
+            /* New variables override for sunset mode */
+            --background-color-primary: #ff7e5f;
+            --background-color-secondary: #feb47b;
+            --header-background-color: rgba(255, 126, 95, 0.9);
+            --footer-background-color: rgba(255, 126, 95, 0.9);
+            --content-background-color: rgba(255, 126, 95, 0.85);
+            --card-background-color: rgba(255, 255, 255, 0.15);
+            --text-color-primary: #fff;
+            --text-color-secondary: rgba(255, 255, 255, 0.8);
+            --accent-color: #ffd700;
+            --accent-color-dark: #ccaa00;
+            --border-color: rgba(255, 255, 255, 0.3);
+            --input-background-color: rgba(255, 255, 255, 0.1);
+            --button-background: rgba(255, 255, 255, 0.2);
+            --button-hover-background: rgba(255, 255, 255, 0.3);
+            --active-item-background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Always show scrollbar to prevent layout shifts */
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            /* Removed padding-bottom as bottom nav is gone */
+            background-color: var(--background-main);
+            background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
+                              radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
+            color: var(--white);
+            transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
+        }
+
+        /* Header Styling */
+        header {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 55px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        header .header-content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+        }
+
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
+            text-decoration: none;
+        }
+
+        /* Removed Header Navigation (Home, Profile) */
+        header nav {
+            display: none; /* Hide the nav element entirely */
+        }
+
+        /* User Profile Header Styling */
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Notification Icon Styling */
+        .notification-icon-wrapper {
+            position: relative;
+            margin-right: 15px; /* Space between notification and profile */
+        }
+
+        .notification-icon-wrapper a {
+            text-decoration: none; /* Remove underline from link */
+            color: inherit; /* Inherit color from parent */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-icon-wrapper i {
+            font-size: 1.5rem; /* Adjust size as needed */
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback for browsers that don't support background-clip: text on icons */
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .notification-icon-wrapper i:hover {
+            transform: scale(1.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--notification-badge-color); /* Use pink for notifications */
+            color: var(--white);
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Hide if no notifications */
+            display: none;
+        }
+
+        .user-profile-header #profileLink {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--white);
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: var(--radius);
+        }
+
+        .user-profile-header #profileLink:hover {
+            opacity: 0.8;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile-header img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color); /* Used accent-color for consistency */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: opacity 0.3s ease;
+        }
+
+        .user-profile-header i {
+            font-size: 30px;
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+
+        .user-profile-header span {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            /* Apply gradient to names */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+
+        /* Admin Icon Styling */
+        #adminIconLink {
+            display: none; /* Hidden by default */
+            margin-right: 15px; /* Space it out from other icons */
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+            font-size: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        #adminIconLink:hover {
+            transform: scale(1.1);
+        }
+
+        /* Main Content Area */
+        main {
+            flex-grow: 1;
+            padding: 40px 0;
+            padding-top: 55px; /* Adjust for fixed header */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align content to top */
+            text-align: center;
+        }
+
+        .content-wrapper {
+            width: 100%;
+            max-width: 1000px; /* Adjust as needed */
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        /* Daily Inspiration Section */
+        .daily-inspiration-section {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 2rem;
+            width: 90%;
+            max-width: 700px;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: center;
+        }
+
+        .daily-inspiration-section h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin: 0;
+        }
+
+        .daily-inspiration-section .quote-text {
+            font-size: 1.2rem;
+            color: var(--white);
+            line-height: 1.6;
+            font-style: italic;
+            margin: 0;
+        }
+
+        .daily-inspiration-section .quote-author {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        .daily-inspiration-section .inspiration-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .inspiration-action-button {
+            background: var(--button-background);
+            color: var(--white);
+            border: none;
+            border-radius: 15px;
+            padding: 0.8rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--button-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .inspiration-action-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
+        }
+        .inspiration-action-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--text-light);
+            box-shadow: none;
+        }
+
+        /* Post Creation Section */
+        .post-creation-section {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 600px; /* Max width for post creation */
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 20px; /* Space from inspiration section */
+        }
+
+        .post-creation-section h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .post-creation-section textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 15px;
+            background: var(--input-background);
+            border: 1px solid var(--border-light);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .post-creation-section textarea:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+        .post-creation-section .media-upload-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .post-creation-section .file-input-label {
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            color: var(--white);
+            border: none; /* Changed from border to none */
+            border-radius: 12px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all var(--transition);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .post-creation-section .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--blue), 0 44px 15px var(--pink);
+        }
+
+        .post-creation-section input[type="file"] {
+            display: none;
+        }
+
+        .post-creation-section .media-preview {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            display: none;
+            margin-left: 10px;
+        }
+
+        .post-creation-section .media-preview {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            display: none;
+            margin-left: 10px;
+        }
+
+        .post-creation-section .post-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+        }
+
+        .post-creation-section .post-button {
+            background: var(--button-background);
+            color: var(--white);
+            border: none;
+            border-radius: 15px;
+            padding: 0.7rem 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--button-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .post-creation-section .post-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
+        }
+        .post-creation-section .post-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--text-light);
+            box-shadow: none;
+        }
+
+        /* Posts Feed Section */
+        .posts-feed-section {
+            width: 100%;
+            max-width: 600px; /* Max width for posts feed */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px; /* Space from post creation section */
+        }
+
+        .post-card {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .2);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative; /* For dropdown menu positioning */
+        }
+
+        .post-header .author-pic-wrapper {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid var(--blue);
+            flex-shrink: 0;
+        }
+
+        .post-header .author-pic {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .post-header .author-pic-placeholder {
+            font-size: 40px;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .post-header .author-info {
+            flex-grow: 1;
+        }
+
+        .post-header .author-name {
+            font-weight: 600;
+            color: var(--white);
+            font-size: 1rem;
+            text-decoration: none; /* Make author name clickable */
+        }
+
+        .post-header .post-timestamp {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .post-options-button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        .post-options-button:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .post-options-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .post-options-dropdown {
+            position: absolute;
+            top: 40px; /* Position below the button */
+            right: 0;
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-width: 150px;
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            overflow: hidden; /* For rounded corners on children */
+        }
+
+        .post-options-dropdown.active {
+            display: flex;
+        }
+
+        .post-options-dropdown button {
+            background: none;
+            border: none;
+            color: var(--white);
+            padding: 10px 15px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .post-options-dropdown button:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .post-options-dropdown button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .post-options-dropdown button i {
+            width: 20px; /* Align icons */
+        }
+
+        /* Themed buttons in dropdown */
+        .post-options-dropdown .edit-post-button {
+            background: linear-gradient(90deg, var(--blue), #00d5ff80); /* Blue gradient */
+            color: var(--white);
+            box-shadow: 0 2px 5px rgba(0, 213, 255, 0.3);
+            border-radius: 0; /* Override default button border-radius */
+        }
+        .post-options-dropdown .edit-post-button:hover {
+            background: linear-gradient(90deg, #00b5e0, var(--blue));
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.5);
+        }
+
+        .post-options-dropdown .delete-post-button {
+            background: linear-gradient(90deg, var(--pink), #ff2e9280); /* Pink gradient */
+            color: var(--white);
+            box-shadow: 0 2px 5px rgba(255, 46, 146, 0.3);
+            border-radius: 0;
+        }
+        .post-options-dropdown .delete-post-button:hover {
+            background: linear-gradient(90deg, #e02a82, var(--pink));
+            box-shadow: 0 4px 10px rgba(255, 46, 146, 0.5);
+        }
+
+        .post-options-dropdown .share-post-button {
+            background: linear-gradient(90deg, var(--blue), var(--pink)); /* Mixed gradient for share */
+            color: var(--white);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            border-radius: 0;
+        }
+        .post-options-dropdown .share-post-button:hover {
+            background: linear-gradient(90deg, var(--pink), var(--blue)); /* Reverse gradient on hover */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+
+        .post-content-text {
+            font-size: 1rem;
+            color: var(--white);
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .post-media {
+            margin-top: 10px;
+        }
+
+        .post-media img, .post-media video {
+            max-width: 100%;
+            border-radius: 10px;
+            display: block;
+            height: auto;
+        }
+
+        .post-reactions-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .post-reactions-summary span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .post-reactions-summary i {
+            font-size: 1rem;
+        }
+
+        .post-actions-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-top: 1rem;
+        }
+
+        .post-action-button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.2s ease;
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .post-action-button:hover:not(:disabled) {
+            color: var(--blue);
+            background-color: rgba(0, 213, 255, 0.05);
+        }
+        .post-action-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .post-action-button.reacted-like {
+            color: var(--blue);
+            background-color: rgba(0, 213, 255, 0.1);
+        }
+        .post-action-button.reacted-love {
+            color: var(--pink);
+            background-color: rgba(255, 46, 146, 0.1);
+        }
+        .post-action-button.reacted-haha {
+            color: #ffd700; /* Gold */
+            background-color: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Comments Section */
+        .comments-section {
+            margin-top: 1rem;
+            border-top: 1px solid var(--border-light);
+            padding-top: 1rem;
+        }
+
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .comment-item .comment-author-pic {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--blue);
+        }
+
+        .comment-item .comment-author-pic-placeholder {
+            font-size: 30px;
+            color: var(--text-light);
+            flex-shrink: 0;
+        }
+
+        .comment-item .comment-content-wrapper {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .comment-item .comment-author-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--white);
+            margin-right: 5px;
+            text-decoration: none;
+        }
+
+        .comment-item .comment-text {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            word-wrap: break-word;
+            display: inline; /* Keep on same line as author for short comments */
+        }
+
+        .comment-item .comment-timestamp {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-left: 10px;
+        }
+
+        .comment-item .delete-comment-button {
+            background: none;
+            border: none;
+            color: var(--pink);
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 0.9rem;
+            padding: 0; /* Remove padding */
+        }
+        .comment-item .delete-comment-button:hover:not(:disabled) {
+            opacity: 0.8;
+        }
+        .comment-item .delete-comment-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+
+        .comment-input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 1rem;
+            align-items: center;
+        }
+
+        .comment-input-area textarea {
+            flex-grow: 1;
+            padding: 8px 12px;
+            border-radius: 15px;
+            background: var(--input-background);
+            border: 1px solid var(--border-light);
+            color: var(--white);
+            font-size: 0.9rem;
+            outline: none;
+            resize: vertical;
+            min-height: 40px;
+            max-height: 80px; /* Limit comment input height */
+        }
+
+        .comment-input-area textarea:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+        .comment-input-area button {
+            background: var(--button-background);
+            color: var(--white);
+            border: none;
+            border-radius: 15px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--button-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            flex-shrink: 0;
+        }
+
+        .comment-input-area button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+        }
+        .comment-input-area button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--text-light);
+            box-shadow: none;
+        }
+
+        /* Customization/Edit Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            width: 90%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-content h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-content .radio-group,
+        .modal-content .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+        }
+
+        .modal-content label {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .modal-content input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--blue);
+            border-radius: 50%;
+            background-color: var(--input-background);
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .modal-content input[type="radio"]:checked {
+            background-color: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .modal-content input[type="radio"]:checked::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background-color: var(--white);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 15px;
+            background: var(--input-background);
+            border: 1px solid var(--border-light);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            resize: vertical;
+            min-height: 80px;
+        }
+        .modal-content textarea:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+        .modal-content .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .modal-content .modal-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .modal-content .cancel-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-content .cancel-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .modal-content .save-button {
+            background: var(--button-background);
+            color: var(--white);
+            box-shadow: var(--button-shadow);
+        }
+
+        .modal-content .save-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+        }
+
+        /* Loader styles for buttons */
+        .button-loader {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid var(--white);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .button-loader.active {
+            display: block;
+        }
+
+        .button-text {
+            display: block;
+        }
+
+        .loading .button-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Message Box Styles */
+        #messageBox {
+            position: fixed;
+            top: 50%; /* Centered vertically */
+            left: 50%;
+            transform: translate(-50%, -50%); /* Centered horizontally and vertically */
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 30px; /* Increased padding for a 'squarer' feel */
+            border-radius: 15px; /* Slightly less rounded */
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5); /* More pronounced shadow */
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Add transform transition */
+            min-width: 280px; /* Slightly wider */
+            max-width: 90%; /* Responsive max-width */
+            text-align: center;
+            font-size: 1.1rem; /* Slightly larger font */
+            font-weight: 600;
+            backdrop-filter: blur(5px); /* Subtle blur for glass effect */
+        }
+        /* Specific styling for success messages */
+        #messageBox.success {
+            background: linear-gradient(135deg, var(--blue), var(--pink)); /* Pink and blue gradient */
+            border: 2px solid rgba(255, 255, 255, 0.3); /* White border for definition */
+            color: var(--white); /* Ensure text is white */
+            box-shadow: 0 5px 25px rgba(0, 213, 255, 0.5), 0 5px 25px rgba(255, 46, 146, 0.5); /* Dual color shadow */
+        }
+        #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); } /* Corrected from original */
+        #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); } /* Corrected from original */
+        #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); } /* Added for consistency */
+
+        #messageBox i { /* Added for consistency with Profile/Levels */
+            font-size: 2.5rem; /* Larger icon for prominence */
+            margin-bottom: 5px; /* Space between icon and text */
+            /* Apply gradient to message box icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+        #messageBox.success i { color: var(--white); } /* White icon for success */
+        #messageBox.error i { color: var(--delete-button-color); }
+        #messageBox.info i { color: var(--accent-color); }
+        #messageBox.warning i { color: var(--warning-color); }
+
+
+        @keyframes pulse-bg {
+            0% { background-color: rgba(52, 152, 219, 0.9); }
+            50% { background-color: rgba(52, 152, 219, 0.7); }
+            100% { background-color: rgba(52, 152, 219, 0.9); }
+        }
+        #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
+
+        /* Confirmation Modal Specific Styles */
+        #confirmationModal .modal-content {
+            max-width: 400px;
+            text-align: center;
+            padding: 1.8rem;
+        }
+        #confirmationModal .modal-content h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.6rem;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--pink), var(--blue));
+            margin-bottom: 1rem;
+        }
+        #confirmationModal .modal-content p {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+        #confirmationModal .modal-content .button-group {
+            justify-content: center;
+            gap: 1rem;
+        }
+        #confirmationModal .confirm-button {
+            background: var(--pink); /* Use pink for destructive action */
+            color: var(--white);
+            box-shadow: 0 4px 15px var(--pink);
+        }
+        #confirmationModal .confirm-button:hover {
+            background: #e02a82; /* Darker pink on hover */
+            box-shadow: 0 6px 20px var(--pink);
+        }
+        #confirmationModal .cancel-button {
+            background: var(--blue); /* Use blue for cancel/safe action */
+            color: var(--white);
+            box-shadow: 0 4px 15px var(--blue);
+        }
+        #confirmationModal .cancel-button:hover {
+            background: #00b5e0; /* Darker blue on hover */
+            box-shadow: 0 6px 20px var(--blue);
+        }
+
+
+        /* --- Sidebar Navigation --- */
+        #sidebarNav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px; /* Default sidebar width */
+            background: var(--header-background); /* Use header background for consistency */
+            border-right: 1px solid var(--border-light);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 90; /* Higher than main content, lower than modals */
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            transition: transform 0.3s ease-out; /* Smooth slide transition */
+            transform: translateX(-100%); /* Hidden by default */
+        }
+
+        #sidebarNav.sidebar-visible {
+            transform: translateX(0); /* Show sidebar */
+        }
+
+        #sidebarNav.sidebar-hidden {
+            transform: translateX(-100%); /* Hide sidebar */
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .sidebar-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
+        }
+
+        #sidebarCloseBtn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        #sidebarCloseBtn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        .sidebar-links {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .sidebar-nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: var(--white);
+            transform: translateX(5px);
+        }
+
+        .sidebar-nav-item.active {
+            background-color: rgba(0, 213, 255, 0.15); /* Light blue tint for active */
+            color: var(--white);
+            border-left: 4px solid var(--blue); /* Highlight active link */
+            padding-left: 11px; /* Adjust padding due to border */
+        }
+
+        .sidebar-nav-item i {
+            font-size: 1.4rem;
+            /* Apply gradient to sidebar icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+            width: 30px; /* Fixed width for icon alignment */
+            text-align: center;
+        }
+
+        .sidebar-nav-item span {
+            /* Apply gradient to sidebar text labels */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+
+        /* Sidebar Toggle Button in Header */
+        #sidebarToggleFab {
+            position: static; /* No longer fixed, now part of header flow */
+            width: 30px; /* Smaller */
+            height: 30px; /* Smaller */
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            color: var(--white);
+            border: none;
+            box-shadow: none; /* No shadow by default */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem; /* Smaller icon */
+            cursor: pointer;
+            z-index: 80;
+            transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            opacity: 0.3; /* Less visible when not in use */
+            margin-right: 15px; /* Space from logo */
+        }
+
+        #sidebarToggleFab:hover {
+            opacity: 1; /* Fully visible on hover */
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow on hover */
+            background: linear-gradient(45deg, var(--pink), var(--blue)); /* Reverse gradient on hover */
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 600px) {
+            header .header-content-wrapper {
+                padding: 0 20px;
+            }
+            .logo {
+                font-size: 1.6rem;
+            }
+            #sidebarToggleFab {
+                width: 25px;
+                height: 25px;
+                font-size: 1rem;
+                margin-right: 10px;
+            }
+            .notification-icon-wrapper i, #adminIconLink {
+                font-size: 1.3rem;
+            }
+            .notification-badge {
+                padding: 2px 5px;
+                font-size: 0.6rem;
+            }
+            .daily-inspiration-section {
+                padding: 1.5rem;
+            }
+            .daily-inspiration-section h2 {
+                font-size: 1.8rem;
+            }
+            .daily-inspiration-section .quote-text {
+                font-size: 1rem;
+            }
+            .daily-inspiration-section .quote-author {
+                font-size: 0.8rem;
+            }
+            .inspiration-action-button {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.8rem;
+            }
+            .post-creation-section {
+                padding: 1rem;
+            }
+            .post-creation-section h3 {
+                font-size: 1.3rem;
+            }
+            .post-creation-section textarea {
+                padding: 0.7rem 0.9rem;
+                font-size: 0.9rem;
+            }
+            .post-creation-section .post-button {
+                padding: 0.6rem 1rem;
+                font-size: 0.8rem;
+            }
+            .post-card {
+                padding: 1rem;
+            }
+            .post-header .author-pic-wrapper {
+                width: 35px;
+                height: 35px;
+            }
+            .post-header .author-pic-placeholder {
+                font-size: 35px;
+            }
+            .post-header .author-name {
+                font-size: 0.9rem;
+            }
+            .post-header .post-timestamp {
+                font-size: 0.7rem;
+            }
+            .post-content-text {
+                font-size: 0.9rem;
+            }
+            .post-action-button {
+                font-size: 0.8rem;
+            }
+            .post-action-button i {
+                font-size: 1rem;
+            }
+            .comment-item .comment-author-pic {
+                width: 25px;
+                height: 25px;
+            }
+            .comment-item .comment-author-pic-placeholder {
+                font-size: 25px;
+            }
+            .comment-item .comment-author-name, .comment-item .comment-text {
+                font-size: 0.8rem;
+            }
+            .comment-item .comment-timestamp {
+                font-size: 0.75rem;
+            }
+            .comment-input-area textarea {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+            }
+            .comment-input-area button {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            .modal-content {
+                padding: 1.5rem;
+            }
+            .modal-content h3 {
+                font-size: 1.3rem;
+            }
+            .modal-content .radio-option {
+                font-size: 0.9rem;
+            }
+            .modal-content .modal-button {
+                padding: 8px 15px;
+                font-size: 0.8rem;
+            }
+            #confirmationModal .modal-content h3 {
+                font-size: 1.4rem;
+            }
+            #confirmationModal .modal-content p {
+                font-size: 0.9rem;
+            }
+            /* Sidebar on mobile: make it full width */
+            #sidebarNav {
+                width: 100%;
+                padding: 20px 10px; /* Adjust padding */
+            }
+        }
+    </style>
+</head>
+<body class="theme-dark-mode">
+
+    <header>
+        <div class="header-content-wrapper">
+            <!-- Sidebar Toggle Button in Header -->
+            <button id="sidebarToggleFab" aria-label="Toggle Navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="/home.html" class="logo">JCHAT</a>
+            <!-- Removed Header Navigation (Home, Profile) -->
+            <div class="user-profile-header">
+                <!-- Admin Icon Link (visible only to admin) -->
+                <a href="/Admin.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
+                    <i class="fas fa-user-cog"></i>
+                </a>
+                <!-- Notification Icon with Badge -->
+                <div class="notification-icon-wrapper">
+                    <a href="/notifications.html" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span> <!-- Notification count, initially hidden -->
+                    </a>
+                </div>
+                <!-- Profile Link with Picture and Name (kept as per request) -->
+                <a href="/profile.html" id="profileLink">
+                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
+                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                    <span id="headerDisplayName">Loading...</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="content-wrapper">
+            <!-- Daily Inspiration Section -->
+            <div class="daily-inspiration-section">
+                <h2>Daily Inspiration</h2>
+                <p id="inspirationQuote" class="quote-text">Loading your daily dose of inspiration...</p>
+                <p id="inspirationAuthor" class="quote-author"></p>
+                <div class="inspiration-actions">
+                    <button id="sharePostInspirationButton" class="inspiration-action-button" disabled>
+                        <i class="fas fa-share-alt"></i> Share / Post
+                    </button>
+                    <button id="customizeInspirationButton" class="inspiration-action-button" disabled>
+                        <i class="fas fa-cog"></i> Customize Inspiration
+                    </button>
+                    <!-- NEW: Daily Bonus Button -->
+                    <button id="claimDailyBonusButton" class="inspiration-action-button" disabled>
+                        <span class="button-text"><i class="fas fa-calendar-check"></i> Claim Daily Bonus</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Post Creation Section -->
+            <div class="post-creation-section">
+                <h3>Create New Post</h3>
+                <textarea id="postContent" placeholder="What's on your mind?" maxlength="50000" disabled></textarea>
+                <div class="media-upload-area">
+                    <label for="postMediaUpload" class="file-input-label">
+                        <i class="fas fa-image"></i> Add Media
+                    </label>
+                    <input type="file" id="postMediaUpload" accept="image/*,video/*" disabled>
+                    <img id="mediaImagePreview" class="media-preview" src="" alt="Image Preview" style="display: none;">
+                    <video id="mediaVideoPreview" class="media-preview" src="" controls style="display: none;"></video>
+                </div>
+                <div class="post-actions">
+                    <button id="createPostButton" class="post-button" disabled>
+                        <span class="button-text">Post</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Posts Feed Section -->
+            <div class="posts-feed-section" id="postsFeed">
+                <!-- Posts will be loaded here dynamically -->
+                <p style="text-align: center; color: var(--text-light);" id="loadingPostsMessage">Loading posts...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Customization Modal -->
+    <div id="customizeInspirationModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Customize Inspiration Type</h3>
+            <div class="radio-group">
+                <label class="radio-option">
+                    <input type="radio" name="inspirationType" value="motivational" checked>
+                    Motivational
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="inspirationType" value="peaceful">
+                    Peaceful
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="inspirationType" value="funny">
+                    Funny
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="inspirationType" value="wisdom">
+                    Wisdom
+                </label>
+            </div>
+            <div class="button-group">
+                <button id="cancelCustomize" class="modal-button cancel-button">Cancel</button>
+                <button id="saveCustomize" class="modal-button save-button">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Post Modal -->
+    <div id="editPostModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Edit Post</h3>
+            <div class="input-group">
+                <label for="editPostContent">Post Content:</label>
+                <textarea id="editPostContent" maxlength="500"></textarea>
+            </div>
+            <div class="media-upload-area">
+                <label for="editPostMediaUpload" class="file-input-label">
+                    <i class="fas fa-image"></i> Change Media
+                </label>
+                <input type="file" id="editPostMediaUpload" accept="image/*,video/*">
+                <img id="editMediaImagePreview" class="media-preview" src="" alt="Image Preview" style="display: none;">
+                <video id="editMediaVideoPreview" class="media-preview" src="" controls style="display: none;"></video>
+                <button id="removeEditMedia" class="modal-button cancel-button" style="display: none;">Remove Media</button>
+            </div>
+            <div class="button-group">
+                <button id="cancelEditPost" class="modal-button cancel-button">Cancel</button>
+                <button id="saveEditedPost" class="modal-button save-button">
+                    <span class="button-text">Save Changes</span>
+                    <div class="button-loader"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="confirmationTitle">Confirm Action</h3>
+            <p id="confirmationMessage">Are you sure you want to proceed with this action?</p>
+            <div class="button-group">
+                <button id="confirmCancelButton" class="modal-button cancel-button">Cancel</button>
+                <button id="confirmProceedButton" class="modal-button confirm-button">Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="messageBox"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebarNav" class="sidebar-hidden">
+        <div class="sidebar-header">
+            <span class="sidebar-title">JCHAT Menu</span>
+            <button id="sidebarCloseBtn" aria-label="Close Menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-links">
+            <a href="/home.html" class="sidebar-nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/profile.html" class="sidebar-nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="/chat.html" class="sidebar-nav-item">
+                <i class="fas fa-comment-dots"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/find_friends.html" class="sidebar-nav-item">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="/friends.html" class="sidebar-nav-item">
+                <i class="fas fa-user-friends"></i>
+                <span>Friends</span>
+            </a>
+            <a href="/groups.html" class="sidebar-nav-item">
+                <i class="fas fa-layer-group"></i> <!-- New Groups icon -->
+                <span>Groups</span>
+            </a>
+            <a href="/jcoin_shop.html" class="sidebar-nav-item">
+                <i class="fas fa-store"></i>
+                <span>Shop</span>
+            </a>
+            <a href="/settings.html" class="sidebar-nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <!-- New: Logout Link in Sidebar -->
+            <a href="#" id="sidebarLogoutLink" class="sidebar-nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <script type="module">
+        console.log("JCHAT_DEBUG: Home.html script started.");
+
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, where, getDocs, addDoc, runTransaction, writeBatch, serverTimestamp, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- Firebase & Canvas Environment Configuration ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+            authDomain: "jchat-1.firebaseapp.com",
+            projectId: "jchat-1",
+            storageBucket: "jchat-1.firebasestorage.app",
+            messagingSenderId: "328479683167",
+            appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+            measurementId: "G-S6Z9GG0R9P"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Cloudinary Configuration
+        const cloudinaryConfig = {
+            cloudName: "dxld01rcp",
+            uploadPreset: "Storage_preset"
+        };
+
+        // Initialize Firebase services
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- DOM Elements ---
+        const headerProfilePic = document.getElementById('headerProfilePic');
+        const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+        const headerDisplayName = document.getElementById('headerDisplayName');
+        // const logoutButton = document.getElementById('logoutButton'); // Removed from header
+        const notificationCountElement = document.getElementById('notificationCount');
+        const adminIconLink = document.getElementById('adminIconLink');
+        const profileLink = document.getElementById('profileLink'); // Get the profile link element
+
+        const inspirationQuoteElement = document.getElementById('inspirationQuote');
+        const inspirationAuthorElement = document.getElementById('inspirationAuthor');
+        const sharePostInspirationButton = document.getElementById('sharePostInspirationButton');
+        const customizeInspirationButton = document.getElementById('customizeInspirationButton');
+        const claimDailyBonusButton = document.getElementById('claimDailyBonusButton');
+
+        const customizeInspirationModal = document.getElementById('customizeInspirationModal');
+        const inspirationTypeRadios = document.querySelectorAll('input[name="inspirationType"]');
+        const cancelCustomizeButton = document.getElementById('cancelCustomize');
+        const saveCustomizeButton = document.getElementById('saveCustomize');
+
+        const postContentInput = document.getElementById('postContent');
+        const postMediaUpload = document.getElementById('postMediaUpload');
+        const mediaImagePreview = document.getElementById('mediaImagePreview');
+        const mediaVideoPreview = document.getElementById('mediaVideoPreview');
+        const createPostButton = document.getElementById('createPostButton');
+        const postsFeed = document.getElementById('postsFeed');
+        const loadingPostsMessage = document.getElementById('loadingPostsMessage');
+
+        const editPostModal = document.getElementById('editPostModal');
+        const editPostContentInput = document.getElementById('editPostContent');
+        const editPostMediaUpload = document.getElementById('editPostMediaUpload');
+        const editMediaImagePreview = document.getElementById('editMediaImagePreview');
+        const editMediaVideoPreview = document.getElementById('editMediaVideoPreview');
+        const removeEditMediaButton = document.getElementById('removeEditMedia');
+        const cancelEditPostButton = document.getElementById('cancelEditPost');
+        const saveEditedPostButton = document.getElementById('saveEditedPost');
+
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmationTitle = document.getElementById('confirmationTitle');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const confirmCancelButton = document.getElementById('confirmCancelButton');
+        const confirmProceedButton = document.getElementById('confirmProceedButton');
+
+        const messageBox = document.getElementById('messageBox');
+
+        // Sidebar elements
+        const sidebarNav = document.getElementById('sidebarNav');
+        const sidebarToggleFab = document.getElementById('sidebarToggleFab'); // Moved to header
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+        const sidebarNavItems = document.querySelectorAll('.sidebar-nav-item');
+        const sidebarLogoutLink = document.getElementById('sidebarLogoutLink');
+
+
+        // --- Global State ---
+        let currentUser = null;
+        let currentUserProfileData = null; // Stores the authenticated user's own profile data
+        let inspirationIntervalId = null;
+        let dailyBonusCountdownInterval = null; // New: Interval for daily bonus countdown
+        let currentMediaFile = null;
+        let currentEditPostId = null;
+        let currentEditMediaFile = null;
+        let currentEditMediaUrl = null;
+        let currentEditMediaType = null;
+        let isAuthReady = false;
+        let unsubscribeListeners = []; // Array to store all onSnapshot unsubscribe functions
+
+        // --- Theme Management Variables ---
+        const themes = [
+            'theme-light-mode',
+            'theme-dark-mode',
+            'theme-glass-mode',
+            'theme-sunset-mode'
+        ];
+
+        // --- Inspiration Quotes Data (Local Fallback) ---
+        // These are used as a fallback if LLM generation fails or for initial load.
+        const inspirationalQuotes = {
+            motivational: [
+                { quote: "Every sunrise is an invitation to brighten your world.", author: "JCHAT" },
+                { quote: "Your potential is limitless; dare to explore it.", author: "JCHAT" },
+                { quote: "Small steps forward still lead to great destinations.", author: "JCHAT" },
+                { quote: "Embrace challenges, for they forge your strength.", author: "JCHAT" },
+                { quote: "The best time for new beginnings is now.", author: "JCHAT" },
+            ],
+            peaceful: [
+                { quote: "Find your calm in the rhythm of your breath.", author: "JCHAT" },
+                { quote: "Let go of what was, embrace the serenity of what is.", author: "JCHAT" },
+                { quote: "Peace is not the absence of trouble, but the presence of calm within it.", author: "JCHAT" },
+                { quote: "In stillness, discover the answers you seek.", author: "JCHAT" },
+                { quote: "May your mind be clear, and your heart be light.", author: "JCHAT" },
+            ],
+            funny: [
+                { quote: "I'm not lazy, I'm just on energy-saving mode.", author: "JCHAT" },
+                { quote: "My bed is a magical place where I suddenly remember everything I forgot to do.", author: "JCHAT" },
+                { quote: "I used to think I was indecisive, but now I'm not so sure.", author: "JCHAT" },
+                { quote: "Life is short. Smile while you still have teeth.", author: "JCHAT" },
+                { quote: "My favorite exercise is a cross between a lunge and a crunch. I call it lunch.", author: "JCHAT" },
+            ],
+            wisdom: [
+                { quote: "True wisdom lies in knowing the depth of your own ignorance.", author: "JCHAT" },
+                { quote: "The greatest teacher is experience.", author: "JCHAT" },
+                { quote: "A mind stretched by new experiences never returns to its old dimensions.", author: "JCHAT" },
+                { quote: "Listen more than you speak; learn more than you teach.", author: "JCHAT" },
+                { quote: "The only true wisdom is in knowing you know nothing.", author: "JCHAT" },
+            ]
+        };
+
+        // --- Level and XP Progression Logic (Admin Reference) ---
+        function getLevelInfo(level) {
+            const levelData = [
+                { level: 1, name: "Novice", icon: "fas fa-leaf", jCoinReward: 50, timeEstimate: "3 days" },
+                { level: 2, name: "Beginner", icon: "fas fa-seedling", jCoinReward: 100, timeEstimate: "7 days" },
+                { level: 3, name: "Apprentice", icon: "fas fa-user-graduate", jCoinReward: 150, timeEstimate: "10 days" },
+                { level: 4, name: "Explorer", icon: "fas fa-map-marker-alt", jCoinReward: 200, timeEstimate: "2 weeks" },
+                { level: 5, name: "Pioneer", icon: "fas fa-compass", jCoinReward: 250, timeEstimate: "3 weeks" },
+                { level: 6, name: "Communicator", icon: "fas fa-comments", jCoinReward: 300, timeEstimate: "1 month" },
+                { level: 7, name: "Socialite", icon: "fas fa-users", jCoinReward: 350, timeEstimate: "1 month" },
+                { level: 8, name: "Networker", icon: "fas fa-share-alt", jCoinReward: 400, timeEstimate: "1 month" },
+                { level: 9, name: "Influencer", icon: "fas fa-star", jCoinReward: 450, timeEstimate: "1.5 months" },
+                { level: 10, name: "Trendsetter", icon: "fas fa-fire", jCoinReward: 500, timeEstimate: "1.5 months" },
+                { level: 11, name: "Innovator", icon: "fas fa-lightbulb", jCoinReward: 550, timeEstimate: "2 months" },
+                { level: 12, name: "Creator", icon: "fas fa-paint-brush", jCoinReward: 600, timeEstimate: "2 months" },
+                { level: 13, name: "Visionary", icon: "fas fa-eye", jCoinReward: 650, timeEstimate: "2 months" },
+                { level: 14, name: "Architect", icon: "fas fa-building", jCoinReward: 700, timeEstimate: "2.5 months" },
+                { level: 15, name: "Maestro", icon: "fas fa-music", jCoinReward: 750, timeEstimate: "2.5 months" },
+                { level: 16, name: "Strategist", icon: "fas fa-chess", jCoinReward: 800, timeEstimate: "3 months" },
+                { level: 17, name: "Guardian", icon: "fas fa-shield-alt", jCoinReward: 850, timeEstimate: "3 months" },
+                { level: 18, name: "Champion", icon: "fas fa-trophy", jCoinReward: 900, timeEstimate: "3 months" },
+                { level: 19, name: "Hero", icon: "fas fa-mask", jCoinReward: 950, timeEstimate: "3.5 months" },
+                { level: 20, name: "Legend", icon: "fas fa-dragon", jCoinReward: 1000, timeEstimate: "3.5 months" },
+                { level: 21, name: "Mythic", icon: "fas fa-meteor", jCoinReward: 1050, timeEstimate: "4 months" },
+                { level: 22, name: "Celestial", icon: "fas fa-galaxy", jCoinReward: 1100, timeEstimate: "4 months" },
+                { level: 23, name: "Divine", icon: "fas fa-hand-sparkles", jCoinReward: 1150, timeEstimate: "4.5 months" },
+                { level: 24, name: "Transcendent", icon: "fas fa-infinity", jCoinReward: 1200, timeEstimate: "4.5 months" },
+                { level: 25, name: "Cosmic Being", icon: "fas fa-atom", jCoinReward: 1250, timeEstimate: "5 months" },
+                { level: 26, name: "Universal Traveler", icon: "fas fa-globe-americas", jCoinReward: 1300, timeEstimate: "5 months" },
+                { level: 27, name: "Stellar Navigator", icon: "fas fa-space-shuttle", jCoinReward: 1350, timeEstimate: "5.5 months" },
+                { level: 28, name: "Galactic Conqueror", icon: "fas fa-rocket", jCoinReward: 1400, timeEstimate: "5.5 months" },
+                { level: 29, name: "Dimensional Shifter", icon: "fas fa-cube", jCoinReward: 1450, timeEstimate: "6 months" },
+                { level: 30, name: "Omni-Presence", icon: "fas fa-brain", jCoinReward: 1500, timeEstimate: "6 months" },
+            ];
+
+            let xpToNextLevel;
+            let jCoinReward;
+            let name;
+            let icon;
+            let timeEstimate;
+
+            if (level < 1) level = 1;
+
+            // XP Calculation Logic - Designed for "harder" progression
+            if (level === 1) {
+                xpToNextLevel = 500;
+            } else if (level <= 5) {
+                xpToNextLevel = 500 + (level - 1) * 250;
+            } else if (level <= 10) {
+                xpToNextLevel = (500 + 4 * 250) + (level - 5) * 500;
+            } else if (level <= 20) {
+                xpToNextLevel = ((500 + 4 * 250) + (10 - 5) * 500) + (level - 10) * 1000;
+            } else if (level <= 50) {
+                xpToNextLevel = (((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (level - 20) * 2000;
+            } else if (level <= 100) {
+                xpToNextLevel = ((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (50 - 20) * 2000) + (level - 50) * 5000;
+            } else if (level <= 500) {
+                xpToNextLevel = (((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (50 - 20) * 5000) + (100 - 50) * 5000) + (level - 100) * 10000;
+            } else {
+                xpToNextLevel = 10000000;
+            }
+
+            const specificLevel = levelData.find(l => l.level === level);
+            if (specificLevel) {
+                name = specificLevel.name;
+                icon = specificLevel.icon;
+                jCoinReward = specificLevel.jCoinReward;
+                timeEstimate = specificLevel.timeEstimate;
+            } else if (level > 30 && level <= 500) {
+                const tierNames = [
+                    "Adept", "Master", "Grandmaster", "Exalted", "Ascendant",
+                    "Divine", "Apex", "Cosmic", "Ethereal", "Legendary",
+                    "Mythical", "Celestial", "Transcendent", "Omnipotent", "Infinite",
+                    "Starlight", "Nebula", "Galaxy", "Universe", "Multiverse",
+                    "Zenith", "Pinnacle", "Sovereign", "Eternal", "Absolute"
+                ];
+                const tierIcons = [
+                    "fas fa-magic", "fas fa-crown", "fas fa-chess-king", "fas fa-gem",
+                    "fas fa-star-of-life", "fas fa-hand-sparkles", "fas fa-mountain", "fas fa-atom",
+                    "fas fa-cloud-sun", "fas fa-dragon", "fas fa-meteor", "fas fa-galaxy",
+                    "fas fa-infinity", "fas fa-bahai", "fas fa-globe-americas", "fas fa-star",
+                    "fas fa-cloud", "fas fa-atom", "fas fa-globe", "fas fa-cubes",
+                    "fas fa-mountain", "fas fa-trophy", "fas fa-shield-alt", "fas fa-infinity", "fas fa-brain"
+                ];
+
+                const baseLevelForTier = 30;
+                const levelsPerTierName = 10;
+                const levelsPerTierIcon = 10;
+
+                const tierNameIndex = Math.floor((level - (baseLevelForTier + 1)) / levelsPerTierName);
+                const tierIconIndex = Math.floor((level - (baseLevelForTier + 1)) / levelsPerTierIcon);
+
+                name = `${tierNames[tierNameIndex % tierNames.length]} Lv. ${level}`;
+                icon = tierIcons[tierIconIndex % tierIcons.length];
+                jCoinReward = 1500 + (level - 30) * 100;
+            } else if (level > 500) {
+                name = `Master Lv. ${level}`;
+                icon = "fas fa-star";
+                jCoinReward = 1500 + (500 - 30) * 100 + (level - 500) * 200;
+            } else {
+                name = `Unknown Lv. ${level}`;
+                icon = "fas fa-question-circle";
+                jCoinReward = 0;
+            }
+
+            return {
+                level: level,
+                name: name,
+                icon: icon,
+                jCoinReward: jCoinReward,
+                xpToNextLevel: xpToNextLevel,
+                timeEstimate: timeEstimate
+            };
+        }
+
+        // --- NEW: Pending Activity Reward Creation Function ---
+        async function createPendingActivityReward(
+            userId,
+            username,
+            activityType,
+            suggestedXpReward,
+            suggestedJCoinReward,
+            activityId = null,
+            postId = null
+        ) {
+            try {
+                const pendingRewardsCollectionRef = collection(db, "artifacts", appId, "public", "data", "pending_activity_rewards");
+
+                const newRewardDocRef = await addDoc(pendingRewardsCollectionRef, {
+                    userId: userId,
+                    username: username,
+                    activityType: activityType,
+                    suggestedXpReward: suggestedXpReward,
+                    suggestedJCoinReward: suggestedJCoinReward,
+                    status: 'pending', // Always pending for admin review
+                    timestamp: serverTimestamp(),
+                    activityId: activityId,
+                    postId: postId
+                });
+
+                console.log(`JCHAT_DEBUG: Pending activity reward created with ID: ${newRewardDocRef.id}`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error creating pending activity reward:", error);
+            }
+        }
+
+        // --- Daily Login Bonus Logic ---
+        function updateDailyBonusCountdown() {
+            if (!currentUserProfileData || !claimDailyBonusButton) {
+                if (dailyBonusCountdownInterval) {
+                    clearInterval(dailyBonusCountdownInterval);
+                    dailyBonusCountdownInterval = null;
+                }
+                return;
+            }
+
+            const now = new Date();
+            const lastClaimedTimestamp = currentUserProfileData.lastLoginBonusClaimed ?
+                currentUserProfileData.lastLoginBonusClaimed.toDate() : null;
+
+            if (!lastClaimedTimestamp) {
+                // No previous claim, button should be enabled
+                claimDailyBonusButton.disabled = false;
+                claimDailyBonusButton.querySelector('.button-text').textContent = "Claim Daily Bonus";
+                if (dailyBonusCountdownInterval) {
+                    clearInterval(dailyBonusCountdownInterval);
+                    dailyBonusCountdownInterval = null;
+                }
+                return;
+            }
+
+            const nextClaimTime = new Date(lastClaimedTimestamp.getTime() + (24 * 60 * 60 * 1000));
+            const timeLeft = nextClaimTime.getTime() - now.getTime();
+
+            if (timeLeft <= 0) {
+                // Time is up, enable button
+                claimDailyBonusButton.disabled = false;
+                claimDailyBonusButton.querySelector('.button-text').textContent = "Claim Daily Bonus";
+                if (dailyBonusCountdownInterval) {
+                    clearInterval(dailyBonusCountdownInterval);
+                    dailyBonusCountdownInterval = null;
+                }
+            } else {
+                // Still in cooldown, display countdown
+                claimDailyBonusButton.disabled = true;
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                claimDailyBonusButton.querySelector('.button-text').textContent = `Next in ${hours}h ${minutes}m ${seconds}s`;
+            }
+        }
+
+        async function checkAndStartDailyBonusTimer() {
+            if (!currentUser || !currentUserProfileData) {
+                // If not logged in or profile not loaded, ensure button is disabled and timer is off.
+                if (claimDailyBonusButton) {
+                    claimDailyBonusButton.disabled = true;
+                    claimDailyBonusButton.querySelector('.button-text').textContent = "Login to Claim Bonus";
+                }
+                if (dailyBonusCountdownInterval) {
+                    clearInterval(dailyBonusCountdownInterval);
+                    dailyBonusCountdownInterval = null;
+                }
+                return;
+            }
+
+            // Initial update
+            updateDailyBonusCountdown();
+
+            // Clear any existing interval before setting a new one
+            if (dailyBonusCountdownInterval) {
+                clearInterval(dailyBonusCountdownInterval);
+            }
+
+            // Start interval only if the button is currently disabled (meaning there's a countdown)
+            if (claimDailyBonusButton && claimDailyBonusButton.disabled) {
+                dailyBonusCountdownInterval = setInterval(updateDailyBonusCountdown, 1000); // Update every second
+            }
+        }
+
+
+        async function handleClaimDailyBonusClick() {
+            if (!isAuthReady || !currentUser || !currentUserProfileData) {
+                showMessageBox("Please log in to claim daily bonus.", 'error');
+                return;
+            }
+
+            const now = new Date();
+            const lastClaimedTimestamp = currentUserProfileData.lastLoginBonusClaimed ?
+                currentUserProfileData.lastLoginBonusClaimed.toDate() : null;
+
+            if (lastClaimedTimestamp) {
+                const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+                if (lastClaimedTimestamp > twentyFourHoursAgo) {
+                    showMessageBox("Daily bonus already claimed today. Check back tomorrow!", 'info');
+                    return;
+                }
+            }
+
+            toggleButtonLoading(claimDailyBonusButton, true);
+            showMessageBox("Claiming daily bonus...", 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+
+                await updateDoc(userProfileDocRef, {
+                    lastLoginBonusClaimed: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+
+                // Call createPendingActivityReward for daily login bonus
+                await createPendingActivityReward(
+                    currentUser.uid,
+                    currentUserProfileData.username,
+                    'daily_login',
+                    5, // Suggested XP reward for daily login (changed from 50)
+                    5  // Suggested JCoin reward for daily login (changed from 10)
+                );
+
+                showMessageBox(`Daily bonus claimed! 5 XP and 5 JCoins are pending admin review.`, 'success'); // Updated message
+                playNotificationSound('success');
+
+                // Update local profile data immediately for UI consistency
+                currentUserProfileData.lastLoginBonusClaimed = { toDate: () => new Date() };
+                checkAndStartDailyBonusTimer(); // Re-check status and start/stop timer
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error claiming daily bonus:", error);
+                showMessageBox(`Failed to claim bonus: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(claimDailyBonusButton, false);
+            }
+        }
+
+        // --- Tone.js Synths for Notification Sounds ---
+        const successSynth = new Tone.Synth().toDestination();
+        const errorSynth = new Tone.Synth().toDestination();
+        const infoSynth = new Tone.Synth().toDestination();
+
+        // Set up basic sounds
+        successSynth.oscillator.type = "sine";
+        successSynth.envelope.attack = 0.01;
+        successSynth.envelope.decay = 0.2;
+        successSynth.envelope.sustain = 0.0;
+        successSynth.envelope.release = 0.5;
+
+        errorSynth.oscillator.type = "sawtooth";
+        errorSynth.envelope.attack = 0.01;
+        errorSynth.envelope.decay = 0.3;
+        errorSynth.envelope.sustain = 0.0;
+        errorSynth.envelope.release = 0.5;
+
+        infoSynth.oscillator.type = "triangle";
+        infoSynth.envelope.attack = 0.01;
+        infoSynth.envelope.decay = 0.1;
+        infoSynth.envelope.sustain = 0.0;
+        infoSynth.envelope.release = 0.3;
+
+        /**
+         * Plays a notification sound.
+         * @param {string} type - 'success', 'error', or 'info'.
+         */
+        function playNotificationSound(type) {
+            Tone.start();
+            if (type === 'success') {
+                successSynth.triggerAttackRelease("C5", "8n");
+            } else if (type === 'error') {
+                errorSynth.triggerAttackRelease("C3", "8n");
+            } else if (type === 'info') {
+                infoSynth.triggerAttackRelease("E4", "16n");
+            }
+        }
+
+        // --- Utility Functions ---
+        function showMessageBox(message, type, isPersistent = false) {
+            if (!messageBox) {
+                console.error("JCHAT_ERROR: messageBox element not found.");
+                return;
+            }
+            if (messageBox.timeoutId) {
+                clearTimeout(messageBox.timeoutId);
+            }
+
+            messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
+            const messageBoxIcon = document.getElementById('messageBoxIcon');
+            const messageBoxText = document.getElementById('messageBoxText');
+
+            messageBoxText.textContent = message;
+            messageBox.className = 'message-box show ' + type; // Add type class for styling
+
+            // Set icon based on type
+            if (messageBoxIcon) {
+                messageBoxIcon.className = ''; // Clear existing classes
+                if (type === 'success') {
+                    messageBoxIcon.classList.add('fas', 'fa-check-circle');
+                } else if (type === 'error') {
+                    messageBoxIcon.classList.add('fas', 'fa-times-circle');
+                } else if (type === 'info') {
+                    messageBoxIcon.classList.add('fas', 'fa-info-circle');
+                } else if (type === 'warning') {
+                    messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
+                } else if (type === 'loading') {
+                    messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); // Spinner for loading
+                }
+            }
+
+
+            if (type === 'loading') {
+                messageBox.classList.add('loading-pulse');
+            } else {
+                messageBox.classList.remove('loading-pulse');
+            }
+
+            messageBox.style.display = 'flex';
+            messageBox.style.opacity = '1';
+
+            if (!isPersistent) {
+                messageBox.timeoutId = setTimeout(() => {
+                    messageBox.style.opacity = '0';
+                    messageBox.addEventListener('transitionend', function handler() {
+                        messageBox.style.display = 'none';
+                        messageBox.removeEventListener('transitionend', handler);
+                        messageBox.classList.remove('loading-pulse');
+                    }, { once: true });
+                }, 3000);
+            }
+        }
+
+        function showConfirmationModal(title, message) {
+            return new Promise((resolve) => {
+                if (!confirmationTitle || !confirmationMessage || !confirmationModal || !confirmProceedButton || !confirmCancelButton) {
+                    console.error("JCHAT_ERROR: Confirmation modal elements not found.");
+                    resolve(false); // Resolve false if elements are missing
+                    return;
+                }
+
+                confirmationTitle.textContent = title;
+                confirmationMessage.textContent = message;
+                confirmationModal.classList.add('active');
+
+                const handleConfirm = () => {
+                    confirmationModal.classList.remove('active');
+                    confirmProceedButton.removeEventListener('click', handleConfirm);
+                    confirmCancelButton.removeEventListener('click', handleCancel);
+                    resolve(true);
+                };
+
+                const handleCancel = () => {
+                    confirmationModal.classList.remove('active');
+                    confirmProceedButton.removeEventListener('click', handleConfirm);
+                    confirmCancelButton.removeEventListener('click', handleCancel);
+                    resolve(false);
+                };
+
+                confirmProceedButton.addEventListener('click', handleConfirm);
+                confirmCancelButton.addEventListener('click', handleCancel);
+
+                confirmationModal.addEventListener('click', function outsideClickListener(event) {
+                    if (event.target === confirmationModal) {
+                        handleCancel();
+                        confirmationModal.removeEventListener('click', outsideClickListener);
+                    }
+                });
+            });
+        }
+
+        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
+            if (!urlOrPublicId) return null;
+            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
+                // If it's already a full URL, ensure it's a Cloudinary URL before transforming
+                if (urlOrPublicId.includes('res.cloudinary.com')) {
+                    // This is a basic attempt to insert transformations into an existing Cloudinary URL
+                    // More robust parsing might be needed for complex existing URLs
+                    const parts = urlOrPublicId.split('/upload/');
+                    if (parts.length === 2) {
+                        // Check if transformations are already present to avoid duplication
+                        const currentTransformations = parts[1].split('/')[0];
+                        if (currentTransformations.includes(transformations.split(',')[0])) { // Simple check if first part of transformation is there
+                            return urlOrPublicId; // Assume already transformed
+                        }
+                        return `${parts[0]}/upload/${transformations}/${parts[1]}`;
+                    }
+                }
+                return urlOrPublicId; // Return as is if not a recognizable Cloudinary URL or already transformed
+            }
+            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
+        }
+
+        function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
+            if (imgElement && iconElement) {
+                if (profilePicId) {
+                    const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
+                    imgElement.src = imageUrl;
+                    imgElement.style.display = 'block';
+                    iconElement.style.display = 'none';
+                    imgElement.onerror = () => {
+                        console.error(`Failed to load profile picture: ${profilePicId}. Using placeholder.`);
+                        imgElement.src = `https://placehold.co/120x120/CCCCCC/000000?text=${usernameInitial}`;
+                        imgElement.style.display = 'block';
+                        iconElement.style.display = 'none';
+                    };
+                } else {
+                    imgElement.src = '';
+                    imgElement.style.display = 'none';
+                    iconElement.style.display = 'block';
+                }
+            }
+        }
+
+        function resizeImage(file, maxWidth = 800, maxHeight = 800, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth) {
+                            height = height * (maxWidth / width);
+                            width = maxWidth;
+                        }
+                        if (height > maxHeight) {
+                            width = width * (maxHeight / height);
+                            height = maxHeight;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Canvas to Blob conversion failed: Resulting blob was null.'));
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = (error) => {
+                        console.error("Image element loading error:", error);
+                        reject(new Error(`Image loading failed: ${error.message || 'Unknown image loading error.'}`));
+                    };
+                    img.src = event.target.result;
+                };
+                reader.onerror = (error) => {
+                    console.error("FileReader error during readAsDataURL:", error);
+                    reject(new Error(`FileReader error: ${error.target.error ? error.target.error.message : 'Unknown error reading file.'}`));
+                }
+                try {
+                    reader.readAsDataURL(file);
+                } catch (e) {
+                    console.error("Error calling readAsDataURL:", e);
+                    reject(new Error(`Failed to read file data: ${e.message}`));
+                }
+            });
+        }
+
+        async function uploadMediaToCloudinary(file) {
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', cloudinaryConfig.uploadPreset);
+
+                const resourceType = file.type.startsWith('image/') ? 'image' : 'video';
+
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/${resourceType}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("Cloudinary upload error:", errorData);
+                    throw new Error(`Cloudinary upload failed: ${errorData.error.message || response.statusText}`);
+                }
+
+                const data = await response.json();
+                return data.secure_url;
+            } catch (error) {
+                console.error("Error uploading to Cloudinary:", error);
+                return null;
+            }
+        }
+
+        function applyTheme(themeName) {
+            document.body.classList.remove(...themes);
+            document.body.classList.add(themeName);
+            localStorage.setItem('jchat-theme', themeName);
+        }
+
+        function toggleButtonLoading(buttonElement, isLoading) {
+            if (!buttonElement) return;
+            const loader = buttonElement.querySelector('.button-loader');
+            const text = buttonElement.querySelector('.button-text');
+
+            if (isLoading) {
+                buttonElement.disabled = true;
+                buttonElement.classList.add('loading');
+                if (loader) loader.classList.add('active');
+                if (text) text.style.display = 'none';
+            } else {
+                buttonElement.disabled = false;
+                buttonElement.classList.remove('loading');
+                if (loader) loader.classList.remove('active');
+                if (text) text.style.display = 'block';
+            }
+        }
+
+        function toggleInteractiveElements(enable) {
+            console.log(`JCHAT_DEBUG: toggleInteractiveElements called with enable: ${enable}`);
+
+            // Removed logoutButton from header, so no need to toggle its disabled state here
+            // if (logoutButton) {
+            //     logoutButton.disabled = !enable;
+            //     console.log(`JCHAT_DEBUG: logoutButton disabled: ${logoutButton.disabled}`);
+            // }
+
+            if (sharePostInspirationButton) {
+                sharePostInspirationButton.disabled = !enable;
+                console.log(`JCHAT_DEBUG: sharePostInspirationButton disabled: ${sharePostInspirationButton.disabled}`);
+            }
+            if (customizeInspirationButton) {
+                customizeInspirationButton.disabled = !enable;
+                console.log(`JCHAT_DEBUG: customizeInspirationButton disabled: ${customizeInspirationButton.disabled}`);
+            }
+            // Daily bonus button is handled by checkAndStartDailyBonusTimer, which accounts for auth and cooldown
+            // if (claimDailyBonusButton) claimDailyBonusButton.disabled = !enable; // REMOVED THIS LINE
+
+            if (postContentInput) {
+                postContentInput.disabled = !enable;
+                console.log(`JCHAT_DEBUG: postContentInput disabled: ${postContentInput.disabled}`);
+            }
+            if (postMediaUpload) {
+                postMediaUpload.disabled = !enable;
+                console.log(`JCHAT_DEBUG: postMediaUpload disabled: ${postMediaUpload.disabled}`);
+            }
+            if (createPostButton) {
+                createPostButton.disabled = !enable;
+                console.log(`JCHAT_DEBUG: createPostButton disabled: ${createPostButton.disabled}`);
+            }
+
+            // For dynamically created elements like comment inputs, their disabled state
+            // is set during rendering and managed by event delegation.
+            // Ensure any existing comment inputs are also updated if this is called after initial render.
+            document.querySelectorAll('.comment-input').forEach(input => {
+                input.disabled = !enable;
+            });
+            document.querySelectorAll('.submit-comment-button').forEach(button => {
+                button.disabled = !enable;
+            });
+            document.querySelectorAll('.react-button').forEach(button => {
+                button.disabled = !enable;
+            });
+            document.querySelectorAll('.comment-toggle-button').forEach(button => {
+                button.disabled = !enable;
+            });
+            document.querySelectorAll('.post-options-button').forEach(button => {
+                button.disabled = !enable;
+            });
+            document.querySelectorAll('.edit-post-button').forEach(button => {
+                button.disabled = !enable;
+            });
+            document.querySelectorAll('.delete-post-button').forEach(button => {
+                button.disabled = !enable;
+            });
+            document.querySelectorAll('.share-post-button').forEach(button => {
+                button.disabled = !enable;
+            });
+            document.querySelectorAll('.delete-comment-button').forEach(button => {
+                button.disabled = !enable;
+            });
+        }
+
+        async function handleLogout() {
+            if (!isAuthReady || !currentUser) {
+                showMessageBox("Not ready to log out or no user found.", 'info');
+                return;
+            }
+
+            // toggleButtonLoading(logoutButton, true); // Removed logout button
+
+            try {
+                await signOut(auth);
+                showMessageBox("Logged out successfully! 👋", 'success');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error logging out:", error);
+                showMessageBox(`Failed to log out: ${error.message}. Please try again.`, 'error');
+                // toggleButtonLoading(logoutButton, false); // Removed logout button
+            }
+        }
+
+        async function updatePostsWithNewProfilePic(userId, newProfilePicId) {
+            if (!isAuthReady) return;
+            try {
+                const postsCollectionRef = collection(db, "artifacts", appId, "public", "data", "posts");
+                const q = query(postsCollectionRef, where("authorId", "==", userId));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const batch = writeBatch(db);
+                    querySnapshot.forEach(docSnap => {
+                        const postRef = doc(db, "artifacts", appId, "public", "data", "posts", docSnap.id);
+                        batch.update(postRef, { profilePhoto: newProfilePicId });
+                    });
+                    await batch.commit();
+                    console.log(`JCHAT_DEBUG: Updated profile picture for ${querySnapshot.size} posts by user ${userId}.`);
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error updating posts with new profile picture:", error);
+            }
+        }
+
+        async function fetchAndDisplayHeaderProfile(user) {
+            const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID
+            console.log("JCHAT_DEBUG: Entering fetchAndDisplayHeaderProfile for user:", user.uid);
+            try {
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+
+                const privateDocSnap = await getDoc(privateProfileDocRef);
+                let profileData = null;
+                let oldProfilePicId = null;
+
+                if (privateDocSnap.exists()) {
+                    profileData = privateDocSnap.data();
+                    oldProfilePicId = profileData.profilePicId;
+                    console.log("JCHAT_DEBUG: Fetched existing private profile data:", profileData);
+                } else {
+                    profileData = {
+                        username: user.displayName || `User_${user.uid.substring(0, 8)}`,
+                        email: user.email || "",
+                        profilePicId: user.photoURL || null,
+                        bio: "",
+                        location: "",
+                        friendsCount: 0,
+                        followersCount: 0,
+                        followingCount: 0,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
+                        inspirationType: "motivational",
+                        visibility: {
+                            displayName: true, profilePic: true, bio: false, location: false,
+                            emailPublic: false, allowFriendRequests: true, allowMessages: true,
+                        },
+                        totalPosts: 0,
+                        jCoins: 0,
+                        gas: 0, // Ensure gas is initialized
+                        level: 1,
+                        currentXp: 0,
+                        xpToNextLevel: getLevelInfo(1).xpToNextLevel,
+                        lastLoginBonusClaimed: null
+                    };
+                    await setDoc(privateProfileDocRef, profileData);
+                    console.log("JCHAT_DEBUG: Created new private profile data:", profileData);
+                }
+
+                // Ensure new fields are present if they were added after initial profile creation
+                const updates = {};
+                if (profileData.gas === undefined) updates.gas = 0;
+                if (profileData.level === undefined) updates.level = 1;
+                if (profileData.currentXp === undefined) updates.currentXp = 0;
+                if (profileData.xpToNextLevel === undefined || profileData.xpToNextLevel !== getLevelInfo(profileData.level || 1).xpToNextLevel) {
+                     updates.xpToNextLevel = getLevelInfo(profileData.level || 1).xpToNextLevel;
+                }
+                if (profileData.lastLoginBonusClaimed === undefined) updates.lastLoginBonusClaimed = null;
+
+                if (Object.keys(updates).length > 0) {
+                    await updateDoc(privateProfileDocRef, updates);
+                    const updatedSnap = await getDoc(privateProfileDocRef);
+                    profileData = updatedSnap.data(); // Get the latest data after update
+                    console.log("JCHAT_DEBUG: Updated private profile with new fields:", updates);
+                }
+
+                currentUserProfileData = profileData;
+
+                // For public profile, only include genuinely public fields and handle createdAt
+                const publicProfileUpdates = {
+                    username: profileData.username,
+                    profilePicId: profileData.profilePicId,
+                    userId: user.uid,
+                    totalPosts: profileData.totalPosts, // Ensure totalPosts is synced
+                    visibility: profileData.visibility, // Ensure visibility is synced
+                    updatedAt: serverTimestamp(),
+                };
+                // Only explicitly set createdAt if the public profile document does NOT exist
+                const publicDocSnap = await getDoc(publicProfileDocRef);
+                if (!publicDocSnap.exists()) {
+                    publicProfileUpdates.createdAt = serverTimestamp();
+                }
+                await setDoc(publicProfileDocRef, publicProfileUpdates, { merge: true });
+                console.log("JCHAT_DEBUG: Updated public profile summary:", publicProfileUpdates);
+
+
+                const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
+                // Update header UI for profile picture and display name
+                if (headerProfilePic && headerAvatarIcon && headerDisplayName) {
+                    displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                    headerDisplayName.textContent = profileData.username || "JCHAT User";
+                }
+
+                // Ensure profile link is correct
+                if (profileLink) profileLink.href = `/profile.html?userId=${user.uid}`;
+
+
+                if (oldProfilePicId !== profileData.profilePicId) {
+                    await updatePostsWithNewProfilePic(user.uid, profileData.profilePicId);
+                }
+
+                startInspirationDisplay(currentUserProfileData.inspirationType || "motivational");
+                await fetchNotificationCount(user.uid);
+                toggleInteractiveElements(true); // Enable elements after successful profile load
+                console.log(`JCHAT_DEBUG: isAuthReady set to true. Post content input disabled state: ${postContentInput ? postContentInput.disabled : 'N/A (element not found)'}`);
+
+
+                if (adminIconLink) {
+                    if (user.uid === ADMIN_UID) {
+                        adminIconLink.style.display = 'block';
+                        console.log("JCHAT_DEBUG: Admin icon displayed.");
+                    } else {
+                        adminIconLink.style.display = 'none';
+                        console.log("JCHAT_DEBUG: Admin icon hidden.");
+                    }
+                }
+
+                console.log("JCHAT_DEBUG: fetchAndDisplayHeaderProfile completed successfully.");
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching or creating profile for header:", error);
+                const usernameInitial = (user.displayName || "J").charAt(0).toUpperCase();
+                if (headerProfilePic && headerAvatarIcon && headerDisplayName) {
+                    displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                    headerDisplayName.textContent = user.displayName || "JCHAT User";
+                }
+                showMessageBox(`Error loading header profile: ${error.message}`, 'error');
+
+                // Do not disable all elements here, as some might be usable even if profile load fails partially
+                // toggleInteractiveElements(false); // Removed this line
+                console.log("JCHAT_DEBUG: fetchAndDisplayHeaderProfile failed. Interactive elements might still be enabled if auth succeeded.");
+            }
+        }
+
+        async function fetchNotificationCount(userId) {
+            if (!isAuthReady) return;
+            try {
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
+                const q = query(notificationsCollectionRef, where("read", "==", false));
+                const querySnapshot = await getDocs(q);
+                const unreadCount = querySnapshot.size;
+
+                if (notificationCountElement) {
+                    if (unreadCount > 0) {
+                        notificationCountElement.textContent = unreadCount;
+                        notificationCountElement.style.display = 'flex';
+                    } else {
+                        notificationCountElement.style.display = 'none';
+                    }
+                }
+            }
+            catch (error) {
+                console.error("JCHAT_ERROR: Error fetching notification count:", error);
+                if (notificationCountElement) notificationCountElement.style.display = 'none';
+            }
+        }
+
+        // --- LLM Integration for Inspiration ---
+        async function fetchInspirationFromLLM(type) {
+            if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Generating new inspiration...";
+            if (inspirationAuthorElement) inspirationAuthorElement.textContent = "";
+
+            try {
+                const prompt = `Generate a short, single-sentence ${type} quote. Do not include the author. Just the quote.`;
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    // Attempt to parse out the quote and author if LLM still provides it
+                    const match = text.match(/"([^"]+)"\s*(?:-\s*(.*))?/);
+                    if (match && match[1]) {
+                        return { quote: match[1].trim(), author: match[2] ? match[2].trim() : "AI" };
+                    }
+                    return { quote: text.trim(), author: "AI" };
+                } else {
+                    console.error("JCHAT_ERROR: LLM response structure unexpected:", result);
+                    return getRandomQuote(type); // Fallback to local quotes
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching inspiration from LLM:", error);
+                return getRandomQuote(type); // Fallback to local quotes
+            }
+        }
+
+        // Fallback to local quotes if LLM fails or for initial setup
+        function getRandomQuote(type = "motivational") {
+            const quotesOfType = inspirationalQuotes[type] || inspirationalQuotes.motivational;
+            const randomIndex = Math.floor(Math.random() * quotesOfType.length);
+            return quotesOfType[randomIndex];
+        }
+
+        async function displayInspiration() {
+            const currentType = currentUserProfileData?.inspirationType || "motivational";
+            const quoteData = await fetchInspirationFromLLM(currentType); // Await the LLM call
+            if (inspirationQuoteElement) inspirationQuoteElement.textContent = `"${quoteData.quote}"`;
+            if (inspirationAuthorElement) inspirationAuthorElement.textContent = `- ${quoteData.author}`;
+        }
+
+        function startInspirationDisplay(type) {
+            if (inspirationIntervalId) {
+                clearInterval(inspirationIntervalId);
+            }
+            if (currentUserProfileData) {
+                currentUserProfileData.inspirationType = type;
+            }
+            displayInspiration(); // Initial display
+            inspirationIntervalId = setInterval(displayInspiration, 3 * 60 * 1000); // Every 3 minutes
+        }
+
+        function openCustomizeModal() {
+            if (!isAuthReady) {
+                showMessageBox("Please log in to customize inspiration.", 'error');
+                return;
+            }
+            const currentType = currentUserProfileData?.inspirationType || "motivational";
+            inspirationTypeRadios.forEach(radio => {
+                radio.checked = (radio.value === currentType);
+            });
+            if (customizeInspirationModal) customizeInspirationModal.classList.add('active');
+        }
+
+        function closeCustomizeModal() {
+            if (customizeInspirationModal) customizeInspirationModal.classList.remove('active');
+        }
+
+        async function saveInspirationType() {
+            if (!isAuthReady || !currentUser) {
+                showMessageBox("You must be logged in to save settings.", 'error');
+                return;
+            }
+
+            const selectedRadio = document.querySelector('input[name="inspirationType"]:checked');
+            if (!selectedRadio) {
+                showMessageBox("Please select an inspiration type.", 'info');
+                return;
+            }
+            const newType = selectedRadio.value;
+
+            try {
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+                await updateDoc(privateProfileDocRef, {
+                    inspirationType: newType,
+                    updatedAt: serverTimestamp()
+                });
+                if (currentUserProfileData) {
+                    currentUserProfileData.inspirationType = newType;
+                }
+                startInspirationDisplay(newType);
+                showMessageBox("Inspiration type saved!", 'success');
+                closeCustomizeModal();
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error saving inspiration type:", error);
+                showMessageBox(`Failed to save inspiration type: ${error.message}`, 'error');
+            }
+        }
+
+        if (postMediaUpload) {
+            postMediaUpload.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                currentMediaFile = file;
+                if (mediaImagePreview) mediaImagePreview.style.display = 'none';
+                if (mediaVideoPreview) mediaVideoPreview.style.display = 'none';
+                if (mediaImagePreview) mediaImagePreview.src = '';
+                if (mediaVideoPreview) mediaVideoPreview.src = '';
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (file.type.startsWith('image/')) {
+                            if (mediaImagePreview) {
+                                mediaImagePreview.src = e.target.result;
+                                mediaImagePreview.style.display = 'block';
+                            }
+                        } else if (file.type.startsWith('video/')) {
+                            if (mediaVideoPreview) {
+                                mediaVideoPreview.src = e.target.result;
+                                mediaVideoPreview.style.display = 'block';
+                            }
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        async function createNewPost() {
+            if (!isAuthReady || !currentUser || !currentUserProfileData) {
+                showMessageBox("Please log in to create a post.", 'error');
+                return;
+            }
+
+            const content = postContentInput.value.trim();
+            if (!content && !currentMediaFile) {
+                showMessageBox("Post content or media cannot be empty.", 'info');
+                return;
+            }
+
+            toggleButtonLoading(createPostButton, true);
+            showMessageBox("Creating post...", 'loading', true);
+
+            let mediaUrl = null;
+            let mediaType = 'text';
+
+            try {
+                if (currentMediaFile) {
+                    showMessageBox('Uploading media...', 'loading', true);
+                    let fileToUpload = currentMediaFile;
+                    if (currentMediaFile.type.startsWith('image/')) {
+                        fileToUpload = await resizeImage(currentMediaFile);
+                    }
+                    mediaUrl = await uploadMediaToCloudinary(fileToUpload);
+                    if (mediaUrl) {
+                        mediaType = currentMediaFile.type.startsWith('image/') ? 'image' : 'video';
+                        showMessageBox('Media uploaded!', 'success');
+                    } else {
+                        throw new Error("Failed to upload media.");
+                    }
+                }
+
+                const postData = {
+                    authorId: currentUser.uid,
+                    username: currentUserProfileData.username || "JCHAT User",
+                    profilePhoto: currentUserProfileData.profilePicId || null,
+                    content: content,
+                    timestamp: serverTimestamp(),
+                    likesCount: 0, // Initial likes count
+                    commentsCount: 0, // Initial comments count
+                    isEdited: false,
+                    status: 'active',
+                    reactions: { like: 0, love: 0, haha: 0 }, // Detailed reactions
+                    mediaUrl: mediaUrl,
+                    mediaType: mediaType,
+                    visibility: 'public',
+                    tags: [],
+                    location: {}
+                };
+
+                let newTotalPosts = 0;
+                let postId = null; // To store the ID of the newly created post
+
+                await runTransaction(db, async (transaction) => {
+                    const privateProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+
+                    const privateProfileSnap = await transaction.get(privateProfileDocRef);
+                    const publicProfileSnap = await transaction.get(publicProfileDocRef);
+
+                    const currentPrivatePostsCount = privateProfileSnap.exists() ? (privateProfileSnap.data().totalPosts ?? 0) : 0;
+                    newTotalPosts = currentPrivatePostsCount + 1;
+
+                    // Update totalPosts in private profile
+                    transaction.update(privateProfileDocRef, {
+                        totalPosts: newTotalPosts,
+                        updatedAt: serverTimestamp(),
+                    });
+
+                    // Update totalPosts in public profile
+                    transaction.update(publicProfileDocRef, {
+                        totalPosts: newTotalPosts,
+                        updatedAt: serverTimestamp(),
+                    });
+
+                    const newPostRef = doc(collection(db, "artifacts", appId, "public", "data", "posts"));
+                    transaction.set(newPostRef, postData);
+                    postId = newPostRef.id; // Get the ID of the new post
+                });
+
+                // REMOVED: No more createPendingActivityReward for post creation
+                // if (postId) {
+                //     await createPendingActivityReward(
+                //         currentUser.uid,
+                //         currentUserProfileData.username,
+                //         'post_creation',
+                //         20, // Suggested XP for creating a post
+                //         5,  // Suggested JCoins for creating a post
+                //         null,
+                //         postId // Pass postId as activityId for post-related rewards
+                //     );
+                // }
+
+                showMessageBox("Post created successfully!", 'success', true); // Updated message
+                playNotificationSound('success'); // Play success sound
+                postContentInput.value = '';
+                if (postMediaUpload) postMediaUpload.value = '';
+                if (mediaImagePreview) mediaImagePreview.style.display = 'none';
+                if (mediaVideoPreview) mediaVideoPreview.style.display = 'none';
+                if (mediaImagePreview) mediaImagePreview.src = '';
+                if (mediaVideoPreview) mediaVideoPreview.src = '';
+                currentMediaFile = null;
+                // No need to call fetchAndDisplayPosts() here, onSnapshot will handle it.
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error creating post:", error);
+                showMessageBox(`Failed to create post: ${error.message}`, 'error');
+                playNotificationSound('error'); // Play error sound
+            } finally {
+                toggleButtonLoading(createPostButton, false);
+            }
+        }
+
+        async function handleReaction(postId, reactionType) {
+            if (!isAuthReady || !currentUser || !currentUserProfileData) {
+                showMessageBox("You must be logged in to react.", 'error');
+                return;
+            }
+
+            const postRef = doc(db, "artifacts", appId, "public", "data", "posts", postId);
+            const userReactionRef = doc(db, "artifacts", appId, "public", "data", "posts", postId, "userReactions", currentUser.uid);
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const postDoc = await transaction.get(postRef);
+                    const userReactionDoc = await transaction.get(userReactionRef);
+
+                    if (!postDoc.exists()) {
+                        throw new Error("Post does not exist.");
+                    }
+
+                    const postData = postDoc.data();
+                    let serverReactions = postData.reactions || { like: 0, love: 0, haha: 0 };
+                    let serverLikesCount = postData.likesCount || 0; // Ensure likesCount is managed
+                    let serverUserPreviousReaction = userReactionDoc.exists() ? userReactionDoc.data().type : null;
+
+                    let xpReward = 0;
+                    let jCoinReward = 0;
+                    let activityType = '';
+
+                    if (serverUserPreviousReaction === reactionType) {
+                        // User is un-reacting
+                        serverReactions[reactionType] = Math.max(0, serverReactions[reactionType] - 1);
+                        if (reactionType === 'like') serverLikesCount = Math.max(0, serverLikesCount - 1); // Only 'like' contributes to likesCount
+                        transaction.delete(userReactionRef);
+                        activityType = `unreact_${reactionType}`;
+                        xpReward = -1; // Deduct a small amount for un-reacting (changed from -5)
+                        jCoinReward = 0;
+                    } else {
+                        // User is reacting or changing reaction
+                        if (serverUserPreviousReaction) {
+                            serverReactions[serverUserPreviousReaction] = Math.max(0, serverReactions[serverUserPreviousReaction] - 1);
+                            if (serverUserPreviousReaction === 'like') serverLikesCount = Math.max(0, serverLikesCount - 1);
+                        }
+                        serverReactions[reactionType] = (serverReactions[reactionType] || 0) + 1;
+                        if (reactionType === 'like') serverLikesCount = (serverLikesCount || 0) + 1; // Only 'like' contributes to likesCount
+
+                        transaction.set(userReactionRef, { type: reactionType, userId: currentUser.uid, timestamp: serverTimestamp() });
+                        activityType = `react_${reactionType}`;
+                        xpReward = 1; // Suggested XP for reacting (changed from 10)
+                        jCoinReward = 1; // Suggested JCoins for reacting (changed from 2)
+                    }
+
+                    transaction.update(postRef, {
+                        reactions: serverReactions,
+                        likesCount: serverLikesCount, // Update likesCount
+                        updatedAt: serverTimestamp()
+                    });
+
+                    // Call createPendingActivityReward for reaction
+                    if (xpReward !== 0 || jCoinReward !== 0) {
+                        await createPendingActivityReward(
+                            currentUser.uid,
+                            currentUserProfileData.username,
+                            activityType,
+                            xpReward,
+                            jCoinReward,
+                            null,
+                            postId // Pass postId as activityId for post-related rewards
+                        );
+                    }
+                });
+                showMessageBox("Reaction recorded! 1 XP and 1 JCoin are pending admin review.", 'success'); // Updated message
+                playNotificationSound('info'); // Play info sound for reaction
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error handling reaction (Firestore update failed):", error);
+                showMessageBox(`Failed to update reaction: ${error.message}. Please refresh.`, 'error');
+                playNotificationSound('error'); // Play error sound
+            }
+        }
+
+        async function addComment(postId, commentText) {
+            if (!isAuthReady || !currentUser || !currentUserProfileData) {
+                showMessageBox("You must be logged in to comment.", 'error');
+                return;
+            }
+            if (!commentText.trim()) {
+                showMessageBox("Comment cannot be empty.", 'info');
+                return;
+            }
+
+            const postRef = doc(db, "artifacts", appId, "public", "data", "posts", postId);
+            const commentsCollectionRef = collection(db, "artifacts", appId, "public", "data", "posts", postId, "comments");
+
+            try {
+                let commentId = null;
+                await runTransaction(db, async (transaction) => {
+                    const postDoc = await transaction.get(postRef);
+                    if (!postDoc.exists()) {
+                        throw new Error("Post does not exist.");
+                    }
+
+                    const newCommentRef = doc(commentsCollectionRef); // Get a new doc ref with auto-generated ID
+                    const newComment = {
+                        userId: currentUser.uid,
+                        username: currentUserProfileData.username || "JCHAT User",
+                        profilePhoto: currentUserProfileData.profilePicId || null, // Include profile photo for comment
+                        content: commentText.trim(),
+                        timestamp: serverTimestamp()
+                    };
+                    transaction.set(newCommentRef, newComment);
+                    commentId = newCommentRef.id; // Store the ID
+
+                    const currentCommentsCount = postDoc.data().commentsCount || 0;
+                    transaction.update(postRef, {
+                        commentsCount: currentCommentsCount + 1,
+                        updatedAt: serverTimestamp()
+                    });
+                });
+
+                // Commenting rewards remain unchanged as per user request (no change mentioned for comments)
+                if (commentId) {
+                    await createPendingActivityReward(
+                        currentUser.uid,
+                        currentUserProfileData.username,
+                        'post_comment',
+                        15, // Suggested XP for commenting
+                        3,  // Suggested JCoins for commenting
+                        commentId, // Pass commentId as activityId
+                        postId // Pass postId
+                    );
+                }
+
+                showMessageBox("Comment added! Your activity has been noted for XP and Level progression. Rewards are pending admin review.", 'success');
+                playNotificationSound('success'); // Play success sound
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error adding comment:", error);
+                showMessageBox(`Failed to add comment: ${error.message}`, 'error');
+                playNotificationSound('error'); // Play error sound
+            }
+        }
+
+        async function deleteComment(postId, commentId, commentAuthorId) {
+            if (!isAuthReady || !currentUser || currentUser.uid !== commentAuthorId) {
+                showMessageBox("You can only delete your own comments.", 'error');
+                return;
+            }
+
+            const confirmed = await showConfirmationModal(
+                "Delete Comment",
+                "Are you sure you want to delete this comment? This action cannot be undone."
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            showMessageBox("Deleting comment...", 'loading', true);
+
+            const commentRef = doc(db, "artifacts", appId, "public", "data", "posts", postId, "comments", commentId);
+            const postRef = doc(db, "artifacts", appId, "public", "data", "posts", postId);
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const postDoc = await transaction.get(postRef);
+                    if (!postDoc.exists()) {
+                        throw new Error("Post does not exist.");
+                    }
+
+                    transaction.delete(commentRef);
+
+                    const currentCommentsCount = postDoc.data().commentsCount || 0;
+                    transaction.update(postRef, {
+                        commentsCount: Math.max(0, currentCommentsCount - 1),
+                        updatedAt: serverTimestamp()
+                    });
+                });
+                showMessageBox("Comment deleted successfully!", 'success');
+                playNotificationSound('success'); // Play success sound
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error deleting comment:", error);
+                showMessageBox(`Failed to delete comment: ${error.message}`, 'error');
+                playNotificationSound('error'); // Play error sound
+            }
+        }
+
+        function openEditPostModal(postId, currentContent, currentMediaUrl, currentMediaType) {
+            if (!isAuthReady || !currentUser) {
+                showMessageBox("You must be logged in to edit posts.", 'error');
+                return;
+            }
+            currentEditPostId = postId;
+            if (editPostContentInput) editPostContentInput.value = currentContent;
+            currentEditMediaUrl = currentMediaUrl;
+            currentEditMediaType = currentMediaType;
+            currentEditMediaFile = null;
+
+            if (editMediaImagePreview) editMediaImagePreview.style.display = 'none';
+            if (editMediaVideoPreview) editMediaVideoPreview.style.display = 'none';
+            if (editMediaImagePreview) editMediaImagePreview.src = '';
+            if (editMediaVideoPreview) editMediaVideoPreview.src = '';
+            if (removeEditMediaButton) removeEditMediaButton.style.display = 'none';
+
+            if (currentMediaUrl) {
+                if (currentMediaType === 'image') {
+                    if (editMediaImagePreview) {
+                        editMediaImagePreview.src = currentMediaUrl;
+                        editMediaImagePreview.style.display = 'block';
+                    }
+                } else if (currentMediaType === 'video') {
+                    if (editMediaVideoPreview) {
+                        editMediaVideoPreview.src = currentMediaUrl;
+                        editMediaVideoPreview.style.display = 'block';
+                    }
+                }
+                if (removeEditMediaButton) removeEditMediaButton.style.display = 'inline-block';
+            }
+
+            if (editPostModal) editPostModal.classList.add('active');
+        }
+
+        if (editPostMediaUpload) {
+            editPostMediaUpload.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                currentEditMediaFile = file;
+                if (editMediaImagePreview) editMediaImagePreview.style.display = 'none';
+                if (editMediaVideoPreview) editMediaVideoPreview.style.display = 'none';
+                if (editMediaImagePreview) editMediaImagePreview.src = '';
+                if (editMediaVideoPreview) editMediaVideoPreview.src = '';
+                if (removeEditMediaButton) removeEditMediaButton.style.display = 'none';
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (file.type.startsWith('image/')) {
+                            if (editMediaImagePreview) {
+                                editMediaImagePreview.src = e.target.result;
+                                editMediaImagePreview.style.display = 'block';
+                            }
+                        } else if (file.type.startsWith('video/')) {
+                            if (editMediaVideoPreview) {
+                                editMediaVideoPreview.src = e.target.result;
+                                editMediaVideoPreview.style.display = 'block';
+                            }
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        if (removeEditMediaButton) {
+            removeEditMediaButton.addEventListener('click', () => {
+                currentEditMediaFile = null;
+                currentEditMediaUrl = null;
+                currentEditMediaType = 'text';
+                if (editMediaImagePreview) editMediaImagePreview.style.display = 'none';
+                if (editMediaVideoPreview) editMediaVideoPreview.style.display = 'none';
+                if (editMediaImagePreview) editMediaImagePreview.src = '';
+                if (editMediaVideoPreview) editMediaVideoPreview.src = '';
+                if (editPostMediaUpload) editPostMediaUpload.value = '';
+                if (removeEditMediaButton) removeEditMediaButton.style.display = 'none';
+                showMessageBox("Media removed.", "info");
+            });
+        }
+
+        async function saveEditedPost() {
+            if (!isAuthReady || !currentUser || !currentEditPostId) {
+                showMessageBox("No post selected for editing.", 'error');
+                return;
+            }
+
+            const newContent = editPostContentInput.value.trim();
+            if (!newContent && !currentEditMediaFile && !currentEditMediaUrl) {
+                showMessageBox("Post content or media cannot be empty.", 'info');
+                return;
+            }
+
+            toggleButtonLoading(saveEditedPostButton, true);
+            showMessageBox("Saving changes...", 'loading', true);
+
+            let finalMediaUrl = currentEditMediaUrl;
+            let finalMediaType = currentEditMediaType;
+
+            try {
+                if (currentEditMediaFile) {
+                    showMessageBox('Uploading new media...', 'loading', true);
+                    let fileToUpload = currentEditMediaFile;
+                    if (currentEditMediaFile.type.startsWith('image/')) {
+                        fileToUpload = await resizeImage(currentEditMediaFile);
+                    }
+                    finalMediaUrl = await uploadMediaToCloudinary(fileToUpload);
+                    if (finalMediaUrl) {
+                        finalMediaType = currentEditMediaFile.type.startsWith('image/') ? 'image' : 'video';
+                        showMessageBox('New media uploaded!', 'success');
+                    } else {
+                        throw new Error("Failed to upload new media.");
+                    }
+                } else if (!currentEditMediaUrl && !currentEditMediaFile) {
+                    finalMediaUrl = null;
+                    finalMediaType = 'text';
+                }
+
+                const postRef = doc(db, "artifacts", appId, "public", "data", "posts", currentEditPostId);
+                await updateDoc(postRef, {
+                    content: newContent,
+                    mediaUrl: finalMediaUrl,
+                    mediaType: finalMediaType,
+                    isEdited: true,
+                    updatedAt: serverTimestamp()
+                });
+
+                showMessageBox("Post updated successfully!", 'success');
+                playNotificationSound('success'); // Play success sound
+                closeEditPostModal();
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error saving edited post:", error);
+                showMessageBox(`Failed to save changes: ${error.message}`, 'error');
+                playNotificationSound('error'); // Play error sound
+            } finally {
+                toggleButtonLoading(saveEditedPostButton, false);
+            }
+        }
+
+        function closeEditPostModal() {
+            if (editPostModal) editPostModal.classList.remove('active');
+            if (editPostContentInput) editPostContentInput.value = '';
+            if (editPostMediaUpload) editPostMediaUpload.value = '';
+            if (mediaImagePreview) mediaImagePreview.style.display = 'none';
+            if (mediaVideoPreview) mediaVideoPreview.style.display = 'none';
+            if (editMediaImagePreview) editMediaImagePreview.style.display = 'none';
+            if (editMediaVideoPreview) editMediaVideoPreview.style.display = 'none';
+            if (editMediaImagePreview) editMediaImagePreview.src = '';
+            if (editMediaVideoPreview) editMediaVideoPreview.src = '';
+            if (removeEditMediaButton) removeEditMediaButton.style.display = 'none';
+            currentEditPostId = null;
+            currentEditMediaFile = null;
+            currentEditMediaUrl = null;
+            currentEditMediaType = null;
+        }
+
+        async function deletePost(postId, postAuthorId) {
+            if (!isAuthReady || !currentUser || currentUser.uid !== postAuthorId) {
+                showMessageBox("You can only delete your own posts.", 'error');
+                return;
+            }
+
+            const confirmed = await showConfirmationModal(
+                "Delete Post",
+                "Are you sure you want to delete this post? This action cannot be undone."
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            showMessageBox("Deleting post...", 'loading', true);
+
+            const postRef = doc(db, "artifacts", appId, "public", "data", "posts", postId);
+            const privateProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+            const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const privateProfileSnap = await transaction.get(privateProfileDocRef);
+                    const publicProfileSnap = await transaction.get(publicProfileDocRef);
+
+                    const currentPrivatePostsCount = privateProfileSnap.exists() ? (privateProfileSnap.data().totalPosts ?? 0) : 0;
+                    const newTotalPosts = Math.max(0, currentPrivatePostsCount - 1);
+
+                    transaction.delete(postRef); // Delete the post itself
+
+                    // Update totalPosts in private profile
+                    // Only update totalPosts and updatedAt, createdAt is handled on initial creation
+                    transaction.update(privateProfileDocRef, {
+                        totalPosts: newTotalPosts,
+                        updatedAt: serverTimestamp(),
+                    });
+
+                    // Update totalPosts in public profile
+                    // Only update totalPosts and updatedAt, createdAt is handled on initial creation
+                    transaction.update(publicProfileDocRef, {
+                        totalPosts: newTotalPosts,
+                        updatedAt: serverTimestamp(),
+                    });
+                });
+
+                // Call createPendingActivityReward for post deletion (negative XP)
+                await createPendingActivityReward(
+                    currentUser.uid,
+                    currentUserProfileData.username,
+                    'post_deletion',
+                    -20, // Deduct XP for deleting a post
+                    -5,  // Deduct JCoins for deleting a post
+                    null,
+                    postId
+                );
+
+                showMessageBox("Post deleted successfully!", 'success');
+                playNotificationSound('success'); // Play success sound
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error deleting post:", error);
+                showMessageBox(`Failed to delete post: ${error.message}`, 'error');
+                playNotificationSound('error'); // Play error sound
+            }
+        }
+
+        function renderPost(post, postId) {
+            const isAuthor = currentUser && currentUser.uid === post.authorId;
+            const authorInitial = (post.username || 'J').charAt(0).toUpperCase();
+
+            const postElement = document.createElement('div');
+            postElement.classList.add('post-card');
+            postElement.setAttribute('data-post-id', postId);
+
+            // Determine user's current reaction for styling
+            // This will be updated by the individual post's userReaction onSnapshot
+            let userReactionType = '';
+            // Note: userReactions is a subcollection, not directly on the post document.
+            // The onSnapshot for userReactionRef will set this data-attribute dynamically.
+            // For initial render, we can't reliably get it from `post` object directly.
+            // The onSnapshot for userReactionRef will handle the class application.
+
+
+            postElement.innerHTML = `
+                <div class="post-header">
+                    <a href="/profile.html?userId=${post.authorId}">
+                        <div class="author-pic-wrapper">
+                            ${post.profilePhoto ?
+                                `<img src="${getCloudinaryImageUrl(post.profilePhoto, 'w_80,h_80,c_fill,g_face,r_max')}" alt="Author Pic" class="author-pic" onerror="this.onerror=null; this.src='https://placehold.co/80x80/CCCCCC/000000?text=${authorInitial}';">` :
+                                `<i class="fas fa-user-circle author-pic-placeholder"></i>`
+                            }
+                        </div>
+                    </a>
+                    <div class="author-info">
+                        <a href="/profile.html?userId=${post.authorId}" class="author-name">${post.username || 'Anonymous'}</a>
+                        <p class="post-timestamp">${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}</p>
+                    </div>
+                    ${isAuthor ? `
+                    <button class="post-options-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}>
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                    <div class="post-options-dropdown" id="dropdown-${postId}">
+                        <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady ? 'disabled' : ''}>
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="delete-post-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady ? 'disabled' : ''}>
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </button>
+                        <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady ? 'disabled' : ''}>
+                            <i class="fas fa-share"></i> Share
+                        </button>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="post-content-text">
+                    <p>${post.content}</p>
+                </div>
+                ${post.mediaUrl ? `
+                <div class="post-media">
+                    ${post.mediaType === 'image' ?
+                        `<img src="${post.mediaUrl}" alt="Post Media" onerror="this.style.display='none';">` :
+                        `<video src="${post.mediaUrl}" controls onerror="this.style.display='none';"></video>`
+                    }
+                </div>` : ''}
+                <div class="post-reactions-summary">
+                    <span>
+                        <i class="fas fa-thumbs-up" style="color:var(--blue);"></i> <span class="like-count">${post.reactions?.like || 0}</span>
+                        <i class="fas fa-heart" style="color:var(--pink);"></i> <span class="love-count">${post.reactions?.love || 0}</span>
+                        <i class="fas fa-face-laugh" style="color:#ffd700;"></i> <span class="haha-count">${post.reactions?.haha || 0}</span>
+                    </span>
+                    <span><span class="comments-count">${post.commentsCount || 0}</span> Comments</span>
+                </div>
+                <div class="post-actions-row">
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" ${!isAuthReady ? 'disabled' : ''}>
+                        <i class="fas fa-thumbs-up"></i> Like
+                    </button>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="love" ${!isAuthReady ? 'disabled' : ''}>
+                        <i class="fas fa-heart"></i> Love
+                    </button>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="haha" ${!isAuthReady ? 'disabled' : ''}>
+                        <i class="fas fa-face-laugh"></i> Haha
+                    </button>
+                    <button class="post-action-button comment-toggle-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}>
+                        <i class="fas fa-comment"></i> Comment
+                    </button>
+                </div>
+                <div class="comments-section" style="display:none;">
+                    <div class="comments-list" id="comments-list-${postId}">
+                        <p style="font-size:0.85rem; color:var(--text-light); text-align:left; margin-left:10px;" class="no-comments-message">No comments yet.</p>
+                    </div>
+                    <div class="comment-input-area">
+                        <textarea placeholder="Write a comment..." class="comment-input" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}></textarea>
+                        <button class="submit-comment-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}>Post</button>
+                    </div>
+                </div>
+            `;
+            return postElement;
+        }
+
+        function renderComment(comment, commentId, postId) {
+            const commentAuthorInitial = (comment.username || 'J').charAt(0).toUpperCase();
+            const isCommentOwner = currentUser && currentUser.uid === comment.userId;
+
+            const commentElement = document.createElement('div');
+            commentElement.classList.add('comment-item');
+            commentElement.setAttribute('data-comment-id', commentId);
+            commentElement.innerHTML = `
+                <a href="/profile.html?userId=${comment.userId}">
+                    <div class="author-pic-wrapper" style="width:30px; height:30px; border-width:1px;">
+                        ${comment.profilePhoto ?
+                            `<img src="${getCloudinaryImageUrl(comment.profilePhoto, 'w_60,h_60,c_fill,g_face,r_max')}" alt="Author Pic" class="comment-author-pic" onerror="this.onerror=null; this.src='https://placehold.co/60x60/CCCCCC/000000?text=${commentAuthorInitial}';">` :
+                            `<i class="fas fa-user-circle comment-author-pic-placeholder" style="font-size:30px;"></i>`
+                        }
+                    </div>
+                </a>
+                <div class="comment-content-wrapper">
+                    <a href="/profile.html?userId=${comment.userId}" class="comment-author-name">${comment.username || 'Anonymous'}</a>
+                    <span class="comment-text">${comment.content}</span>
+                    <span class="comment-timestamp">${comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
+                    ${isCommentOwner ? `<button class="delete-comment-button" data-post-id="${postId}" data-comment-id="${commentId}" data-comment-author-id="${comment.userId}" ${!isAuthReady ? 'disabled' : ''}><i class="fas fa-trash-alt"></i></button>` : ''}
+                </div>
+            `;
+            return commentElement;
+        }
+
+
+        async function fetchAndDisplayPosts() {
+            console.log("JCHAT_DEBUG: fetchAndDisplayPosts called. isAuthReady:", isAuthReady);
+            if (loadingPostsMessage) loadingPostsMessage.style.display = 'block';
+
+            // Detach previous listeners to prevent memory leaks and duplicate updates
+            unsubscribeListeners.forEach(unsubscribe => {
+                if (typeof unsubscribe === 'function') {
+                    unsubscribe();
+                }
+            });
+            unsubscribeListeners = [];
+            if (postsFeed) postsFeed.innerHTML = ''; // Clear existing posts
+
+            if (!postsFeed) {
+                console.error("JCHAT_CRITICAL_ERROR: 'postsFeed' element not found in the DOM. Cannot display posts.");
+                const mainContent = document.querySelector('main .content-wrapper');
+                if (mainContent) {
+                    mainContent.innerHTML = '<p style="text-align: center; color: var(--text-light); font-size: 1.1rem;">An error occurred loading content. Please refresh the page.</p>';
+                }
+                if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
+                return;
+            }
+
+            try {
+                const postsCollectionRef = collection(db, "artifacts", appId, "public", "data", "posts");
+                const q = query(postsCollectionRef, orderBy("timestamp", "desc"));
+
+                const unsubscribePosts = onSnapshot(q, (querySnapshot) => {
+                    console.log("JCHAT_DEBUG: onSnapshot for posts triggered. Number of posts:", querySnapshot.size);
+                    const currentPostElements = new Map(); // Map to store current DOM elements by postId
+                    postsFeed.querySelectorAll('.post-card').forEach(card => {
+                        currentPostElements.set(card.dataset.postId, card);
+                    });
+
+                    const newOrderedPostIds = []; // To maintain order of posts
+                    querySnapshot.forEach(docSnapshot => {
+                        const post = docSnapshot.data();
+                        const postId = docSnapshot.id;
+                        newOrderedPostIds.push(postId);
+
+                        if (!postId) {
+                            console.error("JCHAT_DEBUG: postId is undefined for a document snapshot. Skipping post.", docSnapshot.id);
+                            return;
+                        }
+
+                        let postElement = currentPostElements.get(postId);
+
+                        if (postElement) {
+                            // Update existing post element
+                            const contentP = postElement.querySelector('.post-content-text p');
+                            if (contentP) contentP.textContent = post.content;
+
+                            let postMediaDiv = postElement.querySelector('.post-media');
+                            if (post.mediaUrl) {
+                                if (!postMediaDiv) {
+                                    postMediaDiv = document.createElement('div');
+                                    postMediaDiv.classList.add('post-media');
+                                    postElement.insertBefore(postMediaDiv, postElement.querySelector('.post-reactions-summary'));
+                                }
+                                postMediaDiv.innerHTML = post.mediaType === 'image' ?
+                                    `<img src="${post.mediaUrl}" alt="Post Media" onerror="this.style.display='none';">` :
+                                    `<video src="${post.mediaUrl}" controls onerror="this.style.display='none';"></video>`;
+                                postMediaDiv.style.display = 'block';
+                            } else if (postMediaDiv) {
+                                postMediaDiv.remove(); // If media was removed
+                            }
+
+                            const timestampElement = postElement.querySelector('.post-timestamp');
+                            if (timestampElement) {
+                                timestampElement.textContent = `${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}`;
+                            }
+
+                            // Update reactions summary
+                            const summaryLikeCountElement = postElement.querySelector('.post-reactions-summary .like-count');
+                            const summaryLoveCountElement = postElement.querySelector('.post-reactions-summary .love-count');
+                            const summaryHahaCountElement = postElement.querySelector('.post-reactions-summary .haha-count');
+                            if (summaryLikeCountElement) summaryLikeCountElement.textContent = post.reactions?.like || 0;
+                            if (summaryLoveCountElement) summaryLoveCountElement.textContent = post.reactions?.love || 0;
+                            if (summaryHahaCountElement) summaryHahaCountElement.textContent = post.reactions?.haha || 0;
+
+                            // Update comments count
+                            const commentsCountElement = postElement.querySelector('.post-reactions-summary .comments-count');
+                            if (commentsCountElement) commentsCountElement.textContent = post.commentsCount || 0;
+
+                        } else {
+                            // Create new post element if it doesn't exist
+                            postElement = renderPost(post, postId);
+                            postsFeed.appendChild(postElement); // Add to DOM
+                        }
+
+                        // Always ensure comment inputs and buttons are enabled/disabled based on current auth state
+                        const commentInput = postElement.querySelector('.comment-input');
+                        const submitCommentButton = postElement.querySelector('.submit-comment-button');
+                        if (commentInput) commentInput.disabled = !isAuthReady;
+                        if (submitCommentButton) submitCommentButton.disabled = !isAuthReady;
+
+
+                        // Setup onSnapshot for comments for this specific post
+                        const commentsListElement = document.getElementById(`comments-list-${postId}`);
+                        if (commentsListElement && !commentsListElement.dataset.listenerAttached) { // Prevent attaching multiple listeners
+                            const commentsQuery = query(
+                                collection(db, "artifacts", appId, "public", "data", "posts", postId, "comments"),
+                                orderBy("timestamp", "asc")
+                            );
+                            const unsubscribeComments = onSnapshot(commentsQuery, (commentsSnapshot) => {
+                                if (!commentsListElement) {
+                                    console.error("JCHAT_ERROR: Comments list element not found for postId:", postId);
+                                    return;
+                                }
+                                commentsListElement.innerHTML = ''; // Clear existing comments
+
+                                if (commentsSnapshot.empty) {
+                                    commentsListElement.innerHTML = '<p style="font-size:0.85rem; color:var(--text-light); text-align:left; margin-left:10px;" class="no-comments-message">No comments yet.</p>';
+                                } else {
+                                    commentsSnapshot.forEach(commentDoc => {
+                                        const comment = commentDoc.data();
+                                        const commentId = commentDoc.id;
+                                        commentsListElement.appendChild(renderComment(comment, commentId, postId));
+                                    });
+                                }
+                            });
+                            unsubscribeListeners.push(unsubscribeComments);
+                            commentsListElement.dataset.listenerAttached = 'true'; // Mark listener as attached
+                        }
+
+                        // Setup onSnapshot for current user's reaction to this post (for newly added posts and updates)
+                        if (currentUser) {
+                            const userReactionRef = doc(db, "artifacts", appId, "public", "data", "posts", postId, "userReactions", currentUser.uid);
+                            // Only attach if not already attached for this post and user
+                            if (!postElement.dataset.userReactionListenerAttached) {
+                                const unsubscribeUserReaction = onSnapshot(userReactionRef, (reactionSnap) => {
+                                    const currentPostCard = postsFeed.querySelector(`.post-card[data-post-id="${postId}"]`);
+                                    if (currentPostCard) {
+                                        const likeBtn = currentPostCard.querySelector(`.react-button[data-reaction-type="like"]`);
+                                        const loveBtn = currentPostCard.querySelector(`.react-button[data-reaction-type="love"]`);
+                                        const hahaBtn = currentPostCard.querySelector(`.react-button[data-reaction-type="haha"]`);
+
+                                        // Ensure buttons exist before manipulating classes
+                                        if (likeBtn) likeBtn.classList.remove('reacted-like');
+                                        if (loveBtn) loveBtn.classList.remove('reacted-love');
+                                        if (hahaBtn) hahaBtn.classList.remove('reacted-haha');
+
+                                        if (reactionSnap.exists()) {
+                                            const reactionData = reactionSnap.data();
+                                            const activeReactionButton = currentPostCard.querySelector(`.react-button[data-reaction-type="${reactionData.type}"]`);
+                                            if (activeReactionButton) {
+                                                activeReactionButton.classList.add(`reacted-${reactionData.type}`);
+                                            }
+                                        }
+                                    }
+                                });
+                                unsubscribeListeners.push(unsubscribeUserReaction);
+                                postElement.dataset.userReactionListenerAttached = 'true'; // Mark listener as attached
+                            }
+                        }
+                    });
+
+                    // Remove posts that no longer exist in the query snapshot
+                    const postsToRemove = [];
+                    currentPostElements.forEach((element, id) => {
+                        if (!newOrderedPostIds.includes(id)) {
+                            postsToRemove.push(element);
+                        }
+                    });
+                    postsToRemove.forEach(element => element.remove());
+
+                    // Reorder posts in the DOM if necessary (important for orderBy)
+                    const orderedElements = newOrderedPostIds.map(id => postsFeed.querySelector(`.post-card[data-post-id="${id}"]`));
+                    orderedElements.forEach((element, index) => {
+                        if (element && postsFeed.children[index] !== element) {
+                            postsFeed.insertBefore(element, postsFeed.children[index]);
+                        }
+                    });
+
+
+                    if (querySnapshot.empty) {
+                        if (!document.getElementById('noPostsMessage')) { // Only add if not already there
+                            postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);" id="noPostsMessage">No posts yet. Be the first to post!</p>';
+                        }
+                    } else {
+                        const noPostsMessage = document.getElementById('noPostsMessage');
+                        if (noPostsMessage) noPostsMessage.remove();
+                    }
+
+                    if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
+                });
+                unsubscribeListeners.push(unsubscribePosts); // Add the main posts listener to the unsubscribe list
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching posts:", error);
+                showMessageBox(`Error loading posts: ${error.message}`, 'error');
+                if (postsFeed) postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);">Failed to load posts. Please try again later.</p>';
+                if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
+            }
+        }
+
+
+        // --- Event Delegation for Dynamic Elements ---
+        document.addEventListener('click', (event) => {
+            // Handle React Buttons
+            if (event.target.closest('.react-button')) {
+                const button = event.target.closest('.react-button');
+                if (!isAuthReady) { showMessageBox("Please log in to react.", 'error'); return; }
+                const postId = button.dataset.postId;
+                const reactionType = button.dataset.reactionType;
+                handleReaction(postId, reactionType);
+            }
+            // Handle Comment Toggle Buttons
+            else if (event.target.closest('.comment-toggle-button')) {
+                const button = event.target.closest('.comment-toggle-button');
+                const postId = button.dataset.postId;
+                const commentsSection = button.closest('.post-card').querySelector('.comments-section');
+                if (commentsSection) {
+                    commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
+                }
+            }
+            // Handle Submit Comment Buttons
+            else if (event.target.closest('.submit-comment-button')) {
+                const button = event.target.closest('.submit-comment-button');
+                if (!isAuthReady) { showMessageBox("Please log in to comment.", 'error'); return; }
+                const postId = button.dataset.postId;
+                const commentInput = button.closest('.comment-input-area').querySelector('.comment-input');
+                addComment(postId, commentInput.value);
+                commentInput.value = '';
+            }
+            // Handle Post Options Buttons (ellipsis menu)
+            else if (event.target.closest('.post-options-button')) {
+                const button = event.target.closest('.post-options-button');
+                if (!isAuthReady) { showMessageBox("Please log in to manage posts.", 'error'); return; }
+                const postId = button.dataset.postId;
+                const dropdown = document.getElementById(`dropdown-${postId}`);
+                document.querySelectorAll('.post-options-dropdown.active').forEach(openDropdown => {
+                    if (openDropdown.id !== `dropdown-${postId}`) {
+                        openDropdown.classList.remove('active');
+                    }
+                });
+                if (dropdown) dropdown.classList.toggle('active');
+                event.stopPropagation(); // Prevent document click from closing it immediately
+            }
+            // Handle Edit Post Button
+            else if (event.target.closest('.edit-post-button')) {
+                const button = event.target.closest('.edit-post-button');
+                if (!isAuthReady) { showMessageBox("Please log in to edit posts.", 'error'); return; }
+                const postId = button.dataset.postId;
+                const content = button.dataset.content;
+                const mediaUrl = button.dataset.mediaUrl;
+                const mediaType = button.dataset.mediaType;
+                openEditPostModal(postId, content, mediaUrl, mediaType);
+                const dropdown = document.getElementById(`dropdown-${postId}`);
+                if (dropdown) dropdown.classList.remove('active');
+            }
+            // Handle Delete Post Button
+            else if (event.target.closest('.delete-post-button')) {
+                const button = event.target.closest('.delete-post-button');
+                if (!isAuthReady) { showMessageBox("Please log in to delete posts.", 'error'); return; }
+                const postId = button.dataset.postId;
+                const authorId = button.dataset.authorId;
+                deletePost(postId, authorId);
+                const dropdown = document.getElementById(`dropdown-${postId}`);
+                if (dropdown) dropdown.classList.remove('active');
+            }
+            // Handle Share Post Button
+            else if (event.target.closest('.share-post-button')) {
+                const button = event.target.closest('.share-post-button');
+                if (!isAuthReady) { showMessageBox("Please log in to share posts.", 'error'); return; }
+                const postId = button.dataset.postId;
+                const content = button.dataset.content;
+                showMessageBox(`You can share/post this: ${content.substring(0, 50)}...`, 'info');
+                const dropdown = document.getElementById(`dropdown-${postId}`);
+                if (dropdown) dropdown.classList.remove('active');
+            }
+            // Handle Delete Comment Button
+            else if (event.target.closest('.delete-comment-button')) {
+                const button = event.target.closest('.delete-comment-button');
+                if (!isAuthReady) { showMessageBox("Please log in to delete comments.", 'error'); return; }
+                const postId = button.dataset.postId;
+                const commentId = button.dataset.commentId;
+                const commentAuthorId = button.dataset.commentAuthorId;
+                deleteComment(postId, commentId, commentAuthorId);
+            }
+            // Close dropdowns if clicking anywhere else on the document
+            else if (!event.target.closest('.post-options-dropdown')) {
+                document.querySelectorAll('.post-options-dropdown.active').forEach(openDropdown => {
+                    openDropdown.classList.remove('active');
+                });
+            }
+        });
+
+
+        // --- Authentication State Listener ---
+        onAuthStateChanged(auth, async (user) => {
+            console.log("JCHAT_DEBUG: onAuthStateChanged triggered. User:", user ? user.uid : "null");
+            if (user) {
+                currentUser = user;
+                await fetchAndDisplayHeaderProfile(user); // This sets currentUserProfileData and updates UI
+                isAuthReady = true; // Set to true after profile is loaded and user is confirmed
+                console.log("JCHAT_DEBUG: Auth is ready. User ID:", currentUser.uid, "isAuthReady:", isAuthReady);
+
+                checkAndStartDailyBonusTimer(); // Check bonus after profile is loaded and start timer if needed
+                await fetchAndDisplayPosts(); // This will setup all real-time listeners for posts and comments
+                fetchNotificationCount(user.uid);
+
+            } else {
+                console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("JCHAT_DEBUG: Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("JCHAT_DEBUG: Signed in anonymously.");
+                    }
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error during anonymous sign-in or custom token sign-in:", error);
+                    if (!auth.currentUser) {
+                        window.location.href = '/login.html';
+                    }
+                }
+                isAuthReady = false;
+                toggleInteractiveElements(false); // Disable elements until a valid user is established
+                // if (logoutButton) logoutButton.disabled = true; // Removed logout button
+                if (headerDisplayName) headerDisplayName.textContent = "Guest";
+                if (headerProfilePic) headerProfilePic.style.display = 'none';
+                if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
+                if (adminIconLink) adminIconLink.style.display = 'none'; // Ensure admin icon is hidden for guests
+                if (postsFeed) postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see posts and interact.</p>';
+                if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
+                if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Please log in to get your daily inspiration.";
+                if (inspirationAuthorElement) inspirationAuthorElement.textContent = "";
+
+                // Ensure daily bonus button is disabled and countdown is cleared for logged out state
+                if (claimDailyBonusButton) {
+                    claimDailyBonusButton.disabled = true;
+                    claimDailyBonusButton.querySelector('.button-text').textContent = "Login to Claim Bonus";
+                }
+                if (dailyBonusCountdownInterval) {
+                    clearInterval(dailyBonusCountdownInterval);
+                    dailyBonusCountdownInterval = null;
+                }
+                console.log("JCHAT_DEBUG: Auth is NOT ready. isAuthReady:", isAuthReady);
+            }
+        });
+
+        // --- Event Listeners for static elements ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("JCHAT_DEBUG: DOMContentLoaded fired.");
+            const savedTheme = localStorage.getItem('jchat-theme');
+            if (savedTheme && themes.includes(savedTheme)) {
+                applyTheme(savedTheme);
+            } else {
+                applyTheme('theme-dark-mode');
+            }
+            toggleInteractiveElements(false); // Disable until auth state is confirmed
+            console.log(`JCHAT_DEBUG: Initial postContentInput disabled state: ${postContentInput ? postContentInput.disabled : 'N/A (element not found)'}`);
+
+            // Set active class for current page in sidebar
+            const currentPagePath = window.location.pathname;
+            sidebarNavItems.forEach(item => {
+                if (item.getAttribute('href') === currentPagePath) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'jchat-theme') {
+                const newTheme = event.newValue || 'theme-dark-mode';
+                if (themes.includes(newTheme)) {
+                    applyTheme(newTheme);
+                }
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            // Detach all Firestore listeners before the page unloads
+            unsubscribeListeners.forEach(unsubscribe => {
+                if (typeof unsubscribe === 'function') {
+                    unsubscribe();
+                }
+            });
+            unsubscribeListeners = []; // Clear the array
+            console.log("JCHAT_DEBUG: All Firestore listeners detached.");
+            if (inspirationIntervalId) {
+                clearInterval(inspirationIntervalId);
+                console.log("JCHAT_DEBUG: Inspiration interval cleared.");
+            }
+            if (dailyBonusCountdownInterval) {
+                clearInterval(dailyBonusCountdownInterval);
+                console.log("JCHAT_DEBUG: Daily bonus countdown interval cleared.");
+            }
+        });
+
+        // if (logoutButton) logoutButton.addEventListener('click', handleLogout); // Removed from header
+        if (sharePostInspirationButton) {
+            sharePostInspirationButton.addEventListener('click', () => {
+                if (!isAuthReady) { showMessageBox("Please log in to share inspiration.", 'error'); return; }
+                const currentQuote = inspirationQuoteElement.textContent;
+                const currentAuthor = inspirationAuthorElement.textContent;
+                showMessageBox(`You can share/post this: ${currentQuote} ${currentAuthor}`, 'info');
+            });
+        }
+        if (customizeInspirationButton) customizeInspirationButton.addEventListener('click', openCustomizeModal);
+        if (cancelCustomizeButton) cancelCustomizeButton.addEventListener('click', closeCustomizeModal);
+        if (saveCustomizeButton) saveCustomizeButton.addEventListener('click', saveInspirationType);
+        if (claimDailyBonusButton) claimDailyBonusButton.addEventListener('click', handleClaimDailyBonusClick);
+
+        if (customizeInspirationModal) {
+            customizeInspirationModal.addEventListener('click', (event) => {
+                if (event.target === customizeInspirationModal) {
+                    closeCustomizeModal();
+                }
+            });
+        }
+
+        if (createPostButton) createPostButton.addEventListener('click', createNewPost);
+
+        if (cancelEditPostButton) cancelEditPostButton.addEventListener('click', closeEditPostModal);
+        if (saveEditedPostButton) saveEditedPostButton.addEventListener('click', saveEditedPost);
+
+        if (editPostModal) {
+            editPostModal.addEventListener('click', (event) => {
+                if (event.target === editPostModal) {
+                    closeEditPostModal();
+                }
+            });
+        }
+
+        // Sidebar toggle logic
+        function toggleSidebar() {
+            sidebarNav.classList.toggle('sidebar-hidden');
+            sidebarNav.classList.toggle('sidebar-visible');
+        }
+
+        if (sidebarToggleFab) sidebarToggleFab.addEventListener('click', toggleSidebar);
+        if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleSidebar);
+        if (sidebarLogoutLink) sidebarLogoutLink.addEventListener('click', handleLogout); // Add logout to sidebar
+    </script>
+</body>
+</html>

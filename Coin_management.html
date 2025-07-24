@@ -1,0 +1,3408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHAT - Admin Coin Management</title>
+
+    <!-- Google Fonts: Poppins for headings, Inter for body text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Tone.js for audio notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* Universal box-sizing for consistent layout */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Global CSS Variables for easy theme switching (from Home.html / privacy_settings.html) */
+        :root {
+            --pink: #ff2e92;
+            --blue: #00d5ff;
+            --glass-black: rgba(10, 10, 10, .75);
+            --glass-blue: rgba(0, 213, 255, .15);
+            --radius: 20px;
+            --transition: .3s ease;
+
+            /* These variables will be overridden by theme classes */
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, .7);
+            --background-main: rgba(10, 10, 10, .75);
+            --background-gradient-1: #00d5ff;
+            --background-gradient-2: #ff2e92;
+            --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            --header-background: linear-gradient(135deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .75));
+            --border-light: rgba(255, 255, 255, .05);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --button-background: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+
+            /* Specific admin colors */
+            --admin-accent: #ffcc00; /* Yellow for admin specific elements */
+            --approve-color: #4CAF50; /* Green for approve */
+            --reject-color: #F44336; /* Red for reject */
+        }
+
+        /* --- Theme Definitions (Light and Dark Mode) --- */
+        /* Light Mode */
+        body.theme-light-mode {
+            --background-main: #f0f2f5; /* Light gray background */
+            --background-gradient-1: #e0e2e5; /* Subtle lighter gradient */
+            --background-gradient-2: #d0d2d5; /* Subtle darker gradient */
+            --white: #333; /* Dark text for readability */
+            --text-light: #666; /* Lighter dark text */
+            --card-background: rgba(255, 255, 255, 0.95); /* Near white cards */
+            --header-background: rgba(255, 255, 255, 0.98); /* Near white header */
+            --border-light: rgba(0, 0, 0, 0.1); /* Light borders */
+            --input-background: rgba(0, 0, 0, 0.05); /* Light input background */
+            --button-background: linear-gradient(90deg, #6dd5ed, #2193b0); /* Blue gradient */
+            --button-shadow: 0 4px 15px rgba(109, 213, 237, 0.4), 0 4px 15px rgba(33, 147, 176, 0.4);
+        }
+
+        /* Dark Mode */
+        body.theme-dark-mode {
+            --background-main: #1a1a2e; /* Deep purple-dark blue */
+            --background-gradient-1: #16213e; /* Slightly lighter deep blue */
+            --background-gradient-2: #0f3460; /* Darker blue */
+            --white: #e0e0e0; /* Off-white text */
+            --text-light: #a0a0a0; /* Grayish text */
+            --card-background: rgba(25, 25, 40, 0.7); /* Darker, less transparent cards */
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75)); /* Original dark header */
+            /* Updated for pink/blue aesthetic */
+            --border-light: rgba(0, 213, 255, 0.2); /* A subtle blue border */
+            --input-background: rgba(0, 213, 255, 0.05); /* A very subtle blue tint */
+            --button-background: linear-gradient(90deg, #e94560, #ba2f49); /* Reddish gradient */
+            --button-shadow: 0 4px 15px rgba(233, 69, 96, 0.4), 0 4px 15px rgba(186, 47, 73, 0.4);
+        }
+
+        /* Glass Mode specific variables */
+        body.theme-glass-mode {
+            --background-main: rgba(10, 10, 10, 0.75);
+            background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            backdrop-filter: blur(10px);
+            --card-background: rgba(25, 25, 40, 0.7);
+            --white: #e0e0e0; /* text-color */
+            --text-light: rgba(255, 255, 255, 0.7);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.1); /* glass-border-color */
+            --button-background: linear-gradient(90deg, var(--pink), var(--blue));
+            --button-shadow: 0 4px 15px var(--blue), 0 44px 15px var(--pink);
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5); /* Inner shadow for glass effect */
+        }
+
+        /* Sunset Theme */
+        body.theme-sunset-mode {
+            background: linear-gradient(to top, #ff7e5f, #feb47b); /* Orange to peach */
+            --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
+            --card-background: rgba(255, 255, 255, 0.15); /* Slightly transparent white for contrast */
+            --white: #fff; /* White text for readability */
+            --text-light: rgba(255, 255, 255, 0.8);
+            --input-background: rgba(255, 255, 255, 0.1);
+            --border-light: rgba(255, 255, 255, 0.3);
+            --button-background: linear-gradient(90deg, #fd746c, #ff9068); /* Sunset gradient */
+            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 4px 15px rgba(255, 144, 104, 0.4);
+        }
+
+        /* Always show scrollbar to prevent layout shifts */
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            padding-bottom: 120px; /* Space for nav bar (60px) + toggle button (60px) */
+            background-color: var(--background-main);
+            background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
+                              radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
+            color: var(--white);
+            transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
+        }
+
+        /* Header Styling */
+        header {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 55px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        header .header-content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+        }
+
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
+            text-decoration: none;
+        }
+
+        /* Header Navigation */
+        header nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 25px;
+        }
+
+        header nav ul li a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 5px 0;
+            position: relative;
+            transition: color var(--transition);
+        }
+
+        header nav ul li a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 0;
+            height: 3px;
+            background: var(--blue);
+            border-radius: 2px;
+            transition: width var(--transition);
+        }
+
+        header nav ul li a:hover {
+            color: var(--blue);
+        }
+
+        header nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        /* User Profile Header Styling */
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Notification Icon Styling */
+        .notification-icon-wrapper {
+            position: relative;
+            margin-right: 15px; /* Space between notification and profile */
+        }
+
+        .notification-icon-wrapper a {
+            text-decoration: none; /* Remove underline from link */
+            color: inherit; /* Inherit color from parent */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-icon-wrapper i {
+            font-size: 1.5rem; /* Adjust size as needed */
+            color: var(--text-light);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .notification-icon-wrapper i:hover {
+            color: var(--white);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--pink); /* Use pink for notifications */
+            color: var(--white);
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Hide if no notifications */
+            display: none;
+        }
+
+        .user-profile-header #profileLink {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--white);
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: var(--radius);
+        }
+
+        .user-profile-header #profileLink:hover {
+            opacity: 0.8;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile-header img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--blue);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: opacity 0.3s ease;
+        }
+
+        .user-profile-header i {
+            font-size: 30px;
+            color: var(--text-light);
+        }
+
+        .user-profile-header span {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        /* Logout Button Styling */
+        #logoutButton {
+            background: linear-gradient(90deg, var(--pink), var(--blue));
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+            opacity: 0.8;
+            margin-left: 10px;
+        }
+
+        #logoutButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px var(--pink), 0 4px 15px var(--blue);
+            opacity: 1;
+        }
+
+        #logoutButton i {
+            color: var(--white);
+            font-size: 0.9rem;
+        }
+
+        /* Main Content Area */
+        main {
+            flex-grow: 1;
+            padding: 40px 0;
+            padding-top: 55px; /* Adjust for fixed header */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align content to top */
+            text-align: center;
+        }
+
+        .content-wrapper {
+            width: 100%;
+            max-width: 800px; /* Adjust as needed */
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        /* General Section Styling */
+        .section-card {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 2rem;
+            width: 90%;
+            max-width: 700px; /* Adjusted for admin section */
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: center;
+        }
+
+        .section-card h1, .section-card h2 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin-bottom: 1.5rem;
+        }
+        .section-card h1 { font-size: 2.5rem; }
+        .section-card h2 { font-size: 1.8rem; margin-bottom: 1rem; }
+
+        /* Coin Management Specific Styles */
+        .pending-requests-list {
+            width: 100%;
+            max-height: 500px;
+            overflow-y: auto;
+            /* Updated for pink/blue aesthetic */
+            background: var(--glass-black); /* Darker, more glass-like */
+            border: 1px solid var(--blue); /* More defined border */
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .request-item {
+            /* Updated for pink/blue aesthetic */
+            background: var(--glass-blue); /* Lighter glass-like for items */
+            border: 1px solid var(--blue); /* More defined border */
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+
+        .request-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .request-info p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .request-info strong {
+            color: var(--white);
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .request-action-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .request-action-button.approve {
+            background-color: var(--approve-color);
+            color: white;
+        }
+
+        .request-action-button.approve:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(76, 175, 80, 0.4);
+        }
+
+        .request-action-button.reject {
+            background-color: var(--reject-color);
+            color: white;
+        }
+
+        .request-action-button.reject:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(244, 67, 54, 0.4);
+        }
+
+        .no-requests-message {
+            text-align: center;
+            color: var(--text-light);
+            padding: 20px;
+        }
+
+        /* Access Denied Message */
+        #accessDeniedMessage {
+            display: none; /* Hidden by default */
+            color: var(--reject-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        /* Admin Specific Styles (Check User's JCoins and Send JCoins) */
+        .admin-input-group {
+            width: 100%;
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .admin-input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .admin-input-group input[type="text"],
+        .admin-input-group input[type="number"] {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            /* Updated for pink/blue aesthetic */
+            border: 1px solid var(--blue); /* Uses updated border-light */
+            border-radius: 15px;
+            background: var(--input-background); /* Uses updated input-background */
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .admin-input-group input[type="text"]:focus,
+        .admin-input-group input[type="number"]:focus {
+            border-color: var(--pink); /* Focus border is pink */
+            box-shadow: 0 0 0 3px rgba(255, 46, 146, 0.2); /* Pink shadow on focus */
+        }
+
+        .admin-balance-info {
+            /* Updated for pink/blue aesthetic */
+            background: var(--glass-blue); /* More vibrant background */
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-top: 1rem;
+            width: 100%;
+            text-align: center;
+            color: var(--white);
+            border: 1px solid var(--blue); /* Solid blue border */
+        }
+        .admin-balance-info strong {
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--pink), var(--blue)); /* Pink to blue gradient for value */
+        }
+
+        .admin-send-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .admin-send-options .action-button {
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            gap: 5px;
+        }
+        .admin-send-options .action-button i {
+            font-size: 1rem;
+        }
+
+        .action-button.secondary {
+            /* Updated for pink/blue aesthetic */
+            background: rgba(0, 213, 255, 0.1); /* A subtle blue tint */
+            color: var(--white);
+            border: 1px solid var(--blue); /* Blue border */
+            box-shadow: 0 3px 8px rgba(0, 213, 255, 0.2); /* Blue shadow */
+        }
+
+        .action-button.secondary:hover {
+            background: rgba(0, 213, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Gradient text for prices and bonuses */
+        .gradient-text {
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--pink), var(--blue));
+            font-weight: 600;
+        }
+
+        /* NEW: Custom styles for price panels */
+        .price-panel {
+            /* Inherits most styles from .section-card for the beautiful panel look */
+            background: linear-gradient(135deg, rgba(0, 213, 255, 0.1), rgba(255, 46, 146, 0.1)); /* Subtle pink-blue background */
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(8px) saturate(150%);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            margin-bottom: 20px; /* Space between panels */
+        }
+
+        .price-panel h2 {
+            /* Ensure headings within these panels also use the gradient */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+        }
+
+        .price-value {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.2rem; /* Make price stand out */
+            font-weight: 800;
+            margin-top: 10px;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--pink), var(--blue)); /* Pink to blue gradient for values */
+        }
+
+
+        /* Receipt Image Styling */
+        .receipt-image-container {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .receipt-image-container img {
+            max-width: 100px; /* Small thumbnail */
+            max-height: 100px;
+            border-radius: 8px;
+            border: 2px solid var(--blue);
+            cursor: pointer; /* Make it clickable */
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .receipt-image-container img:hover {
+            transform: scale(1.05);
+            border-color: var(--pink);
+        }
+        .receipt-image-container p {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+
+        /* Loader styles for buttons */
+        .button-loader {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid var(--white);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        .button-loader.active { display: block; }
+        .button-text { display: block; }
+        .loading .button-text { display: none; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Message Box Styles (reused from Home.html) */
+        #messageBox {
+            position: fixed;
+            top: 50%; /* Centered vertically */
+            left: 50%;
+            transform: translate(-50%, -50%); /* Centered horizontally and vertically */
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 30px; /* Increased padding for a 'squarer' feel */
+            border-radius: 15px; /* Slightly less rounded */
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5); /* More pronounced shadow */
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Add transform transition */
+            min-width: 280px; /* Slightly wider */
+            max-width: 90%; /* Responsive max-width */
+            text-align: center;
+            font-size: 1.1rem; /* Slightly larger font */
+            font-weight: 600;
+            backdrop-filter: blur(5px); /* Subtle blur for glass effect */
+        }
+        /* Specific styling for success messages */
+        #messageBox.success {
+            background: linear-gradient(135deg, var(--blue), var(--pink)); /* Pink and blue gradient */
+            border: 2px solid rgba(255, 255, 255, 0.3); /* White border for definition */
+            color: var(--white); /* Ensure text is white */
+            box-shadow: 0 5px 25px rgba(0, 213, 255, 0.5), 0 5px 25px rgba(255, 46, 146, 0.5); /* Dual color shadow */
+        }
+        #messageBox.error { background-color: rgba(231, 76, 60, 0.9); }
+        #messageBox.info { background-color: rgba(52, 152, 219, 0.9); }
+        @keyframes pulse-bg {
+            0% { background-color: rgba(52, 152, 219, 0.9); }
+            50% { background-color: rgba(52, 152, 219, 0.7); }
+            100% { background-color: rgba(52, 152, 219, 0.9); }
+        }
+        #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
+
+        /* Confirmation Modal Specific Styles (reused from Home.html) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            width: 90%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-content h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-content .radio-group,
+        .modal-content .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+        }
+
+        .modal-content label {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .modal-content input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--blue);
+            border-radius: 50%;
+            background-color: var(--input-background);
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .modal-content input[type="radio"]:checked {
+            background-color: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .modal-content input[type="radio"]:checked::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background-color: var(--white);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 15px;
+            background: var(--input-background);
+            border: 1px solid var(--border-light);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            resize: vertical;
+            min-height: 80px;
+        }
+        .modal-content textarea:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+        .modal-content .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .modal-content .modal-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .modal-content .cancel-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-content .cancel-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .modal-content .save-button {
+            background: var(--button-background);
+            color: var(--white);
+            box-shadow: var(--button-shadow);
+        }
+
+        .modal-content .save-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+        }
+
+        #confirmationModal .modal-content {
+            max-width: 400px;
+            text-align: center;
+            padding: 1.8rem;
+        }
+        #confirmationModal .modal-content h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.6rem;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--pink), var(--blue));
+            margin-bottom: 1rem;
+        }
+        #confirmationModal .modal-content p {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+        #confirmationModal .modal-content .button-group {
+            justify-content: center;
+            gap: 1rem;
+        }
+        #confirmationModal .confirm-button {
+            background: var(--pink); /* Use pink for destructive action */
+            color: var(--white);
+            box-shadow: 0 4px 15px var(--pink);
+        }
+        #confirmationModal .confirm-button:hover {
+            background: #e02a82; /* Darker pink on hover */
+            box-shadow: 0 6px 20px var(--pink);
+        }
+        #confirmationModal .cancel-button {
+            background: var(--blue); /* Use blue for cancel/safe action */
+            color: var(--white);
+            box-shadow: 0 4px 15px var(--blue);
+        }
+        #confirmationModal .cancel-button:hover {
+            background: #00b5e0; /* Darker blue on hover */
+            box-shadow: 0 6px 20px var(--blue);
+        }
+
+        /* --- Bottom Navigation Bar --- */
+        #bottomNavBar {
+            position: fixed;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: var(--header-background);
+            border-top: 1px solid var(--border-light);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 50;
+            bottom: 60px; /* Positioned above the toggle button */
+            transition: bottom 0.3s ease-out; /* Smooth slide transition */
+        }
+
+        #bottomNavBar.nav-bar-hidden-full {
+            bottom: -60px; /* Move it completely off-screen below */
+        }
+
+        .nav-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: color 0.2s ease;
+            flex: 1;
+            max-width: 80px;
+        }
+
+        .nav-icon-item:hover {
+            color: var(--white);
+        }
+
+        .nav-icon-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .nav-icon-item:hover .nav-icon-circle {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px var(--blue), 0 44px 12px var(--pink);
+        }
+
+        .nav-icon-item.active .nav-icon-circle {
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+            box-shadow: 0 4px 12px var(--pink), 0 44px 12px var(--blue);
+        }
+        .nav-icon-item.active {
+            color: var(--white);
+        }
+
+        /* New Toggle Button */
+        #navToggleBtn {
+            position: fixed;
+            bottom: 0px; /* Position at the very bottom */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px; /* Slightly larger button */
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--pink), var(--blue)); /* Pink to blue gradient */
+            color: var(--white);
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem; /* Larger icon */
+            cursor: pointer;
+            z-index: 60; /* Higher than nav bar */
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+        }
+
+        #navToggleBtn:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(45deg, var(--blue), var(--pink)); /* Reverse gradient on hover */
+        }
+
+        #navToggleBtn i {
+            transition: transform 0.3s ease; /* Smooth icon rotation */
+        }
+
+        #navToggleBtn.rotated i {
+            transform: rotate(180deg); /* Rotate icon when nav is hidden */
+        }
+
+        /* --- Media Viewer Modal Styles (Copied from Group_Chat.html) --- */
+        .media-viewer-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9); /* Darker overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; /* Higher than other modals */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .media-viewer-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .media-viewer-modal-content {
+            position: relative;
+            background: var(--background-color-secondary); /* Use a semantic background color */
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7); /* More prominent shadow */
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .media-viewer-modal-content img,
+        .media-viewer-modal-content video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Ensure media fits without cropping */
+            border-radius: 8px; /* Rounded corners for media */
+        }
+        .close-viewer-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            z-index: 2001; /* Ensure button is above media */
+        }
+        .close-viewer-btn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+
+        /* Responsive Adjustments for Media Viewer Modal */
+        @media (max-width: 600px) {
+            .media-viewer-modal-content {
+                padding: 15px;
+            }
+            .close-viewer-btn {
+                width: 25px;
+                height: 25px;
+                font-size: 1.2rem;
+                top: 5px;
+                right: 5px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-dark-mode">
+
+    <header>
+        <div class="header-content-wrapper">
+            <a href="/home.html" class="logo">JCHAT</a>
+            <nav>
+                <ul>
+                    <li><a href="/home.html">Home</a></li>
+                    <li><a href="/profile.html" id="headerNavLinkProfile">Profile</a></li>
+                </ul>
+            </nav>
+            <div class="user-profile-header">
+                <!-- Admin Icon Link (visible only to admin) -->
+                <a href="/coin_management.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
+                    <i class="fas fa-user-cog"></i>
+                </a>
+                <!-- Notification Icon with Badge -->
+                <div class="notification-icon-wrapper">
+                    <a href="/notifications.html" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                    </a>
+                </div>
+                <!-- Logout Button -->
+                <button id="logoutButton" aria-label="Logout" disabled>
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <a href="/profile.html" id="profileLink">
+                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
+                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                    <span id="headerDisplayName">Loading...</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="content-wrapper">
+            <h1>Admin Coin & Gas Management</h1>
+
+            <p id="accessDeniedMessage" style="display: none;">Access Denied. You must be an administrator to view this page.</p>
+
+            <!-- Admin Sections Container -->
+            <div id="adminSections" style="display: none; width: 100%; flex-direction: column; gap: 20px;">
+
+                <!-- NEW: Gas Price Panel -->
+                <div class="section-card price-panel" id="gas-price-panel">
+                    <h2><i class="fas fa-gas-pump"></i> Current Gas Price</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        The current conversion rate for Gas (XP) to JCoins.
+                    </p>
+                    <div class="price-value" id="currentGasPrice">1 Gas = 0.1 JCoin</div>
+                </div>
+
+                <!-- NEW: JCHAT Coin Price Panel -->
+                <div class="section-card price-panel" id="jchat-coin-price-panel">
+                    <h2><i class="fas fa-money-bill-wave"></i> Current JCHAT Coin Value</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        The current market value of JCoins in Naira.
+                    </p>
+                    <div class="price-value" id="currentJchatCoinPrice">#7.5 Naira = 1 JCoin</div>
+                </div>
+
+                <!-- Pending Coin Requests Section -->
+                <div class="section-card">
+                    <h2><i class="fas fa-coins"></i> Pending JCoin Requests</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        Review and manage JCoin purchase requests submitted by all JCHAT users.
+                        <br>
+                        **IMPORTANT:** The 'Mark All as Approved' button below only marks requests as processed. It DOES NOT automatically credit JCoins. You must manually credit JCoins for each user after review.
+                    </p>
+                    <div style="display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; justify-content: center;">
+                        <button id="markAllJCoinRequestsApprovedBtn" class="action-button secondary">
+                            <span class="button-text"><i class="fas fa-check-double"></i> Mark All as Approved</span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button id="markAllJCoinRequestsRejectedBtn" class="action-button secondary" style="background-color: var(--reject-color);">
+                            <span class="button-text"><i class="fas fa-times-circle"></i> Mark All as Rejected</span>
+                            <div class="button-loader"></div>
+                        </button>
+                    </div>
+                    <div class="pending-requests-list" id="pendingJCoinRequestsList">
+                        <p class="no-requests-message" id="noPendingJCoinRequestsMessage">No pending coin requests.</p>
+                        <!-- Pending JCoin requests will be loaded here dynamically by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- NEW: Pending Activity Rewards Section -->
+                <div class="section-card">
+                    <h2><i class="fas fa-star"></i> Pending Activity Rewards</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        Review and manage pending XP/JCoin rewards for user activities (e.g., posts, comments, likes, daily logins).
+                        <br>
+                        **Clicking 'Approve' below WILL automatically credit XP/JCoins to the user's balance and update their level.**
+                    </p>
+                    <div style="display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; justify-content: center;">
+                        <button id="markAllActivityRewardsApprovedBtn" class="action-button secondary">
+                            <span class="button-text"><i class="fas fa-check-double"></i> Mark All as Approved</span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button id="markAllActivityRewardsRejectedBtn" class="action-button secondary" style="background-color: var(--reject-color);">
+                            <span class="button-text"><i class="fas fa-times-circle"></i> Mark All as Rejected</span>
+                            <div class="button-loader"></div>
+                        </button>
+                    </div>
+                    <div class="pending-requests-list" id="pendingActivityRewardsList">
+                        <p class="no-requests-message" id="noPendingActivityRewardsMessage">No pending activity rewards.</p>
+                        <!-- Pending activity rewards will be loaded here dynamically by JavaScript -->
+                    </div>
+                </div>
+
+
+                <!-- Check User's JCoins Section -->
+                <div class="section-card">
+                    <h2><i class="fas fa-search"></i> Check User's JCoins</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        Enter a user's ID to view their current JCoin balance.
+                    </p>
+                    <div class="admin-input-group">
+                        <label for="targetUserIdInput">Target User ID:</label>
+                        <input type="text" id="targetUserIdInput" placeholder="Enter user's ID (e.g., 'abc123xyz')">
+                    </div>
+                    <button id="checkUserCoinsBtn" class="action-button">
+                        <span class="button-text"><i class="fas fa-search"></i> Check JCoins</span>
+                        <div class="button-loader"></div>
+                    </button>
+                    <div id="targetUserCoinsDisplay" class="admin-balance-info" style="display: none;">
+                        <span id="targetUserCoinsUsername"></span>'s JCoins: <strong id="targetUserCoinsValue"></strong>
+                    </div>
+                </div>
+
+                <!-- Send JCoins to User Section -->
+                <div class="section-card">
+                    <h2><i class="fas fa-paper-plane"></i> Send JCoins to User</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        Select an amount or enter a custom value to send JCoins to the target user.
+                        Amounts of <span class="gradient-text">#1000</span> and above receive a <span class="gradient-text">10% bonus</span>.
+                    </p>
+                    <div class="admin-input-group">
+                        <label for="sendTargetUserIdInput">Target User ID:</label>
+                        <input type="text" id="sendTargetUserIdInput" placeholder="Enter user's ID to send to">
+                    </div>
+
+                    <div class="admin-send-options">
+                        <button class="action-button send-preset-btn" data-naira-amount="200">
+                            <span class="button-text"><i class="fas fa-plus-circle"></i> <span class="gradient-text">#200</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button class="action-button send-preset-btn" data-naira-amount="500">
+                            <span class="button-text"><i class="fas fa-plus-circle"></i> <span class="gradient-text">#500</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button class="action-button send-preset-btn" data-naira-amount="1000">
+                            <span class="button-text"><i class="fas fa-gift"></i> <span class="gradient-text">#1000 (+Bonus)</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button class="action-button send-preset-btn" data-naira-amount="5000">
+                            <span class="button-text"><i class="fas fa-gift"></i> <span class="gradient-text">#5000 (+Bonus)</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button class="action-button send-preset-btn" data-naira-amount="10000">
+                            <span class="button-text"><i class="fas fa-gift"></i> <span class="gradient-text">#10000 (+Bonus)</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button class="action-button send-preset-btn" data-naira-amount="50000">
+                            <span class="button-text"><i class="fas fa-gift"></i> <span class="gradient-text">#50000 (+Bonus)</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button class="action-button send-preset-btn" data-naira-amount="100000">
+                            <span class="button-text"><i class="fas fa-gift"></i> <span class="gradient-text">#100000 (+Bonus)</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                    </div>
+
+                    <div class="admin-input-group" style="margin-top: 1.5rem;">
+                        <label for="customAmountInput">Custom Amount (NGN):</label>
+                        <input type="number" id="customAmountInput" placeholder="Enter custom amount (e.g., 75, 1500)" min="1">
+                    </div>
+                    <button id="sendCustomAmountBtn" class="action-button secondary">
+                        <span class="button-text"><i class="fas fa-paper-plane"></i> Send Custom Amount</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </div>
+
+                <!-- Edit User JCoin Section -->
+                <div class="section-card">
+                    <h2><i class="fas fa-edit"></i> Edit User JCoins</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        Directly set a user's JCoin balance to a specific value.
+                    </p>
+                    <div class="admin-input-group">
+                        <label for="editTargetUserIdInput">Target User ID:</label>
+                        <input type="text" id="editTargetUserIdInput" placeholder="Enter user's ID (e.g., 'abc123xyz')">
+                    </div>
+                    <div class="admin-input-group">
+                        <label for="newJCoinAmountInput">New JCoin Amount:</label>
+                        <input type="number" id="newJCoinAmountInput" placeholder="Enter new JCoin amount" min="0">
+                    </div>
+                    <button id="setJCoinsBtn" class="action-button secondary">
+                        <span class="button-text"><i class="fas fa-coins"></i> Set JCoins</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </div>
+
+                <!-- NEW: Check User's Gas (XP) Section -->
+                <div class="section-card">
+                    <h2><i class="fas fa-gas-pump"></i> Check User's Gas (XP)</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        Enter a user's ID to view their current Gas (XP) and Level.
+                    </p>
+                    <div class="admin-input-group">
+                        <label for="targetUserGasIdInput">Target User ID:</label>
+                        <input type="text" id="targetUserGasIdInput" placeholder="Enter user's ID (e.g., 'abc123xyz')">
+                    </div>
+                    <button id="checkUserGasBtn" class="action-button">
+                        <span class="button-text"><i class="fas fa-search"></i> Check Gas (XP)</span>
+                        <div class="button-loader"></div>
+                    </button>
+                    <div id="targetUserGasDisplay" class="admin-balance-info" style="display: none;">
+                        <span id="targetUserGasUsername"></span>'s Gas (XP): <strong id="targetUserGasValue"></strong> (Level: <strong id="targetUserLevelValue"></strong>)
+                    </div>
+                </div>
+
+                <!-- NEW: Send Gas (XP) to User Section -->
+                <div class="section-card">
+                    <h2><i class="fas fa-rocket"></i> Send Gas (XP) to User</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        Send XP to a user. This will contribute to their level progression.
+                        Sending <span class="gradient-text">1000 XP</span> or more gives a <span class="gradient-text">5% bonus</span>.
+                    </p>
+                    <div class="admin-input-group">
+                        <label for="sendTargetUserGasIdInput">Target User ID:</label>
+                        <input type="text" id="sendTargetUserGasIdInput" placeholder="Enter user's ID to send XP to">
+                    </div>
+
+                    <div class="admin-send-options">
+                        <button class="action-button send-gas-preset-btn" data-xp-amount="100">
+                            <span class="button-text"><i class="fas fa-plus-circle"></i> <span class="gradient-text">100 XP</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button class="action-button send-gas-preset-btn" data-xp-amount="500">
+                            <span class="button-text"><i class="fas fa-plus-circle"></i> <span class="gradient-text">500 XP</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button class="action-button send-gas-preset-btn" data-xp-amount="1000">
+                            <span class="button-text"><i class="fas fa-gift"></i> <span class="gradient-text">1000 XP (+Bonus)</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button class="action-button send-gas-preset-btn" data-xp-amount="5000">
+                            <span class="button-text"><i class="fas fa-gift"></i> <span class="gradient-text">5000 XP (+Bonus)</span></span>
+                            <div class="button-loader"></div>
+                        </button>
+                    </div>
+
+                    <div class="admin-input-group" style="margin-top: 1.5rem;">
+                        <label for="customGasAmountInput">Custom Gas (XP) Amount:</label>
+                        <input type="number" id="customGasAmountInput" placeholder="Enter custom XP amount" min="1">
+                    </div>
+                    <button id="sendCustomGasBtn" class="action-button secondary">
+                        <span class="button-text"><i class="fas fa-paper-plane"></i> Send Custom Amount</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </div>
+
+                <!-- NEW: Edit User Gas (XP) Section -->
+                <div class="section-card">
+                    <h2><i class="fas fa-wrench"></i> Edit User Gas (XP)</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        Directly set a user's Gas (XP) balance to a specific value. This will recalculate their level.
+                    </p>
+                    <div class="admin-input-group">
+                        <label for="editTargetUserGasIdInput">Target User ID:</label>
+                        <input type="text" id="editTargetUserGasIdInput" placeholder="Enter user's ID (e.g., 'abc123xyz')">
+                    </div>
+                    <div class="admin-input-group">
+                        <label for="newGasAmountInput">New Gas (XP) Amount:</label>
+                        <input type="number" id="newGasAmountInput" placeholder="Enter new XP amount" min="0">
+                    </div>
+                    <button id="setGasBtn" class="action-button secondary">
+                        <span class="button-text"><i class="fas fa-gas-pump"></i> Set Gas (XP)</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </div>
+
+                <!-- Manage User Wallet Section -->
+                <div class="section-card">
+                    <h2><i class="fas fa-wallet"></i> Manage User Wallet</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
+                        Unlock or lock a user's JCoin wallet. Unlocking enables purchases, locking disables them.
+                    </p>
+                    <div class="admin-input-group">
+                        <label for="walletTargetUserIdInput">Target User ID:</label>
+                        <input type="text" id="walletTargetUserIdInput" placeholder="Enter user's ID">
+                    </div>
+                    <div style="display: flex; gap: 10px; width: 100%; justify-content: center;">
+                        <button id="unlockWalletBtn" class="action-button">
+                            <span class="button-text"><i class="fas fa-unlock-alt"></i> Unlock Wallet</span>
+                            <div class="button-loader"></div>
+                        </button>
+                        <button id="lockWalletBtn" class="action-button secondary">
+                            <span class="button-text"><i class="fas fa-lock"></i> Lock Wallet</span>
+                            <div class="button-loader"></div>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Custom Message Box (reused from Home.html) -->
+    <div id="messageBox"></div>
+
+    <!-- Confirmation Modal (reused from Home.html) -->
+    <div id="confirmationModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="confirmationTitle">Confirm Action</h3>
+            <p id="confirmationMessage">Are you sure you want to proceed with this action?</p>
+            <div class="button-group">
+                <button id="confirmCancelButton" class="modal-button cancel-button">Cancel</button>
+                <button id="confirmProceedButton" class="modal-button confirm-button">Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Viewer Modal (New for this file) -->
+    <div id="mediaViewerModal" class="media-viewer-modal-overlay">
+        <div class="media-viewer-modal-content">
+            <button id="closeMediaViewer" class="close-viewer-btn">&times;</button>
+            <img id="viewerImage" src="" alt="Viewed Media" style="display: none;">
+            <!-- Video viewer is not needed for receipts, but kept for consistency if needed later -->
+            <video id="viewerVideo" controls src="" style="display: none;"></video>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar (reused from Home.html) -->
+    <nav id="bottomNavBar" class="nav-bar-hidden-full">
+        <a href="/home.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="/chat.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-comment-dots"></i></div>
+            <span>Chat</span>
+        </a>
+        <a href="/find_friends.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-users"></i></div>
+            <span>Users</span>
+        </a>
+        <a href="/friends.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-user-friends"></i></div>
+            <span>Friends</span>
+        </a>
+        <a href="/jcoin_shop.html" class="nav-icon-item">
+            <div class="nav-icon-circle"><i class="fas fa-store"></i></div>
+            <span>Shop</span>
+        </a>
+        <a href="/settings.html" class="nav-icon-item active">
+            <div class="nav-icon-circle"><i class="fas fa-cog"></i></div>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <!-- Navigation Toggle Button (reused from Home.html) -->
+    <button id="navToggleBtn" aria-label="Toggle Navigation">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, runTransaction, where, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- Firebase & Canvas Environment Configuration ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+            authDomain: "jchat-1.firebaseapp.com",
+            projectId: "jchat-1",
+            storageBucket: "jchat-1.firebasestorage.app",
+            messagingSenderId: "328479683167",
+            appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+            measurementId: "G-S6Z9GG0R9P"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Cloudinary Configuration (needed for header profile pic and receipt images)
+        const cloudinaryConfig = {
+            cloudName: "dxld01rcp", // Your Cloudinary Cloud Name
+            uploadPreset: "Storage_preset" // Your Cloudinary Upload Preset
+        };
+
+        // Initialize Firebase services
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- DOM Elements ---
+        const headerProfilePic = document.getElementById('headerProfilePic');
+        const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+        const headerDisplayName = document.getElementById('headerDisplayName');
+        const logoutButton = document.getElementById('logoutButton');
+        const notificationCountElement = document.getElementById('notificationCount');
+        const messageBox = document.getElementById('messageBox');
+        const headerNavLinkProfile = document.getElementById('headerNavLinkProfile');
+
+        // Admin Elements
+        const adminIconLink = document.getElementById('adminIconLink'); // Added admin icon link
+        const accessDeniedMessage = document.getElementById('accessDeniedMessage');
+        const adminSections = document.getElementById('adminSections');
+
+        // NEW: Price Display Elements
+        const currentGasPrice = document.getElementById('currentGasPrice');
+        const currentJchatCoinPrice = document.getElementById('currentJchatCoinPrice');
+
+        // JCoin Requests
+        const pendingJCoinRequestsList = document.getElementById('pendingJCoinRequestsList');
+        const noPendingJCoinRequestsMessage = document.getElementById('noPendingJCoinRequestsMessage');
+        const markAllJCoinRequestsApprovedBtn = document.getElementById('markAllJCoinRequestsApprovedBtn'); // JCoin Approve All Button
+        const markAllJCoinRequestsRejectedBtn = document.getElementById('markAllJCoinRequestsRejectedBtn'); // NEW: JCoin Reject All Button
+
+        // NEW: Activity Rewards
+        const pendingActivityRewardsList = document.getElementById('pendingActivityRewardsList');
+        const noPendingActivityRewardsMessage = document.getElementById('noPendingActivityRewardsMessage');
+        const markAllActivityRewardsApprovedBtn = document.getElementById('markAllActivityRewardsApprovedBtn'); // NEW: Activity Approve All Button
+        const markAllActivityRewardsRejectedBtn = document.getElementById('markAllActivityRewardsRejectedBtn'); // NEW: Activity Reject All Button
+
+        // Check User's JCoins Elements
+        const targetUserIdInput = document.getElementById('targetUserIdInput');
+        const checkUserCoinsBtn = document.getElementById('checkUserCoinsBtn');
+        const targetUserCoinsDisplay = document.getElementById('targetUserCoinsDisplay');
+        const targetUserCoinsUsername = document.getElementById('targetUserCoinsUsername');
+        const targetUserCoinsValue = document.getElementById('targetUserCoinsValue');
+
+        // Send JCoins to User Elements
+        const sendTargetUserIdInput = document.getElementById('sendTargetUserIdInput');
+        const sendPresetBtns = document.querySelectorAll('.send-preset-btn');
+        const customAmountInput = document.getElementById('customAmountInput');
+        const sendCustomAmountBtn = document.getElementById('sendCustomAmountBtn');
+
+        // Edit User JCoin Elements
+        const editTargetUserIdInput = document.getElementById('editTargetUserIdInput');
+        const newJCoinAmountInput = document.getElementById('newJCoinAmountInput');
+        const setJCoinsBtn = document.getElementById('setJCoinsBtn');
+
+        // NEW: Check User's Gas (XP) Elements
+        const targetUserGasIdInput = document.getElementById('targetUserGasIdInput');
+        const checkUserGasBtn = document.getElementById('checkUserGasBtn');
+        const targetUserGasDisplay = document.getElementById('targetUserGasDisplay');
+        const targetUserGasUsername = document.getElementById('targetUserGasUsername');
+        const targetUserGasValue = document.getElementById('targetUserGasValue');
+        const targetUserLevelValue = document.getElementById('targetUserLevelValue');
+
+        // NEW: Send Gas (XP) to User Elements
+        const sendTargetUserGasIdInput = document.getElementById('sendTargetUserGasIdInput');
+        const sendGasPresetBtns = document.querySelectorAll('.send-gas-preset-btn');
+        const customGasAmountInput = document.getElementById('customGasAmountInput');
+        const sendCustomGasBtn = document.getElementById('sendCustomGasBtn');
+
+        // NEW: Edit User Gas (XP) Elements
+        const editTargetUserGasIdInput = document.getElementById('editTargetUserGasIdInput');
+        const newGasAmountInput = document.getElementById('newGasAmountInput');
+        const setGasBtn = document.getElementById('setGasBtn');
+
+        // Manage User Wallet Elements
+        const walletTargetUserIdInput = document.getElementById('walletTargetUserIdInput');
+        const unlockWalletBtn = document.getElementById('unlockWalletBtn');
+        const lockWalletBtn = document.getElementById('lockWalletBtn');
+
+        // Confirmation Modal (reused from Home.html)
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmationTitle = document.getElementById('confirmationTitle');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const confirmCancelButton = document.getElementById('confirmCancelButton');
+        const confirmProceedButton = document.getElementById('confirmProceedButton');
+
+        // Media Viewer Modal elements (New for this file)
+        const mediaViewerModal = document.getElementById('mediaViewerModal');
+        const closeMediaViewerButton = document.getElementById('closeMediaViewer');
+        const viewerImage = document.getElementById('viewerImage');
+        const viewerVideo = document.getElementById('viewerVideo'); // Not strictly needed for receipts, but kept for consistency
+
+
+        // --- Global State ---
+        let isAuthReady = false; // Flag to indicate if auth state has been checked
+        let currentUser = null; // The currently authenticated user (Firebase Auth object)
+        let currentUserProfileData = null; // Store the current user's profile data
+        let unsubscribePendingJCoinRequests = null; // To store unsubscribe function for JCoin requests
+        let unsubscribePendingActivityRewards = null; // NEW: To store unsubscribe function for activity rewards
+
+        // --- Constants ---
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID
+        const NAIRA_TO_JCOIN_RATE = 1 / 7.5; // 1 Naira = 1/7.5 JCoins (e.g., 75 Naira = 10 JCoins)
+        const JCOIN_BONUS_THRESHOLD = 1000; // Naira amount from which JCoin bonus applies
+        const JCOIN_BONUS_PERCENTAGE = 0.10; // 10% bonus
+        const XP_BONUS_THRESHOLD = 1000; // XP amount from which XP bonus applies
+        const XP_BONUS_PERCENTAGE = 0.05; // 5% bonus
+
+        // --- Tone.js Synths for Notification Sounds ---
+        const successSynth = new Tone.Synth().toDestination();
+        const errorSynth = new Tone.Synth().toDestination();
+        const infoSynth = new Tone.Synth().toDestination();
+
+        // Set up basic sounds
+        successSynth.oscillator.type = "sine";
+        successSynth.envelope.attack = 0.01;
+        successSynth.envelope.decay = 0.2;
+        successSynth.envelope.sustain = 0.0;
+        successSynth.envelope.release = 0.5;
+
+        errorSynth.oscillator.type = "sawtooth";
+        errorSynth.envelope.attack = 0.01;
+        errorSynth.envelope.decay = 0.3;
+        errorSynth.envelope.sustain = 0.0;
+        errorSynth.envelope.release = 0.5;
+
+        infoSynth.oscillator.type = "triangle";
+        infoSynth.envelope.attack = 0.01;
+        infoSynth.envelope.decay = 0.1;
+        infoSynth.envelope.sustain = 0.0;
+        infoSynth.envelope.release = 0.3;
+
+        /**
+         * Plays a notification sound.
+         * @param {string} type - 'success', 'error', or 'info'.
+         */
+        function playNotificationSound(type) {
+            Tone.start(); // Ensure audio context is started
+            if (type === 'success') {
+                successSynth.triggerAttackRelease("C5", "8n"); // C5 note, 8th note duration
+            } else if (type === 'error') {
+                errorSynth.triggerAttackRelease("C3", "8n"); // C3 note, 8th note duration
+            } else if (type === 'info') {
+                infoSynth.triggerAttackRelease("E4", "16n"); // E4 note, 16th note duration
+            }
+        }
+
+        /**
+         * Displays a temporary message box with a given message and type.
+         * @param {string} message - The message to display.
+         * @param {string} type - The type of message ('success', 'error', 'info', 'loading').
+         * @param {boolean} [isPersistent=false] - If true, message stays until explicitly cleared or replaced.
+         */
+        function showMessageBox(message, type, isPersistent = false) {
+            if (messageBox.timeoutId) {
+                clearTimeout(messageBox.timeoutId);
+                messageBox.timeoutId = null;
+            }
+
+            messageBox.textContent = message;
+            messageBox.className = ''; // Clear existing classes
+            messageBox.classList.add(type);
+
+            // Apply specific styles for success messages
+            if (type === 'success') {
+                messageBox.style.background = 'linear-gradient(135deg, var(--blue), var(--pink))';
+                messageBox.style.border = '2px solid rgba(255, 255, 255, 0.3)';
+                messageBox.style.color = 'var(--white)';
+                messageBox.style.boxShadow = '0 5px 25px rgba(0, 213, 255, 0.5), 0 5px 25px rgba(255, 46, 146, 0.5)';
+                messageBox.style.borderRadius = '15px'; /* Slightly less rounded for a "squarer" feel */
+                messageBox.style.padding = '20px 30px'; /* Adjusted padding */
+                messageBox.style.fontSize = '1.1rem'; /* Slightly larger font */
+                messageBox.style.fontWeight = '600';
+            } else {
+                // Reset to default/other type styles if not success
+                messageBox.style.background = ''; // Clear gradient
+                messageBox.style.border = ''; // Clear border
+                messageBox.style.color = ''; // Clear color
+                messageBox.style.boxShadow = ''; // Clear custom shadow
+                messageBox.style.borderRadius = ''; // Reset to default (or other type's default)
+                messageBox.style.padding = '';
+                messageBox.style.fontSize = '';
+                messageBox.style.fontWeight = '';
+            }
+
+            if (type === 'loading') {
+                messageBox.classList.add('loading-pulse');
+            } else {
+                messageBox.classList.remove('loading-pulse');
+            }
+
+            messageBox.style.display = 'block';
+            messageBox.style.opacity = '1';
+
+            if (!isPersistent) {
+                messageBox.timeoutId = setTimeout(() => {
+                    messageBox.style.opacity = '0';
+                    messageBox.addEventListener('transitionend', function handler() {
+                        messageBox.style.display = 'none';
+                        messageBox.removeEventListener('transitionend', handler);
+                        messageBox.classList.remove('loading-pulse');
+                    }, { once: true });
+                }, 3000);
+            }
+        }
+
+        /**
+         * Shows a custom confirmation modal.
+         * @param {string} title - The title of the confirmation.
+         * @param {string} message - The message to display.
+         * @returns {Promise<boolean>} A promise that resolves to true if confirmed, false if cancelled.
+         */
+        function showConfirmationModal(title, message) {
+            return new Promise((resolve) => {
+                confirmationTitle.textContent = title;
+                confirmationMessage.textContent = message;
+                confirmationModal.classList.add('active');
+
+                const handleConfirm = () => {
+                    confirmationModal.classList.remove('active');
+                    confirmProceedButton.removeEventListener('click', handleConfirm);
+                    confirmCancelButton.removeEventListener('click', handleCancel);
+                    resolve(true);
+                };
+
+                const handleCancel = () => {
+                    confirmationModal.classList.remove('active');
+                    confirmProceedButton.removeEventListener('click', handleConfirm);
+                    confirmCancelButton.removeEventListener('click', handleCancel);
+                    resolve(false);
+                };
+
+                confirmProceedButton.addEventListener('click', handleConfirm);
+                confirmCancelButton.addEventListener('click', handleCancel);
+
+                // Also close if clicking outside the modal content
+                confirmationModal.addEventListener('click', function outsideClickListener(event) {
+                    if (event.target === confirmationModal) {
+                        handleCancel();
+                        confirmationModal.removeEventListener('click', outsideClickListener);
+                    }
+                });
+            });
+        }
+
+        /**
+         * Toggles loading state for a button.
+         * @param {HTMLElement} buttonElement - The button to toggle.
+         * @param {boolean} isLoading - True to show loading, false to hide.
+         */
+        function toggleButtonLoading(buttonElement, isLoading) {
+            if (!buttonElement) return;
+            const loader = buttonElement.querySelector('.button-loader');
+            const text = buttonElement.querySelector('.button-text');
+
+            if (isLoading) {
+                buttonElement.disabled = true;
+                if (loader) loader.classList.add('active');
+                if (text) text.style.display = 'none';
+            } else {
+                buttonElement.disabled = false;
+                if (loader) loader.classList.remove('active');
+                if (text) text.style.display = 'block';
+            }
+        }
+
+        /**
+         * Constructs a Cloudinary URL for an image/video.
+         * @param {string} urlOrPublicId - The full Cloudinary URL or the public ID of the image on Cloudinary.
+         * @param {string} transformations - Optional Cloudinary transformations.
+         * @returns {string|null} The full Cloudinary URL or null if urlOrPublicId is not provided.
+         */
+        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
+            if (!urlOrPublicId) return null;
+            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
+                return urlOrPublicId;
+            }
+            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
+        }
+
+        /**
+         * Displays the profile picture or a default icon.
+         * @param {HTMLElement} imgElement - The <img> element to update.
+         * @param {HTMLElement} iconElement - The <i> element to display if no image.
+         * @param {string|null} profilePicId - The Cloudinary public ID or URL, or null.
+         * @param {string} usernameInitial - Initial for placeholder.
+         * @param {string} transformations - Cloudinary transformations.
+         */
+        function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
+            if (imgElement && iconElement) {
+                if (profilePicId) {
+                    const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
+                    imgElement.src = imageUrl;
+                    imgElement.style.display = 'block';
+                    iconElement.style.display = 'none';
+                    imgElement.onerror = () => {
+                        console.error(`JCHAT_ERROR: Failed to load profile picture: ${profilePicId}. Using placeholder.`);
+                        imgElement.src = `https://placehold.co/40x40/CCCCCC/000000?text=${usernameInitial}`;
+                        imgElement.style.display = 'block';
+                        iconElement.style.display = 'none';
+                    };
+                } else {
+                    imgElement.src = '';
+                    imgElement.style.display = 'none';
+                    iconElement.style.display = 'block';
+                }
+            }
+        }
+
+        /**
+         * Fetches and displays the current user's profile data for the header.
+         * This function runs on every page to ensure header is consistent.
+         * @param {firebase.User} user - The authenticated Firebase user object.
+         */
+        async function fetchAndDisplayHeaderProfile(user) {
+            console.log("JCHAT_DEBUG: fetchAndDisplayHeaderProfile called for user:", user.uid);
+            try {
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                const privateDocSnap = await getDoc(privateProfileDocRef);
+
+                let profileData = null;
+                if (privateDocSnap.exists()) {
+                    profileData = privateDocSnap.data();
+                    console.log("JCHAT_DEBUG: Fetched existing profile data for header:", profileData);
+                } else {
+                    // If private profile doesn't exist, create a basic one
+                    console.warn("JCHAT_WARN: Private profile not found for header, creating a new one.");
+                    profileData = {
+                        username: user.displayName || `User_${user.uid.substring(0, 8)}`,
+                        email: user.email || "",
+                        profilePicId: user.photoURL || null,
+                        bio: "",
+                        location: "",
+                        friendsCount: 0,
+                        followersCount: 0,
+                        followingCount: 0,
+                        createdAt: serverTimestamp(), // Use serverTimestamp for new profiles
+                        updatedAt: serverTimestamp(),
+                        inspirationType: "motivational",
+                        visibility: {
+                            displayName: true, profilePic: true, bio: false, location: false,
+                            emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
+                        },
+                        totalPosts: 0,
+                        jCoins: 0,
+                        gas: 0, // Ensure gas is initialized
+                        level: 1,
+                        currentXp: 0,
+                        xpToNextLevel: getLevelInfo(1).xpToNextLevel, // Use getLevelInfo for initial XP
+                        walletUnlocked: false,
+                        lastLoginBonusClaimed: null, // Initialize this field
+                        isAdmin: false // Default to false for new profiles
+                    };
+                    await setDoc(privateProfileDocRef, profileData); // Create the profile if it doesn't exist
+
+                    // Also create/update public profile
+                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+                    await setDoc(publicProfileDocRef, {
+                        username: profileData.username,
+                        profilePicId: profileData.profilePicId,
+                        bio: profileData.bio,
+                        location: profileData.location,
+                        createdAt: profileData.createdAt,
+                        updatedAt: profileData.updatedAt,
+                        visibility: profileData.visibility,
+                        totalPosts: profileData.totalPosts
+                    }, { merge: true });
+                }
+
+                currentUserProfileData = profileData; // Store profile data globally
+                console.log("JCHAT_DEBUG: currentUserProfileData set:", currentUserProfileData);
+
+                // Update header UI
+                const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
+                displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                headerDisplayName.textContent = profileData.username || "JCHAT User";
+                headerNavLinkProfile.href = `/profile.html?userId=${user.uid}`; // Ensure header nav link is correct
+                document.getElementById('profileLink').href = `/profile.html?userId=${user.uid}`; // Ensure header profile link is correct
+
+                logoutButton.disabled = false; // Enable logout button
+
+                // Show Admin Icon only if the current user is the ADMIN_UID
+                if (user.uid === ADMIN_UID) {
+                    adminIconLink.style.display = 'block';
+                    accessDeniedMessage.style.display = 'none'; // Hide access denied message
+                    adminSections.style.display = 'flex'; // Show admin sections
+                    console.log("JCHAT_DEBUG: User is admin. Displaying admin sections.");
+                    // Fetch admin-specific data only if the user is confirmed as admin
+                    fetchAndDisplayPendingJCoinRequests();
+                    fetchAndDisplayPendingActivityRewards();
+                } else {
+                    adminIconLink.style.display = 'none';
+                    accessDeniedMessage.style.display = 'block'; // Show access denied message
+                    adminSections.style.display = 'none'; // Hide admin sections
+                    showMessageBox("Access Denied. You are not an administrator.", 'error', true);
+                    console.log("JCHAT_DEBUG: User is NOT admin. Hiding admin sections and showing access denied.");
+                }
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching or creating profile for header:", error);
+                const usernameInitial = (user.displayName || "J").charAt(0).toUpperCase();
+                displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                headerDisplayName.textContent = user.displayName || "JCHAT User";
+                showMessageBox(`Error loading header profile: ${error.message}`, 'error');
+                logoutButton.disabled = false;
+            }
+        }
+
+        /**
+         * Fetches and displays the notification count for the current user.
+         * @param {string} userId - The UID of the current user.
+         */
+        async function fetchNotificationCount(userId) {
+            // This function is a placeholder for now, as real-time notification
+            // count logic might be complex and is not central to this page.
+            notificationCountElement.style.display = 'none';
+        }
+
+        /**
+         * Handles user logout.
+         */
+        async function handleLogout() {
+            if (!isAuthReady) return;
+            toggleButtonLoading(logoutButton, true);
+            try {
+                await signOut(auth);
+                showMessageBox("Logged out successfully! 👋", 'success');
+                playNotificationSound('success');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 1000);
+            } catch (error) {
+                console.error("Error logging out:", error);
+                showMessageBox("Failed to log out. Please try again.", 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(logoutButton, false);
+            }
+        }
+
+        // --- Level and XP Progression Logic (for reference, not directly used for crediting here) ---
+        /**
+         * Defines level names, icons, JCoin rewards (for admin reference),
+         * and XP required for the next level.
+         * @param {number} level - The current level.
+         * @returns {{level: number, name: string, icon: string, jCoinReward: number, xpToNextLevel: number, timeEstimate?: string}} Level information.
+         */
+        function getLevelInfo(level) {
+            const levelData = [
+                { level: 1, name: "Novice", icon: "fas fa-leaf", jCoinReward: 50, xpToNextLevel: 500, timeEstimate: "3 days" },
+                { level: 2, name: "Beginner", icon: "fas fa-seedling", jCoinReward: 100, xpToNextLevel: 750, timeEstimate: "7 days" },
+                { level: 3, name: "Apprentice", icon: "fas fa-user-graduate", jCoinReward: 150, xpToNextLevel: 1000, timeEstimate: "10 days" },
+                { level: 4, name: "Explorer", icon: "fas fa-map-marker-alt", jCoinReward: 200, xpToNextLevel: 1250, timeEstimate: "2 weeks" },
+                { level: 5, name: "Pioneer", icon: "fas fa-compass", jCoinReward: 250, xpToNextLevel: 1500, timeEstimate: "3 weeks" },
+                { level: 6, name: "Communicator", icon: "fas fa-comments", jCoinReward: 300, xpToNextLevel: 2000, timeEstimate: "1 month" },
+                { level: 7, name: "Socialite", icon: "fas fa-users", jCoinReward: 350, xpToNextLevel: 2500, timeEstimate: "1 month" },
+                { level: 8, name: "Networker", icon: "fas fa-share-alt", jCoinReward: 400, xpToNextLevel: 3000, timeEstimate: "1 month" },
+                { level: 9, name: "Influencer", icon: "fas fa-star", jCoinReward: 450, xpToNextLevel: 3500, timeEstimate: "1.5 months" },
+                { level: 10, name: "Trendsetter", icon: "fas fa-fire", jCoinReward: 500, xpToNextLevel: 4000, timeEstimate: "1.5 months" },
+                { level: 11, name: "Innovator", icon: "fas fa-lightbulb", jCoinReward: 550, xpToNextLevel: 5000, timeEstimate: "2 months" },
+                { level: 12, name: "Creator", icon: "fas fa-paint-brush", jCoinReward: 600, xpToNextLevel: 6000, timeEstimate: "2 months" },
+                { level: 13, name: "Visionary", icon: "fas fa-eye", jCoinReward: 650, xpToNextLevel: 7000, timeEstimate: "2 months" },
+                { level: 14, name: "Architect", icon: "fas fa-building", jCoinReward: 700, xpToNextLevel: 8000, timeEstimate: "2.5 months" },
+                { level: 15, name: "Maestro", icon: "fas fa-music", jCoinReward: 750, xpToNextLevel: 9000, timeEstimate: "2.5 months" },
+                { level: 16, name: "Strategist", icon: "fas fa-chess", jCoinReward: 800, xpToNextLevel: 10000, timeEstimate: "3 months" },
+                { level: 17, name: "Guardian", icon: "fas fa-shield-alt", jCoinReward: 850, xpToNextLevel: 11000, timeEstimate: "3 months" },
+                { level: 18, name: "Champion", icon: "fas fa-trophy", jCoinReward: 900, xpToNextLevel: 12000, timeEstimate: "3 months" },
+                { level: 19, name: "Hero", icon: "fas fa-mask", jCoinReward: 950, xpToNextLevel: 13000, timeEstimate: "3.5 months" },
+                { level: 20, name: "Legend", icon: "fas fa-dragon", jCoinReward: 1000, xpToNextLevel: 14000, timeEstimate: "3.5 months" },
+                { level: 21, name: "Mythic", icon: "fas fa-meteor", jCoinReward: 1050, xpToNextLevel: 16000, timeEstimate: "4 months" },
+                { level: 22, name: "Celestial", icon: "fas fa-galaxy", jCoinReward: 1100, xpToNextLevel: 18000, timeEstimate: "4 months" },
+                { level: 23, name: "Divine", icon: "fas fa-hand-sparkles", jCoinReward: 1150, xpToNextLevel: 20000, timeEstimate: "4.5 months" },
+                { level: 24, name: "Transcendent", icon: "fas fa-infinity", jCoinReward: 1200, xpToNextLevel: 22000, timeEstimate: "4.5 months" },
+                { level: 25, name: "Cosmic Being", icon: "fas fa-atom", jCoinReward: 1250, xpToNextLevel: 24000, timeEstimate: "5 months" },
+                { level: 26, name: "Universal Traveler", icon: "fas fa-globe-americas", jCoinReward: 1300, xpToNextLevel: 26000, timeEstimate: "5 months" },
+                { level: 27, name: "Stellar Navigator", icon: "fas fa-space-shuttle", jCoinReward: 1350, xpToNextLevel: 28000, timeEstimate: "5.5 months" },
+                { level: 28, name: "Galactic Conqueror", icon: "fas fa-rocket", jCoinReward: 1400, xpToNextLevel: 30000, timeEstimate: "5.5 months" },
+                { level: 29, name: "Dimensional Shifter", icon: "fas fa-cube", jCoinReward: 1450, xpToNextLevel: 32000, timeEstimate: "6 months" },
+                { level: 30, name: "Omni-Presence", icon: "fas fa-brain", jCoinReward: 1500, xpToNextLevel: 34000, timeEstimate: "6 months" },
+            ];
+
+            let xpToNextLevel;
+            let jCoinReward;
+            let name;
+            let icon;
+            let timeEstimate;
+
+            if (level < 1) level = 1;
+
+            const specificLevel = levelData.find(l => l.level === level);
+            if (specificLevel) {
+                name = specificLevel.name;
+                icon = specificLevel.icon;
+                jCoinReward = specificLevel.jCoinReward;
+                xpToNextLevel = specificLevel.xpToNextLevel;
+                timeEstimate = specificLevel.timeEstimate;
+            } else if (level > 30 && level <= 500) {
+                const tierNames = [
+                    "Adept", "Master", "Grandmaster", "Exalted", "Ascendant",
+                    "Divine", "Apex", "Cosmic", "Ethereal", "Legendary",
+                    "Mythical", "Celestial", "Transcendent", "Omnipotent", "Infinite",
+                    "Starlight", "Nebula", "Galaxy", "Universe", "Multiverse",
+                    "Zenith", "Pinnacle", "Sovereign", "Eternal", "Absolute"
+                ];
+                const tierIcons = [
+                    "fas fa-magic", "fas fa-crown", "fas fa-chess-king", "fas fa-gem",
+                    "fas fa-star-of-life", "fas fa-hand-sparkles", "fas fa-mountain", "fas fa-atom",
+                    "fas fa-cloud-sun", "fas fa-lightbulb", "fas fa-meteor", "fas fa-galaxy",
+                    "fas fa-infinity", "fas fa-bahai", "fas fa-globe-americas", "fas fa-star",
+                    "fas fa-cloud", "fas fa-atom", "fas fa-globe", "fas fa-cubes",
+                    "fas fa-mountain", "fas fa-trophy", "fas fa-shield-alt", "fas fa-infinity", "fas fa-brain"
+                ];
+
+                const baseLevelForTier = 30;
+                const levelsPerTierName = 10;
+                const levelsPerTierIcon = 10;
+
+                const tierNameIndex = Math.floor((level - (baseLevelForTier + 1)) / levelsPerTierName);
+                const tierIconIndex = Math.floor((level - (baseLevelForTier + 1)) / levelsPerTierIcon);
+
+                name = `${tierNames[tierNameIndex % tierNames.length]} Lv. ${level}`;
+                icon = tierIcons[tierIconIndex % tierIcons.length];
+                jCoinReward = 1500 + (level - 30) * 100;
+                xpToNextLevel = 34000 + (level - 30) * 2000; // Continue scaling XP needed
+            } else if (level > 500) {
+                name = `Master Lv. ${level}`;
+                icon = "fas fa-star";
+                jCoinReward = 1500 + (500 - 30) * 100 + (level - 500) * 200;
+                xpToNextLevel = 10000000; // Very high XP for max levels
+            } else {
+                name = `Unknown Lv. ${level}`;
+                icon = "fas fa-question-circle";
+                jCoinReward = 0;
+                xpToNextLevel = 500; // Default for unexpected levels
+            }
+
+            return {
+                level: level,
+                name: name,
+                icon: icon,
+                jCoinReward: jCoinReward,
+                xpToNextLevel: xpToNextLevel,
+                timeEstimate: timeEstimate
+            };
+        }
+
+        /**
+         * Recalculates a user's level and XP based on a total XP amount.
+         * This ensures consistency when XP is directly set or large amounts are added.
+         * Returns the new level, remaining XP for the current level, XP needed for the *next* level,
+         * and JCoins earned from level-ups during this recalculation.
+         * @param {number} totalAccumulatedXp - The total XP the user has accumulated.
+         * @returns {{level: number, currentXp: number, xpToNextLevel: number, jCoinsEarned: number}}
+         */
+        function recalculateLevelAndXp(totalAccumulatedXp) {
+            let currentLevel = 1;
+            let jCoinsEarned = 0;
+
+            // Find the current level based on total accumulated XP
+            while (true) {
+                const levelInfo = getLevelInfo(currentLevel);
+                // If the total accumulated XP is enough to reach the *next* level's threshold
+                if (totalAccumulatedXp >= levelInfo.xpToNextLevel) {
+                    jCoinsEarned += levelInfo.jCoinReward; // Award JCoins for reaching this level
+                    currentLevel++; // Move to the next level
+                } else {
+                    // Current total XP is within the bounds of the currentLevel
+                    const finalLevelInfo = getLevelInfo(currentLevel);
+                    return {
+                        level: currentLevel,
+                        currentXp: totalAccumulatedXp, // The total accumulated XP
+                        xpToNextLevel: finalLevelInfo.xpToNextLevel, // The threshold for the *next* level
+                        jCoinsEarned: jCoinsEarned
+                    };
+                }
+            }
+        }
+
+
+        // --- Admin Page Specific Functions ---
+
+        /**
+         * Fetches and displays pending JCoin purchase requests.
+         */
+        function fetchAndDisplayPendingJCoinRequests() {
+            console.log("JCHAT_DEBUG: Fetching pending JCoin requests...");
+            // Ensure only admin can see this section
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                console.log("JCHAT_DEBUG: Not an admin, skipping JCoin request fetch.");
+                return;
+            }
+
+            // Show loading message initially
+            pendingJCoinRequestsList.innerHTML = `<p class="no-requests-message" id="loadingJCoinRequestsMessage">Loading pending JCoin requests...</p>`;
+            noPendingJCoinRequestsMessage.style.display = 'none'; // Ensure "No requests" is hidden during loading
+            markAllJCoinRequestsApprovedBtn.disabled = true;
+            markAllJCoinRequestsRejectedBtn.disabled = true;
+
+            const buyRequestsCollectionRef = collection(db, "artifacts", appId, "public", "data", "jcoin_buy_requests");
+            const q = query(buyRequestsCollectionRef, where("status", "==", "pending"), orderBy("timestamp", "asc"));
+
+            if (unsubscribePendingJCoinRequests) unsubscribePendingJCoinRequests(); // Unsubscribe previous listener
+
+            unsubscribePendingJCoinRequests = onSnapshot(q, (snapshot) => {
+                console.log("JCHAT_DEBUG: JCoin requests snapshot received. Size:", snapshot.size);
+                pendingJCoinRequestsList.innerHTML = ''; // Clear current list
+                document.getElementById('loadingJCoinRequestsMessage')?.remove(); // Remove loading message
+
+                if (snapshot.empty) {
+                    noPendingJCoinRequestsMessage.style.display = 'block';
+                    markAllJCoinRequestsApprovedBtn.disabled = true; // Disable approve all if no requests
+                    markAllJCoinRequestsRejectedBtn.disabled = true; // Disable reject all if no requests
+                } else {
+                    noPendingJCoinRequestsMessage.style.display = 'none';
+                    markAllJCoinRequestsApprovedBtn.disabled = false; // Enable approve all
+                    markAllJCoinRequestsRejectedBtn.disabled = false; // Enable reject all
+                    snapshot.docs.forEach(docSnap => {
+                        const request = docSnap.data();
+                        const requestId = docSnap.id;
+                        const requestItem = document.createElement('div');
+                        requestItem.classList.add('request-item');
+                        requestItem.id = `jcoin-request-${requestId}`; // Add ID for easy targeting
+
+                        const timestamp = request.timestamp && request.timestamp.toDate ? new Date(request.timestamp.toDate()).toLocaleString() : 'N/A';
+                        const receiptHtml = request.receiptImageUrl ? `
+                            <div class="receipt-image-container">
+                                <img src="${getCloudinaryImageUrl(request.receiptImageUrl, 'w_150,h_150,c_fill,g_auto,q_auto')}" alt="Payment Receipt" class="clickable-receipt-image" data-full-image-url="${getCloudinaryImageUrl(request.receiptImageUrl, 'w_1000,h_1000,c_fit')}">
+                                <p>Click to view receipt</p>
+                            </div>
+                        ` : '';
+
+
+                        requestItem.innerHTML = `
+                            <div class="request-info">
+                                <p><strong>User ID:</strong> <span class="gradient-text">${request.userId}</span></p>
+                                <p><strong>Username:</strong> ${request.username || 'N/A'}</p>
+                                <p><strong>Naira Paid:</strong> <span class="gradient-text">#${request.requestedNairaPrice ? request.requestedNairaPrice.toLocaleString() : 'N/A'}</span></p>
+                                <p><strong>JCoins to Credit (Suggested):</strong> <span class="gradient-text">${request.requestedJCoins ? request.requestedJCoins.toLocaleString() : 'N/A'} JCoins</span></p>
+                                <p><strong>Requested At:</strong> ${timestamp}</p>
+                                ${receiptHtml}
+                            </div>
+                            <div class="request-actions">
+                                <button class="request-action-button approve" data-request-id="${requestId}" data-user-id="${request.userId}" data-jcoins="${request.requestedJCoins || 0}" data-naira="${request.requestedNairaPrice || 0}">
+                                    <span class="button-text"><i class="fas fa-check-circle"></i> Approve</span>
+                                    <div class="button-loader"></div>
+                                </button>
+                                <button class="request-action-button reject" data-request-id="${requestId}" data-user-id="${request.userId}" data-naira="${request.requestedNairaPrice || 0}">
+                                    <span class="button-text"><i class="fas fa-times-circle"></i> Reject</span>
+                                    <div class="button-loader"></div>
+                                </button>
+                            </div>
+                        `;
+                        pendingJCoinRequestsList.appendChild(requestItem);
+                    });
+
+                    // Attach event listeners to newly created buttons
+                    pendingJCoinRequestsList.querySelectorAll('.approve').forEach(button => {
+                        button.addEventListener('click', async (event) => {
+                            const requestId = event.currentTarget.dataset.requestId;
+                            const userId = event.currentTarget.dataset.userId;
+                            const jCoins = parseInt(event.currentTarget.dataset.jcoins);
+                            const naira = parseInt(event.currentTarget.dataset.naira);
+                            await approveJCoinRequest(requestId, userId, jCoins, naira, event.currentTarget);
+                        });
+                    });
+
+                    pendingJCoinRequestsList.querySelectorAll('.reject').forEach(button => {
+                        button.addEventListener('click', async (event) => {
+                            const requestId = event.currentTarget.dataset.requestId;
+                            const userId = event.currentTarget.dataset.userId;
+                            const naira = parseInt(event.currentTarget.dataset.naira);
+                            await rejectJCoinRequest(requestId, userId, naira, event.currentTarget);
+                        });
+                    });
+
+                    // Attach event listeners for clickable receipt images
+                    pendingJCoinRequestsList.querySelectorAll('.clickable-receipt-image').forEach(img => {
+                        img.addEventListener('click', (event) => {
+                            event.stopPropagation(); // Prevent bubbling
+                            const fullImageUrl = event.target.dataset.fullImageUrl;
+                            if (fullImageUrl) {
+                                viewerImage.src = fullImageUrl;
+                                viewerImage.style.display = 'block';
+                                viewerVideo.style.display = 'none'; // Hide video element
+                                mediaViewerModal.classList.add('active');
+                            }
+                        });
+                    });
+
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error fetching pending JCoin requests:", error);
+                showMessageBox(`Error loading JCoin requests: ${error.message}`, 'error');
+                playNotificationSound('error');
+                document.getElementById('loadingJCoinRequestsMessage')?.remove(); // Remove loading message
+                noPendingJCoinRequestsMessage.style.display = 'block';
+                noPendingJCoinRequestsMessage.textContent = "Error loading JCoin requests. Please try again.";
+                markAllJCoinRequestsApprovedBtn.disabled = true; // Disable if error
+                markAllJCoinRequestsRejectedBtn.disabled = true; // Disable if error
+            });
+        }
+
+        /**
+         * Marks all pending JCoin requests as approved/completed in a single batch.
+         * This does NOT automatically credit JCoins.
+         * @param {boolean} approve - True to approve, false to reject.
+         */
+        async function markAllJCoinRequestsAsProcessed(approve) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                showMessageBox("Access Denied. You are not an administrator.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+
+            const actionVerb = approve ? "approved" : "rejected";
+            const confirmTitle = approve ? "Confirm Batch Approval" : "Confirm Batch Rejection";
+            const confirmMessage = approve ?
+                "Are you sure you want to mark ALL pending JCoin requests as approved? This action only clears the queue; you must still manually credit JCoins for each user after review." :
+                "Are you sure you want to mark ALL pending JCoin requests as rejected? This action only clears the queue; no JCoins will be credited.";
+
+            const buttonToToggle = approve ? markAllJCoinRequestsApprovedBtn : markAllJCoinRequestsRejectedBtn;
+
+            const confirmed = await showConfirmationModal(confirmTitle, confirmMessage);
+            if (!confirmed) {
+                return;
+            }
+
+            toggleButtonLoading(buttonToToggle, true);
+            showMessageBox(`Marking all pending JCoin requests as ${actionVerb}...`, 'loading', true);
+
+            try {
+                const buyRequestsCollectionRef = collection(db, "artifacts", appId, "public", "data", "jcoin_buy_requests");
+                const q = query(buyRequestsCollectionRef, where("status", "==", "pending"));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    showMessageBox(`No pending JCoin requests to ${actionVerb}.`, 'info');
+                    playNotificationSound('info');
+                    return;
+                }
+
+                const batch = writeBatch(db);
+                querySnapshot.forEach(docSnap => {
+                    const requestRef = doc(buyRequestsCollectionRef, docSnap.id);
+                    batch.update(requestRef, {
+                        status: approve ? 'completed' : 'rejected',
+                        processedAt: serverTimestamp(),
+                        processedByAdminId: currentUser.uid,
+                        processedByAdminUsername: currentUser.displayName || "Admin"
+                    });
+                });
+
+                await batch.commit();
+                showMessageBox(`Successfully marked ${querySnapshot.size} JCoin requests as ${actionVerb}!`, 'success', true);
+                playNotificationSound('success');
+            } catch (error) {
+                console.error(`JCHAT_ERROR: Error marking all JCoin requests as ${actionVerb}:`, error);
+                showMessageBox(`Failed to mark JCoin requests as ${actionVerb}: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonToToggle, false);
+            }
+        }
+
+
+        /**
+         * Approves a JCoin purchase request, credits JCoins to user, and updates request status.
+         * @param {string} requestId - The ID of the JCoin request document.
+         * @param {string} userId - The UID of the user who made the request.
+         * @param {number} jCoinsAmount - The amount of JCoins to credit.
+         * @param {number} nairaAmount - The Naira amount associated with the request.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function approveJCoinRequest(requestId, userId, jCoinsAmount, nairaAmount, buttonElement) {
+            // This function is for individual approval and crediting.
+            // It's separate from the "Mark All" button.
+            toggleButtonLoading(buttonElement, true);
+            // Disable the other button in the same request item
+            const otherButton = buttonElement.nextElementSibling || buttonElement.previousElementSibling;
+            if (otherButton) otherButton.disabled = true;
+
+            showMessageBox(`Approving JCoin request for ${jCoinsAmount} JCoins...`, 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+                const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", userId, "transactions");
+                const requestDocRef = doc(db, "artifacts", appId, "public", "data", "jcoin_buy_requests", requestId);
+
+                await runTransaction(db, async (transaction) => {
+                    // 1. Get user profile
+                    const userProfileDoc = await transaction.get(userProfileDocRef);
+                    if (!userProfileDoc.exists()) {
+                        throw new Error("User profile not found for crediting JCoins.");
+                    }
+                    const currentJCoins = userProfileDoc.data().jCoins ?? 0;
+                    const newJCoins = currentJCoins + jCoinsAmount;
+
+                    // 2. Update user's JCoin balance
+                    transaction.update(userProfileDocRef, { jCoins: newJCoins });
+
+                    // 3. Add transaction to user's history
+                    transaction.set(doc(userTransactionsCollectionRef), { // Corrected: use transaction.set with a new doc reference
+                        type: 'credit',
+                        amount: jCoinsAmount,
+                        description: `JCoin Purchase (Admin Approved) - #${nairaAmount.toLocaleString()}`,
+                        timestamp: serverTimestamp(),
+                        requestId: requestId // Link to the request
+                    });
+
+                    // 4. Update the request status to 'completed'
+                    transaction.update(requestDocRef, {
+                        status: 'completed',
+                        processedAt: serverTimestamp(),
+                        processedByAdminId: currentUser.uid,
+                        processedByAdminUsername: currentUser.displayName || "Admin"
+                    });
+                });
+
+                showMessageBox(`Request ${requestId.substring(0, 8)} approved. ${jCoinsAmount.toLocaleString()} JCoins credited to user ${userId.substring(0, 8)}.`, 'success');
+                playNotificationSound('success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error approving JCoin request:", error);
+                showMessageBox(`Failed to approve request ${requestId.substring(0, 8)}: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+                if (otherButton) otherButton.disabled = false; // Re-enable the other button in case of error
+            }
+        }
+
+        /**
+         * Rejects a JCoin purchase request and updates its status.
+         * @param {string} requestId - The ID of the JCoin request document.
+         * @param {string} userId - The UID of the user who made the request.
+         * @param {number} nairaAmount - The Naira amount associated with the request.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function rejectJCoinRequest(requestId, userId, nairaAmount, buttonElement) {
+            toggleButtonLoading(buttonElement, true);
+            // Disable the other button in the same request item
+            const otherButton = buttonElement.previousElementSibling || buttonElement.nextElementSibling;
+            if (otherButton) otherButton.disabled = true;
+
+            showMessageBox(`Rejecting JCoin request for #${nairaAmount.toLocaleString()}...`, 'loading', true);
+
+            try {
+                const requestDocRef = doc(db, "artifacts", appId, "public", "data", "jcoin_buy_requests", requestId);
+
+                await updateDoc(requestDocRef, {
+                    status: 'rejected',
+                    processedAt: serverTimestamp(),
+                    processedByAdminId: currentUser.uid,
+                    processedByAdminUsername: currentUser.displayName || "Admin"
+                });
+
+                showMessageBox(`JCoin Request ${requestId.substring(0, 8)} rejected.`, 'info');
+                playNotificationSound('info');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error rejecting JCoin request:", error);
+                showMessageBox(`Failed to reject JCoin request ${requestId.substring(0, 8)}: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+                if (otherButton) otherButton.disabled = false; // Re-enable the other button in case of error
+            }
+        }
+
+        // NEW: Activity Rewards Management Functions
+
+        /**
+         * Fetches and displays pending activity reward requests.
+         */
+        function fetchAndDisplayPendingActivityRewards() {
+            console.log("JCHAT_DEBUG: Fetching pending Activity Rewards...");
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                console.log("JCHAT_DEBUG: Not an admin, skipping Activity Reward fetch.");
+                return; // Only admin can see this
+            }
+
+            // Show loading message initially
+            pendingActivityRewardsList.innerHTML = `<p class="no-requests-message" id="loadingActivityRewardsMessage">Loading pending activity rewards...</p>`;
+            noPendingActivityRewardsMessage.style.display = 'none'; // Ensure "No rewards" is hidden during loading
+            markAllActivityRewardsApprovedBtn.disabled = true;
+            markAllActivityRewardsRejectedBtn.disabled = true;
+
+            const activityRewardsCollectionRef = collection(db, "artifacts", appId, "public", "data", "pending_activity_rewards");
+            const q = query(activityRewardsCollectionRef, where("status", "==", "pending"), orderBy("timestamp", "asc"));
+
+            if (unsubscribePendingActivityRewards) unsubscribePendingActivityRewards(); // Unsubscribe previous listener
+
+            unsubscribePendingActivityRewards = onSnapshot(q, (snapshot) => {
+                console.log("JCHAT_DEBUG: Activity Rewards snapshot received. Size:", snapshot.size);
+                pendingActivityRewardsList.innerHTML = ''; // Clear current list
+                document.getElementById('loadingActivityRewardsMessage')?.remove(); // Remove loading message
+
+                if (snapshot.empty) {
+                    noPendingActivityRewardsMessage.style.display = 'block';
+                    markAllActivityRewardsApprovedBtn.disabled = true;
+                    markAllActivityRewardsRejectedBtn.disabled = true;
+                } else {
+                    noPendingActivityRewardsMessage.style.display = 'none';
+                    markAllActivityRewardsApprovedBtn.disabled = false;
+                    markAllActivityRewardsRejectedBtn.disabled = false;
+                    snapshot.docs.forEach(docSnap => {
+                        const reward = docSnap.data();
+                        const rewardId = docSnap.id;
+                        const activityItem = document.createElement('div');
+                        activityItem.classList.add('request-item'); // Changed from 'activity-item' to 'request-item'
+                        activityItem.id = `activity-reward-${rewardId}`;
+
+                        const timestamp = reward.timestamp && reward.timestamp.toDate ? new Date(reward.timestamp.toDate()).toLocaleString() : 'N/A';
+                        
+                        let activityDetails = '';
+                        if (reward.activityType === 'post') {
+                            activityDetails = `Post ID: ${reward.activityId ? reward.activityId.substring(0, 8) : 'N/A'}`;
+                        } else if (reward.activityType === 'comment') {
+                            activityDetails = `Comment ID: ${reward.activityId ? reward.activityId.substring(0, 8) : 'N/A'} (on Post ID: ${reward.postId ? reward.postId.substring(0, 8) : 'N/A'})`;
+                        } else if (reward.activityType === 'like_given') {
+                            activityDetails = `Liked Post ID: ${reward.activityId ? reward.activityId.substring(0, 8) : 'N/A'}`;
+                        } else if (reward.activityType === 'like_received') {
+                            activityDetails = `Received like on Post ID: ${reward.activityId ? reward.activityId.substring(0, 8) : 'N/A'}`;
+                        } else if (reward.activityType === 'daily_login') {
+                            activityDetails = `Daily Login`;
+                        } else if (reward.activityType === 'group_promotion_purchase') {
+                            activityDetails = `Group Promotion for Group ID: ${reward.groupId ? reward.groupId.substring(0, 8) : 'N/A'}`;
+                        } else if (reward.activityType === 'group_vault_withdraw_jcoins') {
+                            activityDetails = `Group Vault JCoin Withdrawal from Group ID: ${reward.groupId ? reward.groupId.substring(0, 8) : 'N/A'}`;
+                        } else if (reward.activityType === 'group_vault_withdraw_gas') {
+                            activityDetails = `Group Vault Gas Withdrawal from Group ID: ${reward.groupId ? reward.groupId.substring(0, 8) : 'N/A'}`;
+                        }
+
+
+                        activityItem.innerHTML = `
+                            <div class="request-info">
+                                <p><strong>User ID:</strong> <span class="gradient-text">${reward.userId}</span></p>
+                                <p><strong>Username:</strong> ${reward.username || 'N/A'}</p>
+                                <p><strong>Activity Type:</strong> ${reward.activityType.replace(/_/g, ' ').toUpperCase()}</p>
+                                <p><strong>Suggested XP:</strong> <span class="gradient-text">${reward.suggestedXpAmount ? reward.suggestedXpAmount.toLocaleString() : '0'} XP</span></p>
+                                <p><strong>Suggested JCoins:</strong> <span class="gradient-text">${reward.suggestedJCoinAmount ? reward.suggestedJCoinAmount.toLocaleString() : '0'} JCoins</span></p>
+                                <p><strong>Details:</strong> ${activityDetails}</p>
+                                <p><strong>Requested At:</strong> ${timestamp}</p>
+                            </div>
+                            <div class="request-actions">
+                                <button class="request-action-button approve-activity" data-reward-id="${rewardId}" data-user-id="${reward.userId}" data-xp="${reward.suggestedXpAmount || 0}" data-jcoins="${reward.suggestedJCoinAmount || 0}">
+                                    <span class="button-text"><i class="fas fa-check-circle"></i> Approve</span>
+                                    <div class="button-loader"></div>
+                                </button>
+                                <button class="request-action-button reject-activity" data-reward-id="${rewardId}" data-user-id="${reward.userId}" data-xp="${reward.suggestedXpAmount || 0}" data-jcoins="${reward.suggestedJCoinAmount || 0}">
+                                    <span class="button-text"><i class="fas fa-times-circle"></i> Reject</span>
+                                    <div class="button-loader"></div>
+                                </button>
+                            </div>
+                        `;
+                        pendingActivityRewardsList.appendChild(activityItem);
+                    });
+
+                    // Attach event listeners to newly created buttons
+                    pendingActivityRewardsList.querySelectorAll('.approve-activity').forEach(button => {
+                        button.addEventListener('click', async (event) => {
+                            const rewardId = event.currentTarget.dataset.rewardId;
+                            const userId = event.currentTarget.dataset.userId;
+                            const xpReward = parseInt(event.currentTarget.dataset.xp);
+                            const jCoinReward = parseInt(event.currentTarget.dataset.jcoins);
+                            await approveActivityReward(rewardId, userId, xpReward, jCoinReward, event.currentTarget);
+                        });
+                    });
+
+                    pendingActivityRewardsList.querySelectorAll('.reject-activity').forEach(button => {
+                        button.addEventListener('click', async (event) => {
+                            const rewardId = event.currentTarget.dataset.rewardId;
+                            const userId = event.currentTarget.dataset.userId;
+                            const xpAmount = parseInt(event.currentTarget.dataset.xp);
+                            const jCoinsAmount = parseInt(event.currentTarget.dataset.jcoins);
+                            await rejectActivityReward(rewardId, userId, xpAmount, jCoinsAmount, event.currentTarget); // Pass amounts for refund
+                        });
+                    });
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error fetching pending activity rewards:", error);
+                showMessageBox(`Error loading activity rewards: ${error.message}`, 'error');
+                playNotificationSound('error');
+                document.getElementById('loadingActivityRewardsMessage')?.remove(); // Remove loading message
+                noPendingActivityRewardsMessage.style.display = 'block';
+                noPendingActivityRewardsMessage.textContent = "Error loading activity rewards. Please try again.";
+                markAllActivityRewardsApprovedBtn.disabled = true;
+                markAllActivityRewardsRejectedBtn.disabled = true;
+            });
+        }
+
+        /**
+         * Marks all pending activity reward requests as processed in a single batch.
+         * This does NOT automatically credit XP or JCoins.
+         * @param {boolean} approve - True to approve, false to reject.
+         */
+        async function markAllActivityRewardsAsProcessed(approve) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                showMessageBox("Access Denied. You are not an administrator.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+
+            const actionVerb = approve ? "approved" : "rejected";
+            const confirmTitle = approve ? "Confirm Batch Approval" : "Confirm Batch Rejection";
+            const confirmMessage = approve ?
+                "Are you sure you want to mark ALL pending activity rewards as approved? This action only clears the queue; it does NOT automatically credit XP/JCoins. Use 'Approve' for individual crediting." :
+                "Are you sure you want to mark ALL pending activity rewards as rejected? No XP/JCoins will be credited.";
+
+            const buttonToToggle = approve ? markAllActivityRewardsApprovedBtn : markAllActivityRewardsRejectedBtn;
+
+            const confirmed = await showConfirmationModal(confirmTitle, confirmMessage);
+            if (!confirmed) {
+                return;
+            }
+
+            toggleButtonLoading(buttonToToggle, true);
+            showMessageBox(`Marking all pending activity rewards as ${actionVerb}...`, 'loading', true);
+
+            try {
+                const activityRewardsCollectionRef = collection(db, "artifacts", appId, "public", "data", "pending_activity_rewards");
+                const q = query(activityRewardsCollectionRef, where("status", "==", "pending"));
+                const querySnapshot = await getDocs(q); // FIX: getDocs is now correctly imported
+
+                if (querySnapshot.empty) {
+                    showMessageBox(`No pending activity rewards to ${actionVerb}.`, 'info');
+                    playNotificationSound('info');
+                    return;
+                }
+
+                const batch = writeBatch(db);
+                querySnapshot.forEach(docSnap => {
+                    const rewardRef = doc(activityRewardsCollectionRef, docSnap.id);
+                    batch.update(rewardRef, {
+                        status: approve ? 'processed' : 'rejected', // Mark as processed or rejected
+                        processedAt: serverTimestamp(),
+                        processedByAdminId: currentUser.uid,
+                        processedByAdminUsername: currentUser.displayName || "Admin"
+                    });
+                });
+
+                await batch.commit();
+                showMessageBox(`Successfully marked ${querySnapshot.size} activity rewards as ${actionVerb}!`, 'success', true);
+                playNotificationSound('success');
+            } catch (error) {
+                console.error(`JCHAT_ERROR: Error marking all activity rewards as ${actionVerb}:`, error);
+                showMessageBox(`Failed to mark activity rewards as ${actionVerb}: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonToToggle, false);
+            }
+        }
+
+        /**
+         * Approves an activity reward, credits XP and JCoins to user, and updates reward status.
+         * @param {string} rewardId - The ID of the activity reward document.
+         * @param {string} userId - The UID of the user to credit.
+         * @param {number} xpAmount - The XP amount to credit.
+         * @param {number} jCoinsAmount - The JCoins amount to credit.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function approveActivityReward(rewardId, userId, xpAmount, jCoinsAmount, buttonElement) {
+            toggleButtonLoading(buttonElement, true);
+            const otherButton = buttonElement.nextElementSibling || buttonElement.previousElementSibling;
+            if (otherButton) otherButton.disabled = true;
+
+            showMessageBox(`Approving activity reward for ${userId.substring(0, 8)}...`, 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+                const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", userId, "transactions");
+                const rewardDocRef = doc(db, "artifacts", appId, "public", "data", "pending_activity_rewards", rewardId);
+
+                await runTransaction(db, async (transaction) => {
+                    const userProfileDoc = await transaction.get(userProfileDocRef);
+                    if (!userProfileDoc.exists()) {
+                        throw new Error("User profile not found for crediting activity reward.");
+                    }
+
+                    const currentProfileData = userProfileDoc.data();
+                    const oldJCoins = currentProfileData.jCoins ?? 0;
+                    const oldCurrentXp = currentProfileData.currentXp ?? 0;
+
+                    const totalNewXp = oldCurrentXp + xpAmount;
+                    const totalNewJCoins = oldJCoins + jCoinsAmount;
+
+                    // Recalculate level and XP based on the new total XP
+                    const { level: newLevel, currentXp: updatedCurrentXp, xpToNextLevel: newXpToNextLevel, jCoinsEarned: jCoinsFromLevelUp } = recalculateLevelAndXp(totalNewXp);
+
+                    // Update user profile with new JCoins (including level-up rewards) and XP
+                    transaction.update(userProfileDocRef, {
+                        jCoins: totalNewJCoins + jCoinsFromLevelUp, // Add direct reward JCoins + level-up JCoins
+                        currentXp: updatedCurrentXp, // This is the total accumulated XP now
+                        level: newLevel,
+                        xpToNextLevel: newXpToNextLevel,
+                        updatedAt: serverTimestamp()
+                    });
+
+                    // Add transaction to user's history
+                    transaction.set(doc(userTransactionsCollectionRef), {
+                        type: 'activity_reward_credit',
+                        xpAmount: xpAmount,
+                        jCoinAmount: jCoinsAmount,
+                        levelUpJCoins: jCoinsFromLevelUp, // JCoins specifically from level-ups
+                        description: `Admin Approved Activity Reward: +${xpAmount} XP, +${jCoinsAmount} JCoins` + (jCoinsFromLevelUp > 0 ? ` (+${jCoinsFromLevelUp} JCoins from level-ups)` : ''),
+                        timestamp: serverTimestamp(),
+                        rewardId: rewardId,
+                        adminId: currentUser.uid,
+                        adminUsername: currentUser.displayName || "Admin"
+                    });
+
+                    // Update the reward status to 'approved' and 'claimed'
+                    transaction.update(rewardDocRef, {
+                        status: 'approved', // Mark as approved
+                        claimed: true, // Mark as claimed
+                        processedAt: serverTimestamp(),
+                        processedByAdminId: currentUser.uid,
+                        processedByAdminUsername: currentUser.displayName || "Admin"
+                    });
+                });
+
+                showMessageBox(`Activity reward ${rewardId.substring(0, 8)} approved. ${xpAmount.toLocaleString()} XP and ${jCoinsAmount.toLocaleString()} JCoins credited to user ${userId.substring(0, 8)}.`, 'success');
+                playNotificationSound('success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error approving activity reward:", error);
+                showMessageBox(`Failed to approve activity reward ${rewardId.substring(0, 8)}: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+                if (otherButton) otherButton.disabled = false;
+            }
+        }
+
+
+        /**
+         * Rejects an individual activity reward request.
+         * If the request was a deduction (negative amount), it refunds the amount.
+         * @param {string} rewardId - The ID of the activity reward document.
+         * @param {string} userId - The UID of the user.
+         * @param {number} xpAmount - The XP amount of the original request (can be negative).
+         * @param {number} jCoinsAmount - The JCoins amount of the original request (can be negative).
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function rejectActivityReward(rewardId, userId, xpAmount, jCoinsAmount, buttonElement) {
+            toggleButtonLoading(buttonElement, true);
+            const otherButton = buttonElement.previousElementSibling || buttonElement.nextElementSibling;
+            if (otherButton) otherButton.disabled = true;
+
+            const confirmed = await showConfirmationModal(
+                "Confirm Rejection",
+                `Are you sure you want to reject this activity reward? If it was a deduction, JCoins/Gas will be refunded.`
+            );
+            if (!confirmed) {
+                toggleButtonLoading(buttonElement, false);
+                if (otherButton) otherButton.disabled = false;
+                return;
+            }
+
+            showMessageBox(`Rejecting activity reward ${rewardId.substring(0, 8)}...`, 'loading', true);
+
+            try {
+                const rewardDocRef = doc(db, "artifacts", appId, "public", "data", "pending_activity_rewards", rewardId);
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+                const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", userId, "transactions");
+
+                await runTransaction(db, async (transaction) => {
+                    const userProfileDoc = await transaction.get(userProfileDocRef);
+                    if (!userProfileDoc.exists()) {
+                        throw new Error("User profile not found for refunding activity reward.");
+                    }
+
+                    const currentJCoins = userProfileDoc.data().jCoins ?? 0;
+                    const currentGas = userProfileDoc.data().gas ?? 0;
+
+                    let newJCoins = currentJCoins;
+                    let newGas = currentGas;
+                    let refundDescription = "";
+
+                    // If the original request was a deduction (negative amount), refund it
+                    if (jCoinsAmount < 0) {
+                        newJCoins -= jCoinsAmount; // Add the absolute value back
+                        refundDescription += `Refunded ${Math.abs(jCoinsAmount).toLocaleString()} JCoins. `;
+                    }
+                    if (xpAmount < 0) {
+                        newGas -= xpAmount; // Add the absolute value back
+                        refundDescription += `Refunded ${Math.abs(xpAmount).toLocaleString()} Gas (XP).`;
+                    }
+
+                    if (refundDescription) {
+                        transaction.update(userProfileDocRef, {
+                            jCoins: newJCoins,
+                            gas: newGas,
+                            updatedAt: serverTimestamp()
+                        });
+
+                        transaction.set(doc(userTransactionsCollectionRef), {
+                            type: 'activity_reward_refund',
+                            jCoinAmount: jCoinsAmount < 0 ? Math.abs(jCoinsAmount) : 0,
+                            xpAmount: xpAmount < 0 ? Math.abs(xpAmount) : 0,
+                            description: `Admin Rejected Activity Reward: ${refundDescription.trim()}`,
+                            timestamp: serverTimestamp(),
+                            rewardId: rewardId,
+                            adminId: currentUser.uid,
+                            adminUsername: currentUser.displayName || "Admin"
+                        });
+                    }
+
+                    // Update the reward status to 'rejected'
+                    transaction.update(rewardDocRef, {
+                        status: 'rejected',
+                        processedAt: serverTimestamp(),
+                        processedByAdminId: currentUser.uid,
+                        processedByAdminUsername: currentUser.displayName || "Admin"
+                    });
+                });
+
+                showMessageBox(`Activity reward ${rewardId.substring(0, 8)} rejected. ${xpAmount < 0 || jCoinsAmount < 0 ? 'Amounts refunded.' : ''}`, 'info');
+                playNotificationSound('info');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error rejecting activity reward:", error);
+                showMessageBox(`Failed to reject activity reward ${rewardId.substring(0, 8)}: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+                if (otherButton) otherButton.disabled = false;
+            }
+        }
+
+
+        /**
+         * Admin function to check a target user's JCoins balance.
+         * @param {string} targetUserId - The ID of the user to check.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function adminCheckUserCoins(targetUserId, buttonElement) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                showMessageBox("Access Denied. You are not an administrator.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (!targetUserId) {
+                showMessageBox("Please enter a Target User ID.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            targetUserCoinsDisplay.style.display = 'none';
+            showMessageBox("Checking user's JCoins...", 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", targetUserId, "profiles", "user_profile");
+                const docSnap = await getDoc(userProfileDocRef);
+
+                if (docSnap.exists()) {
+                    const profileData = docSnap.data();
+                    const username = profileData.username || "Unknown User";
+                    const jCoins = profileData.jCoins ?? 0;
+                    targetUserCoinsUsername.textContent = username;
+                    targetUserCoinsValue.textContent = jCoins.toLocaleString(); // Format JCoins
+                    targetUserCoinsValue.classList.add('gradient-text'); // Apply gradient
+                    targetUserCoinsDisplay.style.display = 'block';
+                    showMessageBox(`Checked ${username}'s JCoins successfully.`, 'success');
+                    playNotificationSound('success');
+                } else {
+                    showMessageBox("Target User ID not found.", 'error');
+                    playNotificationSound('error');
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error checking target user's JCoins:", error);
+                showMessageBox(`Failed to check user's JCoins: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Admin function to send JCoins to a target user.
+         * @param {string} targetUserId - The ID of the user to send coins to.
+         * @param {number} nairaAmount - The Naira amount equivalent for the JCoins to send.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function adminSendJCoins(targetUserId, nairaAmount, buttonElement) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                showMessageBox("Access Denied. You are not an administrator.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (!targetUserId) {
+                showMessageBox("Please enter a Target User ID to send coins.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (isNaN(nairaAmount) || nairaAmount <= 0) {
+                showMessageBox("Amount must be a positive number.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox(`Processing JCoin send for #${nairaAmount.toLocaleString()}...`, 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", targetUserId, "profiles", "user_profile");
+                const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "transactions");
+                const docSnap = await getDoc(userProfileDocRef);
+
+                if (!docSnap.exists()) {
+                    showMessageBox("Target User ID not found. Cannot send coins.", 'error');
+                    playNotificationSound('error');
+                    return;
+                }
+
+                let baseJCoins = Math.floor(nairaAmount * NAIRA_TO_JCOIN_RATE);
+                let bonusJCoins = 0;
+                let description = `Admin Credit - #${nairaAmount.toLocaleString()}`;
+
+                if (nairaAmount >= JCOIN_BONUS_THRESHOLD) {
+                    bonusJCoins = Math.floor(baseJCoins * JCOIN_BONUS_PERCENTAGE);
+                    description += ` (+${(JCOIN_BONUS_PERCENTAGE * 100)}% Bonus)`;
+                }
+                const totalJCoinsToSend = baseJCoins + bonusJCoins;
+
+                await runTransaction(db, async (transaction) => {
+                    // 1. Update user's JCoin balance
+                    transaction.update(userProfileDocRef, { jCoins: increment(totalJCoinsToSend) });
+
+                    // 2. Add transaction to user's history
+                    transaction.set(doc(userTransactionsCollectionRef), {
+                        type: 'credit',
+                        amount: totalJCoinsToSend,
+                        description: description,
+                        timestamp: serverTimestamp(),
+                        adminId: currentUser.uid,
+                        adminUsername: currentUser.displayName || "Admin"
+                    });
+                });
+
+                showMessageBox(`Successfully sent ${totalJCoinsToSend.toLocaleString()} JCoins to ${docSnap.data().username || targetUserId}!`, 'success');
+                playNotificationSound('success');
+                // Clear the input field after successful send
+                sendTargetUserIdInput.value = '';
+                customAmountInput.value = '';
+                // Refresh admin check display if it was showing this user
+                if (targetUserIdInput.value === targetUserId) {
+                    await adminCheckUserCoins(targetUserId, checkUserCoinsBtn);
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error sending JCoins to target user:", error);
+                showMessageBox(`Failed to send JCoins: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Admin function to directly set a user's JCoins balance.
+         * @param {string} targetUserId - The ID of the user to edit.
+         * @param {number} newJCoins - The new JCoin amount to set.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function adminSetUserJCoins(targetUserId, newJCoins, buttonElement) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                showMessageBox("Access Denied. You are not an administrator.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (!targetUserId) {
+                showMessageBox("Please enter a Target User ID.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (isNaN(newJCoins) || newJCoins < 0) {
+                showMessageBox("New JCoin amount must be a non-negative number.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox(`Setting JCoins for ${targetUserId}...`, 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", targetUserId, "profiles", "user_profile");
+                const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "transactions");
+
+                await runTransaction(db, async (transaction) => {
+                    const userProfileDoc = await transaction.get(userProfileDocRef);
+                    if (!userProfileDoc.exists()) {
+                        throw new Error("User profile not found for editing JCoins.");
+                    }
+                    const oldJCoins = userProfileDoc.data().jCoins ?? 0;
+
+                    // Update user's JCoin balance
+                    transaction.update(userProfileDocRef, { jCoins: newJCoins });
+
+                    // Add transaction to user's history
+                    transaction.set(doc(userTransactionsCollectionRef), {
+                        type: 'admin_adjustment',
+                        amount: newJCoins - oldJCoins, // Amount changed (can be negative)
+                        description: `Admin Set JCoins: From ${oldJCoins.toLocaleString()} to ${newJCoins.toLocaleString()}`,
+                        timestamp: serverTimestamp(),
+                        adminId: currentUser.uid,
+                        adminUsername: currentUser.displayName || "Admin",
+                        oldJCoins: oldJCoins,
+                        newJCoins: newJCoins
+                    });
+                });
+
+                showMessageBox(`Successfully set JCoins for ${targetUserId} to ${newJCoins.toLocaleString()}!`, 'success');
+                playNotificationSound('success');
+                // Clear input fields after successful operation
+                editTargetUserIdInput.value = '';
+                newJCoinAmountInput.value = '';
+                // Refresh admin check display if it was showing this user
+                if (targetUserIdInput.value === targetUserId) {
+                    await adminCheckUserCoins(targetUserId, checkUserCoinsBtn);
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error setting user JCoins:", error);
+                showMessageBox(`Failed to set JCoins for ${targetUserId}: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Admin function to check a target user's Gas (XP) balance and level.
+         * @param {string} targetUserId - The ID of the user to check.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function adminCheckUserGas(targetUserId, buttonElement) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                showMessageBox("Access Denied. You are not an administrator.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (!targetUserId) {
+                showMessageBox("Please enter a Target User ID.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            targetUserGasDisplay.style.display = 'none';
+            showMessageBox("Checking user's Gas (XP)...", 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", targetUserId, "profiles", "user_profile");
+                const docSnap = await getDoc(userProfileDocRef);
+
+                if (docSnap.exists()) {
+                    const profileData = docSnap.data();
+                    const username = profileData.username || "Unknown User";
+                    const currentXp = profileData.currentXp ?? 0;
+                    const level = profileData.level ?? 1;
+
+                    targetUserGasUsername.textContent = username;
+                    targetUserGasValue.textContent = currentXp.toLocaleString(); // Format XP
+                    targetUserGasValue.classList.add('gradient-text'); // Apply gradient
+                    targetUserLevelValue.textContent = level.toLocaleString(); // Display level
+                    targetUserLevelValue.classList.add('gradient-text'); // Apply gradient
+                    targetUserGasDisplay.style.display = 'block';
+                    showMessageBox(`Checked ${username}'s Gas (XP) successfully.`, 'success');
+                    playNotificationSound('success');
+                } else {
+                    showMessageBox("Target User ID not found.", 'error');
+                    playNotificationSound('error');
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error checking target user's Gas (XP):", error);
+                showMessageBox(`Failed to check user's Gas (XP): ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Admin function to send Gas (XP) to a target user, handling level-ups.
+         * @param {string} targetUserId - The ID of the user to send XP to.
+         * @param {number} xpAmount - The amount of XP to send.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function adminSendGas(targetUserId, xpAmount, buttonElement) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                showMessageBox("Access Denied. You are not an administrator.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (!targetUserId) {
+                showMessageBox("Please enter a Target User ID to send XP.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (isNaN(xpAmount) || xpAmount <= 0) {
+                showMessageBox("XP amount must be a positive number.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox(`Processing Gas (XP) send for ${xpAmount.toLocaleString()} XP...`, 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", targetUserId, "profiles", "user_profile");
+                const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "transactions");
+
+                const docSnap = await getDoc(userProfileDocRef);
+                if (!docSnap.exists()) {
+                    showMessageBox("Target User ID not found. Cannot send XP.", 'error');
+                    playNotificationSound('error');
+                    return;
+                }
+
+                let baseXp = xpAmount;
+                let bonusXp = 0;
+                let description = `Admin Credit XP: ${xpAmount.toLocaleString()} XP`;
+
+                if (xpAmount >= XP_BONUS_THRESHOLD) {
+                    bonusXp = Math.floor(baseXp * XP_BONUS_PERCENTAGE);
+                    description += ` (+${(XP_BONUS_PERCENTAGE * 100)}% Bonus)`;
+                }
+                const totalXpToSend = baseXp + bonusXp;
+
+                await runTransaction(db, async (transaction) => {
+                    const userProfileDoc = await transaction.get(userProfileDocRef);
+                    if (!userProfileDoc.exists()) {
+                        throw new Error("User profile not found for crediting XP.");
+                    }
+
+                    const oldCurrentXp = userProfileDoc.data().currentXp ?? 0;
+                    const oldJCoins = userProfileDoc.data().jCoins ?? 0;
+
+                    const newTotalAccumulatedXp = oldCurrentXp + totalXpToSend;
+
+                    const { level: newLevel, currentXp: updatedCurrentXp, xpToNextLevel: newXpToNextLevel, jCoinsEarned: jCoinsFromLevelUp } = recalculateLevelAndXp(newTotalAccumulatedXp);
+
+                    // Update user's profile
+                    transaction.update(userProfileDocRef, {
+                        currentXp: updatedCurrentXp,
+                        level: newLevel,
+                        xpToNextLevel: newXpToNextLevel,
+                        jCoins: oldJCoins + jCoinsFromLevelUp, // Add JCoins from level ups
+                        updatedAt: serverTimestamp()
+                    });
+
+                    // Add transaction to user's history
+                    transaction.set(doc(userTransactionsCollectionRef), {
+                        type: 'xp_credit',
+                        amount: totalXpToSend,
+                        description: description + (jCoinsFromLevelUp > 0 ? ` (Gained to Lv ${newLevel} and ${jCoinsFromLevelUp} JCoins)` : ''),
+                        timestamp: serverTimestamp(),
+                        adminId: currentUser.uid,
+                        adminUsername: currentUser.displayName || "Admin"
+                    });
+                });
+
+                showMessageBox(`Successfully sent ${totalXpToSend.toLocaleString()} Gas (XP) to ${docSnap.data().username || targetUserId}!`, 'success');
+                playNotificationSound('success');
+                // Clear the input field after successful send
+                sendTargetUserGasIdInput.value = '';
+                customGasAmountInput.value = '';
+                // Refresh admin check display if it was showing this user
+                if (targetUserGasIdInput.value === targetUserId) {
+                    await adminCheckUserGas(targetUserId, checkUserGasBtn);
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error sending Gas (XP) to target user:", error);
+                showMessageBox(`Failed to send Gas (XP): ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Admin function to directly set a user's Gas (XP) balance, recalculating their level.
+         * @param {string} targetUserId - The ID of the user to edit.
+         * @param {number} newGasAmount - The new XP amount to set.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function adminSetUserGas(targetUserId, newGasAmount, buttonElement) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                showMessageBox("Access Denied. You are not an administrator.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (!targetUserId) {
+                showMessageBox("Please enter a Target User ID.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (isNaN(newGasAmount) || newGasAmount < 0) {
+                showMessageBox("New XP amount must be a non-negative number.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox(`Setting Gas (XP) for ${targetUserId}...`, 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", targetUserId, "profiles", "user_profile");
+                const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "transactions");
+
+                await runTransaction(db, async (transaction) => {
+                    const userProfileDoc = await transaction.get(userProfileDocRef);
+                    if (!userProfileDoc.exists()) {
+                        throw new Error("User profile not found for editing XP.");
+                    }
+                    const oldXp = userProfileDoc.data().currentXp ?? 0;
+                    const oldJCoins = userProfileDoc.data().jCoins ?? 0;
+
+                    const { level: newLevel, currentXp: updatedCurrentXp, xpToNextLevel: newXpToNextLevel, jCoinsEarned: jCoinsFromLevelRecalculation } = recalculateLevelAndXp(newGasAmount);
+
+                    // Update user's profile
+                    transaction.update(userProfileDocRef, {
+                        currentXp: updatedCurrentXp,
+                        level: newLevel,
+                        xpToNextLevel: newXpToNextLevel,
+                        jCoins: oldJCoins + jCoinsFromLevelRecalculation, // Add JCoins from level-ups, do not deduct if level goes down
+                        updatedAt: serverTimestamp()
+                    });
+
+                    // Add transaction to user's history
+                    transaction.set(doc(userTransactionsCollectionRef), {
+                        type: 'xp_admin_adjustment',
+                        amount: newGasAmount - oldXp, // Net change in XP
+                        description: `Admin Set Gas (XP): From ${oldXp.toLocaleString()} XP (Lv ${userProfileDoc.data().level}) to ${newGasAmount.toLocaleString()} XP (Lv ${newLevel})`,
+                        timestamp: serverTimestamp(),
+                        adminId: currentUser.uid,
+                        adminUsername: currentUser.displayName || "Admin",
+                        oldXp: oldXp,
+                        newXp: newGasAmount,
+                        oldLevel: userProfileDoc.data().level,
+                        newLevel: newLevel
+                    });
+                });
+
+                showMessageBox(`Successfully set Gas (XP) for ${targetUserId} to ${newGasAmount.toLocaleString()}!`, 'success');
+                playNotificationSound('success');
+                // Clear input fields after successful operation
+                editTargetUserGasIdInput.value = '';
+                newGasAmountInput.value = '';
+                // Refresh admin check display if it was showing this user
+                if (targetUserGasIdInput.value === targetUserId) {
+                    await adminCheckUserGas(targetUserId, checkUserGasBtn);
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error setting user Gas (XP):", error);
+                showMessageBox(`Failed to set Gas (XP) for ${targetUserId}: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+
+        /**
+         * Admin function to unlock a user's wallet.
+         * @param {string} targetUserId - The ID of the user whose wallet to unlock.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function adminUnlockUserWallet(targetUserId, buttonElement) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                showMessageBox("Access Denied. You are not an administrator.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (!targetUserId) {
+                showMessageBox("Please enter a Target User ID.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox(`Attempting to unlock wallet for ${targetUserId}...`, 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", targetUserId, "profiles", "user_profile");
+                const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "transactions");
+
+                await runTransaction(db, async (transaction) => {
+                    const userProfileDoc = await transaction.get(userProfileDocRef);
+                    if (!userProfileDoc.exists()) {
+                        throw new Error("User profile not found. Cannot unlock wallet.");
+                    }
+
+                    const currentWalletUnlocked = userProfileDoc.data().walletUnlocked ?? false;
+                    if (currentWalletUnlocked) {
+                        // Wallet is already unlocked, no action needed but still log it
+                        console.log(`Wallet for ${targetUserId} is already unlocked.`);
+                    }
+
+                    // Update user's profile to set walletUnlocked to true
+                    transaction.update(userProfileDocRef, { walletUnlocked: true });
+
+                    // Add a transaction record for this administrative action
+                    transaction.set(doc(userTransactionsCollectionRef), {
+                        type: 'admin_wallet_unlock',
+                        amount: 0, // No JCoins changed for this action
+                        description: `Admin Unlocked Wallet`,
+                        timestamp: serverTimestamp(),
+                        adminId: currentUser.uid,
+                        adminUsername: currentUser.displayName || "Admin"
+                    });
+                });
+
+                showMessageBox(`Wallet for user ${targetUserId} has been unlocked successfully!`, 'success');
+                playNotificationSound('success');
+                walletTargetUserIdInput.value = ''; // Clear input
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error unlocking user wallet:", error);
+                showMessageBox(`Failed to unlock wallet for ${targetUserId}: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Admin function to lock a user's wallet.
+         * @param {string} targetUserId - The ID of the user whose wallet to lock.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function adminLockUserWallet(targetUserId, buttonElement) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                showMessageBox("Access Denied. You are not an administrator.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+            if (!targetUserId) {
+                showMessageBox("Please enter a Target User ID.", 'error');
+                playNotificationSound('error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox(`Attempting to lock wallet for ${targetUserId}...`, 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", targetUserId, "profiles", "user_profile");
+                const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "transactions");
+
+                await runTransaction(db, async (transaction) => {
+                    const userProfileDoc = await transaction.get(userProfileDocRef);
+                    if (!userProfileDoc.exists()) {
+                        throw new Error("User profile not found. Cannot lock wallet.");
+                    }
+
+                    const currentWalletUnlocked = userProfileDoc.data().walletUnlocked ?? false;
+                    if (!currentWalletUnlocked) {
+                        // Wallet is already locked, no action needed but still log it
+                        console.log(`Wallet for ${targetUserId} is already locked.`);
+                    }
+
+                    // Update user's profile to set walletUnlocked to false
+                    transaction.update(userProfileDocRef, { walletUnlocked: false });
+
+                    // Add a transaction record for this administrative action
+                    transaction.set(doc(userTransactionsCollectionRef), {
+                        type: 'admin_wallet_lock',
+                        amount: 0, // No JCoins changed for this action
+                        description: `Admin Locked Wallet`,
+                        timestamp: serverTimestamp(),
+                        adminId: currentUser.uid,
+                        adminUsername: currentUser.displayName || "Admin"
+                    });
+                });
+
+                showMessageBox(`Wallet for user ${targetUserId} has been locked successfully!`, 'success');
+                playNotificationSound('success');
+                walletTargetUserIdInput.value = ''; // Clear input
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error locking user wallet:", error);
+                showMessageBox(`Failed to lock wallet for ${targetUserId}: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+
+        // --- Authentication State Listener ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                isAuthReady = true;
+                console.log("JCHAT_DEBUG: User authenticated in Coin Management Page:", user.uid);
+                await fetchAndDisplayHeaderProfile(user); // This will also handle admin check and data fetching
+                fetchNotificationCount(user.uid);
+
+            } else {
+                console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("JCHAT_DEBUG: Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("JCHAT_DEBUG: Signed in anonymously.");
+                    }
+                    // onAuthStateChanged will be triggered again with the new user
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error during anonymous sign-in or custom token sign-in:", error);
+                    // If anonymous sign-in also fails, redirect to login
+                    if (!auth.currentUser) {
+                        isAuthReady = false;
+                        currentUser = null;
+                        logoutButton.disabled = true;
+                        headerDisplayName.textContent = "Guest";
+                        headerProfilePic.style.display = 'none';
+                        headerAvatarIcon.style.display = 'block';
+                        adminIconLink.style.display = 'none'; // Hide admin icon for non-admins/guests
+                        accessDeniedMessage.textContent = "Please log in as an administrator.";
+                        accessDeniedMessage.style.display = 'block';
+                        adminSections.style.display = 'none'; // Hide admin sections
+                        showMessageBox("You must be logged in to access this page.", 'error', true);
+                        setTimeout(() => {
+                            window.location.href = '/login.html';
+                        }, 2000);
+                    }
+                }
+            }
+        });
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply theme on load
+            const savedTheme = localStorage.getItem('jchat-theme');
+            const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode']; // All themes
+            if (savedTheme && themes.includes(savedTheme)) {
+                document.body.classList.remove(...themes);
+                document.body.classList.add(savedTheme);
+            } else {
+                document.body.classList.remove(...themes);
+                document.body.classList.add('theme-dark-mode'); // Default
+            }
+
+            // Admin Event Listeners
+            checkUserCoinsBtn.addEventListener('click', () => {
+                const targetId = targetUserIdInput.value.trim();
+                adminCheckUserCoins(targetId, checkUserCoinsBtn);
+            });
+
+            sendPresetBtns.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = sendTargetUserIdInput.value.trim();
+                    const nairaAmount = parseInt(button.dataset.nairaAmount);
+                    adminSendJCoins(targetId, nairaAmount, button);
+                });
+            });
+
+            sendCustomAmountBtn.addEventListener('click', () => {
+                const targetId = sendTargetUserIdInput.value.trim();
+                const nairaAmount = parseInt(customAmountInput.value);
+                adminSendJCoins(targetId, nairaAmount, sendCustomAmountBtn);
+            });
+
+            setJCoinsBtn.addEventListener('click', () => {
+                const targetId = editTargetUserIdInput.value.trim();
+                const newAmount = parseInt(newJCoinAmountInput.value);
+                adminSetUserJCoins(targetId, newAmount, setJCoinsBtn);
+            });
+
+            // NEW: Gas (XP) Event Listeners
+            checkUserGasBtn.addEventListener('click', () => {
+                const targetId = targetUserGasIdInput.value.trim();
+                adminCheckUserGas(targetId, checkUserGasBtn);
+            });
+
+            sendGasPresetBtns.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = sendTargetUserGasIdInput.value.trim();
+                    const xpAmount = parseInt(button.dataset.xpAmount);
+                    adminSendGas(targetId, xpAmount, button);
+                });
+            });
+
+            sendCustomGasBtn.addEventListener('click', () => {
+                const targetId = sendTargetUserGasIdInput.value.trim();
+                const xpAmount = parseInt(customGasAmountInput.value);
+                adminSendGas(targetId, xpAmount, sendCustomGasBtn);
+            });
+
+            setGasBtn.addEventListener('click', () => {
+                const targetId = editTargetUserGasIdInput.value.trim();
+                const newAmount = parseInt(newGasAmountInput.value);
+                adminSetUserGas(targetId, newAmount, setGasBtn);
+            });
+
+
+            unlockWalletBtn.addEventListener('click', () => {
+                const targetId = walletTargetUserIdInput.value.trim();
+                adminUnlockUserWallet(targetId, unlockWalletBtn);
+            });
+
+            lockWalletBtn.addEventListener('click', () => {
+                const targetId = walletTargetUserIdInput.value.trim();
+                adminLockUserWallet(targetId, lockWalletBtn);
+            });
+
+            // Event listener for "Mark All Pending JCoin Requests as Approved" button
+            markAllJCoinRequestsApprovedBtn.addEventListener('click', () => markAllJCoinRequestsAsProcessed(true));
+            // NEW: Event listener for "Mark All Pending JCoin Requests as Rejected" button
+            markAllJCoinRequestsRejectedBtn.addEventListener('click', () => markAllJCoinRequestsAsProcessed(false));
+
+
+            // NEW: Event listener for "Mark All Pending Activity Rewards as Approved" button
+            markAllActivityRewardsApprovedBtn.addEventListener('click', () => markAllActivityRewardsAsProcessed(true));
+            // NEW: Event listener for "Mark All Pending Activity Rewards as Rejected" button
+            markAllActivityRewardsRejectedBtn.addEventListener('click', () => markAllActivityRewardsAsProcessed(false));
+
+            // Media Viewer Modal Close Button Listener
+            closeMediaViewerButton.addEventListener('click', () => {
+                mediaViewerModal.classList.remove('active');
+                viewerImage.src = '';
+                viewerImage.style.display = 'none';
+                viewerVideo.src = '';
+                viewerVideo.style.display = 'none';
+                viewerVideo.pause(); // Pause video if it was playing
+            });
+        });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'jchat-theme') {
+                const newTheme = event.newValue || 'theme-dark-mode';
+                const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+                if (themes.includes(newTheme)) {
+                    document.body.classList.remove(...themes);
+                    document.body.classList.add(newTheme);
+                }
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            // Unsubscribe from Firestore listeners before page unload
+            if (unsubscribePendingJCoinRequests) unsubscribePendingJCoinRequests();
+            if (unsubscribePendingActivityRewards) unsubscribePendingActivityRewards(); // NEW: Unsubscribe activity rewards
+        });
+
+        logoutButton.addEventListener('click', handleLogout);
+
+        // --- Bottom Navigation Bar Toggle Logic (reused from Home.html) ---
+        const bottomNavBar = document.getElementById('bottomNavBar');
+        const navToggleBtn = document.getElementById('navToggleBtn');
+
+        function toggleNavBarVisibility() {
+            const toggleIcon = navToggleBtn.querySelector('i');
+            const isHidden = bottomNavBar.classList.toggle('nav-bar-hidden-full');
+
+            if (isHidden) {
+                toggleIcon.classList.remove('fa-chevron-down');
+                toggleIcon.classList.add('fa-chevron-up');
+            } else {
+                toggleIcon.classList.remove('fa-chevron-up');
+                toggleIcon.classList.add('fa-chevron-down');
+            }
+        }
+
+        bottomNavBar.classList.add('nav-bar-hidden-full');
+        navToggleBtn.querySelector('i').classList.remove('fa-chevron-down');
+        navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
+        navToggleBtn.addEventListener('click', toggleNavBarVisibility);
+    </script>
+</body>
+</html>
