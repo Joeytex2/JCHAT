@@ -2163,11 +2163,11 @@
                     currentUser.uid,
                     currentUserProfileData.username,
                     'daily_login',
-                    5, // Suggested XP reward for daily login (changed from 50)
-                    5  // Suggested JCoin reward for daily login (changed from 10)
+                    5, // Suggested JCoin reward for daily login (from prompt)
+                    5  // Suggested Gas reward for daily login (from prompt)
                 );
 
-                showMessageBox(`Daily bonus claimed! 5 XP and 5 JCoins are pending admin review.`, 'success'); // Updated message
+                showMessageBox(`Daily bonus claimed! 5 JCoins and 5 Gas are pending admin review.`, 'success'); // Updated message
                 playNotificationSound('success');
 
                 // Update local profile data immediately for UI consistency
@@ -3007,7 +3007,7 @@
                         if (reactionType === 'like') serverLikesCount = Math.max(0, serverLikesCount - 1); // Only 'like' contributes to likesCount
                         transaction.delete(userReactionRef);
                         activityType = `unreact_${reactionType}`;
-                        xpReward = -1; // Deduct a small amount for un-reacting (changed from -5)
+                        xpReward = -1; // Deduct a small amount for un-reacting
                         jCoinReward = 0;
                     } else {
                         // User is reacting or changing reaction
@@ -3020,8 +3020,8 @@
 
                         transaction.set(userReactionRef, { type: reactionType, userId: currentUser.uid, timestamp: serverTimestamp() });
                         activityType = `react_${reactionType}`;
-                        xpReward = 1; // Suggested XP for reacting (changed from 10)
-                        jCoinReward = 1; // Suggested JCoins for reacting (changed from 2)
+                        xpReward = 2; // Suggested JCoin reward for reacting (from prompt)
+                        jCoinReward = 2; // Suggested Gas reward for reacting (from prompt)
                     }
 
                     transaction.update(postRef, {
@@ -3043,7 +3043,7 @@
                         );
                     }
                 });
-                showMessageBox("Reaction recorded! 1 XP and 1 JCoin are pending admin review.", 'success'); // Updated message
+                showMessageBox("Reaction recorded! 2 JCoins and 2 Gas are pending admin review.", 'success'); // Updated message
                 playNotificationSound('info'); // Play info sound for reaction
             } catch (error) {
                 console.error("JCHAT_ERROR: Error handling reaction (Firestore update failed):", error);
@@ -3091,20 +3091,20 @@
                     });
                 });
 
-                // Commenting rewards remain unchanged as per user request (no change mentioned for comments)
+                // Commenting rewards changed as per user request
                 if (commentId) {
                     await createPendingActivityReward(
                         currentUser.uid,
                         currentUserProfileData.username,
                         'post_comment',
-                        15, // Suggested XP for commenting
-                        3,  // Suggested JCoins for commenting
+                        3, // Suggested JCoin reward for commenting (from prompt)
+                        5,  // Suggested Gas reward for commenting (from prompt)
                         commentId, // Pass commentId as activityId
                         postId // Pass postId
                     );
                 }
 
-                showMessageBox("Comment added! Your activity has been noted for XP and Level progression. Rewards are pending admin review.", 'success');
+                showMessageBox("Comment added! 3 JCoins and 5 Gas are pending admin review.", 'success'); // Updated message
                 playNotificationSound('success'); // Play success sound
             } catch (error) {
                 console.error("JCHAT_ERROR: Error adding comment:", error);
