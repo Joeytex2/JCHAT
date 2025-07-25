@@ -266,6 +266,7 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
             padding: 2.5rem;
             text-align: left; /* Align text left within content */
+            position: relative; /* For scroll-to-top button positioning */
         }
 
         .welcome-content::-webkit-scrollbar {
@@ -466,6 +467,41 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
+
+        /* Scroll to Top Button */
+        #scrollToTopBtn {
+            position: absolute; /* Position relative to .welcome-content */
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            z-index: 10;
+        }
+
+        #scrollToTopBtn.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-5px);
+        }
+
+        #scrollToTopBtn:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
 
         /* --- Auth Container Styles --- */
         .auth-container {
@@ -948,6 +984,14 @@
             .jchat-features-content ul li i {
                 font-size: 0.9rem;
             }
+
+            #scrollToTopBtn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+                bottom: 15px;
+                right: 15px;
+            }
         }
     </style>
 </head>
@@ -1060,6 +1104,10 @@
             </div>
             <button id="getStartedButton" class="get-started-button">
                 <span class="button-text"><i class="fas fa-arrow-right"></i> Get Started</span>
+            </button>
+            <!-- Scroll to Top Button -->
+            <button id="scrollToTopBtn" aria-label="Scroll to top">
+                <i class="fas fa-arrow-up"></i>
             </button>
         </div>
 
@@ -1213,7 +1261,9 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        // Corrected import for Auth specific functions, including GoogleAuthProvider
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        // Correct Firestore imports
         import { getFirestore, doc, setDoc, collection, query, where, getDocs, runTransaction, serverTimestamp, increment, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
@@ -1238,6 +1288,9 @@
         const welcomeScreen = document.getElementById('welcomeScreen');
         const getStartedButton = document.getElementById('getStartedButton');
         const authContainer = document.getElementById('authContainer');
+        const welcomeContent = document.querySelector('.welcome-content'); // Get the scrollable content div
+        const scrollToTopBtn = document.getElementById('scrollToTopBtn'); // Get the new scroll-to-top button
+
 
         const authTitle = document.getElementById('authTitle');
         const loginForm = document.getElementById('loginForm');
@@ -1857,6 +1910,25 @@
                 featuresHeader.classList.toggle('expanded');
                 featuresContent.classList.toggle('expanded');
             });
+
+            // Scroll to Top Button Logic
+            if (welcomeContent && scrollToTopBtn) {
+                welcomeContent.addEventListener('scroll', () => {
+                    // Show button when scrolled down more than 200px
+                    if (welcomeContent.scrollTop > 200) {
+                        scrollToTopBtn.classList.add('show');
+                    } else {
+                        scrollToTopBtn.classList.remove('show');
+                    }
+                });
+
+                scrollToTopBtn.addEventListener('click', () => {
+                    welcomeContent.scrollTo({
+                        top: 0,
+                        behavior: 'smooth' // Smooth scroll animation
+                    });
+                });
+            }
         });
 
         // Listen for theme changes from other tabs/windows
