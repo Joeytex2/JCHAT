@@ -13,8 +13,6 @@
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-    <!-- Preconnect to Google APIs for LLM -->
-    <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossorigin>
 
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
@@ -1805,10 +1803,9 @@
         const headerProfilePic = document.getElementById('headerProfilePic');
         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
         const headerDisplayName = document.getElementById('headerDisplayName');
-        // const logoutButton = document.getElementById('logoutButton'); // Removed from header
         const notificationCountElement = document.getElementById('notificationCount');
         const adminIconLink = document.getElementById('adminIconLink');
-        const profileLink = document.getElementById('profileLink'); // Get the profile link element
+        const profileLink = document.getElementById('profileLink');
 
         const inspirationQuoteElement = document.getElementById('inspirationQuote');
         const inspirationAuthorElement = document.getElementById('inspirationAuthor');
@@ -1848,7 +1845,7 @@
 
         // Sidebar elements
         const sidebarNav = document.getElementById('sidebarNav');
-        const sidebarToggleFab = document.getElementById('sidebarToggleFab'); // Moved to header
+        const sidebarToggleFab = document.getElementById('sidebarToggleFab');
         const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
         const sidebarNavItems = document.querySelectorAll('.sidebar-nav-item');
         const sidebarLogoutLink = document.getElementById('sidebarLogoutLink');
@@ -1876,7 +1873,7 @@
         ];
 
         // --- Inspiration Quotes Data (Local Fallback) ---
-        // These are used as a fallback if LLM generation fails or for initial load.
+        // These are used as the primary source of inspiration quotes now that LLM is removed.
         const inspirationalQuotes = {
             motivational: [
                 { quote: "Every sunrise is an invitation to brighten your world.", author: "JCHAT" },
@@ -2163,11 +2160,11 @@
                     currentUser.uid,
                     currentUserProfileData.username,
                     'daily_login',
-                    5, // Suggested XP reward for daily login (changed from 50)
-                    5  // Suggested JCoin reward for daily login (changed from 10)
+                    10, // Suggested XP reward for daily login (now 10)
+                    3  // Suggested JCoin reward for daily login (now 3)
                 );
 
-                showMessageBox(`Daily bonus claimed! 5 XP and 5 JCoins are pending admin review.`, 'success'); // Updated message
+                showMessageBox(`Daily bonus claimed! 10 XP and 3 JCoins are pending admin review.`, 'success'); // Updated message
                 playNotificationSound('success');
 
                 // Update local profile data immediately for UI consistency
@@ -2463,12 +2460,6 @@
         function toggleInteractiveElements(enable) {
             console.log(`JCHAT_DEBUG: toggleInteractiveElements called with enable: ${enable}`);
 
-            // Removed logoutButton from header, so no need to toggle its disabled state here
-            // if (logoutButton) {
-            //     logoutButton.disabled = !enable;
-            //     console.log(`JCHAT_DEBUG: logoutButton disabled: ${logoutButton.disabled}`);
-            // }
-
             if (sharePostInspirationButton) {
                 sharePostInspirationButton.disabled = !enable;
                 console.log(`JCHAT_DEBUG: sharePostInspirationButton disabled: ${sharePostInspirationButton.disabled}`);
@@ -2477,8 +2468,6 @@
                 customizeInspirationButton.disabled = !enable;
                 console.log(`JCHAT_DEBUG: customizeInspirationButton disabled: ${customizeInspirationButton.disabled}`);
             }
-            // Daily bonus button is handled by checkAndStartDailyBonusTimer, which accounts for auth and cooldown
-            // if (claimDailyBonusButton) claimDailyBonusButton.disabled = !enable; // REMOVED THIS LINE
 
             if (postContentInput) {
                 postContentInput.disabled = !enable;
@@ -2531,8 +2520,6 @@
                 return;
             }
 
-            // toggleButtonLoading(logoutButton, true); // Removed logout button
-
             try {
                 await signOut(auth);
                 showMessageBox("Logged out successfully! 👋", 'success');
@@ -2543,7 +2530,6 @@
             } catch (error) {
                 console.error("JCHAT_ERROR: Error logging out:", error);
                 showMessageBox(`Failed to log out: ${error.message}. Please try again.`, 'error');
-                // toggleButtonLoading(logoutButton, false); // Removed logout button
             }
         }
 
@@ -2691,8 +2677,6 @@
                 }
                 showMessageBox(`Error loading header profile: ${error.message}`, 'error');
 
-                // Do not disable all elements here, as some might be usable even if profile load fails partially
-                // toggleInteractiveElements(false); // Removed this line
                 console.log("JCHAT_DEBUG: fetchAndDisplayHeaderProfile failed. Interactive elements might still be enabled if auth succeeded.");
             }
         }
@@ -2720,74 +2704,18 @@
             }
         }
 
-        // --- LLM Integration for Inspiration ---
-        async function fetchInspirationFromLLM(type) {
-            if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Generating new inspiration...";
-            if (inspirationAuthorElement) inspirationAuthorElement.textContent = "";
-
-            try {
-                const prompt = `Generate a short, single-sentence ${type} quote. Provide it as a JSON object with two fields: "quote" (the quote text) and "author" (the author of the quote, default to "AI" if not known).`;
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = {
-                    contents: chatHistory,
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "OBJECT",
-                            properties: {
-                                quote: { type: "STRING" },
-                                author: { type: "STRING" }
-                            },
-                            required: ["quote", "author"]
-                        }
-                    }
-                };
-                const apiKey = ""; // Canvas will provide this
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const jsonText = result.candidates[0].content.parts[0].text;
-                    // Attempt to parse the JSON response
-                    try {
-                        const parsedQuote = JSON.parse(jsonText);
-                        if (parsedQuote.quote && parsedQuote.author !== undefined) { // Check if author is defined
-                            return { quote: parsedQuote.quote, author: parsedQuote.author };
-                        } else {
-                            console.error("JCHAT_ERROR: LLM response JSON structure unexpected (missing quote/author):", parsedQuote);
-                            return getRandomQuote(type); // Fallback
-                        }
-                    } catch (jsonParseError) {
-                        console.error("JCHAT_ERROR: Failed to parse LLM response as JSON:", jsonParseError, "Raw text:", jsonText);
-                        return getRandomQuote(type); // Fallback
-                    }
-                } else {
-                    console.error("JCHAT_ERROR: LLM response structure unexpected (no candidates/content/parts):", result);
-                    return getRandomQuote(type); // Fallback to local quotes
-                }
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching inspiration from LLM (fetch failed or network error):", error);
-                return getRandomQuote(type); // Fallback to local quotes
-            }
-        }
-
-        // Fallback to local quotes if LLM fails or for initial setup
+        // --- Inspiration Quotes Display (No LLM) ---
+        // This function now only retrieves a random quote from the local inspirationalQuotes data.
         function getRandomQuote(type = "motivational") {
             const quotesOfType = inspirationalQuotes[type] || inspirationalQuotes.motivational;
             const randomIndex = Math.floor(Math.random() * quotesOfType.length);
             return quotesOfType[randomIndex];
         }
 
+        // This function now simply displays the randomly selected quote.
         async function displayInspiration() {
             const currentType = currentUserProfileData?.inspirationType || "motivational";
-            const quoteData = await fetchInspirationFromLLM(currentType); // Await the LLM call
+            const quoteData = getRandomQuote(currentType); // Directly use local quotes
             if (inspirationQuoteElement) inspirationQuoteElement.textContent = `"${quoteData.quote}"`;
             if (inspirationAuthorElement) inspirationAuthorElement.textContent = `- ${quoteData.author}`;
         }
@@ -2961,21 +2889,8 @@
                     postId = newPostRef.id; // Get the ID of the new post
                 });
 
-                // REMOVED: No more createPendingActivityReward for post creation
-                // if (postId) {
-                //     await createPendingActivityReward(
-                //         currentUser.uid,
-                //         currentUserProfileData.username,
-                //         'post_creation',
-                //         20, // Suggested XP for creating a post
-                //         5,  // Suggested JCoins for creating a post
-                //         null,
-                //         postId // Pass postId as activityId for post-related rewards
-                //     );
-                // }
-
-                showMessageBox("Post created successfully!", 'success', true); // Updated message
-                playNotificationSound('success'); // Play success sound
+                showMessageBox("Post created successfully!", 'success', true);
+                playNotificationSound('success');
                 postContentInput.value = '';
                 if (postMediaUpload) postMediaUpload.value = '';
                 if (mediaImagePreview) mediaImagePreview.style.display = 'none';
@@ -2983,12 +2898,11 @@
                 if (mediaImagePreview) mediaImagePreview.src = '';
                 if (mediaVideoPreview) mediaVideoPreview.src = '';
                 currentMediaFile = null;
-                // No need to call fetchAndDisplayPosts() here, onSnapshot will handle it.
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error creating post:", error);
                 showMessageBox(`Failed to create post: ${error.message}`, 'error');
-                playNotificationSound('error'); // Play error sound
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(createPostButton, false);
             }
@@ -3014,7 +2928,7 @@
 
                     const postData = postDoc.data();
                     let serverReactions = postData.reactions || { like: 0, love: 0, haha: 0 };
-                    let serverLikesCount = postData.likesCount || 0; // Ensure likesCount is managed
+                    let serverLikesCount = postData.likesCount || 0;
                     let serverUserPreviousReaction = userReactionDoc.exists() ? userReactionDoc.data().type : null;
 
                     let xpReward = 0;
@@ -3024,11 +2938,11 @@
                     if (serverUserPreviousReaction === reactionType) {
                         // User is un-reacting
                         serverReactions[reactionType] = Math.max(0, serverReactions[reactionType] - 1);
-                        if (reactionType === 'like') serverLikesCount = Math.max(0, serverLikesCount - 1); // Only 'like' contributes to likesCount
+                        if (reactionType === 'like') serverLikesCount = Math.max(0, serverLikesCount - 1);
                         transaction.delete(userReactionRef);
                         activityType = `unreact_${reactionType}`;
-                        xpReward = -1; // Deduct a small amount for un-reacting (changed from -5)
-                        jCoinReward = 0;
+                        xpReward = -3; // Deduct XP for un-reacting
+                        jCoinReward = -2; // Deduct JCoins for un-reacting
                     } else {
                         // User is reacting or changing reaction
                         if (serverUserPreviousReaction) {
@@ -3036,17 +2950,17 @@
                             if (serverUserPreviousReaction === 'like') serverLikesCount = Math.max(0, serverLikesCount - 1);
                         }
                         serverReactions[reactionType] = (serverReactions[reactionType] || 0) + 1;
-                        if (reactionType === 'like') serverLikesCount = (serverLikesCount || 0) + 1; // Only 'like' contributes to likesCount
+                        if (reactionType === 'like') serverLikesCount = (serverLikesCount || 0) + 1;
 
                         transaction.set(userReactionRef, { type: reactionType, userId: currentUser.uid, timestamp: serverTimestamp() });
                         activityType = `react_${reactionType}`;
-                        xpReward = 1; // Suggested XP for reacting (changed from 10)
-                        jCoinReward = 1; // Suggested JCoins for reacting (changed from 2)
+                        xpReward = 3; // Suggested XP for reacting (now 3)
+                        jCoinReward = 2; // Suggested JCoins for reacting (now 2)
                     }
 
                     transaction.update(postRef, {
                         reactions: serverReactions,
-                        likesCount: serverLikesCount, // Update likesCount
+                        likesCount: serverLikesCount,
                         updatedAt: serverTimestamp()
                     });
 
@@ -3059,16 +2973,16 @@
                             xpReward,
                             jCoinReward,
                             null,
-                            postId // Pass postId as activityId for post-related rewards
+                            postId
                         );
                     }
                 });
-                showMessageBox("Reaction recorded! 1 XP and 1 JCoin are pending admin review.", 'success'); // Updated message
-                playNotificationSound('info'); // Play info sound for reaction
+                showMessageBox("Reaction recorded! 3 XP and 2 JCoins are pending admin review.", 'success'); // Updated message
+                playNotificationSound('info');
             } catch (error) {
                 console.error("JCHAT_ERROR: Error handling reaction (Firestore update failed):", error);
                 showMessageBox(`Failed to update reaction: ${error.message}. Please refresh.`, 'error');
-                playNotificationSound('error'); // Play error sound
+                playNotificationSound('error');
             }
         }
 
@@ -3093,16 +3007,16 @@
                         throw new Error("Post does not exist.");
                     }
 
-                    const newCommentRef = doc(commentsCollectionRef); // Get a new doc ref with auto-generated ID
+                    const newCommentRef = doc(commentsCollectionRef);
                     const newComment = {
                         userId: currentUser.uid,
                         username: currentUserProfileData.username || "JCHAT User",
-                        profilePhoto: currentUserProfileData.profilePicId || null, // Include profile photo for comment
+                        profilePhoto: currentUserProfileData.profilePicId || null,
                         content: commentText.trim(),
                         timestamp: serverTimestamp()
                     };
                     transaction.set(newCommentRef, newComment);
-                    commentId = newCommentRef.id; // Store the ID
+                    commentId = newCommentRef.id;
 
                     const currentCommentsCount = postDoc.data().commentsCount || 0;
                     transaction.update(postRef, {
@@ -3111,25 +3025,24 @@
                     });
                 });
 
-                // Commenting rewards remain unchanged as per user request (no change mentioned for comments)
                 if (commentId) {
                     await createPendingActivityReward(
                         currentUser.uid,
                         currentUserProfileData.username,
                         'post_comment',
-                        15, // Suggested XP for commenting
-                        3,  // Suggested JCoins for commenting
-                        commentId, // Pass commentId as activityId
-                        postId // Pass postId
+                        2, // Suggested XP for commenting (now 2)
+                        4,  // Suggested JCoins for commenting (now 4)
+                        commentId,
+                        postId
                     );
                 }
 
-                showMessageBox("Comment added! Your activity has been noted for XP and Level progression. Rewards are pending admin review.", 'success');
-                playNotificationSound('success'); // Play success sound
+                showMessageBox("Comment added! 2 XP and 4 JCoins are pending admin review.", 'success'); // Updated message
+                playNotificationSound('success');
             } catch (error) {
                 console.error("JCHAT_ERROR: Error adding comment:", error);
                 showMessageBox(`Failed to add comment: ${error.message}`, 'error');
-                playNotificationSound('error'); // Play error sound
+                playNotificationSound('error');
             }
         }
 
@@ -3168,11 +3081,11 @@
                     });
                 });
                 showMessageBox("Comment deleted successfully!", 'success');
-                playNotificationSound('success'); // Play success sound
+                playNotificationSound('success');
             } catch (error) {
                 console.error("JCHAT_ERROR: Error deleting comment:", error);
                 showMessageBox(`Failed to delete comment: ${error.message}`, 'error');
-                playNotificationSound('error'); // Play error sound
+                playNotificationSound('error');
             }
         }
 
@@ -3303,12 +3216,12 @@
                 });
 
                 showMessageBox("Post updated successfully!", 'success');
-                playNotificationSound('success'); // Play success sound
+                playNotificationSound('success');
                 closeEditPostModal();
             } catch (error) {
                 console.error("JCHAT_ERROR: Error saving edited post:", error);
                 showMessageBox(`Failed to save changes: ${error.message}`, 'error');
-                playNotificationSound('error'); // Play error sound
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(saveEditedPostButton, false);
             }
@@ -3362,14 +3275,12 @@
                     transaction.delete(postRef); // Delete the post itself
 
                     // Update totalPosts in private profile
-                    // Only update totalPosts and updatedAt, createdAt is handled on initial creation
                     transaction.update(privateProfileDocRef, {
                         totalPosts: newTotalPosts,
                         updatedAt: serverTimestamp(),
                     });
 
                     // Update totalPosts in public profile
-                    // Only update totalPosts and updatedAt, createdAt is handled on initial creation
                     transaction.update(publicProfileDocRef, {
                         totalPosts: newTotalPosts,
                         updatedAt: serverTimestamp(),
@@ -3388,11 +3299,11 @@
                 );
 
                 showMessageBox("Post deleted successfully!", 'success');
-                playNotificationSound('success'); // Play success sound
+                playNotificationSound('success');
             } catch (error) {
                 console.error("JCHAT_ERROR: Error deleting post:", error);
                 showMessageBox(`Failed to delete post: ${error.message}`, 'error');
-                playNotificationSound('error'); // Play error sound
+                playNotificationSound('error');
             }
         }
 
@@ -3404,14 +3315,7 @@
             postElement.classList.add('post-card');
             postElement.setAttribute('data-post-id', postId);
 
-            // Determine user's current reaction for styling
-            // This will be updated by the individual post's userReaction onSnapshot
             let userReactionType = '';
-            // Note: userReactions is a subcollection, not directly on the post document.
-            // The onSnapshot for userReactionRef will set this data-attribute dynamically.
-            // For initial render, we can't reliably get it from `post` object directly.
-            // The onSnapshot for userReactionRef will handle the class application.
-
 
             postElement.innerHTML = `
                 <div class="post-header">
@@ -3834,7 +3738,6 @@
                 }
                 isAuthReady = false;
                 toggleInteractiveElements(false); // Disable elements until a valid user is established
-                // if (logoutButton) logoutButton.disabled = true; // Removed logout button
                 if (headerDisplayName) headerDisplayName.textContent = "Guest";
                 if (headerProfilePic) headerProfilePic.style.display = 'none';
                 if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
@@ -3908,7 +3811,6 @@
             }
         });
 
-        // if (logoutButton) logoutButton.addEventListener('click', handleLogout); // Removed from header
         if (sharePostInspirationButton) {
             sharePostInspirationButton.addEventListener('click', () => {
                 if (!isAuthReady) { showMessageBox("Please log in to share inspiration.", 'error'); return; }
