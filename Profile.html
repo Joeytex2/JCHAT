@@ -603,20 +603,21 @@
             text-align: center;
         }
 
-        .profile-bio, .profile-location, .profile-email {
+        .profile-bio, .profile-location, .profile-email, .profile-info-item {
             font-size: 1rem;
             color: var(--text-light);
             margin: 0;
             line-height: 1.5;
         }
 
-        .profile-location i, .profile-email i {
+        .profile-location i, .profile-email i, .profile-info-item i {
             /* Apply gradient to icons */
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent; /* Fallback */
+            margin-right: 5px;
         }
 
 
@@ -853,6 +854,7 @@
         }
 
         .profile-details-section input[type="text"],
+        .profile-details-section input[type="url"], /* Added for website */
         .profile-details-section textarea {
             width: 100%;
             padding: 0.8rem 1rem;
@@ -867,6 +869,7 @@
         }
 
         .profile-details-section input[type="text"]:focus,
+        .profile-details-section input[type="url"]:focus,
         .profile-details-section textarea:focus {
             border-color: var(--blue);
             box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
@@ -1156,7 +1159,7 @@
             color: var(--text-light);
             font-size: 0.75rem;
             font-weight: 600;
-            transition: color 0.2s ease;
+            transition: color 0.2s ease, transform 0.2s ease;
             flex: 1;
             max-width: 80px;
         }
@@ -1498,7 +1501,7 @@
                 font-size: 1.6rem;
             }
             header nav ul {
-                gap: 15px;
+                display: none;
             }
             header nav ul li a {
                 font-size: 1.1rem;
@@ -1531,7 +1534,7 @@
             .profile-name {
                 font-size: 1.8rem;
             }
-            .profile-bio, .profile-location, .profile-email {
+            .profile-bio, .profile-location, .profile-email, .profile-info-item {
                 font-size: 0.9rem;
             }
             .profile-level-icon {
@@ -1557,6 +1560,7 @@
                 font-size: 0.85rem;
             }
             .profile-details-section input[type="text"],
+            .profile-details-section input[type="url"],
             .profile-details-section textarea {
                 padding: 0.7rem 0.9rem;
                 font-size: 0.9rem;
@@ -1673,8 +1677,13 @@
                     </div>
                     <h2 id="profileUsername" class="profile-name">Loading...</h2>
                     <p id="profileBio" class="profile-bio">No bio provided yet.</p>
-                    <p id="profileLocation" class="profile-location" style="display: none;"><i class="fas fa-map-marker-alt"></i> <span id="locationText"></span></p>
-                    <p id="profileEmail" class="profile-email" style="display: none;"><i class="fas fa-envelope"></i> <span id="emailText"></span></p>
+                    <p id="profileLocation" class="profile-info-item" style="display: none;"><i class="fas fa-map-marker-alt"></i> <span id="locationText"></span></p>
+                    <p id="profileEmail" class="profile-info-item" style="display: none;"><i class="fas fa-envelope"></i> <span id="emailText"></span></p>
+                    <p id="profileSchool" class="profile-info-item" style="display: none;"><i class="fas fa-graduation-cap"></i> <span id="schoolText"></span></p>
+                    <p id="profileWork" class="profile-info-item" style="display: none;"><i class="fas fa-briefcase"></i> <span id="workText"></span></p>
+                    <p id="profileWebsite" class="profile-info-item" style="display: none;"><i class="fas fa-globe"></i> <a id="websiteLink" href="#" target="_blank" rel="noopener noreferrer" class="gradient-text"></a></p>
+                    <p id="profileSocialLinks" class="profile-info-item" style="display: none;"><i class="fas fa-share-alt"></i> <span id="socialLinksText"></span></p>
+
 
                     <!-- NEW: Level Info Display -->
                     <div class="profile-level-info">
@@ -1722,9 +1731,7 @@
 
                 <div class="profile-actions" id="profileActions">
                     <!-- Buttons will be dynamically added/hidden based on owner/viewer -->
-                    <button id="editProfileButton" class="profile-action-button">
-                        <i class="fas fa-edit"></i> Edit Profile
-                    </button>
+                    <!-- Removed Edit Profile Button -->
                     <a href="/privacy_settings.html" id="privacySettingsButton" class="profile-action-button secondary">
                         <i class="fas fa-user-shield"></i> Privacy Settings
                     </a>
@@ -1751,59 +1758,81 @@
                     <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
 
                     <label for="locationInput">Location</label>
-                    <input type="text" id="locationInput" placeholder="Enter your location">
+                    <input type="text" id="locationInput" placeholder="e.g., Lagos, Nigeria">
+
+                    <label for="schoolInput">School/University</label>
+                    <input type="text" id="schoolInput" placeholder="e.g., University of Lagos">
+
+                    <label for="workInput">Work/Occupation</label>
+                    <input type="text" id="workInput" placeholder="e.g., Software Engineer at Google">
+
+                    <label for="interestsInput">Interests</label>
+                    <textarea id="interestsInput" placeholder="e.g., Reading, Hiking, Coding, Photography (comma-separated)"></textarea>
+
+                    <label for="websiteInput">Website/Portfolio</label>
+                    <input type="url" id="websiteInput" placeholder="e.g., https://yourwebsite.com">
+
+                    <label for="socialLinksInput">Social Media Links</label>
+                    <textarea id="socialLinksInput" placeholder="e.g., LinkedIn: profile_url, Twitter: handle (comma-separated)"></textarea>
 
                     <button id="saveProfileChanges" class="profile-action-button">
                         <span class="button-text">Save Profile</span>
                         <div class="button-loader"></div>
                     </button>
 
-                    <div class="sub-section">
-                        <h2>Account Settings</h2>
+                    <!-- Toggle for Account Settings (Email/Password) -->
+                    <button id="toggleAccountSettingsButton" class="profile-action-button secondary" style="margin-top: 2rem;">
+                        <i class="fas fa-cog"></i> Manage Account Settings
+                    </button>
 
-                        <div class="input-group">
-                            <label for="profileEmailInput">Email Address</label>
-                            <input type="email" id="profileEmailInput" placeholder="Your email" disabled>
-                        </div>
+                    <div id="accountSettingsSection" style="display: none; flex-direction: column; width: 100%;">
+                        <div class="sub-section">
+                            <h2>Account Settings</h2>
 
-                        <form id="changeEmailForm">
                             <div class="input-group">
-                                <label for="newEmail">New Email</label>
-                                <input type="email" id="newEmail" placeholder="Enter new email">
+                                <label for="profileEmailInput">Email Address</label>
+                                <input type="email" id="profileEmailInput" placeholder="Your email" disabled>
+                            </div>
+
+                            <form id="changeEmailForm">
+                                <div class="input-group">
+                                    <label for="newEmail">New Email</label>
+                                    <input type="email" id="newEmail" placeholder="Enter new email">
+                                </div>
+                                <div class="input-group">
+                                    <label for="currentPasswordForEmail">Current Password</label>
+                                    <input type="password" id="currentPasswordForEmail" placeholder="Enter current password">
+                                </div>
+                                <button type="submit" id="updateEmailButton">
+                                    <span class="button-text">Update Email</span>
+                                    <div class="button-loader"></div>
+                                </button>
+                            </form>
+
+                            <div class="input-group">
+                                <label for="oldPassword">Old Password</label>
+                                <input type="password" id="oldPassword" placeholder="Enter old password">
                             </div>
                             <div class="input-group">
-                                <label for="currentPasswordForEmail">Current Password</label>
-                                <input type="password" id="currentPasswordForEmail" placeholder="Enter current password">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" placeholder="Enter new password">
                             </div>
-                            <button type="submit" id="updateEmailButton">
-                                <span class="button-text">Update Email</span>
+                            <div class="input-group">
+                                <label for="confirmNewPassword">Confirm New Password</label>
+                                <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
+                            </div>
+                            <button id="changePasswordButton">
+                                <span class="button-text">Change Password</span>
                                 <div class="button-loader"></div>
                             </button>
-                        </form>
 
-                        <div class="input-group">
-                            <label for="oldPassword">Old Password</label>
-                            <input type="password" id="oldPassword" placeholder="Enter old password">
-                        </div>
-                        <div class="input-group">
-                            <label for="newPassword">New Password</label>
-                            <input type="password" id="newPassword" placeholder="Enter new password">
-                        </div>
-                        <div class="input-group">
-                            <label for="confirmNewPassword">Confirm New Password</label>
-                            <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
-                        </div>
-                        <button id="changePasswordButton">
-                            <span class="button-text">Change Password</span>
-                            <div class="button-loader"></div>
-                        </button>
+                            <button id="logoutButtonAccount" class="profile-action-button secondary">
+                                <i class="fas fa-sign-out-alt"></i> Log Out
+                            </button>
 
-                        <button id="logoutButtonAccount" class="profile-action-button secondary">
-                            <i class="fas fa-sign-out-alt"></i> Log Out
-                        </button>
-
-                        <p>Need help? <a href="#">Contact Support</a></p>
-                        <p>Manage your data: <a href="#">Download Data</a> | <a href="#">Delete Account</a></p>
+                            <p>Need help? <a href="#">Contact Support</a></p>
+                            <p>Manage your data: <a href="#">Download Data</a> | <a href="#">Delete Account</a></p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1931,7 +1960,7 @@
         // const logoutButton = document.getElementById('logoutButton'); // Header logout - REMOVED
         const notificationCountElement = document.getElementById('notificationCount');
         const messageBox = document.getElementById('messageBox');
-        const headerNavLinkProfile = document.getElementById('headerNavLinkProfile');
+        const headerNavLinkProfile = document.getElementById('profileLink'); // Corrected ID to match HTML
         const adminIconLink = document.getElementById('adminIconLink');
 
         const profilePicWrapper = document.getElementById('profilePicWrapper'); // New wrapper for owner check
@@ -1946,6 +1975,17 @@
         const locationText = document.getElementById('locationText'); // Span inside profileLocation
         const profileEmail = document.getElementById('profileEmail'); // P element container
         const emailText = document.getElementById('emailText'); // Span inside profileEmail
+
+        // NEW: User Info Display Elements
+        const profileSchool = document.getElementById('profileSchool');
+        const schoolText = document.getElementById('schoolText');
+        const profileWork = document.getElementById('profileWork');
+        const workText = document.getElementById('workText');
+        const profileWebsite = document.getElementById('profileWebsite');
+        const websiteLink = document.getElementById('websiteLink');
+        const profileSocialLinks = document.getElementById('profileSocialLinks');
+        const socialLinksText = document.getElementById('socialLinksText');
+
 
         const statPosts = document.getElementById('statPosts');
         const statFriends = document.getElementById('statFriends');
@@ -1963,7 +2003,7 @@
         const xpProgressBarFill = document.getElementById('xpProgressBarFill');
 
         const profileActions = document.getElementById('profileActions');
-        const editProfileButton = document.getElementById('editProfileButton');
+        // const editProfileButton = document.getElementById('editProfileButton'); // Removed
         // const privacySettingsButton = document.getElementById('privacySettingsButton'); // Removed as it's now an <a> tag
         const walletLink = document.getElementById('walletLink'); // Wallet link
         const walletLockedMessage = document.getElementById('walletLockedMessage'); // Wallet locked message
@@ -1974,6 +2014,13 @@
         const displayNameInput = document.getElementById('displayName'); // Input for display name
         const bioTextarea = document.getElementById('bio');
         const locationInput = document.getElementById('locationInput'); // Input for location
+        // NEW: Inputs for additional user info
+        const schoolInput = document.getElementById('schoolInput');
+        const workInput = document.getElementById('workInput');
+        const interestsInput = document.getElementById('interestsInput');
+        const websiteInput = document.getElementById('websiteInput');
+        const socialLinksInput = document.getElementById('socialLinksInput');
+
         const saveProfileChanges = document.getElementById('saveProfileChanges'); // Renamed from saveProfileChangesButton
 
         // Account Settings Fields
@@ -1986,6 +2033,11 @@
         const confirmNewPasswordInput = document.getElementById('confirmNewPassword');
         const changePasswordButton = document.getElementById('changePasswordButton');
         const logoutButtonAccount = document.getElementById('logoutButtonAccount'); // Logout button in account settings
+
+        // NEW: Toggle for Account Settings Section
+        const toggleAccountSettingsButton = document.getElementById('toggleAccountSettingsButton');
+        const accountSettingsSection = document.getElementById('accountSettingsSection');
+
 
         const userPostsFeed = document.getElementById('userPostsFeed');
         const postsFeedUsername = document.getElementById('postsFeedUsername');
@@ -2354,6 +2406,15 @@
                 return; // No file selected
             }
 
+            if (!file.type.startsWith('image/')) {
+                showMessageBox("Please select an image file.", "warning");
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                showMessageBox("Image size too large. Max 5MB.", "warning");
+                return;
+            }
+
             if (profilePicWrapper) profilePicWrapper.classList.add('loading'); // Show loading spinner
             showMessageBox("Uploading profile picture...", 'loading', true);
 
@@ -2423,12 +2484,12 @@
          * Handles user logout.
          */
         async function handleLogout() {
-            if (!isAuthReady) return;
+            if (!currentUser) return; // Only allow logout if a user is actually logged in
             try {
                 await signOut(auth);
                 showMessageBox("Logged out successfully! 👋", 'success');
                 setTimeout(() => {
-                    window.location.href = '/login.html';
+                    window.location.href = '/login.html'; // Redirect to login page
                 }, 1000);
             } catch (error) {
                 console.error("JCHAT_ERROR: Error logging out:", error);
@@ -2437,7 +2498,7 @@
         }
 
         /**
-         * Handles saving profile changes (display name, bio, location).
+         * Handles saving profile changes (display name, bio, location, school, work, interests, website, social links).
          */
         async function handleSaveProfileChanges() {
             if (!currentUser || !isAuthReady || displayedUserId !== currentUser.uid) {
@@ -2451,6 +2512,11 @@
             const newDisplayName = displayNameInput.value.trim();
             const newBio = bioTextarea.value.trim();
             const newLocation = locationInput.value.trim();
+            const newSchool = schoolInput.value.trim(); // NEW
+            const newWork = workInput.value.trim();     // NEW
+            const newInterests = interestsInput.value.trim(); // NEW
+            const newWebsite = websiteInput.value.trim();   // NEW
+            const newSocialLinks = socialLinksInput.value.trim(); // NEW
 
             if (!newDisplayName) {
                 showMessageBox("Display name cannot be empty.", 'error');
@@ -2473,6 +2539,11 @@
                     username: newDisplayName, // Update username field in Firestore
                     bio: newBio,
                     location: newLocation,
+                    school: newSchool, // NEW
+                    work: newWork,     // NEW
+                    interests: newInterests, // NEW
+                    website: newWebsite,   // NEW
+                    socialLinks: newSocialLinks, // NEW
                     updatedAt: serverTimestamp()
                 });
                 console.log("JCHAT_DEBUG: Firestore private profile updated.");
@@ -2483,6 +2554,11 @@
                     username: newDisplayName,
                     bio: newBio,
                     location: newLocation,
+                    school: newSchool, // NEW
+                    work: newWork,     // NEW
+                    interests: newInterests, // NEW
+                    website: newWebsite,   // NEW
+                    socialLinks: newSocialLinks, // NEW
                     updatedAt: serverTimestamp()
                 });
                 console.log("JCHAT_DEBUG: Firestore public profile updated.");
@@ -2491,12 +2567,14 @@
                 if (headerDisplayName) headerDisplayName.textContent = newDisplayName; // Null check
                 if (profileUsername) profileUsername.textContent = newDisplayName; // Null check
                 if (profileBio) profileBio.textContent = newBio || "No bio provided yet."; // Null check
-                if (newLocation) {
-                    if (locationText) locationText.textContent = newLocation; // Null check
-                    if (profileLocation) profileLocation.style.display = 'block'; // Null check
-                } else {
-                    if (profileLocation) profileLocation.style.display = 'none'; // Null check
-                }
+
+                // Update display for new fields
+                if (newLocation) { if (locationText) locationText.textContent = newLocation; if (profileLocation) profileLocation.style.display = 'block'; } else { if (profileLocation) profileLocation.style.display = 'none'; }
+                if (newSchool) { if (schoolText) schoolText.textContent = newSchool; if (profileSchool) profileSchool.style.display = 'block'; } else { if (profileSchool) profileSchool.style.display = 'none'; }
+                if (newWork) { if (workText) workText.textContent = newWork; if (profileWork) profileWork.style.display = 'block'; } else { if (profileWork) profileWork.style.display = 'none'; }
+                if (newWebsite) { if (websiteLink) { websiteLink.href = newWebsite; websiteLink.textContent = newWebsite.replace(/^(https?:\/\/)?(www\.)?/, ''); } if (profileWebsite) profileWebsite.style.display = 'block'; } else { if (profileWebsite) profileWebsite.style.display = 'none'; }
+                if (newSocialLinks) { if (socialLinksText) socialLinksText.textContent = newSocialLinks; if (profileSocialLinks) profileSocialLinks.style.display = 'block'; } else { if (profileSocialLinks) profileSocialLinks.style.display = 'none'; }
+
 
                 showMessageBox("Profile saved successfully!", 'success');
 
@@ -2663,7 +2741,12 @@
          */
         function getTotalGasRequiredToReachLevel(level) {
             if (level <= 0) return 0;
-            return 1500 * level * (level + 1) / 2;
+            // This formula is for cumulative XP.
+            // If Level 1 needs 100 XP, Level 2 needs 200 XP (total 300), Level 3 needs 300 XP (total 600)
+            // Then XP for level N is N*100. Total XP for N levels is Sum(i*100 from i=1 to N) = 100 * N*(N+1)/2
+            // Let's adjust the base multiplier to make leveling less steep.
+            // Using 100 as the base for each level, so total XP for level N is 100 * N * (N+1) / 2
+            return 100 * level * (level + 1) / 2;
         }
 
         /**
@@ -2860,19 +2943,6 @@
                     currentLevel = nextLevel;
                     updated = true;
 
-                    // Prepare updates for Firestore
-                    const updates = {
-                        level: currentLevel,
-                        jCoins: arrayUnion(levelInfo.jCoinReward), // Use arrayUnion to add to jCoins
-                        gas: arrayUnion(levelInfo.gasReward), // Use arrayUnion to add to gas
-                        updatedAt: serverTimestamp()
-                    };
-
-                    // Add otherRewards to unlockedBenefits array
-                    if (levelInfo.otherRewards && levelInfo.otherRewards.length > 0) {
-                        updates.unlockedBenefits = arrayUnion(...levelInfo.otherRewards);
-                    }
-
                     // Apply updates in a transaction to ensure atomicity
                     try {
                         await runTransaction(db, async (transaction) => {
@@ -2988,6 +3058,12 @@
                         await updateDoc(privateProfileDocRef, { unlockedBenefits: [] });
                         profileData.unlockedBenefits = [];
                     }
+                    // NEW: Initialize additional profile fields
+                    if (profileData.school === undefined) { await updateDoc(privateProfileDocRef, { school: "" }); profileData.school = ""; }
+                    if (profileData.work === undefined) { await updateDoc(privateProfileDocRef, { work: "" }); profileData.work = ""; }
+                    if (profileData.interests === undefined) { await updateDoc(privateProfileDocRef, { interests: "" }); profileData.interests = ""; }
+                    if (profileData.website === undefined) { await updateDoc(privateProfileDocRef, { website: "" }); profileData.website = ""; }
+                    if (profileData.socialLinks === undefined) { await updateDoc(privateProfileDocRef, { socialLinks: "" }); profileData.socialLinks = ""; }
 
 
                     console.log("JCHAT_DEBUG: Fetched existing profile data for header:", profileData);
@@ -2999,6 +3075,11 @@
                         profilePicId: user.photoURL || null,
                         bio: "",
                         location: "",
+                        school: "", // NEW
+                        work: "", // NEW
+                        interests: "", // NEW
+                        website: "", // NEW
+                        socialLinks: "", // NEW
                         friendsCount: 0,
                         followersCount: 0,
                         followingCount: 0,
@@ -3008,6 +3089,7 @@
                         visibility: {
                             displayName: true, profilePic: true, bio: false, location: false,
                             emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
+                            school: false, work: false, interests: false, website: false, socialLinks: false // NEW visibility defaults
                         },
                         totalPosts: 0,
                         jCoins: 0, // Initialize jCoins
@@ -3027,6 +3109,11 @@
                         profilePicId: profileData.profilePicId,
                         bio: profileData.bio,
                         location: profileData.location,
+                        school: profileData.school, // NEW
+                        work: profileData.work,     // NEW
+                        interests: profileData.interests, // NEW
+                        website: profileData.website,   // NEW
+                        socialLinks: profileData.socialLinks, // NEW
                         createdAt: profileData.createdAt,
                         updatedAt: profileData.updatedAt,
                         visibility: profileData.visibility,
@@ -3339,6 +3426,11 @@
             if (profileBio) profileBio.textContent = "Loading...";
             if (profileLocation) profileLocation.style.display = 'none';
             if (profileEmail) profileEmail.style.display = 'none';
+            if (profileSchool) profileSchool.style.display = 'none'; // NEW
+            if (profileWork) profileWork.style.display = 'none';   // NEW
+            if (profileWebsite) profileWebsite.style.display = 'none'; // NEW
+            if (profileSocialLinks) profileSocialLinks.style.display = 'none'; // NEW
+
             if (statPosts) statPosts.textContent = "0";
             if (statFriends) statFriends.textContent = "0";
             if (statFollowers) statFollowers.textContent = "0";
@@ -3354,7 +3446,7 @@
             if (profilePageAvatarIcon) profilePageAvatarIcon.style.display = 'block';
             
             // Hide all action buttons initially
-            if (editProfileButton) editProfileButton.style.display = 'none';
+            // if (editProfileButton) editProfileButton.style.display = 'none'; // Removed
             if (walletLink) walletLink.style.display = 'none'; // Hide wallet link
             if (walletLockedMessage) walletLockedMessage.style.display = 'none'; // Hide wallet locked message
             if (requestJCoinsButton) requestJCoinsButton.style.display = 'none'; // Hide request JCoins button
@@ -3365,6 +3457,8 @@
                 profileDetailsSection.style.display = 'none';
             }
             if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards by default
+            if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings by default
+            if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button by default
 
 
             let profileDocRef;
@@ -3446,6 +3540,42 @@
                         }
                     }
 
+                    // NEW: Display additional user info based on visibility
+                    if (profileSchool && schoolText) {
+                        if (displayedUserProfileData.school && (isCurrentUserProfile || visibility.school)) {
+                            schoolText.textContent = displayedUserProfileData.school;
+                            profileSchool.style.display = 'block';
+                        } else {
+                            profileSchool.style.display = 'none';
+                        }
+                    }
+                    if (profileWork && workText) {
+                        if (displayedUserProfileData.work && (isCurrentUserProfile || visibility.work)) {
+                            workText.textContent = displayedUserProfileData.work;
+                            profileWork.style.display = 'block';
+                        } else {
+                            profileWork.style.display = 'none';
+                        }
+                    }
+                    if (profileWebsite && websiteLink) {
+                        if (displayedUserProfileData.website && (isCurrentUserProfile || visibility.website)) {
+                            websiteLink.href = displayedUserProfileData.website;
+                            websiteLink.textContent = displayedUserProfileData.website.replace(/^(https?:\/\/)?(www\.)?/, ''); // Display cleaner URL
+                            profileWebsite.style.display = 'block';
+                        } else {
+                            profileWebsite.style.display = 'none';
+                        }
+                    }
+                    if (profileSocialLinks && socialLinksText) {
+                        if (displayedUserProfileData.socialLinks && (isCurrentUserProfile || visibility.socialLinks)) {
+                            socialLinksText.textContent = displayedUserProfileData.socialLinks;
+                            profileSocialLinks.style.display = 'block';
+                        } else {
+                            profileSocialLinks.style.display = 'none';
+                        }
+                    }
+
+
                     // Stats (always show for owner, for others based on public profile data)
                     if (statPosts) statPosts.textContent = displayedUserProfileData.totalPosts ?? 0; // Null check
                     if (statFriends) statFriends.textContent = displayedUserProfileData.friendsCount ?? 0; // Null check
@@ -3512,7 +3642,7 @@
 
                     // Action Buttons and Inline Edit Fields
                     if (isCurrentUserProfile) {
-                        if (editProfileButton) editProfileButton.style.display = 'inline-flex'; // Null check
+                        // Removed editProfileButton
                         if (walletLink) walletLink.style.display = 'inline-flex'; // Null check
                         if (requestJCoinsButton) requestJCoinsButton.style.display = 'inline-flex'; // Show Request JCoins button for owner, null check
 
@@ -3545,7 +3675,17 @@
                         if (displayNameInput) displayNameInput.value = displayedUserProfileData.username || ""; // Null check
                         if (bioTextarea) bioTextarea.value = displayedUserProfileData.bio || ""; // Null check
                         if (locationInput) locationInput.value = displayedUserProfileData.location || ""; // Null check
+                        if (schoolInput) schoolInput.value = displayedUserProfileData.school || ""; // NEW
+                        if (workInput) workInput.value = displayedUserProfileData.work || ""; // NEW
+                        if (interestsInput) interestsInput.value = displayedUserProfileData.interests || ""; // NEW
+                        if (websiteInput) websiteInput.value = displayedUserProfileData.website || ""; // NEW
+                        if (socialLinksInput) socialLinksInput.value = displayedUserProfileData.socialLinks || ""; // NEW
+
                         if (profileEmailInput) profileEmailInput.value = displayedUserProfileData.email || ""; // Populate disabled email field, null check
+
+                        // Show toggle button for account settings
+                        if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'inline-flex';
+
 
                         // Friend requests section is no longer directly on Profile.html
                         if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide for other users, null check
@@ -3559,22 +3699,25 @@
 
                     } else if (currentUser) { // If logged in and viewing another user
                         // Hide all owner-specific buttons and editing sections
-                        if (editProfileButton) editProfileButton.style.display = 'none'; // Null check
+                        // if (editProfileButton) editProfileButton.style.display = 'none'; // Removed
                         if (walletLink) walletLink.style.display = 'none'; // Hide wallet link for others, null check
                         if (walletLockedMessage) walletLockedMessage.style.display = 'none'; // Hide message for others, null check
                         if (requestJCoinsButton) requestJCoinsButton.style.display = 'none'; // Hide request JCoins button for others, null check
-                        // Hide inline edit fields and account settings for others
+                        // Hide inline edit fields and account settings
                         const profileDetailsSection = displayNameInput ? displayNameInput.closest('.profile-details-section') : null; // Null check
                         if (profileDetailsSection) {
                             profileDetailsSection.style.display = 'none';
                         }
+                        if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button for others
+                        if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings for others
+
                         if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide for other users, null check
                         if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide for other users, null check
 
                         // No "Add Friend" or "Message" buttons as per request.
 
                     } else { // Not logged in, viewing any profile
-                        if (editProfileButton) editProfileButton.style.display = 'none'; // Null check
+                        // if (editProfileButton) editProfileButton.style.display = 'none'; // Removed
                         if (walletLink) walletLink.style.display = 'none'; // Hide wallet link, null check
                         if (walletLockedMessage) walletLockedMessage.style.display = 'none'; // Hide message, null check
                         if (requestJCoinsButton) requestJCoinsButton.style.display = 'none'; // Hide request JCoins button, null check
@@ -3583,6 +3726,9 @@
                         if (profileDetailsSection) {
                             profileDetailsSection.style.display = 'none';
                         }
+                        if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
+                        if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
+
                         if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide friend requests section, null check
                         if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards section, null check
                         // Ensure loader is dismissed in this case too
@@ -3616,6 +3762,8 @@
                     if (profileDetailsSection) {
                         profileDetailsSection.style.display = 'none';
                     }
+                    if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
+                    if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
                     if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide if profile not found, null check
                     if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide if profile not found, null check
                 }
@@ -3629,6 +3777,8 @@
                 if (profileDetailsSection) {
                     profileDetailsSection.style.display = 'none';
                 }
+                if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
+                if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
                 if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide on error, null check
                 if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide on error, null check
             } finally {
@@ -3911,6 +4061,8 @@
                 if (userPostsFeed) userPostsFeed.style.display = 'none'; // Hide user posts, null check
                 if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide friend requests section, null check
                 if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards section, null check
+                if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
+                if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
                 // Ensure loader is dismissed in this case too
                 if (messageBox && messageBox.classList.contains('loading-pulse')) { // Null check
                     messageBox.style.opacity = '0';
@@ -3966,9 +4118,24 @@
             // Profile Edit
             if (saveProfileChanges) saveProfileChanges.addEventListener('click', handleSaveProfileChanges); // Null check
 
+            // Account Settings Toggle
+            if (toggleAccountSettingsButton) {
+                toggleAccountSettingsButton.addEventListener('click', () => {
+                    if (accountSettingsSection) {
+                        const isHidden = accountSettingsSection.style.display === 'none';
+                        accountSettingsSection.style.display = isHidden ? 'flex' : 'none'; // Use flex for column layout
+                        // Change button text/icon based on state
+                        toggleAccountSettingsButton.innerHTML = isHidden ?
+                            '<i class="fas fa-times-circle"></i> Close Settings' :
+                            '<i class="fas fa-cog"></i> Manage Account Settings';
+                    }
+                });
+            }
+
             // Account Settings
             const changeEmailForm = document.getElementById('changeEmailForm'); // Get form element here
             if (changeEmailForm) changeEmailForm.addEventListener('submit', handleChangeEmail); // Null check
+            if (updateEmailButton) updateEmailButton.addEventListener('click', handleChangeEmail); // Also listen to button click
             if (changePasswordButton) changePasswordButton.addEventListener('click', handleChangePassword); // Null check
             if (logoutButtonAccount) logoutButtonAccount.addEventListener('click', handleLogout); // Logout button in account settings, null check
 
@@ -4024,7 +4191,7 @@
             if (progressBarContainer) { // Null check
                 progressBarContainer.style.cursor = 'pointer'; // Add pointer cursor to indicate clickability
                 progressBarContainer.addEventListener('click', () => {
-                    window.location.href = '/levels.html';
+                    window.location.href = '/levels.html'; // Ensure levels.html exists
                 });
             }
 
