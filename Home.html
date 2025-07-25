@@ -1772,10 +1772,10 @@
     <script type="module">
         console.log("JCHAT_DEBUG: Home.html script started.");
 
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, where, getDocs, addDoc, runTransaction, writeBatch, serverTimestamp, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // Import Firebase modules (Updated to v11.6.1)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, where, getDocs, addDoc, runTransaction, writeBatch, serverTimestamp, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -2163,11 +2163,11 @@
                     currentUser.uid,
                     currentUserProfileData.username,
                     'daily_login',
-                    5, // Suggested JCoin reward for daily login (from prompt)
-                    5  // Suggested Gas reward for daily login (from prompt)
+                    5, // Suggested XP reward for daily login (changed from 50)
+                    5  // Suggested JCoin reward for daily login (changed from 10)
                 );
 
-                showMessageBox(`Daily bonus claimed! 5 JCoins and 5 Gas are pending admin review.`, 'success'); // Updated message
+                showMessageBox(`Daily bonus claimed! 5 XP and 5 JCoins are pending admin review.`, 'success'); // Updated message
                 playNotificationSound('success');
 
                 // Update local profile data immediately for UI consistency
@@ -2726,12 +2726,25 @@
             if (inspirationAuthorElement) inspirationAuthorElement.textContent = "";
 
             try {
-                const prompt = `Generate a short, single-sentence ${type} quote. Do not include the author. Just the quote.`;
+                const prompt = `Generate a short, single-sentence ${type} quote. Provide it as a JSON object with two fields: "quote" (the quote text) and "author" (the author of the quote, default to "AI" if not known).`;
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                quote: { type: "STRING" },
+                                author: { type: "STRING" }
+                            },
+                            required: ["quote", "author"]
+                        }
+                    }
+                };
                 const apiKey = ""; // Canvas will provide this
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2741,19 +2754,26 @@
                 if (result.candidates && result.candidates.length > 0 &&
                     result.candidates[0].content && result.candidates[0].content.parts &&
                     result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    // Attempt to parse out the quote and author if LLM still provides it
-                    const match = text.match(/"([^"]+)"\s*(?:-\s*(.*))?/);
-                    if (match && match[1]) {
-                        return { quote: match[1].trim(), author: match[2] ? match[2].trim() : "AI" };
+                    const jsonText = result.candidates[0].content.parts[0].text;
+                    // Attempt to parse the JSON response
+                    try {
+                        const parsedQuote = JSON.parse(jsonText);
+                        if (parsedQuote.quote && parsedQuote.author !== undefined) { // Check if author is defined
+                            return { quote: parsedQuote.quote, author: parsedQuote.author };
+                        } else {
+                            console.error("JCHAT_ERROR: LLM response JSON structure unexpected (missing quote/author):", parsedQuote);
+                            return getRandomQuote(type); // Fallback
+                        }
+                    } catch (jsonParseError) {
+                        console.error("JCHAT_ERROR: Failed to parse LLM response as JSON:", jsonParseError, "Raw text:", jsonText);
+                        return getRandomQuote(type); // Fallback
                     }
-                    return { quote: text.trim(), author: "AI" };
                 } else {
-                    console.error("JCHAT_ERROR: LLM response structure unexpected:", result);
+                    console.error("JCHAT_ERROR: LLM response structure unexpected (no candidates/content/parts):", result);
                     return getRandomQuote(type); // Fallback to local quotes
                 }
             } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching inspiration from LLM:", error);
+                console.error("JCHAT_ERROR: Error fetching inspiration from LLM (fetch failed or network error):", error);
                 return getRandomQuote(type); // Fallback to local quotes
             }
         }
@@ -3007,7 +3027,7 @@
                         if (reactionType === 'like') serverLikesCount = Math.max(0, serverLikesCount - 1); // Only 'like' contributes to likesCount
                         transaction.delete(userReactionRef);
                         activityType = `unreact_${reactionType}`;
-                        xpReward = -1; // Deduct a small amount for un-reacting
+                        xpReward = -1; // Deduct a small amount for un-reacting (changed from -5)
                         jCoinReward = 0;
                     } else {
                         // User is reacting or changing reaction
@@ -3020,8 +3040,8 @@
 
                         transaction.set(userReactionRef, { type: reactionType, userId: currentUser.uid, timestamp: serverTimestamp() });
                         activityType = `react_${reactionType}`;
-                        xpReward = 2; // Suggested JCoin reward for reacting (from prompt)
-                        jCoinReward = 2; // Suggested Gas reward for reacting (from prompt)
+                        xpReward = 1; // Suggested XP for reacting (changed from 10)
+                        jCoinReward = 1; // Suggested JCoins for reacting (changed from 2)
                     }
 
                     transaction.update(postRef, {
@@ -3043,7 +3063,7 @@
                         );
                     }
                 });
-                showMessageBox("Reaction recorded! 2 JCoins and 2 Gas are pending admin review.", 'success'); // Updated message
+                showMessageBox("Reaction recorded! 1 XP and 1 JCoin are pending admin review.", 'success'); // Updated message
                 playNotificationSound('info'); // Play info sound for reaction
             } catch (error) {
                 console.error("JCHAT_ERROR: Error handling reaction (Firestore update failed):", error);
@@ -3091,20 +3111,20 @@
                     });
                 });
 
-                // Commenting rewards changed as per user request
+                // Commenting rewards remain unchanged as per user request (no change mentioned for comments)
                 if (commentId) {
                     await createPendingActivityReward(
                         currentUser.uid,
                         currentUserProfileData.username,
                         'post_comment',
-                        3, // Suggested JCoin reward for commenting (from prompt)
-                        5,  // Suggested Gas reward for commenting (from prompt)
+                        15, // Suggested XP for commenting
+                        3,  // Suggested JCoins for commenting
                         commentId, // Pass commentId as activityId
                         postId // Pass postId
                     );
                 }
 
-                showMessageBox("Comment added! 3 JCoins and 5 Gas are pending admin review.", 'success'); // Updated message
+                showMessageBox("Comment added! Your activity has been noted for XP and Level progression. Rewards are pending admin review.", 'success');
                 playNotificationSound('success'); // Play success sound
             } catch (error) {
                 console.error("JCHAT_ERROR: Error adding comment:", error);
@@ -3653,20 +3673,18 @@
                         }
                     });
 
-                    // Remove posts that no longer exist in the query snapshot
-                    const postsToRemove = [];
-                    currentPostElements.forEach((element, id) => {
-                        if (!newOrderedPostIds.includes(id)) {
-                            postsToRemove.push(element);
-                        }
-                    });
-                    postsToRemove.forEach(element => element.remove());
-
                     // Reorder posts in the DOM if necessary (important for orderBy)
                     const orderedElements = newOrderedPostIds.map(id => postsFeed.querySelector(`.post-card[data-post-id="${id}"]`));
                     orderedElements.forEach((element, index) => {
                         if (element && postsFeed.children[index] !== element) {
                             postsFeed.insertBefore(element, postsFeed.children[index]);
+                        }
+                    });
+
+                    // Remove posts that no longer exist in the query snapshot (after reordering, to avoid re-inserting removed elements)
+                    currentPostElements.forEach((element, id) => {
+                        if (!newOrderedPostIds.includes(id)) {
+                            element.remove();
                         }
                     });
 
