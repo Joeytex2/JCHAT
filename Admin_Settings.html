@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JCHAT - Admin System Settings</title>
+    <title>JCHAT - Admin Dashboard</title>
 
     <!-- Google Fonts: Poppins for headings, Inter for body text -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,10 +12,11 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Tone.js for audio notifications -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
@@ -65,9 +66,6 @@
             --accent-color: #00d5ff; /* A bright cyan */
             --accent-color-dark: #00aaff;
             --border-color: #3a3a5a;
-            /* Admin specific colors */
-            --approve-color: #4CAF50; /* Green for approve */
-            --reject-color: #F44336; /* Red for reject */
         }
 
         /* --- Theme Definitions (Light and Dark Mode) --- */
@@ -148,7 +146,7 @@
         /* Glass Mode specific variables */
         body.theme-glass-mode {
             --background-main: rgba(10, 10, 10, 0.75);
-            background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important;
+            background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important; /* Added !important */
             background-size: cover;
             background-attachment: fixed;
             background-position: center;
@@ -182,7 +180,7 @@
 
         /* Sunset Theme */
         body.theme-sunset-mode {
-            background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
+            background: linear-gradient(to top, #ff7e5f, #feb47b) !important; /* Added !important */
             --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
             --card-background: rgba(255, 255, 255, 0.15); /* Slightly transparent white for contrast */
             --white: #fff; /* White text for readability */
@@ -223,12 +221,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            overflow-x: hidden;
+            overflow-x: hidden; /* Prevent horizontal scroll */
             background-color: var(--background-main);
             background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
                               radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
             color: var(--white);
-            transition: background-color 0.5s ease, color 0.5s ease;
+            transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
+            padding-bottom: 70px; /* Space for fixed bottom nav */
         }
 
         /* Header Styling */
@@ -267,155 +266,37 @@
             text-decoration: none;
         }
 
-        /* User Profile Header Styling */
-        .user-profile-header {
+        .header-controls {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
 
-        /* Notification Icon Styling */
-        .notification-icon-wrapper {
-            position: relative;
-            margin-right: 15px; /* Space between notification and profile */
-        }
-
-        .notification-icon-wrapper a {
-            text-decoration: none; /* Remove underline from link */
-            color: inherit; /* Inherit color from parent */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .notification-icon-wrapper i {
-            font-size: 1.5rem; /* Adjust size as needed */
-            color: var(--text-light);
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .notification-icon-wrapper i:hover {
-            color: var(--white);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--pink); /* Use pink for notifications */
-            color: var(--white);
-            border-radius: 50%;
-            padding: 3px 7px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            min-width: 20px;
-            text-align: center;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* Hide if no notifications */
-            display: none;
-        }
-
-        .user-profile-header #profileLink {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: var(--white);
-            transition: opacity 0.3s ease, background-color 0.3s ease;
-            padding: 5px 10px;
-            border-radius: var(--radius);
-        }
-
-        .user-profile-header #profileLink:hover {
-            opacity: 0.8;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .user-profile-header img {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--accent-color);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: opacity 0.3s ease;
-        }
-
-        .user-profile-header i {
-            font-size: 30px;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-        }
-
-        .user-profile-header span {
-            font-weight: 600;
-            font-size: 1rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 120px;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-        }
-
-        #adminIconLink {
-            margin-right: 15px;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-            font-size: 1.5rem;
-            transition: transform 0.2s ease;
-        }
-
-        #adminIconLink:hover {
-            transform: scale(1.1);
-        }
-
-        /* Logout Button Styling */
-        #logoutButton {
+        .header-controls #logoutButton {
             background: linear-gradient(90deg, var(--pink), var(--blue));
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
-            opacity: 0.8;
-            margin-left: 10px;
-        }
-
-        #logoutButton:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px var(--pink), 0 4px 15px var(--blue);
-            opacity: 1;
-        }
-
-        #logoutButton i {
             color: var(--white);
+            border: none;
+            border-radius: 15px;
+            padding: 8px 15px;
             font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--button-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .header-controls #logoutButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
         }
 
         /* Main Content Area */
         main {
             flex-grow: 1;
             padding: 40px 0;
-            padding-top: 55px; /* Adjust for fixed header */
+            padding-top: 75px; /* Adjust for fixed header */
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -426,104 +307,149 @@
 
         .content-wrapper {
             width: 100%;
-            max-width: 1000px; /* Adjusted for wider admin content */
+            max-width: 1000px;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
             align-items: center;
         }
 
-        /* General Section Styling */
-        .section-card {
+        .admin-section {
             background: var(--card-background);
             border: 1px solid var(--glass-blue);
             backdrop-filter: blur(10px) saturate(180%);
             border-radius: var(--radius);
             box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
             padding: 2rem;
-            width: 95%; /* Wider for admin sections */
-            max-width: 900px; /* Max width for admin section */
-            margin: 20px auto;
+            width: 100%;
+            text-align: left;
             display: flex;
             flex-direction: column;
-            align-items: center;
             gap: 1.5rem;
-            text-align: center;
         }
 
-        .section-card h1, .section-card h2 {
+        .admin-section h2 {
             font-family: 'Poppins', sans-serif;
+            font-size: 2rem;
             font-weight: 800;
             background-clip: text;
             color: transparent;
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            margin-bottom: 1.5rem;
-        }
-        .section-card h1 { font-size: 2.5rem; }
-        .section-card h2 { font-size: 1.8rem; margin-bottom: 1rem; }
-
-        /* Form Group Styling */
-        .form-group {
-            width: 100%;
             margin-bottom: 1rem;
-            text-align: left;
+            text-align: center;
         }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
         .form-group label {
-            display: block;
-            margin-bottom: 5px;
             color: var(--text-light);
-            font-weight: 600;
             font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+
         .form-group input[type="text"],
         .form-group input[type="number"],
-        .form-group select {
+        .form-group textarea {
             width: 100%;
             padding: 0.8rem 1rem;
-            border: 1px solid var(--blue);
             border-radius: 15px;
             background: var(--input-background);
+            border: 1px solid var(--border-light);
             color: var(--white);
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: border-color var(--transition), box-shadow var(--transition);
         }
+
         .form-group input[type="text"]:focus,
         .form-group input[type="number"]:focus,
-        .form-group select:focus {
-            border-color: var(--pink);
-            box-shadow: 0 0 0 3px rgba(255, 46, 146, 0.2);
-        }
-        .form-group select {
-            appearance: none; /* Remove default arrow */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%23fff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 1.2rem;
-            padding-right: 2.5rem; /* Space for the custom arrow */
+        .form-group textarea:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
         }
 
-        .form-group .checkbox-group {
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .toggle-switch-group {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .form-group .checkbox-group input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-            transform: scale(1.2);
-            accent-color: var(--blue); /* Custom checkbox color */
-        }
-        .form-group .checkbox-group label {
-            margin-bottom: 0;
-            cursor: pointer;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
         }
 
-        .action-button {
+        .toggle-switch-group:last-of-type {
+            border-bottom: none;
+        }
+
+        .toggle-switch-group label {
+            margin-bottom: 0; /* Override default form-group label margin */
+            flex-grow: 1;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--text-light);
+            transition: .4s;
+            border-radius: 28px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--white);
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--blue);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--blue);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        .admin-button {
             background: var(--button-background);
             color: var(--white);
             border: none;
@@ -540,39 +466,129 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-top: 1.5rem;
+            margin-top: 1rem;
+            width: fit-content;
+            align-self: flex-end; /* Align to the right */
         }
 
-        .action-button:hover:not(:disabled) {
+        .admin-button:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
         }
-
-        .action-button:disabled {
+        .admin-button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             background: var(--text-light);
             box-shadow: none;
         }
 
-        .action-button.secondary {
-            background: rgba(0, 213, 255, 0.1);
+        /* Tables for User/Request Management */
+        .admin-table-container {
+            width: 100%;
+            overflow-x: auto; /* Enable horizontal scrolling for small screens */
+            margin-top: 1rem;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .admin-table th, .admin-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+            white-space: nowrap; /* Prevent wrapping for better table layout */
+        }
+
+        .admin-table th {
+            background-color: rgba(255, 255, 255, 0.05);
             color: var(--white);
-            border: 1px solid var(--blue);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            font-weight: 700;
+            text-transform: uppercase;
         }
 
-        .action-button.secondary:hover:not(:disabled) {
-            background: rgba(0, 213, 255, 0.2);
-            transform: translateY(-1px);
+        .admin-table td {
+            color: var(--text-light);
         }
 
-        /* Gradient text */
-        .gradient-text {
-            background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(90deg, var(--pink), var(--blue));
+        .admin-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .admin-table .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+        }
+
+        .admin-table .action-buttons .button-approve,
+        .admin-table .action-buttons .button-reject,
+        .admin-table .action-buttons .button-view {
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
             font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s ease;
+        }
+
+        .admin-table .action-buttons .button-approve {
+            background-color: var(--status-online); /* Green */
+            color: white;
+        }
+        .admin-table .action-buttons .button-approve:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(76, 175, 80, 0.4);
+        }
+
+        .admin-table .action-buttons .button-reject {
+            background-color: var(--delete-button-color); /* Red */
+            color: white;
+        }
+        .admin-table .action-buttons .button-reject:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(220, 53, 69, 0.4);
+        }
+
+        .admin-table .action-buttons .button-view {
+            background-color: var(--accent-color); /* Blue */
+            color: white;
+        }
+        .admin-table .action-buttons .button-view:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0, 213, 255, 0.4);
+        }
+
+        .admin-table .status-badge {
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+        .status-badge.pending { background-color: var(--warning-color); color: var(--background-color-primary); }
+        .status-badge.approved { background-color: var(--status-online); color: white; }
+        .status-badge.rejected { background-color: var(--delete-button-color); color: white; }
+
+        .search-bar {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 15px;
+            background: var(--input-background);
+            border: 1px solid var(--border-light);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            margin-bottom: 1rem;
+        }
+        .search-bar:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
         }
 
         /* Loader styles for buttons */
@@ -585,9 +601,19 @@
             animation: spin 1s linear infinite;
             display: none;
         }
-        .button-loader.active { display: block; }
-        .button-text { display: block; }
-        .action-button.loading .button-text { display: none; }
+
+        .button-loader.active {
+            display: block;
+        }
+
+        .button-text {
+            display: block;
+        }
+
+        .loading .button-text {
+            display: none;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -596,38 +622,45 @@
         /* Custom Message Box Styles */
         #messageBox {
             position: fixed;
-            top: 50%;
+            top: 50%; /* Centered vertically */
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%); /* Centered horizontally and vertically */
             background-color: rgba(0, 0, 0, 0.8);
             color: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            padding: 20px 30px; /* Increased padding for a 'squarer' feel */
+            border-radius: 15px; /* Slightly less rounded */
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5); /* More pronounced shadow */
             z-index: 1000;
             display: none;
             opacity: 0;
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            min-width: 280px;
-            max-width: 90%;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Add transform transition */
+            min-width: 280px; /* Slightly wider */
+            max-width: 90%; /* Responsive max-width */
             text-align: center;
-            font-size: 1.1rem;
+            font-size: 1.1rem; /* Slightly larger font */
             font-weight: 600;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px); /* Subtle blur for glass effect */
         }
-        #messageBox.success { background: linear-gradient(135deg, var(--blue), var(--pink)); border: 2px solid rgba(255, 255, 255, 0.3); color: var(--white); box-shadow: 0 5px 25px rgba(0, 213, 255, 0.5), 0 5px 25px rgba(255, 46, 146, 0.5); }
+        /* Specific styling for success messages */
+        #messageBox.success {
+            background: linear-gradient(135deg, var(--blue), var(--pink)); /* Pink and blue gradient */
+            border: 2px solid rgba(255, 255, 255, 0.3); /* White border for definition */
+            color: var(--white); /* Ensure text is white */
+            box-shadow: 0 5px 25px rgba(0, 213, 255, 0.5), 0 5px 25px rgba(255, 46, 146, 0.5); /* Dual color shadow */
+        }
         #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
         #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
         #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
 
         #messageBox i {
-            font-size: 2.5rem;
-            margin-bottom: 5px;
+            font-size: 2.5rem; /* Larger icon for prominence */
+            margin-bottom: 5px; /* Space between icon and text */
+            /* Apply gradient to message box icons */
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent;
+            color: transparent; /* Fallback */
         }
         #messageBox.success i { color: var(--white); }
         #messageBox.error i { color: var(--delete-button-color); }
@@ -641,195 +674,138 @@
         }
         #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
 
-        /* Confirmation Modal Specific Styles */
-        .modal-overlay {
+        /* --- Bottom Navigation Bar --- */
+        #bottomNavBar {
             position: fixed;
-            top: 0;
+            bottom: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: var(--header-background);
+            border-top: 1px solid var(--border-light);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            display: flex;
+            flex-direction: column; /* Allows toggle button to be above nav links */
+            align-items: center;
+            padding-top: 5px; /* Space for toggle button */
+            transition: transform 0.3s ease-out; /* For slide in/out */
+        }
+
+        #navToggleBtn {
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transform: translateY(-50%); /* Halfway up */
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+            z-index: 100; /* Above the nav bar itself */
         }
 
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background: var(--card-background);
-            border: 1px solid var(--glass-blue);
-            backdrop-filter: blur(10px) saturate(180%);
-            border-radius: var(--radius);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-            padding: 2rem;
-            width: 90%;
-            max-width: 450px;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            transform: translateY(20px);
+        #navToggleBtn i {
             transition: transform 0.3s ease;
         }
 
-        .modal-overlay.active .modal-content {
-            transform: translateY(0);
+        #bottomNavBar.nav-bar-hidden-full {
+            transform: translateY(calc(100% - 20px)); /* Hide all but the toggle button */
         }
 
-        .modal-content h3 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--white);
-            margin-bottom: 0.5rem;
+        #bottomNavBar.nav-bar-hidden-full #navToggleBtn i.fa-chevron-down {
+            transform: rotate(180deg); /* Point up when hidden */
         }
 
-        .modal-content .button-group {
+        #bottomNavBar .nav-links {
             display: flex;
-            justify-content: flex-end;
-            gap: 0.8rem;
-            margin-top: 1rem;
+            justify-content: space-around;
+            width: 100%;
+            padding: 10px 0;
         }
 
-        .modal-content .modal-button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 15px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all var(--transition);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        .nav-item {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 5px;
-            justify-content: center;
-        }
-
-        .modal-content .cancel-button {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--white);
-            border: 1px solid var(--border-light);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-content .cancel-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-
-        .modal-content .save-button {
-            background: var(--button-background);
-            color: var(--white);
-            box-shadow: var(--button-shadow);
-        }
-
-        .modal-content .save-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
-        }
-
-        #confirmationModal .modal-content {
-            max-width: 400px;
-            text-align: center;
-            padding: 1.8rem;
-        }
-        #confirmationModal .modal-content h3 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.6rem;
-            background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(90deg, var(--pink), var(--blue));
-            margin-bottom: 1rem;
-        }
-        #confirmationModal .modal-content p {
-            font-size: 1rem;
+            text-decoration: none;
             color: var(--text-light);
-            margin-bottom: 1.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 10px;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
-        #confirmationModal .modal-content .button-group {
-            justify-content: center;
-            gap: 1rem;
+
+        .nav-item i {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
         }
-        #confirmationModal .confirm-button {
-            background: var(--pink);
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
             color: var(--white);
-            box-shadow: 0 4px 15px var(--pink);
         }
-        #confirmationModal .confirm-button:hover {
-            background: #e02a82;
-            box-shadow: 0 6px 20px var(--pink);
-        }
-        #confirmationModal .cancel-button {
-            background: var(--blue);
+
+        .nav-item.active {
+            background-color: rgba(0, 213, 255, 0.15);
             color: var(--white);
-            box-shadow: 0 4px 15px var(--blue);
-        }
-        #confirmationModal .cancel-button:hover {
-            background: #00b5e0;
-            box-shadow: 0 6px 20px var(--blue);
         }
 
         /* Responsive Adjustments */
         @media (max-width: 768px) {
-            .section-card {
-                padding: 1.5rem;
-                width: 100%;
+            header .header-content-wrapper {
+                padding: 0 20px;
             }
-            .section-card h1 {
-                font-size: 2rem;
-            }
-            .section-card h2 {
+            .logo {
                 font-size: 1.6rem;
             }
-            .form-group label {
-                font-size: 0.85rem;
+            .header-controls #logoutButton {
+                padding: 6px 12px;
+                font-size: 0.8rem;
             }
-            .form-group input[type="text"],
-            .form-group input[type="number"],
-            .form-group select {
-                padding: 0.7rem 0.9rem;
-                font-size: 0.9rem;
+            main {
+                padding-top: 65px;
             }
-            .action-button {
+            .admin-section {
+                padding: 1.5rem;
+                gap: 1rem;
+            }
+            .admin-section h2 {
+                font-size: 1.8rem;
+            }
+            .admin-button {
                 padding: 0.7rem 1.2rem;
                 font-size: 0.8rem;
             }
-        }
-
-        @media (max-width: 480px) {
-            header .header-content-wrapper {
-                padding: 0 15px;
+            .admin-table th, .admin-table td {
+                padding: 8px 10px;
+                font-size: 0.8rem;
             }
-            .logo {
-                font-size: 1.5rem;
+            .admin-table .action-buttons .button-approve,
+            .admin-table .action-buttons .button-reject,
+            .admin-table .action-buttons .button-view {
+                padding: 4px 8px;
+                font-size: 0.7rem;
             }
-            .user-profile-header #profileLink span {
-                max-width: 80px;
+            .nav-item {
+                font-size: 0.7rem;
+                padding: 5px;
             }
-            #adminIconLink {
-                font-size: 1.3rem;
-                margin-right: 10px;
-            }
-            .section-card {
-                padding: 1rem;
-            }
-            .section-card h1 {
-                font-size: 1.8rem;
-            }
-            .section-card h2 {
-                font-size: 1.4rem;
-            }
-            .action-button {
-                width: 100%;
+            .nav-item i {
+                font-size: 1.1rem;
             }
         }
     </style>
@@ -838,202 +814,198 @@
 
     <header>
         <div class="header-content-wrapper">
-            <a href="/home.html" class="logo">JCHAT</a>
-            <nav>
-                <ul>
-                    <!-- Header navigation is intentionally empty for this admin page -->
-                </ul>
-            </nav>
-            <div class="user-profile-header">
-                <!-- Admin Icon Link -->
-                <a href="/Admin.html" id="adminIconLink" aria-label="Admin Dashboard">
-                    <i class="fas fa-user-cog"></i>
-                </a>
-                <!-- Notification Icon with Badge -->
-                <div class="notification-icon-wrapper">
-                    <a href="/notifications.html" aria-label="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
-                    </a>
-                </div>
-                <!-- Profile Link with Picture and Name -->
-                <a href="/profile.html" id="profileLink">
-                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
-                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
-                    <span id="headerDisplayName">Loading...</span>
-                </a>
-                <button id="logoutButton" aria-label="Logout" disabled>
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
+            <a href="/home.html" class="logo">JCHAT Admin</a>
+            <div class="header-controls">
+                <button id="logoutButton">Logout</button>
             </div>
         </div>
     </header>
 
     <main>
         <div class="content-wrapper">
-            <h1>Admin System Settings</h1>
+            <!-- System Settings Section -->
+            <section id="systemSettingsSection" class="admin-section">
+                <h2><i class="fas fa-cogs"></i> System Settings</h2>
 
-            <p id="accessDeniedMessage" style="display: none;">Access Denied. You must be an administrator to view this page.</p>
-
-            <!-- Admin Settings Sections Container -->
-            <div id="adminSettingsSections" style="display: none; width: 100%; flex-direction: column; gap: 20px;">
-
-                <!-- General Settings Section -->
-                <div class="section-card">
-                    <h2><i class="fas fa-cogs"></i> General Settings</h2>
-                    <div class="form-group">
-                        <label for="jcoinNairaRate">JCoin to Naira Rate (1 JCoin = X Naira):</label>
-                        <input type="number" id="jcoinNairaRate" step="0.01" min="0.01" placeholder="e.g., 7.5">
-                    </div>
-                    <div class="form-group">
-                        <label for="gasJcoinRate">Gas (XP) to JCoin Rate (1 Gas = X JCoins):</label>
-                        <input type="number" id="gasJcoinRate" step="0.001" min="0.001" placeholder="e.g., 0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="dailyBonusAmount">Daily Bonus JCoins:</label>
-                        <input type="number" id="dailyBonusAmount" min="0" placeholder="e.g., 50">
-                    </div>
-                    <div class="form-group">
-                        <label for="defaultInspirationType">Default Inspiration Type:</label>
-                        <select id="defaultInspirationType">
-                            <option value="motivational">Motivational</option>
-                            <option value="spiritual">Spiritual</option>
-                            <option value="funny">Funny</option>
-                            <option value="random">Random</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="profanityFilterSensitivity">Profanity Filter Sensitivity (0-10):</label>
-                        <input type="number" id="profanityFilterSensitivity" min="0" max="10" step="1" placeholder="e.g., 5">
-                        <p style="font-size: 0.8rem; color: var(--text-light); margin-top: 5px;">Higher value means more aggressive filtering.</p>
-                    </div>
-                    <button id="saveGeneralSettingsBtn" class="action-button">
-                        <span class="button-text"><i class="fas fa-save"></i> Save General Settings</span>
-                        <div class="button-loader"></div>
-                    </button>
+                <div class="toggle-switch-group">
+                    <label for="maintenanceModeToggle"><i class="fas fa-tools"></i> Maintenance Mode</label>
+                    <label class="switch">
+                        <input type="checkbox" id="maintenanceModeToggle">
+                        <span class="slider round"></span>
+                    </label>
                 </div>
 
-                <!-- Feature Toggles Section -->
-                <div class="section-card">
-                    <h2><i class="fas fa-toggle-on"></i> Feature Toggles</h2>
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="enableUserRegistration">
-                            <label for="enableUserRegistration">Enable New User Registration</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="enableFriendRequests">
-                            <label for="enableFriendRequests">Enable Friend Requests</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="enablePublicChat">
-                            <label for="enablePublicChat">Enable Public Chat</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="enablePostCreation">
-                            <label for="enablePostCreation">Enable Post Creation</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="enableEmailNotifications">
-                            <label for="enableEmailNotifications">Enable Email Notifications</label>
-                        </div>
-                    </div>
-                    <button id="saveFeatureTogglesBtn" class="action-button">
-                        <span class="button-text"><i class="fas fa-save"></i> Save Feature Toggles</span>
-                        <div class="button-loader"></div>
-                    </button>
+                <div class="toggle-switch-group">
+                    <label for="enablePostCreationToggle"><i class="fas fa-pen-nib"></i> Enable Post Creation</label>
+                    <label class="switch">
+                        <input type="checkbox" id="enablePostCreationToggle">
+                        <span class="slider round"></span>
+                    </label>
                 </div>
 
-                <!-- Maintenance & Advanced Section -->
-                <div class="section-card">
-                    <h2><i class="fas fa-tools"></i> Maintenance & Advanced</h2>
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="maintenanceModeToggle">
-                            <label for="maintenanceModeToggle">Enable Maintenance Mode</label>
-                        </div>
-                        <p style="font-size: 0.8rem; color: var(--warning-color); margin-top: 5px;">
-                            When enabled, regular users will see a maintenance message and cannot access the app.
-                        </p>
-                    </div>
-                    <button id="toggleMaintenanceModeBtn" class="action-button secondary">
-                        <span class="button-text"><i class="fas fa-power-off"></i> Toggle Maintenance Mode</span>
-                        <div class="button-loader"></div>
-                    </button>
-
-                    <hr style="width: 80%; border: 0; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
-
-                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
-                        **Client-Side Operations:** These actions affect user's browser data.
-                    </p>
-                    <button id="clearClientCacheBtn" class="action-button secondary">
-                        <span class="button-text"><i class="fas fa-broom"></i> Clear Client Cache (All Users)</span>
-                        <div class="button-loader"></div>
-                    </button>
-                    <p style="font-size: 0.8rem; color: var(--text-light); margin-top: 5px;">
-                        This will prompt all active users to clear their browser's local storage and refresh.
-                    </p>
-
-                    <hr style="width: 80%; border: 0; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
-
-                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
-                        **Database Operations (Conceptual):**
-                        <br>
-                        These buttons are placeholders for complex backend operations. Actual implementation requires server-side logic and robust security measures.
-                    </p>
-                    <button id="backupDatabaseBtn" class="action-button secondary" disabled>
-                        <span class="button-text"><i class="fas fa-database"></i> Backup Database</span>
-                        <div class="button-loader"></div>
-                    </button>
-                    <button id="restoreDatabaseBtn" class="action-button secondary" disabled>
-                        <span class="button-text"><i class="fas fa-undo-alt"></i> Restore Database</span>
-                        <div class="button-loader"></div>
-                    </button>
-                    <div class="form-group" style="margin-top: 1.5rem;">
-                        <label for="apiKeyValue">External API Key (Conceptual):</label>
-                        <input type="text" id="apiKeyValue" placeholder="Enter API Key" disabled>
-                        <p style="font-size: 0.8rem; color: var(--text-light); margin-top: 5px;">
-                            For external service integrations (e.g., AI models, payment gateways).
-                        </p>
-                    </div>
-                    <button id="saveApiKeyBtn" class="action-button secondary" disabled>
-                        <span class="button-text"><i class="fas fa-key"></i> Save API Key</span>
-                        <div class="button-loader"></div>
-                    </button>
+                <div class="toggle-switch-group">
+                    <label for="enableUserRegistrationToggle"><i class="fas fa-user-plus"></i> Enable User Registration</label>
+                    <label class="switch">
+                        <input type="checkbox" id="enableUserRegistrationToggle">
+                        <span class="slider round"></span>
+                    </label>
                 </div>
 
-            </div>
+                <div class="toggle-switch-group">
+                    <label for="enableFriendRequestsToggle"><i class="fas fa-user-friends"></i> Enable Friend Requests</label>
+                    <label class="switch">
+                        <input type="checkbox" id="enableFriendRequestsToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-switch-group">
+                    <label for="enablePublicChatToggle"><i class="fas fa-comments"></i> Enable Public Chat</label>
+                    <label class="switch">
+                        <input type="checkbox" id="enablePublicChatToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-switch-group">
+                    <label for="enableEmailNotificationsToggle"><i class="fas fa-envelope"></i> Enable Email Notifications</label>
+                    <label class="switch">
+                        <input type="checkbox" id="enableEmailNotificationsToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="jcoinNairaRateInput"><i class="fas fa-coins"></i> JCoin to Naira Rate</label>
+                    <input type="number" id="jcoinNairaRateInput" step="0.01" min="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label for="gasJcoinRateInput"><i class="fas fa-gas-pump"></i> Gas to JCoin Rate</label>
+                    <input type="number" id="gasJcoinRateInput" step="0.01" min="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label for="dailyBonusAmountInput"><i class="fas fa-gift"></i> Daily Bonus JCoin Amount</label>
+                    <input type="number" id="dailyBonusAmountInput" step="1" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="profanityFilterSensitivityInput"><i class="fas fa-filter"></i> Profanity Filter Sensitivity (1-10)</label>
+                    <input type="number" id="profanityFilterSensitivityInput" min="1" max="10">
+                </div>
+
+                <button id="saveSettingsButton" class="admin-button">
+                    <span class="button-text"><i class="fas fa-save"></i> Save Settings</span>
+                    <div class="button-loader"></div>
+                </button>
+            </section>
+
+            <!-- User Management Section -->
+            <section id="userManagementSection" class="admin-section">
+                <h2><i class="fas fa-users-cog"></i> User Management</h2>
+                <input type="text" id="userSearchInput" class="search-bar" placeholder="Search by username or user ID...">
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>User ID</th>
+                                <th>Total Posts</th>
+                                <th>JCoins</th>
+                                <th>Level</th>
+                                <th>Last Active</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <tr><td colspan="7" style="text-align: center;">Loading users...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Pending JCoin Requests Section -->
+            <section id="jcoinRequestsSection" class="admin-section">
+                <h2><i class="fas fa-hand-holding-usd"></i> Pending JCoin Requests</h2>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Amount (JCoins)</th>
+                                <th>Status</th>
+                                <th>Timestamp</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jcoinRequestsTableBody">
+                            <tr><td colspan="5" style="text-align: center;">No pending requests.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Pending Activity Rewards Section -->
+            <section id="activityRewardsSection" class="admin-section">
+                <h2><i class="fas fa-trophy"></i> Pending Activity Rewards</h2>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Activity Type</th>
+                                <th>XP Reward</th>
+                                <th>JCoin Reward</th>
+                                <th>Status</th>
+                                <th>Timestamp</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityRewardsTableBody">
+                            <tr><td colspan="7" style="text-align: center;">No pending rewards.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </div>
     </main>
 
     <!-- Custom Message Box -->
     <div id="messageBox"></div>
 
-    <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="confirmationTitle">Confirm Action</h3>
-            <p id="confirmationMessage">Are you sure you want to proceed with this action?</p>
-            <div class="button-group">
-                <button id="confirmCancelButton" class="modal-button cancel-button">Cancel</button>
-                <button id="confirmProceedButton" class="modal-button confirm-button">Proceed</button>
-            </div>
+    <!-- Bottom Navigation Bar -->
+    <nav id="bottomNavBar" class="nav-bar-hidden-full">
+        <button id="navToggleBtn" aria-label="Toggle Navigation">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+        <div class="nav-links">
+            <a href="#systemSettingsSection" class="nav-item active" data-section="systemSettingsSection">
+                <i class="fas fa-cogs"></i>
+                <span>Settings</span>
+            </a>
+            <a href="#userManagementSection" class="nav-item" data-section="userManagementSection">
+                <i class="fas fa-users-cog"></i>
+                <span>Users</span>
+            </a>
+            <a href="#jcoinRequestsSection" class="nav-item" data-section="jcoinRequestsSection">
+                <i class="fas fa-coins"></i>
+                <span>JCoins</span>
+            </a>
+            <a href="#activityRewardsSection" class="nav-item" data-section="activityRewardsSection">
+                <i class="fas fa-trophy"></i>
+                <span>Rewards</span>
+            </a>
         </div>
-    </div>
+    </nav>
 
     <script type="module">
+        console.log("JCHAT_DEBUG: Admin.html script started.");
+
         // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, runTransaction, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1048,75 +1020,186 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Cloudinary Configuration (needed for header profile pic)
-        const cloudinaryConfig = {
-            cloudName: "dxld01rcp",
-            uploadPreset: "Storage_preset"
-        };
-
         // Initialize Firebase services
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         // --- DOM Elements ---
-        const headerProfilePic = document.getElementById('headerProfilePic');
-        const headerAvatarIcon = document.getElementById('headerAvatarIcon');
-        const headerDisplayName = document.getElementById('headerDisplayName');
         const logoutButton = document.getElementById('logoutButton');
-        const notificationCountElement = document.getElementById('notificationCount');
         const messageBox = document.getElementById('messageBox');
+        // Removed confirmation modal elements: confirmationModal, confirmationTitle, confirmationMessage, confirmCancelButton, confirmProceedButton
 
-        // Admin Elements
-        const adminIconLink = document.getElementById('adminIconLink');
-        const accessDeniedMessage = document.getElementById('accessDeniedMessage');
-        const adminSettingsSections = document.getElementById('adminSettingsSections');
-
-        // General Settings Elements
-        const jcoinNairaRateInput = document.getElementById('jcoinNairaRate');
-        const gasJcoinRateInput = document.getElementById('gasJcoinRate');
-        const dailyBonusAmountInput = document.getElementById('dailyBonusAmount');
-        const defaultInspirationTypeSelect = document.getElementById('defaultInspirationType');
-        const profanityFilterSensitivityInput = document.getElementById('profanityFilterSensitivity'); // NEW
-        const saveGeneralSettingsBtn = document.getElementById('saveGeneralSettingsBtn');
-
-        // Feature Toggles Elements
-        const enableUserRegistrationCheckbox = document.getElementById('enableUserRegistration'); // NEW
-        const enableFriendRequestsCheckbox = document.getElementById('enableFriendRequests');
-        const enablePublicChatCheckbox = document.getElementById('enablePublicChat');
-        const enablePostCreationCheckbox = document.getElementById('enablePostCreation');
-        const enableEmailNotificationsCheckbox = document.getElementById('enableEmailNotifications'); // NEW
-        const saveFeatureTogglesBtn = document.getElementById('saveFeatureTogglesBtn');
-
-        // Maintenance & Advanced Elements (NEW)
+        // System Settings
         const maintenanceModeToggle = document.getElementById('maintenanceModeToggle');
-        const toggleMaintenanceModeBtn = document.getElementById('toggleMaintenanceModeBtn');
-        const clearClientCacheBtn = document.getElementById('clearClientCacheBtn');
-        const backupDatabaseBtn = document.getElementById('backupDatabaseBtn');
-        const restoreDatabaseBtn = document.getElementById('restoreDatabaseBtn');
-        const apiKeyValueInput = document.getElementById('apiKeyValue');
-        const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+        const enablePostCreationToggle = document.getElementById('enablePostCreationToggle');
+        const enableUserRegistrationToggle = document.getElementById('enableUserRegistrationToggle');
+        const enableFriendRequestsToggle = document.getElementById('enableFriendRequestsToggle');
+        const enablePublicChatToggle = document.getElementById('enablePublicChatToggle');
+        const enableEmailNotificationsToggle = document.getElementById('enableEmailNotificationsToggle');
+        const jcoinNairaRateInput = document.getElementById('jcoinNairaRateInput');
+        const gasJcoinRateInput = document.getElementById('gasJcoinRateInput');
+        const dailyBonusAmountInput = document.getElementById('dailyBonusAmountInput');
+        const profanityFilterSensitivityInput = document.getElementById('profanityFilterSensitivityInput');
+        const saveSettingsButton = document.getElementById('saveSettingsButton');
 
-        // Confirmation Modal
-        const confirmationModal = document.getElementById('confirmationModal');
-        const confirmationTitle = document.getElementById('confirmationTitle');
-        const confirmationMessage = document.getElementById('confirmationMessage');
-        const confirmCancelButton = document.getElementById('confirmCancelButton');
-        const confirmProceedButton = document.getElementById('confirmProceedButton');
+        // User Management
+        const userSearchInput = document.getElementById('userSearchInput');
+        const userTableBody = document.getElementById('userTableBody');
+
+        // JCoin Requests
+        const jcoinRequestsTableBody = document.getElementById('jcoinRequestsTableBody');
+
+        // Activity Rewards
+        const activityRewardsTableBody = document.getElementById('activityRewardsTableBody');
+
+        // Bottom Navigation
+        const bottomNavBar = document.getElementById('bottomNavBar');
+        const navToggleBtn = document.getElementById('navToggleBtn');
+        const navItems = document.querySelectorAll('.nav-item');
+        const adminSections = document.querySelectorAll('.admin-section');
 
         // --- Global State ---
-        let isAuthReady = false;
         let currentUser = null;
-        let currentUserProfileData = null;
+        let isAuthReady = false;
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID
+        let systemSettings = {}; // To store the latest system settings
 
-        // --- Constants ---
-        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2';
+        let unsubscribeListeners = []; // Array to store all onSnapshot unsubscribe functions
+
+        // --- Level and XP Progression Logic (Admin Reference) ---
+        function getLevelInfo(level) {
+            const levelData = [
+                { level: 1, name: "Novice", icon: "fas fa-leaf", jCoinReward: 50, timeEstimate: "3 days" },
+                { level: 2, name: "Beginner", icon: "fas fa-seedling", jCoinReward: 100, timeEstimate: "7 days" },
+                { level: 3, name: "Apprentice", icon: "fas fa-user-graduate", jCoinReward: 150, timeEstimate: "10 days" },
+                { level: 4, name: "Explorer", icon: "fas fa-map-marker-alt", jCoinReward: 200, timeEstimate: "2 weeks" },
+                { level: 5, name: "Pioneer", icon: "fas fa-compass", jCoinReward: 250, timeEstimate: "3 weeks" },
+                { level: 6, name: "Communicator", icon: "fas fa-comments", jCoinReward: 300, timeEstimate: "1 month" },
+                { level: 7, name: "Socialite", icon: "fas fa-users", jCoinReward: 350, timeEstimate: "1 month" },
+                { level: 8, name: "Networker", icon: "fas fa-share-alt", jCoinReward: 400, timeEstimate: "1 month" },
+                { level: 9, name: "Influencer", icon: "fas fa-star", jCoinReward: 450, timeEstimate: "1.5 months" },
+                { level: 10, name: "Trendsetter", icon: "fas fa-fire", jCoinReward: 500, timeEstimate: "1.5 months" },
+                { level: 11, name: "Innovator", icon: "fas fa-lightbulb", jCoinReward: 550, timeEstimate: "2 months" },
+                { level: 12, name: "Creator", icon: "fas fa-paint-brush", jCoinReward: 600, timeEstimate: "2 months" },
+                { level: 13, name: "Visionary", icon: "fas fa-eye", jCoinReward: 650, timeEstimate: "2 months" },
+                { level: 14, name: "Architect", icon: "fas fa-building", jCoinReward: 700, timeEstimate: "2.5 months" },
+                { level: 15, name: "Maestro", icon: "fas fa-music", jCoinReward: 750, timeEstimate: "2.5 months" },
+                { level: 16, name: "Strategist", icon: "fas fa-chess", jCoinReward: 800, timeEstimate: "3 months" },
+                { level: 17, name: "Guardian", icon: "fas fa-shield-alt", jCoinReward: 850, timeEstimate: "3 months" },
+                { level: 18, name: "Champion", icon: "fas fa-trophy", jCoinReward: 900, timeEstimate: "3 months" },
+                { level: 19, name: "Hero", icon: "fas fa-mask", jCoinReward: 950, timeEstimate: "3.5 months" },
+                { level: 20, name: "Legend", icon: "fas fa-dragon", jCoinReward: 1000, timeEstimate: "3.5 months" },
+                { level: 21, name: "Mythic", icon: "fas fa-meteor", jCoinReward: 1050, timeEstimate: "4 months" },
+                { level: 22, name: "Celestial", icon: "fas fa-galaxy", jCoinReward: 1100, timeEstimate: "4 months" },
+                { level: 23, name: "Divine", icon: "fas fa-hand-sparkles", jCoinReward: 1150, timeEstimate: "4.5 months" },
+                { level: 24, name: "Transcendent", icon: "fas fa-infinity", jCoinReward: 1200, timeEstimate: "4.5 months" },
+                { level: 25, name: "Cosmic Being", icon: "fas fa-atom", jCoinReward: 1250, timeEstimate: "5 months" },
+                { level: 26, name: "Universal Traveler", icon: "fas fa-globe-americas", jCoinReward: 1300, timeEstimate: "5 months" },
+                { level: 27, name: "Stellar Navigator", icon: "fas fa-space-shuttle", jCoinReward: 1350, timeEstimate: "5.5 months" },
+                { level: 28, name: "Galactic Conqueror", icon: "fas fa-rocket", jCoinReward: 1400, timeEstimate: "5.5 months" },
+                { level: 29, name: "Dimensional Shifter", icon: "fas fa-cube", jCoinReward: 1450, timeEstimate: "6 months" },
+                { level: 30, name: "Omni-Presence", icon: "fas fa-brain", jCoinReward: 1500, timeEstimate: "6 months" },
+            ];
+
+            let xpToNextLevel;
+            let jCoinReward;
+            let name;
+            let icon;
+            let timeEstimate;
+
+            if (level < 1) level = 1;
+
+            // XP Calculation Logic - Designed for "harder" progression
+            if (level === 1) {
+                xpToNextLevel = 500;
+            } else if (level <= 5) {
+                xpToNextLevel = 500 + (level - 1) * 250;
+            } else if (level <= 10) {
+                xpToNextLevel = (500 + 4 * 250) + (level - 5) * 500;
+            } else if (level <= 20) {
+                xpToNextLevel = ((500 + 4 * 250) + (10 - 5) * 500) + (level - 10) * 1000;
+            } else if (level <= 50) {
+                xpToNextLevel = (((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (level - 20) * 2000;
+            } else if (level <= 100) {
+                xpToNextLevel = ((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (50 - 20) * 2000) + (level - 50) * 5000;
+            } else if (level <= 500) {
+                xpToNextLevel = (((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (50 - 20) * 5000) + (100 - 50) * 5000) + (level - 100) * 10000;
+            } else {
+                xpToNextLevel = 10000000;
+            }
+
+            const specificLevel = levelData.find(l => l.level === level);
+            if (specificLevel) {
+                name = specificLevel.name;
+                icon = specificLevel.icon;
+                jCoinReward = specificLevel.jCoinReward;
+                timeEstimate = specificLevel.timeEstimate;
+            } else if (level > 30 && level <= 500) {
+                const tierNames = [
+                    "Adept", "Master", "Grandmaster", "Exalted", "Ascendant",
+                    "Divine", "Apex", "Cosmic", "Ethereal", "Legendary",
+                    "Mythical", "Celestial", "Transcendent", "Omnipotent", "Infinite",
+                    "Starlight", "Nebula", "Galaxy", "Universe", "Multiverse",
+                    "Zenith", "Pinnacle", "Sovereign", "Eternal", "Absolute"
+                ];
+                const tierIcons = [
+                    "fas fa-magic", "fas fa-crown", "fas fa-chess-king", "fas fa-gem",
+                    "fas fa-star-of-life", "fas fa-hand-sparkles", "fas fa-mountain", "fas fa-atom",
+                    "fas fa-cloud-sun", "fas fa-dragon", "fas fa-meteor", "fas fa-galaxy",
+                    "fas fa-infinity", "fas fa-bahai", "fas fa-globe-americas", "fas fa-star",
+                    "fas fa-cloud", "fas fa-atom", "fas fa-globe", "fas fa-cubes",
+                    "fas fa-mountain", "fas fa-trophy", "fas fa-shield-alt", "fas fa-infinity", "fas fa-brain"
+                ];
+
+                const baseLevelForTier = 30;
+                const levelsPerTierName = 10;
+                const levelsPerTierIcon = 10;
+
+                const tierNameIndex = Math.floor((level - (baseLevelForTier + 1)) / levelsPerTierName);
+                const tierIconIndex = Math.floor((level - (baseLevelForTier + 1)) / levelsPerTierIcon);
+
+                name = `${tierNames[tierNameIndex % tierNames.length]} Lv. ${level}`;
+                icon = tierIcons[tierIconIndex % tierIcons.length];
+                jCoinReward = 1500 + (level - 30) * 100;
+            } else if (level > 500) {
+                name = `Master Lv. ${level}`;
+                icon = "fas fa-star";
+                jCoinReward = 1500 + (500 - 30) * 100 + (level - 500) * 200;
+            } else {
+                name = `Unknown Lv. ${level}`;
+                icon = "fas fa-question-circle";
+                jCoinReward = 0;
+            }
+
+            return {
+                level: level,
+                name: name,
+                icon: icon,
+                jCoinReward: jCoinReward,
+                xpToNextLevel: xpToNextLevel,
+                timeEstimate: timeEstimate
+            };
+        }
+
+        function calculateLevelAndXP(currentXp) {
+            let level = 1;
+            let xpNeededForNextLevel = getLevelInfo(level).xpToNextLevel;
+
+            while (currentXp >= xpNeededForNextLevel) {
+                currentXp -= xpNeededForNextLevel;
+                level++;
+                xpNeededForNextLevel = getLevelInfo(level).xpToNextLevel;
+            }
+            return { level, currentXp, xpNeededForNextLevel };
+        }
 
         // --- Tone.js Synths for Notification Sounds ---
         const successSynth = new Tone.Synth().toDestination();
         const errorSynth = new Tone.Synth().toDestination();
         const infoSynth = new Tone.Synth().toDestination();
 
+        // Set up basic sounds
         successSynth.oscillator.type = "sine";
         successSynth.envelope.attack = 0.01;
         successSynth.envelope.decay = 0.2;
@@ -1150,30 +1233,26 @@
             }
         }
 
-        /**
-         * Displays a temporary message box with a given message and type.
-         * @param {string} message - The message to display.
-         * @param {string} type - The type of message ('success', 'error', 'info', 'loading').
-         * @param {boolean} [isPersistent=false] - If true, message stays until explicitly cleared or replaced.
-         */
+        // --- Utility Functions ---
         function showMessageBox(message, type, isPersistent = false) {
+            if (!messageBox) {
+                console.error("JCHAT_ERROR: messageBox element not found.");
+                return;
+            }
             if (messageBox.timeoutId) {
                 clearTimeout(messageBox.timeoutId);
-                messageBox.timeoutId = null;
             }
 
-            messageBox.textContent = message;
-            messageBox.className = ''; // Clear existing classes
-            messageBox.classList.add(type);
-
-            // Set icon based on type
             messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
             const messageBoxIcon = document.getElementById('messageBoxIcon');
             const messageBoxText = document.getElementById('messageBoxText');
-            messageBoxText.textContent = message;
 
+            messageBoxText.textContent = message;
+            messageBox.className = 'message-box show ' + type; // Add type class for styling
+
+            // Set icon based on type
             if (messageBoxIcon) {
-                messageBoxIcon.className = '';
+                messageBoxIcon.className = ''; // Clear existing classes
                 if (type === 'success') {
                     messageBoxIcon.classList.add('fas', 'fa-check-circle');
                 } else if (type === 'error') {
@@ -1183,7 +1262,7 @@
                 } else if (type === 'warning') {
                     messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
                 } else if (type === 'loading') {
-                    messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin');
+                    messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); // Spinner for loading
                 }
             }
 
@@ -1193,7 +1272,7 @@
                 messageBox.classList.remove('loading-pulse');
             }
 
-            messageBox.style.display = 'flex'; // Use flex for icon + text
+            messageBox.style.display = 'flex';
             messageBox.style.opacity = '1';
 
             if (!isPersistent) {
@@ -1208,49 +1287,9 @@
             }
         }
 
-        /**
-         * Shows a custom confirmation modal.
-         * @param {string} title - The title of the confirmation.
-         * @param {string} message - The message to display.
-         * @returns {Promise<boolean>} A promise that resolves to true if confirmed, false if cancelled.
-         */
-        function showConfirmationModal(title, message) {
-            return new Promise((resolve) => {
-                confirmationTitle.textContent = title;
-                confirmationMessage.textContent = message;
-                confirmationModal.classList.add('active');
+        // The showConfirmationModal function is no longer needed as the modal is removed.
+        // function showConfirmationModal(title, message) { ... }
 
-                const handleConfirm = () => {
-                    confirmationModal.classList.remove('active');
-                    confirmProceedButton.removeEventListener('click', handleConfirm);
-                    confirmCancelButton.removeEventListener('click', handleCancel);
-                    resolve(true);
-                };
-
-                const handleCancel = () => {
-                    confirmationModal.classList.remove('active');
-                    confirmProceedButton.removeEventListener('click', handleConfirm);
-                    confirmCancelButton.removeEventListener('click', handleCancel);
-                    resolve(false);
-                };
-
-                confirmProceedButton.addEventListener('click', handleConfirm);
-                confirmCancelButton.addEventListener('click', handleCancel);
-
-                confirmationModal.addEventListener('click', function outsideClickListener(event) {
-                    if (event.target === confirmationModal) {
-                        handleCancel();
-                        confirmationModal.removeEventListener('click', outsideClickListener);
-                    }
-                });
-            });
-        }
-
-        /**
-         * Toggles loading state for a button.
-         * @param {HTMLElement} buttonElement - The button to toggle.
-         * @param {boolean} isLoading - True to show loading, false to hide.
-         */
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
             const loader = buttonElement.querySelector('.button-loader');
@@ -1269,568 +1308,536 @@
             }
         }
 
-        /**
-         * Constructs a Cloudinary URL for an image/video.
-         * @param {string} urlOrPublicId - The full Cloudinary URL or the public ID of the image on Cloudinary.
-         * @param {string} transformations - Optional Cloudinary transformations.
-         * @returns {string|null} The full Cloudinary URL or null if urlOrPublicId is not provided.
-         */
-        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
-            if (!urlOrPublicId) return null;
-            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
-                // If it's already a full URL, check if it's a Cloudinary URL and insert transformations
-                if (urlOrPublicId.includes('res.cloudinary.com')) {
-                    const parts = urlOrPublicId.split('/upload/');
-                    if (parts.length === 2) {
-                        // Check if transformations already exist to avoid duplication
-                        if (parts[1].includes('/')) {
-                            const existingTransformations = parts[1].split('/')[0];
-                            if (existingTransformations.includes('_')) { // Simple check for common transformations
-                                return urlOrPublicId; // Assume already transformed
-                            }
-                        }
-                        return `${parts[0]}/upload/${transformations}/${parts[1]}`;
-                    }
-                }
-                return urlOrPublicId; // Return as is if not a Cloudinary URL or already transformed
-            }
-            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
-        }
-
-        /**
-         * Displays the profile picture or a default icon.
-         * @param {HTMLElement} imgElement - The <img> element to update.
-         * @param {HTMLElement} iconElement - The <i> element to display if no image.
-         * @param {string|null} profilePicId - The Cloudinary public ID or URL, or null.
-         * @param {string} usernameInitial - Initial for placeholder.
-         * @param {string} transformations - Cloudinary transformations.
-         */
-        function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
-            if (imgElement && iconElement) {
-                if (profilePicId) {
-                    const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
-                    imgElement.src = imageUrl;
-                    imgElement.style.display = 'block';
-                    iconElement.style.display = 'none';
-                    imgElement.onerror = () => {
-                        console.error(`JCHAT_ERROR: Failed to load profile picture: ${profilePicId}. Using placeholder.`);
-                        imgElement.src = `https://placehold.co/40x40/CCCCCC/000000?text=${usernameInitial}`;
-                        imgElement.style.display = 'block';
-                        iconElement.style.display = 'none';
-                    };
-                } else {
-                    imgElement.src = '';
-                    imgElement.style.display = 'none';
-                    iconElement.style.display = 'block';
-                }
-            }
-        }
-
-        /**
-         * Fetches and displays the current user's profile data for the header.
-         * This function runs on every page to ensure header is consistent.
-         * @param {firebase.User} user - The authenticated Firebase user object.
-         */
-        async function fetchAndDisplayHeaderProfile(user) {
-            try {
-                const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
-                const privateDocSnap = await getDoc(privateProfileDocRef);
-
-                let profileData = null;
-                if (privateDocSnap.exists()) {
-                    profileData = privateDocSnap.data();
-                    // Ensure all necessary fields exist, initialize if not
-                    if (profileData.isAdmin === undefined) await updateDoc(privateProfileDocRef, { isAdmin: false });
-
-                    // Re-fetch after potential updates to get the latest state
-                    const updatedPrivateDocSnap = await getDoc(privateProfileDocRef);
-                    profileData = updatedPrivateDocSnap.data();
-
-                } else {
-                    // If private profile doesn't exist, create a basic one
-                    profileData = {
-                        username: user.displayName || `User_${user.uid.substring(0, 8)}`,
-                        email: user.email || "",
-                        profilePicId: user.photoURL || null,
-                        bio: "",
-                        location: "",
-                        friendsCount: 0,
-                        followersCount: 0,
-                        followingCount: 0,
-                        createdAt: serverTimestamp(),
-                        updatedAt: serverTimestamp(),
-                        inspirationType: "motivational",
-                        visibility: {
-                            displayName: true, profilePic: true, bio: false, location: false,
-                            emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
-                        },
-                        totalPosts: 0,
-                        jCoins: 0,
-                        gas: 0,
-                        level: 1,
-                        currentXp: 0,
-                        xpToNextLevel: 500, // Default for level 1
-                        walletUnlocked: false,
-                        lastLoginBonusClaimed: null,
-                        isAdmin: false // Default to false for new profiles
-                    };
-                    await setDoc(privateProfileDocRef, profileData);
-
-                    // Also create/update public profile
-                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
-                    await setDoc(publicProfileDocRef, {
-                        username: profileData.username,
-                        profilePicId: profileData.profilePicId,
-                        bio: profileData.bio,
-                        location: profileData.location,
-                        createdAt: profileData.createdAt,
-                        updatedAt: profileData.updatedAt,
-                        visibility: profileData.visibility,
-                        totalPosts: profileData.totalPosts
-                    }, { merge: true });
-                }
-
-                currentUserProfileData = profileData;
-
-                // Update header UI
-                const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
-                displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
-                headerDisplayName.textContent = profileData.username || "JCHAT User";
-                if (document.getElementById('profileLink')) document.getElementById('profileLink').href = `/profile.html?userId=${user.uid}`;
-
-                logoutButton.disabled = false;
-
-                // Show Admin Icon only if the current user is the ADMIN_UID
-                if (user.uid === ADMIN_UID) {
-                    adminIconLink.style.display = 'block';
-                    accessDeniedMessage.style.display = 'none';
-                    adminSettingsSections.style.display = 'flex';
-                    await fetchSystemSettings(); // Fetch and display settings
-                } else {
-                    adminIconLink.style.display = 'none';
-                    accessDeniedMessage.style.display = 'block';
-                    adminSettingsSections.style.display = 'none';
-                    showMessageBox("Access Denied. You are not an administrator.", 'error', true);
-                }
-
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching or creating profile for header:", error);
-                const usernameInitial = (user.displayName || "J").charAt(0).toUpperCase();
-                displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
-                headerDisplayName.textContent = user.displayName || "JCHAT User";
-                showMessageBox(`Error loading header profile: ${error.message}`, 'error');
-                logoutButton.disabled = false;
-            }
-        }
-
-        /**
-         * Fetches and displays the notification count for the current user.
-         * @param {string} userId - The UID of the current user.
-         */
-        async function fetchNotificationCount(userId) {
-            try {
-                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
-                const q = query(notificationsCollectionRef, where("read", "==", false));
-                const querySnapshot = await getDocs(q);
-                const unreadCount = querySnapshot.size;
-
-                if (unreadCount > 0) {
-                    if (notificationCountElement) {
-                        notificationCountElement.textContent = unreadCount;
-                        notificationCountElement.style.display = 'flex';
-                    }
-                } else {
-                    if (notificationCountElement) {
-                        notificationCountElement.style.display = 'none';
-                    }
-                }
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching notification count:", error);
-                if (notificationCountElement) notificationCountElement.style.display = 'none';
-            }
-        }
-
-        /**
-         * Handles user logout.
-         */
         async function handleLogout() {
-            if (!isAuthReady) return;
-            toggleButtonLoading(logoutButton, true);
             try {
                 await signOut(auth);
                 showMessageBox("Logged out successfully! 👋", 'success');
-                playNotificationSound('success');
                 setTimeout(() => {
                     window.location.href = '/login.html';
-                }, 1000);
+                }, 1500);
             } catch (error) {
-                console.error("Error logging out:", error);
+                console.error("JCHAT_ERROR: Error logging out:", error);
                 showMessageBox("Failed to log out. Please try again.", 'error');
-                playNotificationSound('error');
-            } finally {
-                toggleButtonLoading(logoutButton, false);
             }
         }
 
-        // --- Admin System Settings Functions ---
-
+        // --- System Settings Management ---
         const SYSTEM_SETTINGS_DOC_REF = doc(db, "artifacts", appId, "public", "data", "settings", "system_settings");
 
-        /**
-         * Fetches and populates the system settings form.
-         */
-        async function fetchSystemSettings() {
-            showMessageBox("Loading system settings...", 'loading', true);
-            try {
-                const docSnap = await getDoc(SYSTEM_SETTINGS_DOC_REF);
-                let settings = {};
-
+        function setupSystemSettingsListener() {
+            console.log("JCHAT_DEBUG: Setting up system settings listener.");
+            const unsubscribeSettings = onSnapshot(SYSTEM_SETTINGS_DOC_REF, (docSnap) => {
                 if (docSnap.exists()) {
-                    settings = docSnap.data();
-                    console.log("JCHAT_DEBUG: System settings loaded:", settings);
+                    systemSettings = docSnap.data();
+                    console.log("JCHAT_DEBUG: System settings updated:", systemSettings);
+                    applySystemSettingsToForm();
                 } else {
-                    console.warn("JCHAT_WARNING: System settings document not found. Creating default settings.");
-                    // Define default settings if the document doesn't exist
-                    settings = {
+                    console.warn("JCHAT_WARNING: System settings document not found. Creating with default values.");
+                    systemSettings = {
                         jcoinNairaRate: 7.5,
                         gasJcoinRate: 0.1,
                         dailyBonusAmount: 50,
                         defaultInspirationType: "motivational",
-                        profanityFilterSensitivity: 5, // NEW default
-                        enableUserRegistration: true, // NEW default
+                        profanityFilterSensitivity: 5,
+                        enableUserRegistration: true,
                         enableFriendRequests: true,
                         enablePublicChat: true,
                         enablePostCreation: true,
-                        enableEmailNotifications: true, // NEW default
-                        maintenanceMode: false, // NEW default
-                        lastUpdated: serverTimestamp(),
-                        updatedByAdminId: currentUser ? currentUser.uid : 'system',
-                        updatedByAdminUsername: currentUser ? (currentUserProfileData?.username || 'Admin') : 'System'
+                        maintenanceMode: false, // Default to false
+                        enableEmailNotifications: true,
                     };
-                    // Use setDoc with merge: true to ensure it creates if not exists, or updates without overwriting
-                    await setDoc(SYSTEM_SETTINGS_DOC_REF, settings, { merge: true });
+                    // If document doesn't exist, create it with defaults
+                    setDoc(SYSTEM_SETTINGS_DOC_REF, systemSettings, { merge: true }).catch(err => {
+                        console.error("JCHAT_ERROR: Failed to create default system settings:", err);
+                    });
                 }
-
-                // Populate form fields
-                jcoinNairaRateInput.value = settings.jcoinNairaRate ?? 7.5;
-                gasJcoinRateInput.value = settings.gasJcoinRate ?? 0.1;
-                dailyBonusAmountInput.value = settings.dailyBonusAmount ?? 50;
-                defaultInspirationTypeSelect.value = settings.defaultInspirationType ?? "motivational";
-                profanityFilterSensitivityInput.value = settings.profanityFilterSensitivity ?? 5; // NEW
-
-                enableUserRegistrationCheckbox.checked = settings.enableUserRegistration ?? true; // NEW
-                enableFriendRequestsCheckbox.checked = settings.enableFriendRequests ?? true;
-                enablePublicChatCheckbox.checked = settings.enablePublicChat ?? true;
-                enablePostCreationCheckbox.checked = settings.enablePostCreation ?? true;
-                enableEmailNotificationsCheckbox.checked = settings.enableEmailNotifications ?? true; // NEW
-
-                maintenanceModeToggle.checked = settings.maintenanceMode ?? false; // NEW
-
-                showMessageBox("System settings loaded.", 'success');
-                playNotificationSound('success');
-
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching system settings:", error);
-                showMessageBox(`Error loading settings: ${error.message}`, 'error');
-                playNotificationSound('error');
-            } finally {
-                // Ensure all buttons are enabled after loading, regardless of success/failure
-                toggleButtonLoading(saveGeneralSettingsBtn, false);
-                toggleButtonLoading(saveFeatureTogglesBtn, false);
-                toggleButtonLoading(toggleMaintenanceModeBtn, false); // NEW
-            }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to system settings:", error);
+                showMessageBox("Failed to load global settings. Some features may not work correctly.", 'error', true);
+            });
+            unsubscribeListeners.push(unsubscribeSettings);
         }
 
-        /**
-         * Saves general system settings to Firestore.
-         */
-        async function saveGeneralSettings() {
-            if (!currentUser || currentUser.uid !== ADMIN_UID) {
-                showMessageBox("Access Denied. You are not authorized to change settings.", 'error');
-                playNotificationSound('error');
-                return;
-            }
+        function applySystemSettingsToForm() {
+            if (maintenanceModeToggle) maintenanceModeToggle.checked = systemSettings.maintenanceMode ?? false;
+            if (enablePostCreationToggle) enablePostCreationToggle.checked = systemSettings.enablePostCreation ?? true;
+            if (enableUserRegistrationToggle) enableUserRegistrationToggle.checked = systemSettings.enableUserRegistration ?? true;
+            if (enableFriendRequestsToggle) enableFriendRequestsToggle.checked = systemSettings.enableFriendRequests ?? true;
+            if (enablePublicChatToggle) enablePublicChatToggle.checked = systemSettings.enablePublicChat ?? true;
+            if (enableEmailNotificationsToggle) enableEmailNotificationsToggle.checked = systemSettings.enableEmailNotifications ?? true;
+            if (jcoinNairaRateInput) jcoinNairaRateInput.value = systemSettings.jcoinNairaRate ?? 7.5;
+            if (gasJcoinRateInput) gasJcoinRateInput.value = systemSettings.gasJcoinRate ?? 0.1;
+            if (dailyBonusAmountInput) dailyBonusAmountInput.value = systemSettings.dailyBonusAmount ?? 50;
+            if (profanityFilterSensitivityInput) profanityFilterSensitivityInput.value = systemSettings.profanityFilterSensitivity ?? 5;
+        }
 
-            const jcoinNairaRate = parseFloat(jcoinNairaRateInput.value);
-            const gasJcoinRate = parseFloat(gasJcoinRateInput.value);
-            const dailyBonusAmount = parseInt(dailyBonusAmountInput.value);
-            const defaultInspirationType = defaultInspirationTypeSelect.value;
-            const profanityFilterSensitivity = parseInt(profanityFilterSensitivityInput.value); // NEW
-
-            if (isNaN(jcoinNairaRate) || jcoinNairaRate <= 0) {
-                showMessageBox("JCoin to Naira Rate must be a positive number.", 'error');
-                playNotificationSound('error');
-                return;
-            }
-            if (isNaN(gasJcoinRate) || gasJcoinRate <= 0) {
-                showMessageBox("Gas to JCoin Rate must be a positive number.", 'error');
-                playNotificationSound('error');
-                return;
-            }
-            if (isNaN(dailyBonusAmount) || dailyBonusAmount < 0) {
-                showMessageBox("Daily Bonus Amount must be a non-negative number.", 'error');
-                playNotificationSound('error');
-                return;
-            }
-            if (isNaN(profanityFilterSensitivity) || profanityFilterSensitivity < 0 || profanityFilterSensitivity > 10) { // NEW validation
-                showMessageBox("Profanity Filter Sensitivity must be between 0 and 10.", 'error');
-                playNotificationSound('error');
-                return;
-            }
-
-            const confirmed = await showConfirmationModal(
-                "Confirm Save",
-                "Are you sure you want to save these general settings?"
-            );
-            if (!confirmed) {
-                return;
-            }
-
-            toggleButtonLoading(saveGeneralSettingsBtn, true);
-            showMessageBox("Saving general settings...", 'loading', true);
+        async function saveSystemSettings() {
+            toggleButtonLoading(saveSettingsButton, true);
+            showMessageBox("Saving settings...", 'loading', true);
 
             try {
-                await updateDoc(SYSTEM_SETTINGS_DOC_REF, {
-                    jcoinNairaRate: jcoinNairaRate,
-                    gasJcoinRate: gasJcoinRate,
-                    dailyBonusAmount: dailyBonusAmount,
-                    defaultInspirationType: defaultInspirationType,
-                    profanityFilterSensitivity: profanityFilterSensitivity, // NEW
-                    lastUpdated: serverTimestamp(),
-                    updatedByAdminId: currentUser.uid,
-                    updatedByAdminUsername: currentUserProfileData?.username || 'Admin'
-                });
-                showMessageBox("General settings saved successfully!", 'success');
+                const updatedSettings = {
+                    maintenanceMode: maintenanceModeToggle.checked,
+                    enablePostCreation: enablePostCreationToggle.checked,
+                    enableUserRegistration: enableUserRegistrationToggle.checked,
+                    enableFriendRequests: enableFriendRequestsToggle.checked,
+                    enablePublicChat: enablePublicChatToggle.checked,
+                    enableEmailNotifications: enableEmailNotificationsToggle.checked,
+                    jcoinNairaRate: parseFloat(jcoinNairaRateInput.value),
+                    gasJcoinRate: parseFloat(gasJcoinRateInput.value),
+                    dailyBonusAmount: parseInt(dailyBonusAmountInput.value),
+                    profanityFilterSensitivity: parseInt(profanityFilterSensitivityInput.value),
+                    updatedAt: serverTimestamp()
+                };
+
+                await setDoc(SYSTEM_SETTINGS_DOC_REF, updatedSettings, { merge: true });
+                showMessageBox("Settings saved successfully!", 'success');
                 playNotificationSound('success');
             } catch (error) {
-                console.error("JCHAT_ERROR: Error saving general settings:", error);
+                console.error("JCHAT_ERROR: Error saving system settings:", error);
                 showMessageBox(`Failed to save settings: ${error.message}`, 'error');
                 playNotificationSound('error');
             } finally {
-                toggleButtonLoading(saveGeneralSettingsBtn, false);
+                toggleButtonLoading(saveSettingsButton, false);
             }
         }
 
-        /**
-         * Saves feature toggle settings to Firestore.
-         */
-        async function saveFeatureToggles() {
-            if (!currentUser || currentUser.uid !== ADMIN_UID) {
-                showMessageBox("Access Denied. You are not authorized to change settings.", 'error');
-                playNotificationSound('error');
-                return;
-            }
+        // --- User Management ---
+        let allUsers = []; // Store all users for search filtering
 
-            const enableUserRegistration = enableUserRegistrationCheckbox.checked; // NEW
-            const enableFriendRequests = enableFriendRequestsCheckbox.checked;
-            const enablePublicChat = enablePublicChatCheckbox.checked;
-            const enablePostCreation = enablePostCreationCheckbox.checked;
-            const enableEmailNotifications = enableEmailNotificationsCheckbox.checked; // NEW
-
-            const confirmed = await showConfirmationModal(
-                "Confirm Save",
-                "Are you sure you want to save these feature toggles?"
-            );
-            if (!confirmed) {
-                return;
-            }
-
-            toggleButtonLoading(saveFeatureTogglesBtn, true);
-            showMessageBox("Saving feature toggles...", 'loading', true);
-
-            try {
-                await updateDoc(SYSTEM_SETTINGS_DOC_REF, {
-                    enableUserRegistration: enableUserRegistration, // NEW
-                    enableFriendRequests: enableFriendRequests,
-                    enablePublicChat: enablePublicChat,
-                    enablePostCreation: enablePostCreation,
-                    enableEmailNotifications: enableEmailNotifications, // NEW
-                    lastUpdated: serverTimestamp(),
-                    updatedByAdminId: currentUser.uid,
-                    updatedByAdminUsername: currentUserProfileData?.username || 'Admin'
+        function setupUserManagementListener() {
+            console.log("JCHAT_DEBUG: Setting up user management listener.");
+            const usersCollectionRef = collection(db, "artifacts", appId, "public", "data", "users");
+            const unsubscribeUsers = onSnapshot(usersCollectionRef, (querySnapshot) => {
+                allUsers = [];
+                querySnapshot.forEach(docSnap => {
+                    allUsers.push({ id: docSnap.id, ...docSnap.data() });
                 });
-                showMessageBox("Feature toggles saved successfully!", 'success');
-                playNotificationSound('success');
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error saving feature toggles:", error);
-                showMessageBox(`Failed to save toggles: ${error.message}`, 'error');
-                playNotificationSound('error');
-            } finally {
-                toggleButtonLoading(saveFeatureTogglesBtn, false);
+                displayUsers(allUsers); // Initial display
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to users collection:", error);
+                userTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--delete-button-color);">Failed to load users.</td></tr>`;
+            });
+            unsubscribeListeners.push(unsubscribeUsers);
+        }
+
+        function displayUsers(usersToDisplay) {
+            if (userTableBody) {
+                userTableBody.innerHTML = ''; // Clear existing rows
+                if (usersToDisplay.length === 0) {
+                    userTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">No users found.</td></tr>`;
+                    return;
+                }
+
+                usersToDisplay.forEach(user => {
+                    const row = userTableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${user.username || 'N/A'}</td>
+                        <td>${user.userId}</td>
+                        <td>${user.totalPosts ?? 0}</td>
+                        <td id="jcoins-${user.userId}">Loading...</td>
+                        <td id="level-${user.userId}">Loading...</td>
+                        <td>${user.updatedAt ? new Date(user.updatedAt.toDate()).toLocaleString() : 'N/A'}</td>
+                        <td class="action-buttons">
+                            <button class="button-view" onclick="window.location.href='/profile.html?userId=${user.userId}'">View Profile</button>
+                            <!-- Add more actions like disable/enable user later if needed -->
+                        </td>
+                    `;
+                    // Fetch JCoins and Level from private profile
+                    fetchUserPrivateData(user.userId);
+                });
             }
         }
 
-        /**
-         * Toggles the maintenance mode for the application.
-         */
-        async function toggleMaintenanceMode() {
-            if (!currentUser || currentUser.uid !== ADMIN_UID) {
-                showMessageBox("Access Denied. You are not authorized to change maintenance mode.", 'error');
-                playNotificationSound('error');
-                return;
-            }
-
-            const currentMode = maintenanceModeToggle.checked;
-            const action = currentMode ? "enable" : "disable";
-            const confirmMessage = `Are you sure you want to ${action} maintenance mode? This will affect all users.`;
-
-            const confirmed = await showConfirmationModal(
-                "Confirm Maintenance Mode",
-                confirmMessage
-            );
-            if (!confirmed) {
-                // Revert checkbox if user cancels
-                maintenanceModeToggle.checked = !currentMode;
-                return;
-            }
-
-            toggleButtonLoading(toggleMaintenanceModeBtn, true);
-            showMessageBox(`${action === 'enable' ? 'Enabling' : 'Disabling'} maintenance mode...`, 'loading', true);
-
+        async function fetchUserPrivateData(userId) {
             try {
-                await updateDoc(SYSTEM_SETTINGS_DOC_REF, {
-                    maintenanceMode: currentMode,
-                    lastUpdated: serverTimestamp(),
-                    updatedByAdminId: currentUser.uid,
-                    updatedByAdminUsername: currentUserProfileData?.username || 'Admin'
-                });
-                showMessageBox(`Maintenance mode ${action === 'enable' ? 'enabled' : 'disabled'} successfully!`, 'success');
-                playNotificationSound('success');
+                const userProfileRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+                const docSnap = await getDoc(userProfileRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const jcoinsCell = document.getElementById(`jcoins-${userId}`);
+                    const levelCell = document.getElementById(`level-${userId}`);
+                    if (jcoinsCell) jcoinsCell.textContent = data.jCoins ?? 0;
+                    if (levelCell) levelCell.textContent = data.level ?? 1;
+                } else {
+                    const jcoinsCell = document.getElementById(`jcoins-${userId}`);
+                    const levelCell = document.getElementById(`level-${userId}`);
+                    if (jcoinsCell) jcoinsCell.textContent = 'N/A';
+                    if (levelCell) levelCell.textContent = 'N/A';
+                }
             } catch (error) {
-                console.error("JCHAT_ERROR: Error toggling maintenance mode:", error);
-                showMessageBox(`Failed to ${action} maintenance mode: ${error.message}`, 'error');
-                playNotificationSound('error');
-                // Revert checkbox on error
-                maintenanceModeToggle.checked = !currentMode;
-            } finally {
-                toggleButtonLoading(toggleMaintenanceModeBtn, false);
+                console.error(`JCHAT_ERROR: Error fetching private data for user ${userId}:`, error);
             }
         }
 
-        /**
-         * Simulates clearing client-side cache for all users.
-         * In a real app, this would trigger a backend event or a service worker update.
-         * Here, it just shows a message and reloads the current admin page for demonstration.
-         */
-        async function clearClientCache() {
-            if (!currentUser || currentUser.uid !== ADMIN_UID) {
-                showMessageBox("Access Denied. You are not authorized to clear cache.", 'error');
-                playNotificationSound('error');
-                return;
+        if (userSearchInput) {
+            userSearchInput.addEventListener('input', () => {
+                const searchTerm = userSearchInput.value.toLowerCase();
+                const filteredUsers = allUsers.filter(user =>
+                    (user.username && user.username.toLowerCase().includes(searchTerm)) ||
+                    user.userId.toLowerCase().includes(searchTerm)
+                );
+                displayUsers(filteredUsers);
+            });
+        }
+
+        // --- JCoin Requests Management ---
+        function setupJCoinRequestsListener() {
+            console.log("JCHAT_DEBUG: Setting up JCoin requests listener.");
+            const jcoinRequestsCollectionRef = collection(db, "artifacts", appId, "public", "data", "pending_jcoin_requests");
+            const q = query(jcoinRequestsCollectionRef, where("status", "==", "pending"), orderBy("timestamp", "asc"));
+
+            const unsubscribeRequests = onSnapshot(q, (querySnapshot) => {
+                if (jcoinRequestsTableBody) {
+                    jcoinRequestsTableBody.innerHTML = '';
+                    if (querySnapshot.empty) {
+                        jcoinRequestsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center;">No pending requests.</td></tr>`;
+                        return;
+                    }
+                    querySnapshot.forEach(docSnap => {
+                        const request = docSnap.data();
+                        const requestId = docSnap.id;
+                        const row = jcoinRequestsTableBody.insertRow();
+                        row.innerHTML = `
+                            <td>${request.username || 'N/A'} (${request.userId.substring(0, 8)}...)</td>
+                            <td>${request.amount}</td>
+                            <td><span class="status-badge pending">${request.status}</span></td>
+                            <td>${request.timestamp ? new Date(request.timestamp.toDate()).toLocaleString() : 'N/A'}</td>
+                            <td class="action-buttons">
+                                <button class="button-approve" data-request-id="${requestId}" data-user-id="${request.userId}" data-amount="${request.amount}">Approve</button>
+                                <button class="button-reject" data-request-id="${requestId}">Reject</button>
+                            </td>
+                        `;
+                    });
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to JCoin requests:", error);
+                if (jcoinRequestsTableBody) {
+                    jcoinRequestsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--delete-button-color);">Failed to load JCoin requests.</td></tr>`;
+                }
+            });
+            unsubscribeListeners.push(unsubscribeRequests);
+        }
+
+        document.addEventListener('click', async (event) => {
+            if (event.target.classList.contains('button-approve')) {
+                const button = event.target;
+                const requestId = button.dataset.requestId;
+                const userId = button.dataset.userId;
+                const amount = parseFloat(button.dataset.amount);
+
+                // Removed confirmation modal call
+                // const confirmed = await showConfirmationModal("Approve JCoin Request", `Are you sure you want to approve ${amount} JCoins for user ${userId}?`);
+                // if (!confirmed) return;
+
+                toggleButtonLoading(button, true);
+                showMessageBox("Approving request...", 'loading', true);
+
+                try {
+                    const requestRef = doc(db, "artifacts", appId, "public", "data", "pending_jcoin_requests", requestId);
+                    const userProfileRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+
+                    await runTransaction(db, async (transaction) => {
+                        const requestDoc = await transaction.get(requestRef);
+                        const userProfileDoc = await transaction.get(userProfileRef);
+
+                        if (!requestDoc.exists() || requestDoc.data().status !== 'pending') {
+                            throw new Error("Request not found or already processed.");
+                        }
+
+                        if (!userProfileDoc.exists()) {
+                            throw new Error("User profile not found.");
+                        }
+
+                        const currentJCoins = userProfileDoc.data().jCoins || 0;
+                        const newJCoins = currentJCoins + amount;
+
+                        transaction.update(userProfileRef, {
+                            jCoins: newJCoins,
+                            updatedAt: serverTimestamp()
+                        });
+                        transaction.update(requestRef, {
+                            status: 'approved',
+                            processedAt: serverTimestamp()
+                        });
+                    });
+                    showMessageBox("JCoin request approved!", 'success');
+                    playNotificationSound('success');
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error approving JCoin request:", error);
+                    showMessageBox(`Failed to approve: ${error.message}`, 'error');
+                    playNotificationSound('error');
+                } finally {
+                    toggleButtonLoading(button, false);
+                }
+            } else if (event.target.classList.contains('button-reject')) {
+                const button = event.target;
+                const requestId = button.dataset.requestId;
+
+                // Removed confirmation modal call
+                // const confirmed = await showConfirmationModal("Reject JCoin Request", "Are you sure you want to reject this JCoin request?");
+                // if (!confirmed) return;
+
+                toggleButtonLoading(button, true);
+                showMessageBox("Rejecting request...", 'loading', true);
+
+                try {
+                    const requestRef = doc(db, "artifacts", appId, "public", "data", "pending_jcoin_requests", requestId);
+                    await updateDoc(requestRef, {
+                        status: 'rejected',
+                        processedAt: serverTimestamp()
+                    });
+                    showMessageBox("JCoin request rejected!", 'info');
+                    playNotificationSound('info');
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error rejecting JCoin request:", error);
+                    showMessageBox(`Failed to reject: ${error.message}`, 'error');
+                    playNotificationSound('error');
+                } finally {
+                    toggleButtonLoading(button, false);
+                }
+            }
+        });
+
+        // --- Pending Activity Rewards Management ---
+        function setupActivityRewardsListener() {
+            console.log("JCHAT_DEBUG: Setting up activity rewards listener.");
+            const activityRewardsCollectionRef = collection(db, "artifacts", appId, "public", "data", "pending_activity_rewards");
+            const q = query(activityRewardsCollectionRef, where("status", "==", "pending"), orderBy("timestamp", "asc"));
+
+            const unsubscribeRewards = onSnapshot(q, (querySnapshot) => {
+                if (activityRewardsTableBody) {
+                    activityRewardsTableBody.innerHTML = '';
+                    if (querySnapshot.empty) {
+                        activityRewardsTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">No pending rewards.</td></tr>`;
+                        return;
+                    }
+                    querySnapshot.forEach(docSnap => {
+                        const reward = docSnap.data();
+                        const rewardId = docSnap.id;
+                        const row = activityRewardsTableBody.insertRow();
+                        row.innerHTML = `
+                            <td>${reward.username || 'N/A'} (${reward.userId.substring(0, 8)}...)</td>
+                            <td>${reward.activityType.replace(/_/g, ' ')}</td>
+                            <td>${reward.suggestedXpReward}</td>
+                            <td>${reward.suggestedJCoinReward}</td>
+                            <td><span class="status-badge pending">${reward.status}</span></td>
+                            <td>${reward.timestamp ? new Date(reward.timestamp.toDate()).toLocaleString() : 'N/A'}</td>
+                            <td class="action-buttons">
+                                <button class="button-approve-reward" data-reward-id="${rewardId}" data-user-id="${reward.userId}" data-xp="${reward.suggestedXpReward}" data-jcoin="${reward.suggestedJCoinReward}">Approve</button>
+                                <button class="button-reject-reward" data-reward-id="${rewardId}">Reject</button>
+                            </td>
+                        `;
+                    });
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to activity rewards:", error);
+                if (activityRewardsTableBody) {
+                    activityRewardsTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--delete-button-color);">Failed to load activity rewards.</td></tr>`;
+                }
+            });
+            unsubscribeListeners.push(unsubscribeRewards);
+        }
+
+        document.addEventListener('click', async (event) => {
+            if (event.target.classList.contains('button-approve-reward')) {
+                const button = event.target;
+                const rewardId = button.dataset.rewardId;
+                const userId = button.dataset.userId;
+                const xpAmount = parseInt(button.dataset.xp);
+                const jcoinAmount = parseInt(button.dataset.jcoin);
+
+                // Removed confirmation modal call
+                // const confirmed = await showConfirmationModal("Approve Activity Reward", `Are you sure you want to approve ${xpAmount} XP and ${jcoinAmount} JCoins for user ${userId}?`);
+                // if (!confirmed) return;
+
+                toggleButtonLoading(button, true);
+                showMessageBox("Approving reward...", 'loading', true);
+
+                try {
+                    const rewardRef = doc(db, "artifacts", appId, "public", "data", "pending_activity_rewards", rewardId);
+                    const userProfileRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+
+                    await runTransaction(db, async (transaction) => {
+                        const rewardDoc = await transaction.get(rewardRef);
+                        const userProfileDoc = await transaction.get(userProfileRef);
+
+                        if (!rewardDoc.exists() || rewardDoc.data().status !== 'pending') {
+                            throw new Error("Reward not found or already processed.");
+                        }
+
+                        if (!userProfileDoc.exists()) {
+                            throw new Error("User profile not found.");
+                        }
+
+                        const userData = userProfileDoc.data();
+                        let currentXp = userData.currentXp || 0;
+                        let currentLevel = userData.level || 1;
+                        let currentJCoins = userData.jCoins || 0;
+
+                        const newXpTotal = currentXp + xpAmount;
+                        const { level: newLevel, currentXp: remainingXp, xpNeededForNextLevel } = calculateLevelAndXP(newXpTotal);
+                        const newJCoins = currentJCoins + jcoinAmount;
+
+                        transaction.update(userProfileRef, {
+                            currentXp: remainingXp,
+                            level: newLevel,
+                            xpToNextLevel: xpNeededForNextLevel,
+                            jCoins: newJCoins,
+                            updatedAt: serverTimestamp()
+                        });
+                        transaction.update(rewardRef, {
+                            status: 'approved',
+                            processedAt: serverTimestamp()
+                        });
+                    });
+                    showMessageBox("Activity reward approved!", 'success');
+                    playNotificationSound('success');
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error approving activity reward:", error);
+                    showMessageBox(`Failed to approve: ${error.message}`, 'error');
+                    playNotificationSound('error');
+                } finally {
+                    toggleButtonLoading(button, false);
+                }
+            } else if (event.target.classList.contains('button-reject-reward')) {
+                const button = event.target;
+                const rewardId = button.dataset.rewardId;
+
+                // Removed confirmation modal call
+                // const confirmed = await showConfirmationModal("Reject Activity Reward", "Are you sure you want to reject this activity reward?");
+                // if (!confirmed) return;
+
+                toggleButtonLoading(button, true);
+                showMessageBox("Rejecting reward...", 'loading', true);
+
+                try {
+                    const rewardRef = doc(db, "artifacts", appId, "public", "data", "pending_activity_rewards", rewardId);
+                    await updateDoc(rewardRef, {
+                        status: 'rejected',
+                        processedAt: serverTimestamp()
+                    });
+                    showMessageBox("Activity reward rejected!", 'info');
+                    playNotificationSound('info');
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error rejecting activity reward:", error);
+                    showMessageBox(`Failed to reject: ${error.message}`, 'error');
+                    playNotificationSound('error');
+                } finally {
+                    toggleButtonLoading(button, false);
+                }
+            }
+        });
+
+        // --- Bottom Navigation Bar Toggle Logic ---
+        function toggleNavBarVisibility() {
+            const toggleIcon = navToggleBtn.querySelector('i');
+            const isHidden = bottomNavBar.classList.toggle('nav-bar-hidden-full');
+
+            if (isHidden) {
+                toggleIcon.classList.remove('fa-chevron-down');
+                toggleIcon.classList.add('fa-chevron-up');
+            } else {
+                toggleIcon.classList.remove('fa-chevron-up');
+                toggleIcon.classList.add('fa-chevron-down');
+            }
+        }
+
+        function showSection(sectionId) {
+            adminSections.forEach(section => {
+                section.style.display = 'none';
+            });
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.style.display = 'flex'; // Use flex for admin sections
             }
 
-            const confirmed = await showConfirmationModal(
-                "Confirm Clear Client Cache",
-                "Are you sure you want to trigger a client-side cache clear for all users? This will force a refresh for them."
-            );
-            if (!confirmed) {
-                return;
-            }
-
-            toggleButtonLoading(clearClientCacheBtn, true);
-            showMessageBox("Triggering client cache clear...", 'loading', true);
-
-            try {
-                // In a real application, this would involve:
-                // 1. Updating a 'cache_version' field in system_settings.
-                // 2. Client-side code (e.g., in service worker or main app.js) listening for this change.
-                // 3. When change detected, forcing a cache clear and page reload.
-                // For this demo, we'll just simulate and reload the current page.
-
-                // Simulate updating a timestamp to signal clients to clear cache
-                await updateDoc(SYSTEM_SETTINGS_DOC_REF, {
-                    forceClientCacheClearTimestamp: serverTimestamp(),
-                    lastUpdated: serverTimestamp(),
-                    updatedByAdminId: currentUser.uid,
-                    updatedByAdminUsername: currentUserProfileData?.username || 'Admin'
-                });
-
-                showMessageBox("Client cache clear signal sent. Users will refresh shortly.", 'success');
-                playNotificationSound('success');
-                // For demonstration, force a reload of the admin page
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error clearing client cache:", error);
-                showMessageBox(`Failed to clear client cache: ${error.message}`, 'error');
-                playNotificationSound('error');
-            } finally {
-                toggleButtonLoading(clearClientCacheBtn, false);
-            }
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.section === sectionId) {
+                    item.classList.add('active');
+                }
+            });
+            // Scroll to the top of the main content area
+            document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
+            console.log("JCHAT_DEBUG: onAuthStateChanged triggered. User:", user ? user.uid : "null");
             if (user) {
                 currentUser = user;
-                isAuthReady = true;
-                await fetchAndDisplayHeaderProfile(user);
-                fetchNotificationCount(user.uid);
-
+                if (currentUser.uid === ADMIN_UID) {
+                    isAuthReady = true;
+                    console.log("JCHAT_DEBUG: Admin user authenticated.");
+                    setupSystemSettingsListener();
+                    setupUserManagementListener();
+                    setupJCoinRequestsListener();
+                    setupActivityRewardsListener();
+                    // Show default section on load
+                    showSection('systemSettingsSection');
+                } else {
+                    console.warn("JCHAT_WARNING: Non-admin user attempted to access admin page. Redirecting.");
+                    showMessageBox("Access Denied: You are not authorized to view this page.", 'error');
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                }
             } else {
+                console.log("JCHAT_DEBUG: No user signed in. Attempting custom token sign-in.");
                 try {
                     if (initialAuthToken) {
                         await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("JCHAT_DEBUG: Signed in with custom token.");
                     } else {
-                        await signInAnonymously(auth);
+                        console.warn("JCHAT_WARNING: No initial auth token found. Redirecting to login.");
+                        window.location.href = '/login.html';
                     }
                 } catch (error) {
-                    console.error("JCHAT_ERROR: Error during anonymous sign-in or custom token sign-in:", error);
-                    if (!auth.currentUser) {
-                        isAuthReady = false;
-                        currentUser = null;
-                        logoutButton.disabled = true;
-                        headerDisplayName.textContent = "Guest";
-                        headerProfilePic.style.display = 'none';
-                        headerAvatarIcon.style.display = 'block';
-                        adminIconLink.style.display = 'none';
-                        accessDeniedMessage.textContent = "Please log in as an administrator to access this page.";
-                        accessDeniedMessage.style.display = 'block';
-                        adminSettingsSections.style.display = 'none';
-                        showMessageBox("You must be logged in to access this page.", 'error', true);
-                        setTimeout(() => {
-                            window.location.href = '/login.html';
-                        }, 2000);
-                    }
+                    console.error("JCHAT_ERROR: Error during custom token sign-in:", error);
+                    showMessageBox("Authentication failed. Redirecting to login.", 'error');
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
                 }
             }
         });
 
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Apply theme on load
             const savedTheme = localStorage.getItem('jchat-theme');
             const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
             if (savedTheme && themes.includes(savedTheme)) {
-                document.body.classList.remove(...themes);
                 document.body.classList.add(savedTheme);
             } else {
-                document.body.classList.remove(...themes);
-                document.body.classList.add('theme-dark-mode');
+                document.body.classList.add('theme-dark-mode'); // Default theme
             }
 
-            // Settings Save Buttons
-            if (saveGeneralSettingsBtn) {
-                saveGeneralSettingsBtn.addEventListener('click', saveGeneralSettings);
-            }
-            if (saveFeatureTogglesBtn) {
-                saveFeatureTogglesBtn.addEventListener('click', saveFeatureToggles);
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+            if (saveSettingsButton) saveSettingsButton.addEventListener('click', saveSystemSettings);
+
+            // Bottom Navigation Bar Toggle
+            if (navToggleBtn) navToggleBtn.addEventListener('click', toggleNavBarVisibility);
+
+            // Set initial state: nav bar is HIDDEN by default in admin page, icon points UP
+            if (bottomNavBar) bottomNavBar.classList.add('nav-bar-hidden-full');
+            if (navToggleBtn) {
+                const toggleIcon = navToggleBtn.querySelector('i');
+                if (toggleIcon) {
+                    toggleIcon.classList.remove('fa-chevron-down');
+                    toggleIcon.classList.add('fa-chevron-up');
+                }
             }
 
-            // Maintenance Buttons (NEW)
-            if (toggleMaintenanceModeBtn) {
-                toggleMaintenanceModeBtn.addEventListener('click', toggleMaintenanceMode);
-            }
-            if (clearClientCacheBtn) {
-                clearClientCacheBtn.addEventListener('click', clearClientCache);
-            }
 
-            // Logout
-            if (logoutButton) {
-                logoutButton.addEventListener('click', handleLogout);
-            }
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sectionId = item.dataset.section;
+                    showSection(sectionId);
+                });
+            });
         });
 
         window.addEventListener('storage', (event) => {
@@ -1843,6 +1850,18 @@
                 }
             }
         });
+
+        window.addEventListener('beforeunload', () => {
+            // Detach all Firestore listeners before the page unloads
+            unsubscribeListeners.forEach(unsubscribe => {
+                if (typeof unsubscribe === 'function') {
+                    unsubscribe();
+                }
+            });
+            unsubscribeListeners = []; // Clear the array
+            console.log("JCHAT_DEBUG: All Firestore listeners detached.");
+        });
+
     </script>
 </body>
 </html>
