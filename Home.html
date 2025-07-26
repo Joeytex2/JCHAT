@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1440,6 +1441,55 @@
             background: linear-gradient(45deg, var(--pink), var(--blue)); /* Reverse gradient on hover */
         }
 
+        /* NEW: Maintenance Mode Overlay */
+        #maintenanceOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9); /* Darker overlay */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000; /* Ensure it's on top of everything */
+            color: var(--white);
+            text-align: center;
+            padding: 20px;
+            backdrop-filter: blur(8px); /* Subtle blur effect */
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #maintenanceOverlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #maintenanceOverlay i {
+            font-size: 5rem;
+            color: var(--warning-color); /* Use warning color for icon */
+            margin-bottom: 20px;
+        }
+
+        #maintenanceOverlay h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--warning-color); /* Use warning color for heading */
+            margin-bottom: 10px;
+        }
+
+        #maintenanceOverlay p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            max-width: 600px;
+            color: var(--text-light);
+        }
+
+
         /* Responsive Adjustments */
         @media (max-width: 600px) {
             header .header-content-wrapper {
@@ -1561,6 +1611,17 @@
                 width: 100%;
                 padding: 20px 10px; /* Adjust padding */
             }
+
+            /* Maintenance Overlay on Mobile */
+            #maintenanceOverlay h2 {
+                font-size: 2rem;
+            }
+            #maintenanceOverlay p {
+                font-size: 1rem;
+            }
+            #maintenanceOverlay i {
+                font-size: 4rem;
+            }
         }
     </style>
 </head>
@@ -1619,7 +1680,7 @@
             </div>
 
             <!-- Post Creation Section -->
-            <div class="post-creation-section">
+            <div class="post-creation-section" id="postCreationSection">
                 <h3>Create New Post</h3>
                 <textarea id="postContent" placeholder="What's on your mind?" maxlength="50000" disabled></textarea>
                 <div class="media-upload-area">
@@ -1717,6 +1778,13 @@
     <!-- Custom Message Box -->
     <div id="messageBox"></div>
 
+    <!-- NEW: Maintenance Mode Overlay -->
+    <div id="maintenanceOverlay">
+        <i class="fas fa-tools"></i>
+        <h2>Maintenance Mode</h2>
+        <p id="maintenanceAnnouncementText">JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!</p>
+    </div>
+
     <!-- Sidebar Navigation -->
     <aside id="sidebarNav" class="sidebar-hidden">
         <div class="sidebar-header">
@@ -1734,29 +1802,33 @@
                 <i class="fas fa-user"></i>
                 <span>Profile</span>
             </a>
-            <a href="/chat.html" class="sidebar-nav-item">
+            <a href="/chat.html" class="sidebar-nav-item" id="chatLink">
                 <i class="fas fa-comment-dots"></i>
                 <span>Chat</span>
             </a>
-            <a href="/find_friends.html" class="sidebar-nav-item">
+            <a href="/find_friends.html" class="sidebar-nav-item" id="findFriendsLink">
                 <i class="fas fa-users"></i>
                 <span>Users</span>
             </a>
-            <a href="/friends.html" class="sidebar-nav-item">
+            <a href="/friends.html" class="sidebar-nav-item" id="friendsLink">
                 <i class="fas fa-user-friends"></i>
                 <span>Friends</span>
             </a>
-            <a href="/groups.html" class="sidebar-nav-item">
+            <a href="/groups.html" class="sidebar-nav-item" id="groupsLink">
                 <i class="fas fa-layer-group"></i> <!-- New Groups icon -->
                 <span>Groups</span>
             </a>
-            <a href="/jcoin_shop.html" class="sidebar-nav-item">
+            <a href="/jcoin_shop.html" class="sidebar-nav-item" id="jcoinShopLink">
                 <i class="fas fa-store"></i>
                 <span>Shop</span>
             </a>
             <a href="/settings.html" class="sidebar-nav-item">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
+            </a>
+            <a href="/solution_center.html" class="sidebar-nav-item">
+                <i class="fas fa-question-circle"></i>
+                <span>Solution Center</span>
             </a>
             <!-- New: Logout Link in Sidebar -->
             <a href="#" id="sidebarLogoutLink" class="sidebar-nav-item">
@@ -1798,6 +1870,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // --- ADMIN UID ---
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // The specific UID for the administrator
+
         // --- DOM Elements ---
         const headerProfilePic = document.getElementById('headerProfilePic');
         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
@@ -1817,6 +1892,7 @@
         const cancelCustomizeButton = document.getElementById('cancelCustomize');
         const saveCustomizeButton = document.getElementById('saveCustomize');
 
+        const postCreationSection = document.getElementById('postCreationSection'); // NEW
         const postContentInput = document.getElementById('postContent');
         const postMediaUpload = document.getElementById('postMediaUpload');
         const mediaImagePreview = document.getElementById('mediaImagePreview');
@@ -1849,6 +1925,17 @@
         const sidebarNavItems = document.querySelectorAll('.sidebar-nav-item');
         const sidebarLogoutLink = document.getElementById('sidebarLogoutLink');
 
+        // NEW: Feature toggle related sidebar links
+        const chatLink = document.getElementById('chatLink');
+        const findFriendsLink = document.getElementById('findFriendsLink');
+        const friendsLink = document.getElementById('friendsLink');
+        const groupsLink = document.getElementById('groupsLink');
+        const jcoinShopLink = document.getElementById('jcoinShopLink');
+
+        // NEW: Maintenance Overlay elements
+        const maintenanceOverlay = document.getElementById('maintenanceOverlay');
+        const maintenanceAnnouncementText = document.getElementById('maintenanceAnnouncementText');
+
 
         // --- Global State ---
         let currentUser = null;
@@ -1862,6 +1949,8 @@
         let currentEditMediaType = null;
         let isAuthReady = false;
         let unsubscribeListeners = []; // Array to store all onSnapshot unsubscribe functions
+        let currentSystemSettings = {}; // NEW: Store system settings
+
 
         // --- Theme Management Variables ---
         const themes = [
@@ -1959,7 +2048,7 @@
             } else if (level <= 50) {
                 xpToNextLevel = (((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (level - 20) * 2000;
             } else if (level <= 100) {
-                xpToNextLevel = ((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (50 - 20) * 2000) + (level - 50) * 5000;
+                xpToNextLevel = ((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 2000) + (50 - 20) * 2000) + (level - 50) * 5000;
             } else if (level <= 500) {
                 xpToNextLevel = (((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (50 - 20) * 5000) + (100 - 50) * 5000) + (level - 100) * 10000;
             } else {
@@ -2456,34 +2545,19 @@
             }
         }
 
+        // NEW: Function to enable/disable all interactive elements
         function toggleInteractiveElements(enable) {
             console.log(`JCHAT_DEBUG: toggleInteractiveElements called with enable: ${enable}`);
 
-            if (sharePostInspirationButton) {
-                sharePostInspirationButton.disabled = !enable;
-                console.log(`JCHAT_DEBUG: sharePostInspirationButton disabled: ${sharePostInspirationButton.disabled}`);
-            }
-            if (customizeInspirationButton) {
-                customizeInspirationButton.disabled = !enable;
-                console.log(`JCHAT_DEBUG: customizeInspirationButton disabled: ${customizeInspirationButton.disabled}`);
-            }
+            // Main content buttons/inputs
+            if (sharePostInspirationButton) sharePostInspirationButton.disabled = !enable;
+            if (customizeInspirationButton) customizeInspirationButton.disabled = !enable;
+            if (claimDailyBonusButton) claimDailyBonusButton.disabled = !enable; // Handled by its own logic, but as a fallback
+            if (postContentInput) postContentInput.disabled = !enable;
+            if (postMediaUpload) postMediaUpload.disabled = !enable;
+            if (createPostButton) createPostButton.disabled = !enable;
 
-            if (postContentInput) {
-                postContentInput.disabled = !enable;
-                console.log(`JCHAT_DEBUG: postContentInput disabled: ${postContentInput.disabled}`);
-            }
-            if (postMediaUpload) {
-                postMediaUpload.disabled = !enable;
-                console.log(`JCHAT_DEBUG: postMediaUpload disabled: ${postMediaUpload.disabled}`);
-            }
-            if (createPostButton) {
-                createPostButton.disabled = !enable;
-                console.log(`JCHAT_DEBUG: createPostButton disabled: ${createPostButton.disabled}`);
-            }
-
-            // For dynamically created elements like comment inputs, their disabled state
-            // is set during rendering and managed by event delegation.
-            // Ensure any existing comment inputs are also updated if this is called after initial render.
+            // Dynamically created elements (posts, comments)
             document.querySelectorAll('.comment-input').forEach(input => {
                 input.disabled = !enable;
             });
@@ -2511,6 +2585,32 @@
             document.querySelectorAll('.delete-comment-button').forEach(button => {
                 button.disabled = !enable;
             });
+
+            // Modals (buttons within modals)
+            if (cancelCustomizeButton) cancelCustomizeButton.disabled = !enable;
+            if (saveCustomizeButton) saveCustomizeButton.disabled = !enable;
+            if (editPostContentInput) editPostContentInput.disabled = !enable;
+            if (editPostMediaUpload) editPostMediaUpload.disabled = !enable;
+            if (removeEditMediaButton) removeEditMediaButton.disabled = !enable;
+            if (cancelEditPostButton) cancelEditPostButton.disabled = !enable;
+            if (saveEditedPostButton) saveEditedPostButton.disabled = !enable;
+            if (confirmCancelButton) confirmCancelButton.disabled = !enable;
+            if (confirmProceedButton) confirmProceedButton.disabled = !enable;
+
+            // Sidebar links (only if they correspond to features that can be toggled)
+            // Note: Login/Logout/Settings/Profile/Home/Solution Center should generally always be accessible
+            if (chatLink) chatLink.style.pointerEvents = enable ? 'auto' : 'none';
+            if (chatLink) chatLink.style.opacity = enable ? '1' : '0.5';
+            if (findFriendsLink) findFriendsLink.style.pointerEvents = enable ? 'auto' : 'none';
+            if (findFriendsLink) findFriendsLink.style.opacity = enable ? '1' : '0.5';
+            if (friendsLink) friendsLink.style.pointerEvents = enable ? 'auto' : 'none';
+            if (friendsLink) friendsLink.style.opacity = enable ? '1' : '0.5';
+            if (groupsLink) groupsLink.style.pointerEvents = enable ? 'auto' : 'none';
+            if (groupsLink) groupsLink.style.opacity = enable ? '1' : '0.5';
+            if (jcoinShopLink) jcoinShopLink.style.pointerEvents = enable ? 'auto' : 'none';
+            if (jcoinShopLink) jcoinShopLink.style.opacity = enable ? '1' : '0.5';
+
+            console.log(`JCHAT_DEBUG: Finished toggling interactive elements. Post content input disabled state: ${postContentInput ? postContentInput.disabled : 'N/A (element not found)'}`);
         }
 
         async function handleLogout() {
@@ -2651,7 +2751,7 @@
 
                 startInspirationDisplay(currentUserProfileData.inspirationType || "motivational");
                 await fetchNotificationCount(user.uid);
-                toggleInteractiveElements(true); // Enable elements after successful profile load
+                // toggleInteractiveElements(true); // This will be handled by applySystemSettings now
                 console.log(`JCHAT_DEBUG: isAuthReady set to true. Post content input disabled state: ${postContentInput ? postContentInput.disabled : 'N/A (element not found)'}`);
 
 
@@ -2812,6 +2912,12 @@
                 return;
             }
 
+            // NEW: Check if post creation is enabled by system settings
+            if (!currentSystemSettings.enablePostCreation) {
+                showMessageBox("Post creation is currently disabled by administrators.", 'warning');
+                return;
+            }
+
             const content = postContentInput.value.trim();
             if (!content && !currentMediaFile) {
                 showMessageBox("Post content or media cannot be empty.", 'info');
@@ -2912,6 +3018,11 @@
                 showMessageBox("You must be logged in to react.", 'error');
                 return;
             }
+            // NEW: Check if public chat/interactions are enabled
+            if (!currentSystemSettings.enablePublicChat) { // Assuming reactions fall under public chat/interaction
+                showMessageBox("Reactions are currently disabled by administrators.", 'warning');
+                return;
+            }
 
             const postRef = doc(db, "artifacts", appId, "public", "data", "posts", postId);
             const userReactionRef = doc(db, "artifacts", appId, "public", "data", "posts", postId, "userReactions", currentUser.uid);
@@ -2990,6 +3101,12 @@
                 showMessageBox("You must be logged in to comment.", 'error');
                 return;
             }
+            // NEW: Check if public chat/interactions are enabled
+            if (!currentSystemSettings.enablePublicChat) { // Assuming comments fall under public chat/interaction
+                showMessageBox("Commenting is currently disabled by administrators.", 'warning');
+                return;
+            }
+
             if (!commentText.trim()) {
                 showMessageBox("Comment cannot be empty.", 'info');
                 return;
@@ -3050,6 +3167,11 @@
                 showMessageBox("You can only delete your own comments.", 'error');
                 return;
             }
+            // NEW: Check if public chat/interactions are enabled
+            if (!currentSystemSettings.enablePublicChat) { // Assuming comment deletion falls under public chat/interaction
+                showMessageBox("Commenting is currently disabled by administrators, so deletion is also restricted.", 'warning');
+                return;
+            }
 
             const confirmed = await showConfirmationModal(
                 "Delete Comment",
@@ -3093,6 +3215,12 @@
                 showMessageBox("You must be logged in to edit posts.", 'error');
                 return;
             }
+            // NEW: Check if post creation (and thus editing) is enabled
+            if (!currentSystemSettings.enablePostCreation) {
+                showMessageBox("Post editing is currently disabled by administrators.", 'warning');
+                return;
+            }
+
             currentEditPostId = postId;
             if (editPostContentInput) editPostContentInput.value = currentContent;
             currentEditMediaUrl = currentMediaUrl;
@@ -3173,6 +3301,11 @@
                 showMessageBox("No post selected for editing.", 'error');
                 return;
             }
+            // NEW: Check if post creation (and thus editing) is enabled
+            if (!currentSystemSettings.enablePostCreation) {
+                showMessageBox("Post editing is currently disabled by administrators.", 'warning');
+                return;
+            }
 
             const newContent = editPostContentInput.value.trim();
             if (!newContent && !currentEditMediaFile && !currentEditMediaUrl) {
@@ -3246,6 +3379,11 @@
         async function deletePost(postId, postAuthorId) {
             if (!isAuthReady || !currentUser || currentUser.uid !== postAuthorId) {
                 showMessageBox("You can only delete your own posts.", 'error');
+                return;
+            }
+            // NEW: Check if post creation (and thus deletion) is enabled
+            if (!currentSystemSettings.enablePostCreation) {
+                showMessageBox("Post deletion is currently disabled by administrators.", 'warning');
                 return;
             }
 
@@ -3331,17 +3469,17 @@
                         <p class="post-timestamp">${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}</p>
                     </div>
                     ${isAuthor ? `
-                    <button class="post-options-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}>
+                    <button class="post-options-button" data-post-id="${postId}" ${!isAuthReady || !currentSystemSettings.enablePostCreation ? 'disabled' : ''}>
                         <i class="fas fa-ellipsis-h"></i>
                     </button>
                     <div class="post-options-dropdown" id="dropdown-${postId}">
-                        <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady ? 'disabled' : ''}>
+                        <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady || !currentSystemSettings.enablePostCreation ? 'disabled' : ''}>
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="delete-post-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady ? 'disabled' : ''}>
+                        <button class="delete-post-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady || !currentSystemSettings.enablePostCreation ? 'disabled' : ''}>
                             <i class="fas fa-trash-alt"></i> Delete
                         </button>
-                        <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady ? 'disabled' : ''}>
+                        <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady || !currentSystemSettings.enablePostCreation ? 'disabled' : ''}>
                             <i class="fas fa-share"></i> Share
                         </button>
                     </div>
@@ -3366,16 +3504,16 @@
                     <span><span class="comments-count">${post.commentsCount || 0}</span> Comments</span>
                 </div>
                 <div class="post-actions-row">
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" ${!isAuthReady ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}>
                         <i class="fas fa-thumbs-up"></i> Like
                     </button>
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="love" ${!isAuthReady ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="love" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}>
                         <i class="fas fa-heart"></i> Love
                     </button>
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="haha" ${!isAuthReady ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="haha" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}>
                         <i class="fas fa-face-laugh"></i> Haha
                     </button>
-                    <button class="post-action-button comment-toggle-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}>
+                    <button class="post-action-button comment-toggle-button" data-post-id="${postId}" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}>
                         <i class="fas fa-comment"></i> Comment
                     </button>
                 </div>
@@ -3384,8 +3522,8 @@
                         <p style="font-size:0.85rem; color:var(--text-light); text-align:left; margin-left:10px;" class="no-comments-message">No comments yet.</p>
                     </div>
                     <div class="comment-input-area">
-                        <textarea placeholder="Write a comment..." class="comment-input" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}></textarea>
-                        <button class="submit-comment-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}>Post</button>
+                        <textarea placeholder="Write a comment..." class="comment-input" data-post-id="${postId}" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}></textarea>
+                        <button class="submit-comment-button" data-post-id="${postId}" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}>Post</button>
                     </div>
                 </div>
             `;
@@ -3412,7 +3550,7 @@
                     <a href="/profile.html?userId=${comment.userId}" class="comment-author-name">${comment.username || 'Anonymous'}</a>
                     <span class="comment-text">${comment.content}</span>
                     <span class="comment-timestamp">${comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
-                    ${isCommentOwner ? `<button class="delete-comment-button" data-post-id="${postId}" data-comment-id="${commentId}" data-comment-author-id="${comment.userId}" ${!isAuthReady ? 'disabled' : ''}><i class="fas fa-trash-alt"></i></button>` : ''}
+                    ${isCommentOwner ? `<button class="delete-comment-button" data-post-id="${postId}" data-comment-id="${commentId}" data-comment-author-id="${comment.userId}" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
             `;
             return commentElement;
@@ -3512,8 +3650,8 @@
                         // Always ensure comment inputs and buttons are enabled/disabled based on current auth state
                         const commentInput = postElement.querySelector('.comment-input');
                         const submitCommentButton = postElement.querySelector('.submit-comment-button');
-                        if (commentInput) commentInput.disabled = !isAuthReady;
-                        if (submitCommentButton) submitCommentButton.disabled = !isAuthReady;
+                        if (commentInput) commentInput.disabled = !isAuthReady || !currentSystemSettings.enablePublicChat;
+                        if (submitCommentButton) submitCommentButton.disabled = !isAuthReady || !currentSystemSettings.enablePublicChat;
 
 
                         // Setup onSnapshot for comments for this specific post
@@ -3539,6 +3677,10 @@
                                         commentsListElement.appendChild(renderComment(comment, commentId, postId));
                                     });
                                 }
+                                // Re-apply disabled state to delete comment buttons after rendering
+                                commentsListElement.querySelectorAll('.delete-comment-button').forEach(button => {
+                                    button.disabled = !isAuthReady || !currentSystemSettings.enablePublicChat;
+                                });
                             });
                             unsubscribeListeners.push(unsubscribeComments);
                             commentsListElement.dataset.listenerAttached = 'true'; // Mark listener as attached
@@ -3602,6 +3744,9 @@
                     }
 
                     if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
+                    // After posts are rendered/updated, apply system settings to their interactive elements
+                    applySystemSettings(currentSystemSettings);
+
                 });
                 unsubscribeListeners.push(unsubscribePosts); // Add the main posts listener to the unsubscribe list
 
@@ -3620,6 +3765,7 @@
             if (event.target.closest('.react-button')) {
                 const button = event.target.closest('.react-button');
                 if (!isAuthReady) { showMessageBox("Please log in to react.", 'error'); return; }
+                if (!currentSystemSettings.enablePublicChat) { showMessageBox("Reactions are currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const reactionType = button.dataset.reactionType;
                 handleReaction(postId, reactionType);
@@ -3627,7 +3773,6 @@
             // Handle Comment Toggle Buttons
             else if (event.target.closest('.comment-toggle-button')) {
                 const button = event.target.closest('.comment-toggle-button');
-                const postId = button.dataset.postId;
                 const commentsSection = button.closest('.post-card').querySelector('.comments-section');
                 if (commentsSection) {
                     commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
@@ -3637,6 +3782,7 @@
             else if (event.target.closest('.submit-comment-button')) {
                 const button = event.target.closest('.submit-comment-button');
                 if (!isAuthReady) { showMessageBox("Please log in to comment.", 'error'); return; }
+                if (!currentSystemSettings.enablePublicChat) { showMessageBox("Commenting is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const commentInput = button.closest('.comment-input-area').querySelector('.comment-input');
                 addComment(postId, commentInput.value);
@@ -3646,6 +3792,7 @@
             else if (event.target.closest('.post-options-button')) {
                 const button = event.target.closest('.post-options-button');
                 if (!isAuthReady) { showMessageBox("Please log in to manage posts.", 'error'); return; }
+                if (!currentSystemSettings.enablePostCreation) { showMessageBox("Post management is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const dropdown = document.getElementById(`dropdown-${postId}`);
                 document.querySelectorAll('.post-options-dropdown.active').forEach(openDropdown => {
@@ -3660,6 +3807,7 @@
             else if (event.target.closest('.edit-post-button')) {
                 const button = event.target.closest('.edit-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to edit posts.", 'error'); return; }
+                if (!currentSystemSettings.enablePostCreation) { showMessageBox("Post editing is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const content = button.dataset.content;
                 const mediaUrl = button.dataset.mediaUrl;
@@ -3672,6 +3820,7 @@
             else if (event.target.closest('.delete-post-button')) {
                 const button = event.target.closest('.delete-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to delete posts.", 'error'); return; }
+                if (!currentSystemSettings.enablePostCreation) { showMessageBox("Post deletion is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const authorId = button.dataset.authorId;
                 deletePost(postId, authorId);
@@ -3682,6 +3831,7 @@
             else if (event.target.closest('.share-post-button')) {
                 const button = event.target.closest('.share-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to share posts.", 'error'); return; }
+                if (!currentSystemSettings.enablePostCreation) { showMessageBox("Post sharing is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const content = button.dataset.content;
                 showMessageBox(`You can share/post this: ${content.substring(0, 50)}...`, 'info');
@@ -3692,6 +3842,7 @@
             else if (event.target.closest('.delete-comment-button')) {
                 const button = event.target.closest('.delete-comment-button');
                 if (!isAuthReady) { showMessageBox("Please log in to delete comments.", 'error'); return; }
+                if (!currentSystemSettings.enablePublicChat) { showMessageBox("Comment deletion is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const commentId = button.dataset.commentId;
                 const commentAuthorId = button.dataset.commentAuthorId;
@@ -3705,19 +3856,172 @@
             }
         });
 
+        // NEW: System Settings Logic
+        const SYSTEM_SETTINGS_DOC_REF = doc(db, "artifacts", appId, "public", "data", "settings", "system_settings");
+
+        async function fetchSystemSettings() {
+            console.log("JCHAT_DEBUG: Fetching system settings...");
+            try {
+                const docSnap = await getDoc(SYSTEM_SETTINGS_DOC_REF);
+                if (docSnap.exists()) {
+                    currentSystemSettings = docSnap.data();
+                    console.log("JCHAT_DEBUG: System settings fetched:", currentSystemSettings);
+                } else {
+                    console.warn("JCHAT_WARNING: System settings document not found. Initializing with default values.");
+                    currentSystemSettings = {
+                        jcoinNairaRate: 7.5,
+                        gasJcoinRate: 0.1,
+                        dailyBonusAmount: 50,
+                        defaultInspirationType: "motivational",
+                        profanityFilterSensitivity: 5,
+                        enableUserRegistration: true,
+                        enableFriendRequests: true,
+                        enablePublicChat: true,
+                        enablePostCreation: true,
+                        enableEmailNotifications: true,
+                        maintenanceMode: false,
+                        globalAnnouncement: ""
+                    };
+                    await setDoc(SYSTEM_SETTINGS_DOC_REF, currentSystemSettings);
+                    console.log("JCHAT_DEBUG: Default system settings created.");
+                }
+                applySystemSettings(currentSystemSettings); // Apply settings immediately
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching system settings:", error);
+                showMessageBox(`Failed to load system settings: ${error.message}`, 'error', true);
+            }
+        }
+
+        // NEW: Function to apply system settings to UI elements
+        function applySystemSettings(settings) {
+            console.log("JCHAT_DEBUG: Applying system settings to UI:", settings);
+
+            // Maintenance Mode
+            if (settings.maintenanceMode) {
+                if (maintenanceOverlay) {
+                    maintenanceOverlay.classList.add('active');
+                    if (maintenanceAnnouncementText) {
+                        maintenanceAnnouncementText.textContent = settings.globalAnnouncement || "JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!";
+                    }
+                }
+                toggleInteractiveElements(false); // Disable all interactions
+                // Also disable scrolling
+                document.body.style.overflow = 'hidden';
+            } else {
+                if (maintenanceOverlay) {
+                    maintenanceOverlay.classList.remove('active');
+                }
+                toggleInteractiveElements(true); // Enable all interactions
+                document.body.style.overflow = 'auto'; // Re-enable scrolling
+            }
+
+            // Enable/Disable Post Creation Section
+            if (postCreationSection) {
+                if (settings.enablePostCreation) {
+                    postCreationSection.style.display = 'flex'; // Show section
+                    if (postContentInput) postContentInput.disabled = false;
+                    if (postMediaUpload) postMediaUpload.disabled = false;
+                    if (createPostButton) createPostButton.disabled = false;
+                } else {
+                    postCreationSection.style.display = 'none'; // Hide section
+                    if (postContentInput) postContentInput.disabled = true;
+                    if (postMediaUpload) postMediaUpload.disabled = true;
+                    if (createPostButton) createPostButton.disabled = true;
+                }
+            }
+
+            // Enable/Disable Public Chat related interactions (reactions, comments)
+            // This is handled by disabling buttons in renderPost and addComment/handleReaction functions
+            // For the sidebar link:
+            if (chatLink) {
+                if (settings.enablePublicChat) {
+                    chatLink.style.pointerEvents = 'auto';
+                    chatLink.style.opacity = '1';
+                } else {
+                    chatLink.style.pointerEvents = 'none';
+                    chatLink.style.opacity = '0.5';
+                }
+            }
+
+            // Enable/Disable Friend Requests related links (Users, Friends)
+            if (findFriendsLink) {
+                if (settings.enableFriendRequests) {
+                    findFriendsLink.style.pointerEvents = 'auto';
+                    findFriendsLink.style.opacity = '1';
+                } else {
+                    findFriendsLink.style.pointerEvents = 'none';
+                    findFriendsLink.style.opacity = '0.5';
+                }
+            }
+            if (friendsLink) {
+                if (settings.enableFriendRequests) {
+                    friendsLink.style.pointerEvents = 'auto';
+                    friendsLink.style.opacity = '1';
+                } else {
+                    friendsLink.style.pointerEvents = 'none';
+                    friendsLink.style.opacity = '0.5';
+                }
+            }
+
+            // Other features (Groups, Shop) - assuming they are independent for now, but can be linked to settings if needed
+            // For now, they are not directly controlled by system settings on this page, but their disabled state
+            // will be affected by the overall `toggleInteractiveElements` if maintenance mode is on.
+            // If specific toggles for these exist in system_settings, they would be handled here.
+            // Example:
+            // if (groupsLink) {
+            //     if (settings.enableGroups) { // Assuming 'enableGroups' exists in settings
+            //         groupsLink.style.pointerEvents = 'auto';
+            //         groupsLink.style.opacity = '1';
+            //     } else {
+            //         groupsLink.style.pointerEvents = 'none';
+            //         groupsLink.style.opacity = '0.5';
+            //     }
+            // }
+            // if (jcoinShopLink) {
+            //     if (settings.enableJCoinShop) { // Assuming 'enableJCoinShop' exists in settings
+            //         jcoinShopLink.style.pointerEvents = 'auto';
+            //         jcoinShopLink.style.opacity = '1';
+            //     } else {
+            //         jcoinShopLink.style.pointerEvents = 'none';
+            //         jcoinShopLink.style.opacity = '0.5';
+            //     }
+            // }
+
+            // Re-evaluate daily bonus button state based on profile data and system settings
+            checkAndStartDailyBonusTimer(); // This function already considers currentUserProfileData and updates button state.
+            // If maintenance mode is on, this button will be disabled by toggleInteractiveElements(false) anyway.
+        }
+
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
             console.log("JCHAT_DEBUG: onAuthStateChanged triggered. User:", user ? user.uid : "null");
             if (user) {
                 currentUser = user;
+                isAuthReady = true; // Set to true early so profile fetching can proceed
                 await fetchAndDisplayHeaderProfile(user); // This sets currentUserProfileData and updates UI
-                isAuthReady = true; // Set to true after profile is loaded and user is confirmed
                 console.log("JCHAT_DEBUG: Auth is ready. User ID:", currentUser.uid, "isAuthReady:", isAuthReady);
 
-                checkAndStartDailyBonusTimer(); // Check bonus after profile is loaded and start timer if needed
+                // Start listening to system settings in real-time
+                const unsubscribeSettings = onSnapshot(SYSTEM_SETTINGS_DOC_REF, (docSnap) => {
+                    if (docSnap.exists()) {
+                        currentSystemSettings = docSnap.data();
+                        console.log("JCHAT_DEBUG: Real-time system settings update:", currentSystemSettings);
+                        applySystemSettings(currentSystemSettings); // Apply settings on every change
+                    } else {
+                        console.warn("JCHAT_WARNING: System settings document not found during snapshot. Re-fetching.");
+                        fetchSystemSettings(); // Re-fetch if document disappears
+                    }
+                }, (error) => {
+                    console.error("JCHAT_ERROR: Error listening to system settings:", error);
+                    showMessageBox("Failed to get real-time settings updates.", 'error', true);
+                });
+                unsubscribeListeners.push(unsubscribeSettings); // Add to list to unsubscribe on unload
+
+                await fetchSystemSettings(); // Initial fetch of system settings
                 await fetchAndDisplayPosts(); // This will setup all real-time listeners for posts and comments
                 fetchNotificationCount(user.uid);
+
 
             } else {
                 console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
@@ -3733,29 +4037,72 @@
                     console.error("JCHAT_ERROR: Error during anonymous sign-in or custom token sign-in:", error);
                     if (!auth.currentUser) {
                         window.location.href = '/login.html';
+                        return; // Stop further execution
                     }
                 }
-                isAuthReady = false;
-                toggleInteractiveElements(false); // Disable elements until a valid user is established
-                if (headerDisplayName) headerDisplayName.textContent = "Guest";
-                if (headerProfilePic) headerProfilePic.style.display = 'none';
-                if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
-                if (adminIconLink) adminIconLink.style.display = 'none'; // Ensure admin icon is hidden for guests
-                if (postsFeed) postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see posts and interact.</p>';
-                if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
-                if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Please log in to get your daily inspiration.";
-                if (inspirationAuthorElement) inspirationAuthorElement.textContent = "";
+                // If we reach here, either anonymous sign-in succeeded or custom token worked
+                // Re-check currentUser after potential anonymous sign-in
+                currentUser = auth.currentUser;
+                if (currentUser) {
+                    isAuthReady = true;
+                    await fetchAndDisplayHeaderProfile(currentUser);
+                    await fetchNotificationCount(currentUser.uid);
+                    console.log("JCHAT_DEBUG: Anonymous/Custom Token Auth successful. User ID:", currentUser.uid, "isAuthReady:", isAuthReady);
 
-                // Ensure daily bonus button is disabled and countdown is cleared for logged out state
-                if (claimDailyBonusButton) {
-                    claimDailyBonusButton.disabled = true;
-                    claimDailyBonusButton.querySelector('.button-text').textContent = "Login to Claim Bonus";
+                    // Start listening to system settings for anonymous users too (e.g., for maintenance mode)
+                    const unsubscribeSettings = onSnapshot(SYSTEM_SETTINGS_DOC_REF, (docSnap) => {
+                        if (docSnap.exists()) {
+                            currentSystemSettings = docSnap.data();
+                            console.log("JCHAT_DEBUG: Real-time system settings update for anonymous user:", currentSystemSettings);
+                            applySystemSettings(currentSystemSettings);
+                        } else {
+                            console.warn("JCHAT_WARNING: System settings document not found during snapshot for anonymous user. Re-fetching.");
+                            fetchSystemSettings();
+                        }
+                    }, (error) => {
+                        console.error("JCHAT_ERROR: Error listening to system settings for anonymous user:", error);
+                        showMessageBox("Failed to get real-time settings updates.", 'error', true);
+                    });
+                    unsubscribeListeners.push(unsubscribeSettings);
+
+                    await fetchSystemSettings(); // Initial fetch for anonymous
+                    await fetchAndDisplayPosts(); // Fetch posts for anonymous (they can view, but not interact)
+
+                } else {
+                    // This case should ideally not be reached if the above logic is correct,
+                    // but as a fallback, ensure UI is for logged out state.
+                    isAuthReady = false;
+                    toggleInteractiveElements(false); // Disable all elements
+                    if (headerDisplayName) headerDisplayName.textContent = "Guest";
+                    if (headerProfilePic) headerProfilePic.style.display = 'none';
+                    if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
+                    if (adminIconLink) adminIconLink.style.display = 'none'; // Ensure admin icon is hidden for guests
+                    if (postsFeed) postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see posts and interact.</p>';
+                    if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
+                    if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Please log in to get your daily inspiration.";
+                    if (inspirationAuthorElement) inspirationAuthorElement.textContent = "";
+
+                    // Ensure daily bonus button is disabled and countdown is cleared for logged out state
+                    if (claimDailyBonusButton) {
+                        claimDailyBonusButton.disabled = true;
+                        claimDailyBonusButton.querySelector('.button-text').textContent = "Login to Claim Bonus";
+                    }
+                    if (dailyBonusCountdownInterval) {
+                        clearInterval(dailyBonusCountdownInterval);
+                        dailyBonusCountdownInterval = null;
+                    }
+                    console.log("JCHAT_DEBUG: Auth is NOT ready (final fallback). isAuthReady:", isAuthReady);
+
+                    // Set default system settings for unauthenticated view if not fetched
+                    currentSystemSettings = {
+                        jcoinNairaRate: 7.5, gasJcoinRate: 0.1, dailyBonusAmount: 50,
+                        defaultInspirationType: "motivational", profanityFilterSensitivity: 5,
+                        enableUserRegistration: true, enableFriendRequests: true, enablePublicChat: true,
+                        enablePostCreation: true, enableEmailNotifications: true, maintenanceMode: false,
+                        globalAnnouncement: ""
+                    };
+                    applySystemSettings(currentSystemSettings); // Apply default settings for unauthenticated state
                 }
-                if (dailyBonusCountdownInterval) {
-                    clearInterval(dailyBonusCountdownInterval);
-                    dailyBonusCountdownInterval = null;
-                }
-                console.log("JCHAT_DEBUG: Auth is NOT ready. isAuthReady:", isAuthReady);
             }
         });
 
@@ -3813,6 +4160,7 @@
         if (sharePostInspirationButton) {
             sharePostInspirationButton.addEventListener('click', () => {
                 if (!isAuthReady) { showMessageBox("Please log in to share inspiration.", 'error'); return; }
+                if (!currentSystemSettings.enablePostCreation) { showMessageBox("Post creation is currently disabled by administrators, so sharing as a post is not possible.", 'warning'); return; } // NEW
                 const currentQuote = inspirationQuoteElement.textContent;
                 const currentAuthor = inspirationAuthorElement.textContent;
                 showMessageBox(`You can share/post this: ${currentQuote} ${currentAuthor}`, 'info');
