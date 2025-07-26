@@ -511,7 +511,7 @@
             padding: 1.5rem;
             width: 100%;
             max-width: 600px; /* Max width for post creation */
-            display: flex;
+            display: flex; /* Changed to flex by default */
             flex-direction: column;
             gap: 1rem;
             margin-top: 20px; /* Space from inspiration section */
@@ -2242,14 +2242,14 @@
                 return;
             }
             // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+            if (systemSettings.maintenanceMode) { // Removed admin bypass here
                 showMessageBox("Cannot claim bonus: Application is under maintenance.", 'warning');
                 return;
             }
 
             const now = new Date();
             const lastClaimedTimestamp = currentUserProfileData.lastLoginBonusClaimed ?
-                currentUserProfileData.lastLoginBonusBonusClaimed.toDate() : null;
+                currentUserProfileData.lastLoginBonusClaimed.toDate() : null;
 
             if (lastClaimedTimestamp) {
                 const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
@@ -2582,29 +2582,20 @@
         function toggleInteractiveElements(authEnabled) {
             console.log(`JCHAT_DEBUG: toggleInteractiveElements called. authEnabled: ${authEnabled}`);
 
-            const isMaintenanceMode = systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID;
-            const isPostCreationEnabled = systemSettings.enablePostCreation;
+            const isMaintenanceMode = systemSettings.maintenanceMode ?? false;
+            const isPostCreationEnabled = systemSettings.enablePostCreation ?? true;
 
-            // Disable all if in maintenance mode (for non-admin users)
-            const disableAll = !authEnabled || isMaintenanceMode;
+            // Disable all if in maintenance mode (for ALL users, including admin, as per new requirement)
+            // Or if not authenticated.
+            const disableAllInteractive = !authEnabled || isMaintenanceMode;
 
             // Daily Inspiration Section
-            if (sharePostInspirationButton) sharePostInspirationButton.disabled = disableAll;
-            if (customizeInspirationButton) customizeInspirationButton.disabled = disableAll;
-            if (claimDailyBonusButton) claimDailyBonusButton.disabled = disableAll; // Handled by separate timer function as well
+            if (sharePostInspirationButton) sharePostInspirationButton.disabled = disableAllInteractive;
+            if (customizeInspirationButton) customizeInspirationButton.disabled = disableAllInteractive;
+            if (claimDailyBonusButton) claimDailyBonusButton.disabled = disableAllInteractive; // Handled by separate timer function as well
 
-            // Post Creation Section
-            if (postCreationSection) {
-                if (isMaintenanceMode || !isPostCreationEnabled) {
-                    postCreationSection.style.display = 'none'; // Hide the entire section
-                    if (postCreationDisabledMessage) postCreationDisabledMessage.style.display = 'block';
-                } else {
-                    postCreationSection.style.display = 'flex'; // Show the section
-                    if (postCreationDisabledMessage) postCreationDisabledMessage.style.display = 'none';
-                }
-            }
-
-            // Only enable post creation inputs if auth is ready AND post creation is enabled AND not in maintenance mode
+            // Post Creation Section inputs and button
+            // These should be enabled only if auth is ready AND post creation is enabled AND NOT in maintenance mode
             const enablePostCreationInputs = authEnabled && isPostCreationEnabled && !isMaintenanceMode;
             if (postContentInput) postContentInput.disabled = !enablePostCreationInputs;
             if (postMediaUpload) postMediaUpload.disabled = !enablePostCreationInputs;
@@ -2612,43 +2603,34 @@
 
 
             // Dynamically created elements (posts, comments, reactions)
-            // These should be disabled if auth is not ready OR if in maintenance mode (for non-admin)
+            // These should be disabled if auth is not ready OR if in maintenance mode (for all users)
             document.querySelectorAll('.comment-input').forEach(input => {
-                input.disabled = disableAll;
+                input.disabled = disableAllInteractive;
             });
             document.querySelectorAll('.submit-comment-button').forEach(button => {
-                button.disabled = disableAll;
+                button.disabled = disableAllInteractive;
             });
             document.querySelectorAll('.react-button').forEach(button => {
-                button.disabled = disableAll;
+                button.disabled = disableAllInteractive;
             });
             document.querySelectorAll('.comment-toggle-button').forEach(button => {
-                button.disabled = disableAll;
+                button.disabled = disableAllInteractive;
             });
             document.querySelectorAll('.post-options-button').forEach(button => {
-                button.disabled = disableAll;
+                button.disabled = disableAllInteractive;
             });
             document.querySelectorAll('.edit-post-button').forEach(button => {
-                button.disabled = disableAll;
+                button.disabled = disableAllInteractive;
             });
             document.querySelectorAll('.delete-post-button').forEach(button => {
-                button.disabled = disableAll;
+                button.disabled = disableAllInteractive;
             });
             document.querySelectorAll('.share-post-button').forEach(button => {
-                button.disabled = disableAll;
+                button.disabled = disableAllInteractive;
             });
             document.querySelectorAll('.delete-comment-button').forEach(button => {
-                button.disabled = disableAll;
+                button.disabled = disableAllInteractive;
             });
-
-            // Handle maintenance overlay display
-            if (maintenanceOverlay) {
-                if (isMaintenanceMode) {
-                    maintenanceOverlay.classList.add('active');
-                } else {
-                    maintenanceOverlay.classList.remove('active');
-                }
-            }
 
             console.log(`JCHAT_DEBUG: Final state - isMaintenanceMode: ${isMaintenanceMode}, isPostCreationEnabled: ${isPostCreationEnabled}`);
         }
@@ -2875,8 +2857,8 @@
                 showMessageBox("Please log in to customize inspiration.", 'error');
                 return;
             }
-            // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+            // Check if maintenance mode is active for ALL users
+            if (systemSettings.maintenanceMode) {
                 showMessageBox("Cannot customize: Application is under maintenance.", 'warning');
                 return;
             }
@@ -2897,8 +2879,8 @@
                 showMessageBox("You must be logged in to save settings.", 'error');
                 return;
             }
-            // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+            // Check if maintenance mode is active for ALL users
+            if (systemSettings.maintenanceMode) {
                 showMessageBox("Cannot save: Application is under maintenance.", 'warning');
                 return;
             }
@@ -2962,8 +2944,8 @@
                 showMessageBox("Please log in to create a post.", 'error');
                 return;
             }
-            // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+            // Check if maintenance mode is active for ALL users
+            if (systemSettings.maintenanceMode) {
                 showMessageBox("Cannot create post: Application is under maintenance.", 'warning');
                 return;
             }
@@ -3074,8 +3056,8 @@
                 showMessageBox("You must be logged in to react.", 'error');
                 return;
             }
-            // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+            // Check if maintenance mode is active for ALL users
+            if (systemSettings.maintenanceMode) {
                 showMessageBox("Cannot react: Application is under maintenance.", 'warning');
                 return;
             }
@@ -3157,8 +3139,8 @@
                 showMessageBox("You must be logged in to comment.", 'error');
                 return;
             }
-            // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+            // Check if maintenance mode is active for ALL users
+            if (systemSettings.maintenanceMode) {
                 showMessageBox("Cannot comment: Application is under maintenance.", 'warning');
                 return;
             }
@@ -3222,8 +3204,8 @@
                 showMessageBox("You can only delete your own comments.", 'error');
                 return;
             }
-            // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+            // Check if maintenance mode is active for ALL users
+            if (systemSettings.maintenanceMode) {
                 showMessageBox("Cannot delete comment: Application is under maintenance.", 'warning');
                 return;
             }
@@ -3270,8 +3252,8 @@
                 showMessageBox("You must be logged in to edit posts.", 'error');
                 return;
             }
-            // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+            // Check if maintenance mode is active for ALL users
+            if (systemSettings.maintenanceMode) {
                 showMessageBox("Cannot edit post: Application is under maintenance.", 'warning');
                 return;
             }
@@ -3356,8 +3338,8 @@
                 showMessageBox("No post selected for editing.", 'error');
                 return;
             }
-            // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+            // Check if maintenance mode is active for ALL users
+            if (systemSettings.maintenanceMode) {
                 showMessageBox("Cannot save edits: Application is under maintenance.", 'warning');
                 return;
             }
@@ -3436,8 +3418,8 @@
                 showMessageBox("You can only delete your own posts.", 'error');
                 return;
             }
-            // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+            // Check if maintenance mode is active for ALL users
+            if (systemSettings.maintenanceMode) {
                 showMessageBox("Cannot delete post: Application is under maintenance.", 'warning');
                 return;
             }
@@ -3923,6 +3905,10 @@
                         enableEmailNotifications: true,
                         maintenanceMode: false,
                     };
+                    // If document doesn't exist, create it with defaults
+                    setDoc(SYSTEM_SETTINGS_DOC_REF, systemSettings, { merge: true }).catch(err => {
+                        console.error("JCHAT_ERROR: Failed to create default system settings:", err);
+                    });
                 }
                 // Apply settings to UI immediately after they are fetched/updated
                 applySystemSettingsToUI();
@@ -3942,31 +3928,33 @@
             const isMaintenanceMode = systemSettings.maintenanceMode ?? false;
             const isPostCreationEnabled = systemSettings.enablePostCreation ?? true;
 
-            // Apply maintenance mode
+            // Apply maintenance mode to ALL users
             if (maintenanceOverlay) {
-                // If current user is admin, they bypass maintenance mode
-                if (isMaintenanceMode && (!currentUser || currentUser.uid !== ADMIN_UID)) {
+                if (isMaintenanceMode) {
                     maintenanceOverlay.classList.add('active');
-                    // Hide main content elements for non-admin users
+                    // Hide main content elements for ALL users
                     document.querySelector('main .content-wrapper').style.display = 'none';
-                    console.log("JCHAT_DEBUG: Maintenance mode active for non-admin user.");
+                    console.log("JCHAT_DEBUG: Maintenance mode active for all users.");
                 } else {
                     maintenanceOverlay.classList.remove('active');
                     document.querySelector('main .content-wrapper').style.display = 'flex'; // Show content
-                    console.log("JCHAT_DEBUG: Maintenance mode inactive or bypassed by admin.");
+                    console.log("JCHAT_DEBUG: Maintenance mode inactive.");
                 }
             }
 
             // Apply post creation setting
             if (postCreationSection) {
-                if (!isPostCreationEnabled && (!currentUser || currentUser.uid !== ADMIN_UID)) {
+                // If maintenance is on, hide post creation for everyone.
+                // Otherwise, show/hide based on enablePostCreation setting.
+                if (isMaintenanceMode) {
+                    postCreationSection.style.display = 'none';
+                    if (postCreationDisabledMessage) postCreationDisabledMessage.style.display = 'none'; // Hide this specific message during full maintenance
+                } else if (!isPostCreationEnabled) {
                     postCreationSection.style.display = 'none';
                     if (postCreationDisabledMessage) postCreationDisabledMessage.style.display = 'block';
-                    console.log("JCHAT_DEBUG: Post creation disabled for non-admin user.");
                 } else {
-                    postCreationSection.style.display = 'flex'; // Show it if enabled or admin
+                    postCreationSection.style.display = 'flex'; // Show it if enabled and not in maintenance
                     if (postCreationDisabledMessage) postCreationDisabledMessage.style.display = 'none';
-                    console.log("JCHAT_DEBUG: Post creation enabled or bypassed by admin.");
                 }
             }
 
@@ -4083,8 +4071,8 @@
         if (sharePostInspirationButton) {
             sharePostInspirationButton.addEventListener('click', () => {
                 if (!isAuthReady) { showMessageBox("Please log in to share inspiration.", 'error'); return; }
-                // Check if maintenance mode is active for non-admin users
-                if (systemSettings.maintenanceMode && currentUser.uid !== ADMIN_UID) {
+                // Check if maintenance mode is active for ALL users
+                if (systemSettings.maintenanceMode) {
                     showMessageBox("Cannot share: Application is under maintenance.", 'warning');
                     return;
                 }
@@ -4109,7 +4097,7 @@
         if (createPostButton) createPostButton.addEventListener('click', createNewPost);
 
         if (cancelEditPostButton) cancelEditPostButton.addEventListener('click', closeEditPostModal);
-        if (saveEditedPostButton) saveEditedButton.addEventListener('click', saveEditedPost);
+        if (saveEditedPostButton) saveEditedPostButton.addEventListener('click', saveEditedPost);
 
         if (editPostModal) {
             editPostModal.addEventListener('click', (event) => {
