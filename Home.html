@@ -2546,69 +2546,83 @@
         }
 
         // NEW: Function to enable/disable all interactive elements
-        function toggleInteractiveElements(enable) {
-            console.log(`JCHAT_DEBUG: toggleInteractiveElements called with enable: ${enable}`);
+        function toggleInteractiveElements(enable, isCurrentUserAdmin = false) { // Added isCurrentUserAdmin
+            console.log(`JCHAT_DEBUG: toggleInteractiveElements called with enable: ${enable}, isAdmin: ${isCurrentUserAdmin}`);
+
+            // If enabling, and it's an admin, we want to ensure everything is truly enabled
+            // Otherwise, apply the 'enable' state universally.
+            const finalEnableState = enable || isCurrentUserAdmin; // If enable is true, or if it's an admin, enable.
 
             // Main content buttons/inputs
-            if (sharePostInspirationButton) sharePostInspirationButton.disabled = !enable;
-            if (customizeInspirationButton) customizeInspirationButton.disabled = !enable;
-            if (claimDailyBonusButton) claimDailyBonusButton.disabled = !enable; // Handled by its own logic, but as a fallback
-            if (postContentInput) postContentInput.disabled = !enable;
-            if (postMediaUpload) postMediaUpload.disabled = !enable;
-            if (createPostButton) createPostButton.disabled = !enable;
+            if (sharePostInspirationButton) sharePostInspirationButton.disabled = !finalEnableState;
+            if (customizeInspirationButton) customizeInspirationButton.disabled = !finalEnableState;
+            if (claimDailyBonusButton) claimDailyBonusButton.disabled = !finalEnableState;
+            if (postContentInput) postContentInput.disabled = !finalEnableState;
+            if (postMediaUpload) postMediaUpload.disabled = !finalEnableState;
+            if (createPostButton) createPostButton.disabled = !finalEnableState;
 
-            // Dynamically created elements (posts, comments)
+            // Dynamically created elements (posts, comments) - these will be refined by applySystemSettings later
             document.querySelectorAll('.comment-input').forEach(input => {
-                input.disabled = !enable;
+                input.disabled = !finalEnableState;
             });
             document.querySelectorAll('.submit-comment-button').forEach(button => {
-                button.disabled = !enable;
+                button.disabled = !finalEnableState;
             });
             document.querySelectorAll('.react-button').forEach(button => {
-                button.disabled = !enable;
+                button.disabled = !finalEnableState;
             });
             document.querySelectorAll('.comment-toggle-button').forEach(button => {
-                button.disabled = !enable;
+                button.disabled = !finalEnableState;
             });
             document.querySelectorAll('.post-options-button').forEach(button => {
-                button.disabled = !enable;
+                button.disabled = !finalEnableState;
             });
             document.querySelectorAll('.edit-post-button').forEach(button => {
-                button.disabled = !enable;
+                button.disabled = !finalEnableState;
             });
             document.querySelectorAll('.delete-post-button').forEach(button => {
-                button.disabled = !enable;
+                button.disabled = !finalEnableState;
             });
             document.querySelectorAll('.share-post-button').forEach(button => {
-                button.disabled = !enable;
+                button.disabled = !finalEnableState;
             });
             document.querySelectorAll('.delete-comment-button').forEach(button => {
-                button.disabled = !enable;
+                button.disabled = !finalEnableState;
             });
 
             // Modals (buttons within modals)
-            if (cancelCustomizeButton) cancelCustomizeButton.disabled = !enable;
-            if (saveCustomizeButton) saveCustomizeButton.disabled = !enable;
-            if (editPostContentInput) editPostContentInput.disabled = !enable;
-            if (editPostMediaUpload) editPostMediaUpload.disabled = !enable;
-            if (removeEditMediaButton) removeEditMediaButton.disabled = !enable;
-            if (cancelEditPostButton) cancelEditPostButton.disabled = !enable;
-            if (saveEditedPostButton) saveEditedPostButton.disabled = !enable;
-            if (confirmCancelButton) confirmCancelButton.disabled = !enable;
-            if (confirmProceedButton) confirmProceedButton.disabled = !enable;
+            if (cancelCustomizeButton) cancelCustomizeButton.disabled = !finalEnableState;
+            if (saveCustomizeButton) saveCustomizeButton.disabled = !finalEnableState;
+            if (editPostContentInput) editPostContentInput.disabled = !finalEnableState;
+            if (editPostMediaUpload) editPostMediaUpload.disabled = !finalEnableState;
+            if (removeEditMediaButton) removeEditMediaButton.disabled = !finalEnableState;
+            if (cancelEditPostButton) cancelEditPostButton.disabled = !finalEnableState;
+            if (saveEditedPostButton) saveEditedPostButton.disabled = !finalEnableState;
+            if (confirmCancelButton) confirmCancelButton.disabled = !finalEnableState;
+            if (confirmProceedButton) confirmProceedButton.disabled = !finalEnableState;
 
-            // Sidebar links (only if they correspond to features that can be toggled)
-            // Note: Login/Logout/Settings/Profile/Home/Solution Center should generally always be accessible
-            if (chatLink) chatLink.style.pointerEvents = enable ? 'auto' : 'none';
-            if (chatLink) chatLink.style.opacity = enable ? '1' : '0.5';
-            if (findFriendsLink) findFriendsLink.style.pointerEvents = enable ? 'auto' : 'none';
-            if (findFriendsLink) findFriendsLink.style.opacity = enable ? '1' : '0.5';
-            if (friendsLink) friendsLink.style.pointerEvents = enable ? 'auto' : 'none';
-            if (friendsLink) friendsLink.style.opacity = enable ? '1' : '0.5';
-            if (groupsLink) groupsLink.style.pointerEvents = enable ? 'auto' : 'none';
-            if (groupsLink) groupsLink.style.opacity = enable ? '1' : '0.5';
-            if (jcoinShopLink) jcoinShopLink.style.pointerEvents = enable ? 'auto' : 'none';
-            if (jcoinShopLink) jcoinShopLink.style.opacity = enable ? '1' : '0.5';
+            // Sidebar links (pointer-events and opacity, as they are not 'disabled' attributes)
+            // These will be further refined by applySystemSettings for specific toggles.
+            if (chatLink) {
+                chatLink.style.pointerEvents = finalEnableState ? 'auto' : 'none';
+                chatLink.style.opacity = finalEnableState ? '1' : '0.5';
+            }
+            if (findFriendsLink) {
+                findFriendsLink.style.pointerEvents = finalEnableState ? 'auto' : 'none';
+                findFriendsLink.style.opacity = finalEnableState ? '1' : '0.5';
+            }
+            if (friendsLink) {
+                friendsLink.style.pointerEvents = finalEnableState ? 'auto' : 'none';
+                friendsLink.style.opacity = finalEnableState ? '1' : '0.5';
+            }
+            if (groupsLink) {
+                groupsLink.style.pointerEvents = finalEnableState ? 'auto' : 'none';
+                groupsLink.style.opacity = finalEnableState ? '1' : '0.5';
+            }
+            if (jcoinShopLink) {
+                jcoinShopLink.style.pointerEvents = finalEnableState ? 'auto' : 'none';
+                jcoinShopLink.style.opacity = finalEnableState ? '1' : '0.5';
+            }
 
             console.log(`JCHAT_DEBUG: Finished toggling interactive elements. Post content input disabled state: ${postContentInput ? postContentInput.disabled : 'N/A (element not found)'}`);
         }
@@ -2654,7 +2668,6 @@
         }
 
         async function fetchAndDisplayHeaderProfile(user) {
-            const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID
             console.log("JCHAT_DEBUG: Entering fetchAndDisplayHeaderProfile for user:", user.uid);
             try {
                 const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
@@ -3019,7 +3032,7 @@
                 return;
             }
             // NEW: Check if public chat/interactions are enabled
-            if (!currentSystemSettings.enablePublicChat) { // Assuming reactions fall under public chat/interaction
+            if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { // Admins can always react
                 showMessageBox("Reactions are currently disabled by administrators.", 'warning');
                 return;
             }
@@ -3102,7 +3115,7 @@
                 return;
             }
             // NEW: Check if public chat/interactions are enabled
-            if (!currentSystemSettings.enablePublicChat) { // Assuming comments fall under public chat/interaction
+            if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { // Admins can always comment
                 showMessageBox("Commenting is currently disabled by administrators.", 'warning');
                 return;
             }
@@ -3163,12 +3176,12 @@
         }
 
         async function deleteComment(postId, commentId, commentAuthorId) {
-            if (!isAuthReady || !currentUser || currentUser.uid !== commentAuthorId) {
-                showMessageBox("You can only delete your own comments.", 'error');
+            if (!isAuthReady || !currentUser || (currentUser.uid !== commentAuthorId && currentUser.uid !== ADMIN_UID)) { // Admin can delete any comment
+                showMessageBox("You can only delete your own comments unless you are an admin.", 'error');
                 return;
             }
             // NEW: Check if public chat/interactions are enabled
-            if (!currentSystemSettings.enablePublicChat) { // Assuming comment deletion falls under public chat/interaction
+            if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { // Admins can always delete
                 showMessageBox("Commenting is currently disabled by administrators, so deletion is also restricted.", 'warning');
                 return;
             }
@@ -3216,7 +3229,7 @@
                 return;
             }
             // NEW: Check if post creation (and thus editing) is enabled
-            if (!currentSystemSettings.enablePostCreation) {
+            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { // Admins can always edit
                 showMessageBox("Post editing is currently disabled by administrators.", 'warning');
                 return;
             }
@@ -3302,7 +3315,7 @@
                 return;
             }
             // NEW: Check if post creation (and thus editing) is enabled
-            if (!currentSystemSettings.enablePostCreation) {
+            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { // Admins can always edit
                 showMessageBox("Post editing is currently disabled by administrators.", 'warning');
                 return;
             }
@@ -3377,12 +3390,12 @@
         }
 
         async function deletePost(postId, postAuthorId) {
-            if (!isAuthReady || !currentUser || currentUser.uid !== postAuthorId) {
-                showMessageBox("You can only delete your own posts.", 'error');
+            if (!isAuthReady || !currentUser || (currentUser.uid !== postAuthorId && currentUser.uid !== ADMIN_UID)) { // Admin can delete any post
+                showMessageBox("You can only delete your own posts unless you are an admin.", 'error');
                 return;
             }
             // NEW: Check if post creation (and thus deletion) is enabled
-            if (!currentSystemSettings.enablePostCreation) {
+            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { // Admins can always delete
                 showMessageBox("Post deletion is currently disabled by administrators.", 'warning');
                 return;
             }
@@ -3468,18 +3481,18 @@
                         <a href="/profile.html?userId=${post.authorId}" class="author-name">${post.username || 'Anonymous'}</a>
                         <p class="post-timestamp">${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}</p>
                     </div>
-                    ${isAuthor ? `
-                    <button class="post-options-button" data-post-id="${postId}" ${!isAuthReady || !currentSystemSettings.enablePostCreation ? 'disabled' : ''}>
+                    ${isAuthor || (currentUser && currentUser.uid === ADMIN_UID) ? `
+                    <button class="post-options-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
                         <i class="fas fa-ellipsis-h"></i>
                     </button>
                     <div class="post-options-dropdown" id="dropdown-${postId}">
-                        <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady || !currentSystemSettings.enablePostCreation ? 'disabled' : ''}>
+                        <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) || (!isAuthor && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="delete-post-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady || !currentSystemSettings.enablePostCreation ? 'disabled' : ''}>
+                        <button class="delete-post-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) || (!isAuthor && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
                             <i class="fas fa-trash-alt"></i> Delete
                         </button>
-                        <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady || !currentSystemSettings.enablePostCreation ? 'disabled' : ''}>
+                        <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
                             <i class="fas fa-share"></i> Share
                         </button>
                     </div>
@@ -3504,16 +3517,16 @@
                     <span><span class="comments-count">${post.commentsCount || 0}</span> Comments</span>
                 </div>
                 <div class="post-actions-row">
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
                         <i class="fas fa-thumbs-up"></i> Like
                     </button>
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="love" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="love" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
                         <i class="fas fa-heart"></i> Love
                     </button>
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="haha" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="haha" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
                         <i class="fas fa-face-laugh"></i> Haha
                     </button>
-                    <button class="post-action-button comment-toggle-button" data-post-id="${postId}" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}>
+                    <button class="post-action-button comment-toggle-button" data-post-id="${postId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
                         <i class="fas fa-comment"></i> Comment
                     </button>
                 </div>
@@ -3522,8 +3535,8 @@
                         <p style="font-size:0.85rem; color:var(--text-light); text-align:left; margin-left:10px;" class="no-comments-message">No comments yet.</p>
                     </div>
                     <div class="comment-input-area">
-                        <textarea placeholder="Write a comment..." class="comment-input" data-post-id="${postId}" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}></textarea>
-                        <button class="submit-comment-button" data-post-id="${postId}" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}>Post</button>
+                        <textarea placeholder="Write a comment..." class="comment-input" data-post-id="${postId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}></textarea>
+                        <button class="submit-comment-button" data-post-id="${postId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>Post</button>
                     </div>
                 </div>
             `;
@@ -3550,7 +3563,7 @@
                     <a href="/profile.html?userId=${comment.userId}" class="comment-author-name">${comment.username || 'Anonymous'}</a>
                     <span class="comment-text">${comment.content}</span>
                     <span class="comment-timestamp">${comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
-                    ${isCommentOwner ? `<button class="delete-comment-button" data-post-id="${postId}" data-comment-id="${commentId}" data-comment-author-id="${comment.userId}" ${!isAuthReady || !currentSystemSettings.enablePublicChat ? 'disabled' : ''}><i class="fas fa-trash-alt"></i></button>` : ''}
+                    ${isCommentOwner || (currentUser && currentUser.uid === ADMIN_UID) ? `<button class="delete-comment-button" data-post-id="${postId}" data-comment-id="${commentId}" data-comment-author-id="${comment.userId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) || (!isCommentOwner && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
             `;
             return commentElement;
@@ -3650,8 +3663,8 @@
                         // Always ensure comment inputs and buttons are enabled/disabled based on current auth state
                         const commentInput = postElement.querySelector('.comment-input');
                         const submitCommentButton = postElement.querySelector('.submit-comment-button');
-                        if (commentInput) commentInput.disabled = !isAuthReady || !currentSystemSettings.enablePublicChat;
-                        if (submitCommentButton) submitCommentButton.disabled = !isAuthReady || !currentSystemSettings.enablePublicChat;
+                        if (commentInput) commentInput.disabled = !isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID);
+                        if (submitCommentButton) submitCommentButton.disabled = !isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID);
 
 
                         // Setup onSnapshot for comments for this specific post
@@ -3679,7 +3692,9 @@
                                 }
                                 // Re-apply disabled state to delete comment buttons after rendering
                                 commentsListElement.querySelectorAll('.delete-comment-button').forEach(button => {
-                                    button.disabled = !isAuthReady || !currentSystemSettings.enablePublicChat;
+                                    const commentAuthorId = button.dataset.commentAuthorId;
+                                    const isCommentOwner = currentUser && currentUser.uid === commentAuthorId;
+                                    button.disabled = !isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) || (!isCommentOwner && currentUser.uid !== ADMIN_UID);
                                 });
                             });
                             unsubscribeListeners.push(unsubscribeComments);
@@ -3765,7 +3780,7 @@
             if (event.target.closest('.react-button')) {
                 const button = event.target.closest('.react-button');
                 if (!isAuthReady) { showMessageBox("Please log in to react.", 'error'); return; }
-                if (!currentSystemSettings.enablePublicChat) { showMessageBox("Reactions are currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { showMessageBox("Reactions are currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const reactionType = button.dataset.reactionType;
                 handleReaction(postId, reactionType);
@@ -3782,7 +3797,7 @@
             else if (event.target.closest('.submit-comment-button')) {
                 const button = event.target.closest('.submit-comment-button');
                 if (!isAuthReady) { showMessageBox("Please log in to comment.", 'error'); return; }
-                if (!currentSystemSettings.enablePublicChat) { showMessageBox("Commenting is currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { showMessageBox("Commenting is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const commentInput = button.closest('.comment-input-area').querySelector('.comment-input');
                 addComment(postId, commentInput.value);
@@ -3792,7 +3807,8 @@
             else if (event.target.closest('.post-options-button')) {
                 const button = event.target.closest('.post-options-button');
                 if (!isAuthReady) { showMessageBox("Please log in to manage posts.", 'error'); return; }
-                if (!currentSystemSettings.enablePostCreation) { showMessageBox("Post management is currently disabled by administrators.", 'warning'); return; } // NEW
+                // Admin can always manage posts, regular users only if feature is enabled
+                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post management is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const dropdown = document.getElementById(`dropdown-${postId}`);
                 document.querySelectorAll('.post-options-dropdown.active').forEach(openDropdown => {
@@ -3807,7 +3823,7 @@
             else if (event.target.closest('.edit-post-button')) {
                 const button = event.target.closest('.edit-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to edit posts.", 'error'); return; }
-                if (!currentSystemSettings.enablePostCreation) { showMessageBox("Post editing is currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post editing is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const content = button.dataset.content;
                 const mediaUrl = button.dataset.mediaUrl;
@@ -3820,7 +3836,7 @@
             else if (event.target.closest('.delete-post-button')) {
                 const button = event.target.closest('.delete-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to delete posts.", 'error'); return; }
-                if (!currentSystemSettings.enablePostCreation) { showMessageBox("Post deletion is currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post deletion is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const authorId = button.dataset.authorId;
                 deletePost(postId, authorId);
@@ -3831,7 +3847,7 @@
             else if (event.target.closest('.share-post-button')) {
                 const button = event.target.closest('.share-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to share posts.", 'error'); return; }
-                if (!currentSystemSettings.enablePostCreation) { showMessageBox("Post sharing is currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post sharing is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const content = button.dataset.content;
                 showMessageBox(`You can share/post this: ${content.substring(0, 50)}...`, 'info');
@@ -3842,7 +3858,7 @@
             else if (event.target.closest('.delete-comment-button')) {
                 const button = event.target.closest('.delete-comment-button');
                 if (!isAuthReady) { showMessageBox("Please log in to delete comments.", 'error'); return; }
-                if (!currentSystemSettings.enablePublicChat) { showMessageBox("Comment deletion is currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { showMessageBox("Comment deletion is currently disabled by administrators.", 'warning'); return; } // NEW
                 const postId = button.dataset.postId;
                 const commentId = button.dataset.commentId;
                 const commentAuthorId = button.dataset.commentAuthorId;
@@ -3896,43 +3912,58 @@
         function applySystemSettings(settings) {
             console.log("JCHAT_DEBUG: Applying system settings to UI:", settings);
 
-            // Maintenance Mode
+            const isCurrentUserAdmin = currentUser && currentUser.uid === ADMIN_UID;
+
+            // First, handle the global maintenance mode
             if (settings.maintenanceMode) {
-                if (maintenanceOverlay) {
-                    maintenanceOverlay.classList.add('active');
-                    if (maintenanceAnnouncementText) {
-                        maintenanceAnnouncementText.textContent = settings.globalAnnouncement || "JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!";
+                if (isCurrentUserAdmin) {
+                    // Admin bypasses maintenance overlay and global disabling
+                    if (maintenanceOverlay) maintenanceOverlay.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                    showMessageBox("JCHAT is in Maintenance Mode, but you (Admin) have full access.", 'info', true);
+                    toggleInteractiveElements(true, true); // Enable everything for admin, pass isAdmin true
+                } else {
+                    // Regular user sees maintenance overlay and all interactions are disabled
+                    if (maintenanceOverlay) {
+                        maintenanceOverlay.classList.add('active');
+                        if (maintenanceAnnouncementText) {
+                            maintenanceAnnouncementText.textContent = settings.globalAnnouncement || "JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!";
+                        }
                     }
+                    toggleInteractiveElements(false, false); // Disable all interactions for regular users, pass isAdmin false
+                    document.body.style.overflow = 'hidden';
+                    return; // IMPORTANT: Stop further processing of individual toggles for regular users in maintenance
                 }
-                toggleInteractiveElements(false); // Disable all interactions
-                // Also disable scrolling
-                document.body.style.overflow = 'hidden';
             } else {
-                if (maintenanceOverlay) {
-                    maintenanceOverlay.classList.remove('active');
-                }
-                toggleInteractiveElements(true); // Enable all interactions
-                document.body.style.overflow = 'auto'; // Re-enable scrolling
+                // Maintenance mode is OFF for everyone
+                if (maintenanceOverlay) maintenanceOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                toggleInteractiveElements(true, isCurrentUserAdmin); // Enable all interactions initially, pass isAdmin
             }
 
-            // Enable/Disable Post Creation Section
+            // Now, apply individual feature toggles.
+            // These will refine the state set by the maintenance mode logic above.
+            // For admins, these will apply normally. For regular users, if maintenance was ON,
+            // this part is skipped. If maintenance was OFF, these apply normally.
+
+            // Post Creation Section
             if (postCreationSection) {
                 if (settings.enablePostCreation) {
-                    postCreationSection.style.display = 'flex'; // Show section
+                    postCreationSection.style.display = 'flex';
                     if (postContentInput) postContentInput.disabled = false;
                     if (postMediaUpload) postMediaUpload.disabled = false;
                     if (createPostButton) createPostButton.disabled = false;
                 } else {
-                    postCreationSection.style.display = 'none'; // Hide section
+                    postCreationSection.style.display = 'none';
                     if (postContentInput) postContentInput.disabled = true;
                     if (postMediaUpload) postMediaUpload.disabled = true;
                     if (createPostButton) createPostButton.disabled = true;
                 }
             }
 
-            // Enable/Disable Public Chat related interactions (reactions, comments)
-            // This is handled by disabling buttons in renderPost and addComment/handleReaction functions
-            // For the sidebar link:
+            // Sidebar links (only if they correspond to features that can be toggled)
+            // These need to reflect the feature toggle, but also respect the overall `toggleInteractiveElements` state
+            // which is set by maintenance mode. The `pointer-events` and `opacity` are good for this.
             if (chatLink) {
                 if (settings.enablePublicChat) {
                     chatLink.style.pointerEvents = 'auto';
@@ -3942,8 +3973,6 @@
                     chatLink.style.opacity = '0.5';
                 }
             }
-
-            // Enable/Disable Friend Requests related links (Users, Friends)
             if (findFriendsLink) {
                 if (settings.enableFriendRequests) {
                     findFriendsLink.style.pointerEvents = 'auto';
@@ -3962,34 +3991,57 @@
                     friendsLink.style.opacity = '0.5';
                 }
             }
+            if (groupsLink) { // Assuming a toggle for groups
+                // For now, groups are not explicitly tied to a system setting.
+                // If a 'settings.enableGroups' existed, it would be used here.
+                // Otherwise, its state is controlled by the global `toggleInteractiveElements`.
+                groupsLink.style.pointerEvents = 'auto';
+                groupsLink.style.opacity = '1';
+            }
+            if (jcoinShopLink) { // Assuming a toggle for shop
+                // For now, shop is not explicitly tied to a system setting.
+                // If a 'settings.enableJCoinShop' existed, it would be used here.
+                // Otherwise, its state is controlled by the global `toggleInteractiveElements`.
+                jcoinShopLink.style.pointerEvents = 'auto';
+                jcoinShopLink.style.opacity = '1';
+            }
 
-            // Other features (Groups, Shop) - assuming they are independent for now, but can be linked to settings if needed
-            // For now, they are not directly controlled by system settings on this page, but their disabled state
-            // will be affected by the overall `toggleInteractiveElements` if maintenance mode is on.
-            // If specific toggles for these exist in system_settings, they would be handled here.
-            // Example:
-            // if (groupsLink) {
-            //     if (settings.enableGroups) { // Assuming 'enableGroups' exists in settings
-            //         groupsLink.style.pointerEvents = 'auto';
-            //         groupsLink.style.opacity = '1';
-            //     } else {
-            //         groupsLink.style.pointerEvents = 'none';
-            //         groupsLink.style.opacity = '0.5';
-            //     }
-            // }
-            // if (jcoinShopLink) {
-            //     if (settings.enableJCoinShop) { // Assuming 'enableJCoinShop' exists in settings
-            //         jcoinShopLink.style.pointerEvents = 'auto';
-            //         jcoinShopLink.style.opacity = '1';
-            //     } else {
-            //         jcoinShopLink.style.pointerEvents = 'none';
-            //         jcoinShopLink.style.opacity = '0.5';
-            //     }
-            // }
+            // Re-apply disabled states to dynamically rendered post/comment elements
+            // This is crucial because these elements are rendered *before* settings are applied.
+            document.querySelectorAll('.post-card').forEach(postCard => {
+                const postId = postCard.dataset.postId;
+                const postAuthorId = postCard.querySelector('.post-options-button')?.dataset.authorId || null; // Get authorId if options button exists
 
-            // Re-evaluate daily bonus button state based on profile data and system settings
-            checkAndStartDailyBonusTimer(); // This function already considers currentUserProfileData and updates button state.
-            // If maintenance mode is on, this button will be disabled by toggleInteractiveElements(false) anyway.
+                // Post actions (reactions, comments, options menu)
+                postCard.querySelectorAll('.react-button, .comment-toggle-button').forEach(button => {
+                    button.disabled = !isAuthReady || (!settings.enablePublicChat && !isCurrentUserAdmin);
+                });
+
+                // Comment input and submit button
+                const commentInput = postCard.querySelector('.comment-input');
+                const submitCommentButton = postCard.querySelector('.submit-comment-button');
+                if (commentInput) commentInput.disabled = !isAuthReady || (!settings.enablePublicChat && !isCurrentUserAdmin);
+                if (submitCommentButton) submitCommentButton.disabled = !isAuthReady || (!settings.enablePublicChat && !isCurrentUserAdmin);
+
+                // Delete comment buttons (more complex logic: can delete own if enabled, admin can delete any)
+                postCard.querySelectorAll('.delete-comment-button').forEach(button => {
+                    const commentAuthorId = button.dataset.commentAuthorId;
+                    const isCommentOwner = currentUser && currentUser.uid === commentAuthorId;
+                    button.disabled = !isAuthReady || (!currentSystemSettings.enablePublicChat && !isCurrentUserAdmin) || (!isCommentOwner && !isCurrentUserAdmin);
+                });
+
+                // Post options (edit, delete, share)
+                postCard.querySelectorAll('.post-options-button, .edit-post-button, .delete-post-button, .share-post-button').forEach(button => {
+                    // Only enable if current user is the author OR if current user is admin AND the feature is enabled
+                    // The isAuthor check is handled in renderPost, here we just control the disabled state based on settings and admin
+                    const buttonPostId = button.dataset.postId;
+                    const isButtonAuthor = currentUser && currentUser.uid === postAuthorId; // Check if the current user is the author of *this* post
+                    button.disabled = !isAuthReady || ((!settings.enablePostCreation && !isCurrentUserAdmin) || (!isButtonAuthor && !isCurrentUserAdmin));
+                });
+            });
+
+            // Re-evaluate daily bonus button state
+            checkAndStartDailyBonusTimer();
         }
 
 
@@ -4072,7 +4124,7 @@
                     // This case should ideally not be reached if the above logic is correct,
                     // but as a fallback, ensure UI is for logged out state.
                     isAuthReady = false;
-                    toggleInteractiveElements(false); // Disable all elements
+                    toggleInteractiveElements(false, false); // Disable all elements for unauthenticated non-admin
                     if (headerDisplayName) headerDisplayName.textContent = "Guest";
                     if (headerProfilePic) headerProfilePic.style.display = 'none';
                     if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
@@ -4115,7 +4167,7 @@
             } else {
                 applyTheme('theme-dark-mode');
             }
-            toggleInteractiveElements(false); // Disable until auth state is confirmed
+            toggleInteractiveElements(false, false); // Disable until auth state is confirmed (assume non-admin initially)
             console.log(`JCHAT_DEBUG: Initial postContentInput disabled state: ${postContentInput ? postContentInput.disabled : 'N/A (element not found)'}`);
 
             // Set active class for current page in sidebar
@@ -4160,7 +4212,7 @@
         if (sharePostInspirationButton) {
             sharePostInspirationButton.addEventListener('click', () => {
                 if (!isAuthReady) { showMessageBox("Please log in to share inspiration.", 'error'); return; }
-                if (!currentSystemSettings.enablePostCreation) { showMessageBox("Post creation is currently disabled by administrators, so sharing as a post is not possible.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post creation is currently disabled by administrators, so sharing as a post is not possible.", 'warning'); return; } // NEW
                 const currentQuote = inspirationQuoteElement.textContent;
                 const currentAuthor = inspirationAuthorElement.textContent;
                 showMessageBox(`You can share/post this: ${currentQuote} ${currentAuthor}`, 'info');
