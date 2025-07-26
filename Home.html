@@ -1689,7 +1689,8 @@
     <main>
         <div class="content-wrapper">
             <!-- Maintenance Mode Message -->
-            <div id="maintenanceMessageContainer" style="display: none; width: 100%;">
+            <!-- This container is now primarily for the post creation disabled message -->
+            <div id="maintenanceMessageContainer" style="width: 100%;">
                 <div id="postCreationDisabledMessage" style="display: none;">
                     <i class="fas fa-exclamation-circle"></i> Post creation is currently disabled by administrators.
                 </div>
@@ -2241,8 +2242,8 @@
                 showMessageBox("Please log in to claim daily bonus.", 'error');
                 return;
             }
-            // Check if maintenance mode is active for non-admin users
-            if (systemSettings.maintenanceMode) { // Removed admin bypass here
+            // Check if maintenance mode is active for ALL users
+            if (systemSettings.maintenanceMode) {
                 showMessageBox("Cannot claim bonus: Application is under maintenance.", 'warning');
                 return;
             }
@@ -2585,8 +2586,7 @@
             const isMaintenanceMode = systemSettings.maintenanceMode ?? false;
             const isPostCreationEnabled = systemSettings.enablePostCreation ?? true;
 
-            // Disable all if in maintenance mode (for ALL users, including admin, as per new requirement)
-            // Or if not authenticated.
+            // Disable all interactive elements if not authenticated OR if in maintenance mode
             const disableAllInteractive = !authEnabled || isMaintenanceMode;
 
             // Daily Inspiration Section
@@ -2616,8 +2616,18 @@
             document.querySelectorAll('.comment-toggle-button').forEach(button => {
                 button.disabled = disableAllInteractive;
             });
+            // Post options buttons are only for author, but should also respect maintenance mode
             document.querySelectorAll('.post-options-button').forEach(button => {
-                button.disabled = disableAllInteractive;
+                // If it's the author's post, and not in maintenance, then enable. Otherwise, disable.
+                const postId = button.dataset.postId;
+                const postElement = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+                const postAuthorId = postElement?.dataset.authorId; // Assuming authorId is set on post-card
+
+                if (currentUser && currentUser.uid === postAuthorId && !isMaintenanceMode) {
+                    button.disabled = false;
+                } else {
+                    button.disabled = true;
+                }
             });
             document.querySelectorAll('.edit-post-button').forEach(button => {
                 button.disabled = disableAllInteractive;
@@ -2768,7 +2778,7 @@
 
 
                 if (oldProfilePicId !== profileData.profilePicId) {
-                    await updatePostsWithNewProfilePic(user.uid, profileData.profilePicId);
+                    await updatePostsWithNewProfilePic(user.uid, profilePicId); // Fixed: profilePicId to newProfilePicId
                 }
 
                 startInspirationDisplay(currentUserProfileData.inspirationType || "motivational");
@@ -3488,6 +3498,7 @@
             const postElement = document.createElement('div');
             postElement.classList.add('post-card');
             postElement.setAttribute('data-post-id', postId);
+            postElement.setAttribute('data-author-id', post.authorId); // Added for easier lookup in toggleInteractiveElements
 
             let userReactionType = '';
 
@@ -3506,17 +3517,17 @@
                         <p class="post-timestamp">${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}</p>
                     </div>
                     ${isAuthor ? `
-                    <button class="post-options-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}>
+                    <button class="post-options-button" data-post-id="${postId}" disabled>
                         <i class="fas fa-ellipsis-h"></i>
                     </button>
                     <div class="post-options-dropdown" id="dropdown-${postId}">
-                        <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady ? 'disabled' : ''}>
+                        <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" disabled>
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="delete-post-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady ? 'disabled' : ''}>
+                        <button class="delete-post-button" data-post-id="${postId}" data-author-id="${post.authorId}" disabled>
                             <i class="fas fa-trash-alt"></i> Delete
                         </button>
-                        <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady ? 'disabled' : ''}>
+                        <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" disabled>
                             <i class="fas fa-share"></i> Share
                         </button>
                     </div>
@@ -3541,16 +3552,16 @@
                     <span><span class="comments-count">${post.commentsCount || 0}</span> Comments</span>
                 </div>
                 <div class="post-actions-row">
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" ${!isAuthReady ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" disabled>
                         <i class="fas fa-thumbs-up"></i> Like
                     </button>
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="love" ${!isAuthReady ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="love" disabled>
                         <i class="fas fa-heart"></i> Love
                     </button>
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="haha" ${!isAuthReady ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="haha" disabled>
                         <i class="fas fa-face-laugh"></i> Haha
                     </button>
-                    <button class="post-action-button comment-toggle-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}>
+                    <button class="post-action-button comment-toggle-button" data-post-id="${postId}" disabled>
                         <i class="fas fa-comment"></i> Comment
                     </button>
                 </div>
@@ -3559,8 +3570,8 @@
                         <p style="font-size:0.85rem; color:var(--text-light); text-align:left; margin-left:10px;" class="no-comments-message">No comments yet.</p>
                     </div>
                     <div class="comment-input-area">
-                        <textarea placeholder="Write a comment..." class="comment-input" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}></textarea>
-                        <button class="submit-comment-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''}>Post</button>
+                        <textarea placeholder="Write a comment..." class="comment-input" data-post-id="${postId}" disabled></textarea>
+                        <button class="submit-comment-button" data-post-id="${postId}" disabled>Post</button>
                     </div>
                 </div>
             `;
@@ -3587,7 +3598,7 @@
                     <a href="/profile.html?userId=${comment.userId}" class="comment-author-name">${comment.username || 'Anonymous'}</a>
                     <span class="comment-text">${comment.content}</span>
                     <span class="comment-timestamp">${comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
-                    ${isCommentOwner ? `<button class="delete-comment-button" data-post-id="${postId}" data-comment-id="${commentId}" data-comment-author-id="${comment.userId}" ${!isAuthReady ? 'disabled' : ''}><i class="fas fa-trash-alt"></i></button>` : ''}
+                    ${isCommentOwner ? `<button class="delete-comment-button" data-post-id="${postId}" data-comment-id="${commentId}" data-comment-author-id="${comment.userId}" disabled><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
             `;
             return commentElement;
@@ -3777,6 +3788,9 @@
                     }
 
                     if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
+                    // After posts are rendered/updated, re-apply interactive element states
+                    toggleInteractiveElements(isAuthReady);
+
                 });
                 unsubscribeListeners.push(unsubscribePosts); // Add the main posts listener to the unsubscribe list
 
@@ -3891,7 +3905,7 @@
                     systemSettings = docSnap.data();
                     console.log("JCHAT_DEBUG: System settings updated:", systemSettings);
                 } else {
-                    console.warn("JCHAT_WARNING: System settings document not found. Using default values.");
+                    console.warn("JCHAT_WARNING: System settings document not found. Creating with default values.");
                     systemSettings = {
                         jcoinNairaRate: 7.5,
                         gasJcoinRate: 0.1,
@@ -3942,16 +3956,17 @@
                 }
             }
 
-            // Apply post creation setting
+            // Apply post creation section visibility
             if (postCreationSection) {
-                // If maintenance is on, hide post creation for everyone.
-                // Otherwise, show/hide based on enablePostCreation setting.
-                if (isMaintenanceMode) {
+                if (isMaintenanceMode || !isPostCreationEnabled) {
                     postCreationSection.style.display = 'none';
-                    if (postCreationDisabledMessage) postCreationDisabledMessage.style.display = 'none'; // Hide this specific message during full maintenance
-                } else if (!isPostCreationEnabled) {
-                    postCreationSection.style.display = 'none';
-                    if (postCreationDisabledMessage) postCreationDisabledMessage.style.display = 'block';
+                    if (postCreationDisabledMessage) {
+                        if (isMaintenanceMode) {
+                            postCreationDisabledMessage.style.display = 'none'; // Hide if full maintenance overlay is up
+                        } else {
+                            postCreationDisabledMessage.style.display = 'block'; // Show only if disabled but not in full maintenance
+                        }
+                    }
                 } else {
                     postCreationSection.style.display = 'flex'; // Show it if enabled and not in maintenance
                     if (postCreationDisabledMessage) postCreationDisabledMessage.style.display = 'none';
@@ -3988,34 +4003,49 @@
                     }
                 } catch (error) {
                     console.error("JCHAT_ERROR: Error during anonymous sign-in or custom token sign-in:", error);
+                    // If anonymous sign-in fails and no user is authenticated, redirect to login
                     if (!auth.currentUser) {
                         window.location.href = '/login.html';
+                        return; // Stop further execution
                     }
                 }
-                isAuthReady = false;
-                // Ensure elements are disabled for logged out/anonymous users
-                toggleInteractiveElements(false);
-                if (headerDisplayName) headerDisplayName.textContent = "Guest";
-                if (headerProfilePic) headerProfilePic.style.display = 'none';
-                if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
-                if (adminIconLink) adminIconLink.style.display = 'none'; // Ensure admin icon is hidden for guests
-                if (postsFeed) postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see posts and interact.</p>';
-                if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
-                if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Please log in to get your daily inspiration.";
-                if (inspirationAuthorElement) inspirationAuthorElement.textContent = "";
+                // If we reach here, either anonymous sign-in succeeded or custom token worked
+                // Re-check currentUser after potential anonymous sign-in
+                currentUser = auth.currentUser;
+                if (currentUser) {
+                    isAuthReady = true;
+                    await fetchAndDisplayHeaderProfile(currentUser);
+                    setupSystemSettingsListener();
+                    await fetchAndDisplayPosts();
+                    fetchNotificationCount(currentUser.uid);
+                    console.log("JCHAT_DEBUG: Anonymous/Custom Token Auth successful. User ID:", currentUser.uid, "isAuthReady:", isAuthReady);
+                } else {
+                    // This case should ideally not be reached if the above logic is correct,
+                    // but as a fallback, ensure UI is for logged out state.
+                    isAuthReady = false;
+                    toggleInteractiveElements(false);
+                    if (headerDisplayName) headerDisplayName.textContent = "Guest";
+                    if (headerProfilePic) headerProfilePic.style.display = 'none';
+                    if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
+                    if (adminIconLink) adminIconLink.style.display = 'none';
+                    if (postsFeed) postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see posts and interact.</p>';
+                    if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
+                    if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Please log in to get your daily inspiration.";
+                    if (inspirationAuthorElement) inspirationAuthorElement.textContent = "";
 
-                // Ensure daily bonus button is disabled and countdown is cleared for logged out state
-                if (claimDailyBonusButton) {
-                    claimDailyBonusButton.disabled = true;
-                    claimDailyBonusButton.querySelector('.button-text').textContent = "Login to Claim Bonus";
+                    if (claimDailyBonusButton) {
+                        claimDailyBonusButton.disabled = true;
+                        claimDailyBonusButton.querySelector('.button-text').textContent = "Login to Claim Bonus";
+                    }
+                    if (dailyBonusCountdownInterval) {
+                        clearInterval(dailyBonusCountdownInterval);
+                        dailyBonusCountdownInterval = null;
+                    }
+                    console.log("JCHAT_DEBUG: Auth is NOT ready (final fallback). isAuthReady:", isAuthReady);
                 }
-                if (dailyBonusCountdownInterval) {
-                    clearInterval(dailyBonusCountdownInterval);
-                    dailyBonusCountdownInterval = null;
-                }
-                console.log("JCHAT_DEBUG: Auth is NOT ready. isAuthReady:", isAuthReady);
             }
         });
+
 
         // --- Event Listeners for static elements ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -4026,7 +4056,8 @@
             } else {
                 applyTheme('theme-dark-mode');
             }
-            toggleInteractiveElements(false); // Disable until auth state and system settings are confirmed
+            // Initial call to disable elements until auth and settings are confirmed
+            toggleInteractiveElements(false);
             console.log(`JCHAT_DEBUG: Initial postContentInput disabled state: ${postContentInput ? postContentInput.disabled : 'N/A (element not found)'}`);
 
             // Set active class for current page in sidebar
