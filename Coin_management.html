@@ -464,98 +464,6 @@
         .section-card h1 { font-size: 2.5rem; }
         .section-card h2 { font-size: 1.8rem; margin-bottom: 1rem; }
 
-        /* Coin Management Specific Styles */
-        .pending-requests-list {
-            width: 100%;
-            max-height: 500px;
-            overflow-y: auto;
-            background: var(--glass-black);
-            border: 1px solid var(--blue);
-            border-radius: 10px;
-            padding: 15px;
-        }
-
-        .request-item {
-            background: var(--glass-blue);
-            border: 1px solid var(--blue);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            position: relative;
-        }
-
-        .request-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .request-info p {
-            margin: 0;
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        .request-info strong {
-            color: var(--white);
-        }
-
-        .request-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 10px;
-        }
-
-        .request-action-button {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .request-action-button.approve {
-            background-color: var(--approve-color);
-            color: white;
-        }
-
-        .request-action-button.approve:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(76, 175, 80, 0.4);
-        }
-
-        .request-action-button.reject {
-            background-color: var(--reject-color);
-            color: white;
-        }
-
-        .request-action-button.reject:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(244, 67, 54, 0.4);
-        }
-
-        .no-requests-message {
-            text-align: center;
-            color: var(--text-light);
-            padding: 20px;
-        }
-
-        /* Access Denied Message */
-        #accessDeniedMessage {
-            display: none; /* Hidden by default */
-            color: var(--reject-color);
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-top: 50px;
-            text-align: center;
-        }
-
         /* Admin Specific Styles (Check User's JCoins and Send JCoins) */
         .admin-input-group {
             width: 100%;
@@ -694,29 +602,6 @@
             background-clip: text;
             color: transparent;
             background-image: linear-gradient(90deg, var(--pink), var(--blue));
-        }
-
-        /* Receipt Image Styling */
-        .receipt-image-container {
-            margin-top: 10px;
-            text-align: center;
-        }
-        .receipt-image-container img {
-            max-width: 100px; /* Small thumbnail */
-            max-height: 100px;
-            border-radius: 8px;
-            border: 2px solid var(--blue);
-            cursor: pointer;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-        .receipt-image-container img:hover {
-            transform: scale(1.05);
-            border-color: var(--pink);
-        }
-        .receipt-image-container p {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            margin-top: 5px;
         }
 
         /* Loader styles for buttons */
@@ -1140,15 +1025,8 @@
                 padding: 0.7rem 1.2rem;
                 font-size: 0.8rem;
             }
-            .request-item {
-                padding: 10px;
-            }
-            .request-info p {
-                font-size: 0.8rem;
-            }
-            .request-action-button {
-                padding: 6px 10px;
-                font-size: 0.75rem;
+            .action-button i {
+                font-size: 1rem;
             }
             .admin-table th, .admin-table td {
                 padding: 8px 10px;
@@ -1299,30 +1177,6 @@
                         The current market value of JCoins in Naira.
                     </p>
                     <div class="price-value" id="currentJchatCoinPrice">#7.5 Naira = 1 JCoin</div>
-                </div>
-
-                <!-- Pending JCoin Requests Section -->
-                <div class="section-card">
-                    <h2><i class="fas fa-coins"></i> Pending JCoin Requests</h2>
-                    <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8;">
-                        Review and manage JCoin purchase requests submitted by all JCHAT users.
-                        <br>
-                        **IMPORTANT:** The 'Mark All as Approved/Rejected' buttons below only mark requests as processed. They DO NOT automatically credit JCoins. You must manually credit JCoins for each user after review.
-                    </p>
-                    <div style="display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; justify-content: center;">
-                        <button id="markAllJCoinRequestsApprovedBtn" class="action-button">
-                            <span class="button-text"><i class="fas fa-check-double"></i> Mark All as Approved</span>
-                            <div class="button-loader"></div>
-                        </button>
-                        <button id="markAllJCoinRequestsRejectedBtn" class="action-button secondary">
-                            <span class="button-text"><i class="fas fa-times-circle"></i> Mark All as Rejected</span>
-                            <div class="button-loader"></div>
-                        </button>
-                    </div>
-                    <div class="pending-requests-list" id="pendingJCoinRequestsList">
-                        <p class="no-requests-message" id="noPendingJCoinRequestsMessage">No pending coin requests.</p>
-                        <!-- Pending JCoin requests will be loaded here dynamically by JavaScript -->
-                    </div>
                 </div>
 
                 <!-- Check User's JCoins Section -->
@@ -1594,12 +1448,6 @@
         const currentGasPrice = document.getElementById('currentGasPrice');
         const currentJchatCoinPrice = document.getElementById('currentJchatCoinPrice');
 
-        // JCoin Requests
-        const pendingJCoinRequestsList = document.getElementById('pendingJCoinRequestsList');
-        const noPendingJCoinRequestsMessage = document.getElementById('noPendingJCoinRequestsMessage');
-        const markAllJCoinRequestsApprovedBtn = document.getElementById('markAllJCoinRequestsApprovedBtn');
-        const markAllJCoinRequestsRejectedBtn = document.getElementById('markAllJCoinRequestsRejectedBtn');
-
         // Check User's JCoins Elements
         const targetUserIdInput = document.getElementById('targetUserIdInput');
         const checkUserCoinsBtn = document.getElementById('checkUserCoinsBtn');
@@ -1666,7 +1514,6 @@
         let isAuthReady = false;
         let currentUser = null;
         let currentUserProfileData = null;
-        let unsubscribePendingJCoinRequests = null;
         let unsubscribePendingActivityRewards = null; // New unsubscribe for activity rewards
         let currentPendingRewards = []; // Store pending activity rewards for batch processing
 
@@ -1977,7 +1824,6 @@
                     adminIconLink.style.display = 'block';
                     accessDeniedMessage.style.display = 'none';
                     adminSections.style.display = 'flex';
-                    fetchAndDisplayPendingJCoinRequests();
                     fetchAndDisplayPendingRewards(); // Call for activity rewards
                 } else {
                     adminIconLink.style.display = 'none';
@@ -2184,275 +2030,6 @@
 
 
         // --- Admin Page Specific Functions ---
-
-        /**
-         * Fetches and displays pending JCoin purchase requests.
-         */
-        function fetchAndDisplayPendingJCoinRequests() {
-            if (!currentUser || currentUser.uid !== ADMIN_UID) {
-                return;
-            }
-
-            pendingJCoinRequestsList.innerHTML = `<p class="no-requests-message" id="loadingJCoinRequestsMessage">Loading pending JCoin requests...</p>`;
-            noPendingJCoinRequestsMessage.style.display = 'none';
-            markAllJCoinRequestsApprovedBtn.disabled = true;
-            markAllJCoinRequestsRejectedBtn.disabled = true;
-
-            if (unsubscribePendingJCoinRequests) unsubscribePendingJCoinRequests();
-
-            const buyRequestsCollectionRef = collection(db, "artifacts", appId, "public", "data", "jcoin_buy_requests");
-            const q = query(buyRequestsCollectionRef, where("status", "==", "pending"), orderBy("timestamp", "asc"));
-
-            unsubscribePendingJCoinRequests = onSnapshot(q, (snapshot) => {
-                pendingJCoinRequestsList.innerHTML = '';
-                document.getElementById('loadingJCoinRequestsMessage')?.remove();
-
-                if (snapshot.empty) {
-                    noPendingJCoinRequestsMessage.style.display = 'block';
-                    markAllJCoinRequestsApprovedBtn.disabled = true;
-                    markAllJCoinRequestsRejectedBtn.disabled = true;
-                } else {
-                    noPendingJCoinRequestsMessage.style.display = 'none';
-                    markAllJCoinRequestsApprovedBtn.disabled = false;
-                    markAllJCoinRequestsRejectedBtn.disabled = false;
-                    snapshot.docs.forEach(docSnap => {
-                        const request = docSnap.data();
-                        const requestId = docSnap.id;
-                        const requestItem = document.createElement('div');
-                        requestItem.classList.add('request-item');
-                        requestItem.id = `jcoin-request-${requestId}`;
-
-                        const timestamp = request.timestamp && request.timestamp.toDate ? new Date(request.timestamp.toDate()).toLocaleString() : 'N/A';
-                        const receiptHtml = request.receiptImageUrl ? `
-                            <div class="receipt-image-container">
-                                <img src="${getCloudinaryImageUrl(request.receiptImageUrl, 'w_150,h_150,c_fill,g_auto,q_auto')}" alt="Payment Receipt" class="clickable-receipt-image" data-full-image-url="${getCloudinaryImageUrl(request.receiptImageUrl, 'w_1000,h_1000,c_fit')}">
-                                <p>Click to view receipt</p>
-                            </div>
-                        ` : '';
-
-                        requestItem.innerHTML = `
-                            <div class="request-info">
-                                <p><strong>User ID:</strong> <span class="gradient-text">${request.userId}</span></p>
-                                <p><strong>Username:</strong> ${request.username || 'N/A'}</p>
-                                <p><strong>Naira Paid:</strong> <span class="gradient-text">#${request.requestedNairaPrice ? request.requestedNairaPrice.toLocaleString() : 'N/A'}</span></p>
-                                <p><strong>JCoins to Credit (Suggested):</strong> <span class="gradient-text">${request.requestedJCoins ? request.requestedJCoins.toLocaleString() : 'N/A'} JCoins</span></p>
-                                <p><strong>Requested At:</strong> ${timestamp}</p>
-                                ${receiptHtml}
-                            </div>
-                            <div class="request-actions">
-                                <button class="request-action-button approve" data-request-id="${requestId}" data-user-id="${request.userId}" data-jcoins="${request.requestedJCoins || 0}" data-naira="${request.requestedNairaPrice || 0}">
-                                    <span class="button-text"><i class="fas fa-check-circle"></i> Approve</span>
-                                    <div class="button-loader"></div>
-                                </button>
-                                <button class="request-action-button reject" data-request-id="${requestId}" data-user-id="${request.userId}" data-naira="${request.requestedNairaPrice || 0}">
-                                    <span class="button-text"><i class="fas fa-times-circle"></i> Reject</span>
-                                    <div class="button-loader"></div>
-                                </button>
-                            </div>
-                        `;
-                        pendingJCoinRequestsList.appendChild(requestItem);
-                    });
-
-                    pendingJCoinRequestsList.querySelectorAll('.approve').forEach(button => {
-                        button.addEventListener('click', async (event) => {
-                            const requestId = event.currentTarget.dataset.requestId;
-                            const userId = event.currentTarget.dataset.userId;
-                            const jCoins = parseInt(event.currentTarget.dataset.jcoins);
-                            const naira = parseInt(event.currentTarget.dataset.naira);
-                            await approveJCoinRequest(requestId, userId, jCoins, naira, event.currentTarget);
-                        });
-                    });
-
-                    pendingJCoinRequestsList.querySelectorAll('.reject').forEach(button => {
-                        button.addEventListener('click', async (event) => {
-                            const requestId = event.currentTarget.dataset.requestId;
-                            const userId = event.currentTarget.dataset.userId;
-                            const naira = parseInt(event.currentTarget.dataset.naira);
-                            await rejectJCoinRequest(requestId, userId, naira, event.currentTarget);
-                        });
-                    });
-
-                    pendingJCoinRequestsList.querySelectorAll('.clickable-receipt-image').forEach(img => {
-                        img.addEventListener('click', (event) => {
-                            event.stopPropagation();
-                            const fullImageUrl = event.target.dataset.full-image-url;
-                            if (fullImageUrl) {
-                                viewerImage.src = fullImageUrl;
-                                viewerImage.style.display = 'block';
-                                viewerVideo.style.display = 'none';
-                                mediaViewerModal.classList.add('active');
-                            }
-                        });
-                    });
-
-                }
-            }, (error) => {
-                console.error("JCHAT_ERROR: Error fetching pending JCoin requests:", error);
-                showMessageBox(`Error loading JCoin requests: ${error.message}`, 'error');
-                playNotificationSound('error');
-                document.getElementById('loadingJCoinRequestsMessage')?.remove();
-                noPendingJCoinRequestsMessage.style.display = 'block';
-                noPendingJCoinRequestsMessage.textContent = "Error loading JCoin requests. Please try again.";
-                markAllJCoinRequestsApprovedBtn.disabled = true;
-                markAllJCoinRequestsRejectedBtn.disabled = true;
-            });
-        }
-
-        /**
-         * Marks all pending JCoin requests as approved/completed in a single batch.
-         * This does NOT automatically credit JCoins.
-         * @param {boolean} approve - True to mark as approved, false to mark as rejected.
-         */
-        async function markAllJCoinRequestsAsProcessed(approve) {
-            if (!currentUser || currentUser.uid !== ADMIN_UID) {
-                showMessageBox("Access Denied. You are not an administrator.", 'error');
-                playNotificationSound('error');
-                return;
-            }
-
-            const actionVerb = approve ? "approved" : "rejected";
-            const confirmTitle = approve ? "Confirm Batch Approval" : "Confirm Batch Rejection";
-            const confirmMessage = approve ?
-                "Are you sure you want to mark ALL pending JCoin requests as approved? This action only clears the queue; you must still manually credit JCoins for each user after review." :
-                "Are you sure you want to mark ALL pending JCoin requests as rejected? This action only clears the queue; no JCoins will be credited.";
-
-            const buttonToToggle = approve ? markAllJCoinRequestsApprovedBtn : markAllJCoinRequestsRejectedBtn;
-
-            const confirmed = await showConfirmationModal(confirmTitle, confirmMessage);
-            if (!confirmed) {
-                return;
-            }
-
-            toggleButtonLoading(buttonToToggle, true);
-            showMessageBox(`Marking all pending JCoin requests as ${actionVerb}...`, 'loading', true);
-
-            try {
-                const buyRequestsCollectionRef = collection(db, "artifacts", appId, "public", "data", "jcoin_buy_requests");
-                const q = query(buyRequestsCollectionRef, where("status", "==", "pending"));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    showMessageBox(`No pending JCoin requests to ${actionVerb}.`, 'info');
-                    playNotificationSound('info');
-                    return;
-                }
-
-                const batch = writeBatch(db);
-                querySnapshot.forEach(docSnap => {
-                    const requestRef = doc(buyRequestsCollectionRef, docSnap.id);
-                    batch.update(requestRef, {
-                        status: approve ? 'completed' : 'rejected',
-                        processedAt: serverTimestamp(),
-                        processedByAdminId: currentUser.uid,
-                        processedByAdminUsername: currentUser.displayName || "Admin"
-                    });
-                });
-
-                await batch.commit();
-                showMessageBox(`Successfully marked ${querySnapshot.size} JCoin requests as ${actionVerb}!`, 'success', true);
-                playNotificationSound('success');
-            } catch (error) {
-                console.error(`JCHAT_ERROR: Error marking all JCoin requests as ${actionVerb}:`, error);
-                showMessageBox(`Failed to mark JCoin requests as ${actionVerb}: ${error.message}`, 'error');
-                playNotificationSound('error');
-            } finally {
-                toggleButtonLoading(buttonToToggle, false);
-            }
-        }
-
-        /**
-         * Approves a JCoin purchase request, credits JCoins to user, and updates request status.
-         * @param {string} requestId - The ID of the JCoin request document.
-         * @param {string} userId - The UID of the user who made the request.
-         * @param {number} jCoinsAmount - The amount of JCoins to credit.
-         * @param {number} nairaAmount - The Naira amount associated with the request.
-         * @param {HTMLElement} buttonElement - The button element that triggered the action.
-         */
-        async function approveJCoinRequest(requestId, userId, jCoinsAmount, nairaAmount, buttonElement) {
-            toggleButtonLoading(buttonElement, true);
-            const otherButton = buttonElement.nextElementSibling || buttonElement.previousElementSibling;
-            if (otherButton) otherButton.disabled = true;
-
-            showMessageBox(`Approving JCoin request for ${jCoinsAmount.toLocaleString()} JCoins...`, 'loading', true);
-
-            try {
-                const userProfileDocRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
-                const userTransactionsCollectionRef = collection(db, "artifacts", appId, "users", userId, "transactions");
-                const requestDocRef = doc(db, "artifacts", appId, "public", "data", "jcoin_buy_requests", requestId);
-
-                await runTransaction(db, async (transaction) => {
-                    const userProfileDoc = await transaction.get(userProfileDocRef);
-                    if (!userProfileDoc.exists()) {
-                        throw new Error("User profile not found for crediting JCoins.");
-                    }
-                    const currentJCoins = userProfileDoc.data().jCoins ?? 0;
-                    const newJCoins = currentJCoins + jCoinsAmount;
-
-                    transaction.update(userProfileDocRef, { jCoins: newJCoins });
-
-                    transaction.set(doc(userTransactionsCollectionRef), {
-                        type: 'credit',
-                        amount: jCoinsAmount,
-                        description: `JCoin Purchase (Admin Approved) - #${nairaAmount.toLocaleString()}`,
-                        timestamp: serverTimestamp(),
-                        requestId: requestId
-                    });
-
-                    transaction.update(requestDocRef, {
-                        status: 'completed',
-                        processedAt: serverTimestamp(),
-                        processedByAdminId: currentUser.uid,
-                        processedByAdminUsername: currentUser.displayName || "Admin"
-                    });
-                });
-
-                showMessageBox(`Request ${requestId.substring(0, 8)} approved. ${jCoinsAmount.toLocaleString()} JCoins credited to user ${userId.substring(0, 8)}.`, 'success');
-                playNotificationSound('success');
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error approving JCoin request:", error);
-                showMessageBox(`Failed to approve request ${requestId.substring(0, 8)}: ${error.message}`, 'error');
-                playNotificationSound('error');
-            } finally {
-                toggleButtonLoading(buttonElement, false);
-                if (otherButton) otherButton.disabled = false;
-            }
-        }
-
-        /**
-         * Rejects a JCoin purchase request and updates its status.
-         * @param {string} requestId - The ID of the JCoin request document.
-         * @param {string} userId - The UID of the user who made the request.
-         * @param {number} nairaAmount - The Naira amount associated with the request.
-         * @param {HTMLElement} buttonElement - The button element that triggered the action.
-         */
-        async function rejectJCoinRequest(requestId, userId, nairaAmount, buttonElement) {
-            toggleButtonLoading(buttonElement, true);
-            const otherButton = buttonElement.previousElementSibling || buttonElement.nextElementSibling;
-            if (otherButton) otherButton.disabled = true;
-
-            showMessageBox(`Rejecting JCoin request for #${nairaAmount.toLocaleString()}...`, 'loading', true);
-
-            try {
-                const requestDocRef = doc(db, "artifacts", appId, "public", "data", "jcoin_buy_requests", requestId);
-
-                await updateDoc(requestDocRef, {
-                    status: 'rejected',
-                    processedAt: serverTimestamp(),
-                    processedByAdminId: currentUser.uid,
-                    processedByAdminUsername: currentUser.displayName || "Admin"
-                });
-
-                showMessageBox(`JCoin Request ${requestId.substring(0, 8)} rejected.`, 'info');
-                playNotificationSound('info');
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error rejecting JCoin request:", error);
-                showMessageBox(`Failed to reject JCoin request ${requestId.substring(0, 8)}: ${error.message}`, 'error');
-                playNotificationSound('error');
-            } finally {
-                toggleButtonLoading(buttonElement, false);
-                if (otherButton) otherButton.disabled = false;
-            }
-        }
 
         /**
          * Admin function to check a target user's JCoins balance.
@@ -3444,9 +3021,6 @@
                 adminLockUserWallet(targetId, lockWalletBtn);
             });
 
-            if (markAllJCoinRequestsApprovedBtn) markAllJCoinRequestsApprovedBtn.addEventListener('click', () => markAllJCoinRequestsAsProcessed(true));
-            if (markAllJCoinRequestsRejectedBtn) markAllJCoinRequestsRejectedBtn.addEventListener('click', () => markAllJCoinRequestsAsProcessed(false));
-
             // Activity Reward Approval Listeners (NEW/RE-ADDED)
             if (pendingRewardsTableBody) {
                 pendingRewardsTableBody.addEventListener('click', (event) => {
@@ -3493,13 +3067,12 @@
         });
 
         window.addEventListener('beforeunload', () => {
-            if (unsubscribePendingJCoinRequests) unsubscribePendingJCoinRequests();
-            if (unsubscribePendingActivityRewards) unsubscribePendingActivityRewards(); // Unsubscribe activity rewards
+            if (unsubscribePendingActivityRewards) {
+                unsubscribePendingActivityRewards(); // Unsubscribe activity rewards
+            }
         });
 
         if (logoutButton) logoutButton.addEventListener('click', handleLogout);
-
-        // Removed Bottom Navigation Bar Toggle Logic
     </script>
 </body>
 </html>

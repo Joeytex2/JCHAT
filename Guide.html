@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHAT - User Guide</title>
+
+    <!-- Google Fonts: Poppins for headings, Inter for body text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Tone.js for audio notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* Universal box-sizing for consistent layout */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Global CSS Variables for easy theme switching (Copied from Home.html) */
+        :root {
+            --pink: #ff2e92;
+            --blue: #00d5ff;
+            --glass-black: rgba(10, 10, 10, .75);
+            --glass-blue: rgba(0, 213, 255, .15);
+            --radius: 20px;
+            --transition: .3s ease;
+
+            /* These variables will be overridden by theme classes */
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, .7);
+            --background-main: rgba(10, 10, 10, .75);
+            --background-gradient-1: #00d5ff;
+            --background-gradient-2: #ff2e92;
+            --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            --header-background: linear-gradient(135deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .75));
+            --border-light: rgba(255, 255, 255, 0.05);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --button-background: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+
+            /* New variables for consistent theming (Added for consistency with Profile/Levels) */
+            --background-color-primary: #1a1a2e;
+            --background-color-secondary: #0f0f1f;
+            --header-background-color: #2a2a4a;
+            --footer-background-color: #2a2a4a;
+            --content-background-color: #20203a;
+            --card-background-color: #2a2a4a;
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --notification-badge-color: #ff2e92;
+            --status-online: #4CAF50;
+            --status-offline: #6c757d;
+            --status-away: #FFC107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+            --accent-color: #00d5ff; /* A bright cyan */
+            --accent-color-dark: #00aaff;
+            --border-color: #3a3a5a;
+        }
+
+        /* --- Theme Definitions (Light and Dark Mode) --- (Copied from Home.html) */
+        /* Light Mode */
+        body.theme-light-mode {
+            --background-main: #f0f2f5; /* Light gray background */
+            --background-gradient-1: #e0e2e5; /* Subtle lighter gradient */
+            --background-gradient-2: #d0d2d5; /* Subtle darker gradient */
+            --white: #333; /* Dark text for readability */
+            --text-light: #666; /* Lighter dark text */
+            --card-background: rgba(255, 255, 255, 0.95); /* Near white cards */
+            --header-background: rgba(255, 255, 255, 0.98); /* Near white header */
+            --border-light: rgba(0, 0, 0, 0.1); /* Light borders */
+            --input-background: rgba(0, 0, 0, 0.05); /* Light input background */
+            --button-background: linear-gradient(90deg, #6dd5ed, #2193b0); /* Blue gradient */
+            --button-shadow: 0 4px 15px rgba(109, 213, 237, 0.4), 0 4px 15px rgba(33, 147, 176, 0.4);
+
+            /* New variables override for light mode */
+            --background-color-primary: #f0f2f5;
+            --background-color-secondary: #e0e2e5;
+            --header-background-color: #ffffff;
+            --footer-background-color: #ffffff;
+            --content-background-color: #f7f9fb;
+            --card-background-color: #ffffff;
+            --text-color-primary: #333333;
+            --text-color-secondary: #666666;
+            --text-color-light: #999999;
+            --accent-color: #007bff;
+            --accent-color-dark: #0056b3;
+            --border-color: #e0e0e0;
+            --input-background-color: #f0f0f0;
+            --button-background: #e9ecef;
+            --button-hover-background: #dee2e6;
+            --active-item-background: rgba(0, 123, 255, 0.1);
+            --notification-badge-color: #dc3545;
+            --status-online: #28a745;
+            --status-offline: #6c757d;
+            --status-away: #ffc107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+
+        /* Dark Mode */
+        body.theme-dark-mode {
+            --background-main: #1a1a2e; /* Deep purple-dark blue */
+            --background-gradient-1: #16213e; /* Slightly lighter deep blue */
+            --background-gradient-2: #0f3460; /* Darker blue */
+            --white: #e0e0e0; /* Off-white text */
+            --text-light: #a0a0a0; /* Grayish text */
+            --card-background: rgba(25, 25, 40, 0.7); /* Darker, less transparent cards */
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75)); /* Original dark header */
+            --border-light: rgba(255, 255, 255, 0.08); /* Subtle white borders */
+            --input-background: rgba(255, 255, 255, 0.08); /* Dark input background */
+            --button-background: linear-gradient(90deg, #e94560, #ba2f49); /* Reddish gradient */
+            --button-shadow: 0 4px 15px rgba(233, 69, 96, 0.4), 0 4px 15px rgba(186, 47, 73, 0.4);
+
+            /* New variables override for dark mode */
+            --background-color-primary: #121212;
+            --background-color-secondary: #1e1e1e;
+            --header-background-color: #2c2c2c;
+            --footer-background-color: #2c2c2c;
+            --content-background-color: #242424;
+            --card-background-color: #2c2c2c;
+            --text-color-primary: #ffffff;
+            --text-color-secondary: #bbbbbb;
+            --accent-color: #bb86fc;
+            --accent-color-dark: #9a67ea;
+            --border-color: #444444;
+            --input-background-color: #383838;
+            --button-background: #383838;
+            --button-hover-background: #505050;
+            --active-item-background: rgba(187, 134, 252, 0.2);
+            --notification-badge-color: #cf6679;
+            --delete-button-color: #f44336;
+            --warning-color: #ffeb3b;
+        }
+
+        /* Glass Mode specific variables */
+        body.theme-glass-mode {
+            --background-main: rgba(10, 10, 10, 0.75);
+            background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important;
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            backdrop-filter: blur(10px);
+            --card-background: rgba(25, 25, 40, 0.7);
+            --white: #e0e0e0; /* text-color */
+            --text-light: rgba(255, 255, 255, 0.7);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.1); /* glass-border-color */
+            --button-background: linear-gradient(90deg, var(--pink), var(--blue));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5); /* Inner shadow for glass effect */
+
+            /* New variables override for glass mode */
+            --background-color-primary: rgba(10, 10, 10, 0.75);
+            --background-color-secondary: rgba(10, 10, 10, 0.6);
+            --header-background-color: rgba(10, 10, 10, 0.85);
+            --footer-background-color: rgba(10, 10, 10, 0.85);
+            --content-background-color: rgba(10, 10, 10, 0.75);
+            --card-background-color: rgba(25, 25, 40, 0.7);
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --accent-color: #00d5ff;
+            --accent-color-dark: #00aaff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-background-color: rgba(255, 255, 255, 0.05);
+            --button-background: rgba(0, 213, 255, 0.15); /* Glassy button */
+            --button-hover-background: rgba(0, 213, 255, 0.25);
+            --active-item-background: rgba(0, 213, 255, 0.1);
+        }
+
+        /* Sunset Theme */
+        body.theme-sunset-mode {
+            background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
+            --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
+            --card-background: rgba(255, 255, 255, 0.15); /* Slightly transparent white for contrast */
+            --white: #fff; /* White text for readability */
+            --text-light: rgba(255, 255, 255, 0.8);
+            --input-background: rgba(255, 255, 255, 0.1);
+            --border-light: rgba(255, 255, 255, 0.3);
+            --button-background: linear-gradient(90deg, #fd746c, #ff9068); /* Sunset gradient */
+            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 4px 15px rgba(255, 144, 104, 0.4);
+
+            /* New variables override for sunset mode */
+            --background-color-primary: #ff7e5f;
+            --background-color-secondary: #feb47b;
+            --header-background-color: rgba(255, 126, 95, 0.9);
+            --footer-background-color: rgba(255, 126, 95, 0.9);
+            --content-background-color: rgba(255, 126, 95, 0.85);
+            --card-background-color: rgba(255, 255, 255, 0.15);
+            --text-color-primary: #fff;
+            --text-color-secondary: rgba(255, 255, 255, 0.8);
+            --accent-color: #ffd700;
+            --accent-color-dark: #ccaa00;
+            --border-color: rgba(255, 255, 255, 0.3);
+            --input-background-color: rgba(255, 255, 255, 0.1);
+            --button-background: rgba(255, 255, 255, 0.2);
+            --button-hover-background: rgba(255, 255, 255, 0.3);
+            --active-item-background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Always show scrollbar to prevent layout shifts */
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            background-color: var(--background-main);
+            background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
+                              radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
+            color: var(--white);
+            transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
+        }
+
+        /* Header Styling (Copied from Home.html) */
+        header {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 55px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        header .header-content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+        }
+
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
+            text-decoration: none;
+        }
+
+        /* User Profile Header Styling (Copied from Home.html) */
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification-icon-wrapper {
+            position: relative;
+            margin-right: 15px;
+        }
+
+        .notification-icon-wrapper a {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-icon-wrapper i {
+            font-size: 1.5rem;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .notification-icon-wrapper i:hover {
+            transform: scale(1.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--notification-badge-color);
+            color: var(--white);
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        .user-profile-header #profileLink {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--white);
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: var(--radius);
+        }
+
+        .user-profile-header #profileLink:hover {
+            opacity: 0.8;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile-header img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: opacity 0.3s ease;
+        }
+
+        .user-profile-header i {
+            font-size: 30px;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        .user-profile-header span {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        #adminIconLink {
+            display: none; /* Hidden by default, shown by JS if admin */
+            margin-right: 15px;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            font-size: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        #adminIconLink:hover {
+            transform: scale(1.1);
+        }
+
+        /* Main Content Area */
+        main {
+            flex-grow: 1;
+            padding: 40px 0;
+            padding-top: 55px; /* Adjust for fixed header */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+        }
+
+        .content-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            display: flex;
+            gap: 20px; /* Gap between guide sidebar and content */
+            align-items: flex-start; /* Align items to the top */
+        }
+
+        /* User Guide Specific Styles */
+        .user-guide-sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: sticky; /* Make it sticky */
+            top: 75px; /* Position below the main header */
+            max-height: calc(100vh - 95px); /* Limit height to prevent overflow and enable internal scroll */
+            overflow-y: auto; /* Enable scrolling for guide sidebar */
+        }
+
+        .user-guide-sidebar h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 10px;
+        }
+
+        .user-guide-sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .user-guide-sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: var(--white);
+        }
+
+        .user-guide-sidebar a.active-section {
+            background-color: rgba(0, 213, 255, 0.15);
+            color: var(--white);
+            border-left: 3px solid var(--blue);
+            padding-left: 7px;
+        }
+
+        .user-guide-content {
+            flex-grow: 1;
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 2rem;
+            text-align: left;
+        }
+
+        .user-guide-content h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .user-guide-content h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 0.5rem;
+        }
+
+        .user-guide-content h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .user-guide-content p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .user-guide-content ul {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 1rem;
+        }
+
+        .user-guide-content ul li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 8px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .user-guide-content ul li::before {
+            content: "\f058"; /* Font Awesome check-circle */
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            color: var(--blue);
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .user-guide-content .icon-text {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: var(--white);
+        }
+        .user-guide-content .icon-text i {
+            font-size: 1.2rem;
+            color: var(--pink);
+        }
+
+        /* Custom Message Box Styles (Copied from Home.html) */
+        #messageBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            min-width: 280px;
+            max-width: 90%;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+        }
+        #messageBox.success {
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: var(--white);
+            box-shadow: 0 5px 25px rgba(0, 213, 255, 0.5), 0 5px 25px rgba(255, 46, 146, 0.5);
+        }
+        #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+
+        #messageBox i {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        #messageBox.success i { color: var(--white); }
+        #messageBox.error i { color: var(--delete-button-color); }
+        #messageBox.info i { color: var(--accent-color); }
+        #messageBox.warning i { color: var(--warning-color); }
+
+        @keyframes pulse-bg {
+            0% { background-color: rgba(52, 152, 219, 0.9); }
+            50% { background-color: rgba(52, 152, 219, 0.7); }
+            100% { background-color: rgba(52, 152, 219, 0.9); }
+        }
+        #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
+
+        /* Sidebar Navigation (Copied from Home.html) */
+        #sidebarNav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            background: var(--header-background);
+            border-right: 1px solid var(--border-light);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 90;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            transition: transform 0.3s ease-out;
+            transform: translateX(-100%);
+        }
+
+        #sidebarNav.sidebar-visible {
+            transform: translateX(0);
+        }
+
+        #sidebarNav.sidebar-hidden {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .sidebar-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
+        }
+
+        #sidebarCloseBtn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        #sidebarCloseBtn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        .sidebar-links {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .sidebar-nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: var(--white);
+            transform: translateX(5px);
+        }
+
+        .sidebar-nav-item.active {
+            background-color: rgba(0, 213, 255, 0.15);
+            color: var(--white);
+            border-left: 4px solid var(--blue);
+            padding-left: 11px;
+        }
+
+        .sidebar-nav-item i {
+            font-size: 1.4rem;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            width: 30px;
+            text-align: center;
+        }
+
+        .sidebar-nav-item span {
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        /* Sidebar Toggle Button in Header */
+        #sidebarToggleFab {
+            position: static;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            color: var(--white);
+            border: none;
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 80;
+            transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            opacity: 0.3;
+            margin-right: 15px;
+        }
+
+        #sidebarToggleFab:hover {
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+        }
+
+        /* Responsive Adjustments (Copied from Home.html and adjusted) */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .user-guide-sidebar {
+                width: 100%;
+                position: static; /* No longer sticky on mobile */
+                max-height: none; /* Remove max-height */
+                overflow-y: visible; /* Remove overflow-y */
+                padding: 15px;
+            }
+            .user-guide-content {
+                padding: 1.5rem;
+            }
+            .user-guide-content h1 {
+                font-size: 2rem;
+            }
+            .user-guide-content h2 {
+                font-size: 1.5rem;
+            }
+            .user-guide-content h3 {
+                font-size: 1.1rem;
+            }
+            .user-guide-content p, .user-guide-content ul li {
+                font-size: 0.9rem;
+            }
+            header .header-content-wrapper {
+                padding: 0 20px;
+            }
+            .logo {
+                font-size: 1.6rem;
+            }
+            #sidebarToggleFab {
+                width: 25px;
+                height: 25px;
+                font-size: 1rem;
+                margin-right: 10px;
+            }
+            .notification-icon-wrapper i, #adminIconLink {
+                font-size: 1.3rem;
+            }
+            .notification-badge {
+                padding: 2px 5px;
+                font-size: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body class="theme-dark-mode">
+
+    <header>
+        <div class="header-content-wrapper">
+            <button id="sidebarToggleFab" aria-label="Toggle Navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="/home.html" class="logo">JCHAT</a>
+            <div class="user-profile-header">
+                <!-- Admin Icon Link (visible only to admin) -->
+                <a href="/Admin.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
+                    <i class="fas fa-user-cog"></i>
+                </a>
+                <div class="notification-icon-wrapper">
+                    <a href="/notifications.html" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                    </a>
+                </div>
+                <a href="/profile.html" id="profileLink">
+                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
+                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                    <span id="headerDisplayName">Loading...</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="content-wrapper">
+            <!-- User Guide Sidebar (Table of Contents) -->
+            <aside class="user-guide-sidebar">
+                <h3>Table of Contents</h3>
+                <a href="#introduction">Introduction</a>
+                <a href="#getting-started">Getting Started</a>
+                <a href="#home-page">Home Page</a>
+                <a href="#chat">Chat</a>
+                <a href="#profile">Profile</a>
+                <a href="#friends">Friends</a>
+                <a href="#groups">Groups</a>
+                <a href="#jcoin-shop">JCoin Shop</a>
+                <a href="#settings">Settings</a>
+                <a href="#solution-center">Solution Center</a>
+                <a href="#admin-features">Admin Features</a>
+                <a href="#tips-security">Tips & Security</a>
+            </aside>
+
+            <!-- User Guide Content -->
+            <section class="user-guide-content">
+                <h1 id="user-guide-title">JCHAT User Guide</h1>
+                <p>Welcome to the JCHAT User Guide! This guide will help you understand all the features of JCHAT and how to make the most of your experience. Whether you're new or a seasoned user, you'll find valuable information here.</p>
+
+                <h2 id="introduction">1. Introduction to JCHAT</h2>
+                <p>JCHAT is a dynamic social platform designed to connect people through posts, chats, and a unique JCoin economy. Share your thoughts, connect with friends, and explore a community that values interaction and engagement.</p>
+
+                <h2 id="getting-started">2. Getting Started</h2>
+                <h3><i class="fas fa-user-plus"></i> Account Creation & Login</h3>
+                <p>To begin your JCHAT journey, you'll need to create an account. Simply follow the on-screen prompts during registration. Once registered, you can log in using your credentials. If you're new, you might be signed in anonymously first, but we encourage you to create a full account to unlock all features.</p>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> <strong>Register:</strong> Provide a username, email, and password.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Login:</strong> Use your registered email and password to access your account.</li>
+                </ul>
+
+                <h2 id="home-page">3. Home Page</h2>
+                <p>The Home Page is your central hub for daily updates and interactions.</p>
+                <h3><i class="fas fa-lightbulb"></i> Daily Inspiration</h3>
+                <p>Start your day with a dose of positivity! The Daily Inspiration section provides quotes tailored to your preferences. You can:</p>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> <strong>Share / Post:</strong> Share the current inspiration directly to your feed.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Customize Inspiration:</strong> Choose your preferred type of inspiration (motivational, peaceful, funny, wisdom).</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Claim Daily Bonus:</strong> Log in daily to claim JCoins and XP!</li>
+                </ul>
+                <h3><i class="fas fa-pen-to-square"></i> Create New Post</h3>
+                <p>Share your thoughts, photos, or videos with the JCHAT community.</p>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> <strong>Text Content:</strong> Write what's on your mind.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Add Media:</strong> Upload images or videos from your device.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Post:</strong> Publish your content to your feed.</li>
+                </ul>
+                <h3><i class="fas fa-comments"></i> Posts Feed & Interactions</h3>
+                <p>See posts from other users and interact with them.</p>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> <strong>React:</strong> Express yourself with 'Like' <i class="fas fa-thumbs-up"></i>, 'Love' <i class="fas fa-heart"></i>, or 'Haha' <i class="fas fa-face-laugh"></i> reactions.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Comment:</strong> Share your thoughts and engage in discussions.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Edit/Delete Posts:</strong> Manage your own posts using the options menu <i class="fas fa-ellipsis-h"></i>.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Share Posts:</strong> Share interesting posts with others.</li>
+                </ul>
+
+                <h2 id="chat">4. Chat</h2>
+                <p>Connect with your friends and other users in real-time.</p>
+                <h3><i class="fas fa-message"></i> Sending Messages</h3>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> <strong>Text Messages:</strong> Type and send instant messages.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Attach Media:</strong> Share images or audio files using the paperclip icon <i class="fas fa-paperclip"></i>.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Voice Notes:</strong> Record and send voice messages using the microphone icon <i class="fas fa-microphone"></i>.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Read Receipts:</strong> See when your messages have been read (double checkmark <i class="fas fa-check-double"></i>).</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Typing Indicator:</strong> See when your chat partner is typing.</li>
+                </ul>
+                <h3><i class="fas fa-phone"></i> Voice & Video Calls (Simulated)</h3>
+                <p>Initiate simulated voice <i class="fas fa-phone"></i> or video <i class="fas fa-video"></i> calls with your chat partners. Note: These are simulated calls for demonstration purposes and do not connect to actual phone lines or video streams.</p>
+                <h3><i class="fas fa-ellipsis-v"></i> Message Options</h3>
+                <p>Right-click or long-press on a message to access a context menu:</p>
+                <ul>
+                    <li><i class="fas fa-edit"></i> <strong>Edit:</strong> Modify your sent text messages.</li>
+                    <li><i class="fas fa-trash-alt"></i> <strong>Delete:</strong> Remove your messages from the chat.</li>
+                    <li><i class="fas fa-star"></i> <strong>Star/Unstar:</strong> Mark important messages for easy retrieval later.</li>
+                </ul>
+                <h3><i class="fas fa-search"></i> Search Messages</h3>
+                <p>Use the search icon <i class="fas fa-search"></i> in the chat header to find specific messages within your conversations.</p>
+
+                <h2 id="profile">5. Profile</h2>
+                <p>Your personal space on JCHAT.</p>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> <strong>View Profile:</strong> See your profile picture, username, bio, and other details.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Edit Profile:</strong> Update your profile picture, username, bio, and location.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>Privacy Settings:</strong> Control the visibility of your profile information.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>XP & Levels:</strong> Track your experience points and progression through JCHAT levels.</li>
+                    <li><i class="fas fa-check-circle"></i> <strong>JCoins:</strong> View your JCoin balance, the in-app currency.</li>
+                </ul>
+
+                <h2 id="friends">6. Friends</h2>
+                <p>Connect with other users on JCHAT.</p>
+                <ul>
+                    <li><i class="fas fa-users"></i> <strong>Find Users:</strong> Search for other JCHAT users.</li>
+                    <li><i class="fas fa-user-plus"></i> <strong>Send/Accept Requests:</strong> Send friend requests and manage incoming requests.</li>
+                    <li><i class="fas fa-user-friends"></i> <strong>Friends List:</strong> View your current friends and their online status.</li>
+                </ul>
+
+                <h2 id="groups">7. Groups</h2>
+                <p>Join or create groups to chat with multiple people about shared interests.</p>
+                <ul>
+                    <li><i class="fas fa-layer-group"></i> <strong>Create Groups:</strong> Start your own community.</li>
+                    <li><i class="fas fa-users-line"></i> <strong>Join Groups:</strong> Discover and join existing groups.</li>
+                    <li><i class="fas fa-comments"></i> <strong>Group Chat:</strong> Communicate with all members of a group.</li>
+                </ul>
+
+                <h2 id="jcoin-shop">8. JCoin Shop</h2>
+                <p>Spend your earned JCoins on exciting in-app items and features.</p>
+                <ul>
+                    <li><i class="fas fa-store"></i> <strong>Browse Items:</strong> Explore available items in the shop.</li>
+                    <li><i class="fas fa-coins"></i> <strong>Purchase:</strong> Use your JCoins to acquire items.</li>
+                    <li><i class="fas fa-wallet"></i> <strong>Unlock Wallet:</strong> Access advanced JCoin features (requires admin approval).</li>
+                </ul>
+
+                <h2 id="settings">9. Settings</h2>
+                <p>Personalize your JCHAT experience.</p>
+                <ul>
+                    <li><i class="fas fa-palette"></i> <strong>Theme Customization:</strong> Change the look and feel of your app (Light, Dark, Glass, Sunset modes).</li>
+                    <li><i class="fas fa-bell"></i> <strong>Notification Settings:</strong> (Future feature) Manage how you receive alerts.</li>
+                    <li><i class="fas fa-user-shield"></i> <strong>Privacy Settings:</strong> Control who sees your profile information.</li>
+                </ul>
+
+                <h2 id="solution-center">10. Solution Center</h2>
+                <p>Find answers to common questions and get support.</p>
+                <ul>
+                    <li><i class="fas fa-question-circle"></i> <strong>FAQs:</strong> Browse frequently asked questions.</li>
+                    <li><i class="fas fa-headset"></i> <strong>Contact Support:</strong> Reach out to the JCHAT support team for assistance.</li>
+                </ul>
+
+                <h2 id="admin-features">11. Admin Features</h2>
+                <p>These features are exclusively for JCHAT administrators to manage the platform.</p>
+                <ul>
+                    <li><i class="fas fa-user-shield"></i> <strong>Admin Dashboard:</strong> Overview of system status and key metrics.</li>
+                    <li><i class="fas fa-coins"></i> <strong>Coin Management:</strong> Manage JCoins and XP for users.</li>
+                    <li><i class="fas fa-users-cog"></i> <strong>User Management:</strong> Oversee user accounts, including banning and unbanning.</li>
+                    <li><i class="fas fa-cogs"></i> <strong>System Settings:</strong> Control global application settings like maintenance mode and feature toggles.</li>
+                    <li><i class="fas fa-chart-line"></i> <strong>Visitor Tracker:</strong> Monitor website visitor activity.</li>
+                </ul>
+
+                <h2 id="tips-security">12. Tips & Security</h2>
+                <p>Keep your JCHAT experience safe and enjoyable.</p>
+                <ul>
+                    <li><i class="fas fa-lock"></i> <strong>Password Security:</strong> Use strong, unique passwords.</li>
+                    <li><i class="fas fa-shield-alt"></i> <strong>Privacy:</strong> Be mindful of what you share and adjust your privacy settings.</li>
+                    <li><i class="fas fa-flag"></i> <strong>Reporting:</strong> Report any inappropriate content or behavior to the JCHAT team.</li>
+                    <li><i class="fas fa-wifi"></i> <strong>Internet Connection:</strong> Ensure a stable internet connection for the best experience.</li>
+                </ul>
+            </section>
+        </div>
+    </main>
+
+    <!-- Custom Message Box -->
+    <div id="messageBox"></div>
+
+    <!-- Sidebar Navigation (Main App Sidebar) -->
+    <aside id="sidebarNav" class="sidebar-hidden">
+        <div class="sidebar-header">
+            <span class="sidebar-title">JCHAT Menu</span>
+            <button id="sidebarCloseBtn" aria-label="Close Menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-links">
+            <a href="/home.html" class="sidebar-nav-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/profile.html" class="sidebar-nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="/chat.html" class="sidebar-nav-item">
+                <i class="fas fa-comment-dots"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/find_friends.html" class="sidebar-nav-item">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="/friends.html" class="sidebar-nav-item">
+                <i class="fas fa-user-friends"></i>
+                <span>Friends</span>
+            </a>
+            <a href="/groups.html" class="sidebar-nav-item">
+                <i class="fas fa-layer-group"></i>
+                <span>Groups</span>
+            </a>
+            <a href="/jcoin_shop.html" class="sidebar-nav-item">
+                <i class="fas fa-store"></i>
+                <span>Shop</span>
+            </a>
+            <a href="/settings.html" class="sidebar-nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="/solution_center.html" class="sidebar-nav-item">
+                <i class="fas fa-question-circle"></i>
+                <span>Solution Center</span>
+            </a>
+            <a href="/User_Guide.html" class="sidebar-nav-item active">
+                <i class="fas fa-book"></i>
+                <span>User Guide</span>
+            </a>
+            <!-- Admin Links (only visible to admin) -->
+            <a href="/Admin.html" class="sidebar-nav-item admin-link" style="display: none;">
+                <i class="fas fa-user-shield"></i>
+                <span>Admin Dashboard</span>
+            </a>
+            <a href="/Admin_Coin_Management.html" class="sidebar-nav-item admin-link" style="display: none;">
+                <i class="fas fa-coins"></i>
+                <span>Coin Management</span>
+            </a>
+            <a href="/Admin_User_Management.html" class="sidebar-nav-item admin-link" style="display: none;">
+                <i class="fas fa-users-cog"></i>
+                <span>User Management</span>
+            </a>
+            <a href="/Admin_System_Settings.html" class="sidebar-nav-item admin-link" style="display: none;">
+                <i class="fas fa-cogs"></i>
+                <span>System Settings</span>
+            </a>
+            <a href="/Admin_Visitor_Tracker.html" class="sidebar-nav-item admin-link" style="display: none;">
+                <i class="fas fa-chart-line"></i>
+                <span>Visitor Tracker</span>
+            </a>
+            <a href="#" id="sidebarLogoutLink" class="sidebar-nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <script type="module">
+        console.log("JCHAT_DEBUG: User_Guide.html script started.");
+
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase & Canvas Environment Configuration ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+            authDomain: "jchat-1.firebaseapp.com",
+            projectId: "jchat-1",
+            storageBucket: "jchat-1.firebasestorage.app",
+            messagingSenderId: "328479683167",
+            appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+            measurementId: "G-S6Z9GG0R9P"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Cloudinary Configuration (Needed for profile pics in header)
+        const cloudinaryConfig = {
+            cloudName: "dxld01rcp",
+            uploadPreset: "Storage_preset"
+        };
+
+        // Initialize Firebase services
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- ADMIN UID ---
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // The specific UID for the administrator
+
+        // --- DOM Elements ---
+        const headerProfilePic = document.getElementById('headerProfilePic');
+        const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+        const headerDisplayName = document.getElementById('headerDisplayName');
+        const notificationCountElement = document.getElementById('notificationCount');
+        const adminIconLink = document.getElementById('adminIconLink');
+        const profileLink = document.getElementById('profileLink');
+
+        const messageBox = document.getElementById('messageBox');
+
+        // Sidebar elements
+        const sidebarNav = document.getElementById('sidebarNav');
+        const sidebarToggleFab = document.getElementById('sidebarToggleFab');
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+        const sidebarNavItems = document.querySelectorAll('.sidebar-nav-item');
+        const sidebarLogoutLink = document.getElementById('sidebarLogoutLink');
+        const adminLinks = document.querySelectorAll('.admin-link'); // Admin specific links in main sidebar
+
+        const userGuideSidebarLinks = document.querySelectorAll('.user-guide-sidebar a');
+        const userGuideContentSections = document.querySelectorAll('.user-guide-content h2');
+
+        // --- Global State ---
+        let currentUser = null;
+        let currentUserProfileData = null; // Stores the authenticated user's own profile data
+        let isAuthReady = false;
+
+        // --- Theme Management Variables (Copied from Home.html) ---
+        const themes = [
+            'theme-light-mode',
+            'theme-dark-mode',
+            'theme-glass-mode',
+            'theme-sunset-mode'
+        ];
+
+        // --- Tone.js Synths for Notification Sounds (Copied from Home.html) ---
+        const successSynth = new Tone.Synth().toDestination();
+        const errorSynth = new Tone.Synth().toDestination();
+        const infoSynth = new Tone.Synth().toDestination();
+
+        successSynth.oscillator.type = "sine";
+        successSynth.envelope.attack = 0.01;
+        successSynth.envelope.decay = 0.2;
+        successSynth.envelope.sustain = 0.0;
+        successSynth.envelope.release = 0.5;
+
+        infoSynth.oscillator.type = "triangle";
+        infoSynth.envelope.attack = 0.01;
+        infoSynth.envelope.decay = 0.1;
+        infoSynth.envelope.sustain = 0.0;
+        infoSynth.envelope.release = 0.3;
+
+        /**
+         * Plays a notification sound.
+         * @param {string} type - 'success', 'error', or 'info'.
+         */
+        function playNotificationSound(type) {
+            Tone.start();
+            if (type === 'success') {
+                successSynth.triggerAttackRelease("C5", "8n");
+            } else if (type === 'error') {
+                errorSynth.triggerAttackRelease("C3", "8n");
+            } else if (type === 'info') {
+                infoSynth.triggerAttackRelease("E4", "16n");
+            }
+        }
+
+        // --- Utility Functions (Copied from Home.html) ---
+        function showMessageBox(message, type, isPersistent = false) {
+            if (!messageBox) {
+                console.error("JCHAT_ERROR: messageBox element not found.");
+                return;
+            }
+            if (messageBox.timeoutId) {
+                clearTimeout(messageBox.timeoutId);
+            }
+
+            messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
+            const messageBoxIcon = document.getElementById('messageBoxIcon');
+            const messageBoxText = document.getElementById('messageBoxText');
+
+            messageBoxText.textContent = message;
+            messageBox.className = 'message-box show ' + type;
+
+            if (messageBoxIcon) {
+                messageBoxIcon.className = '';
+                if (type === 'success') {
+                    messageBoxIcon.classList.add('fas', 'fa-check-circle');
+                } else if (type === 'error') {
+                    messageBoxIcon.classList.add('fas', 'fa-times-circle');
+                } else if (type === 'info') {
+                    messageBoxIcon.classList.add('fas', 'fa-info-circle');
+                } else if (type === 'warning') {
+                    messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
+                } else if (type === 'loading') {
+                    messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin');
+                }
+            }
+
+            if (type === 'loading') {
+                messageBox.classList.add('loading-pulse');
+            } else {
+                messageBox.classList.remove('loading-pulse');
+            }
+
+            messageBox.style.display = 'flex';
+            messageBox.style.opacity = '1';
+
+            if (!isPersistent) {
+                messageBox.timeoutId = setTimeout(() => {
+                    messageBox.style.opacity = '0';
+                    messageBox.addEventListener('transitionend', function handler() {
+                        messageBox.style.display = 'none';
+                        messageBox.removeEventListener('transitionend', handler);
+                        messageBox.classList.remove('loading-pulse');
+                    }, { once: true });
+                }, 3000);
+            }
+        }
+
+        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
+            if (!urlOrPublicId) return null;
+            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
+                if (urlOrPublicId.includes('res.cloudinary.com')) {
+                    const parts = urlOrPublicId.split('/upload/');
+                    if (parts.length === 2) {
+                        const currentTransformations = parts[1].split('/')[0];
+                        if (currentTransformations.includes(transformations.split(',')[0])) {
+                            return urlOrPublicId;
+                        }
+                        return `${parts[0]}/upload/${transformations}/${parts[1]}`;
+                    }
+                }
+                return urlOrPublicId;
+            }
+            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
+        }
+
+        function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
+            if (imgElement && iconElement) {
+                if (profilePicId) {
+                    const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
+                    imgElement.src = imageUrl;
+                    imgElement.style.display = 'block';
+                    iconElement.style.display = 'none';
+                    imgElement.onerror = () => {
+                        console.error(`Failed to load profile picture: ${profilePicId}. Using placeholder.`);
+                        imgElement.src = `https://placehold.co/120x120/CCCCCC/000000?text=${usernameInitial}`;
+                        imgElement.style.display = 'block';
+                        iconElement.style.display = 'none';
+                    };
+                } else {
+                    imgElement.src = '';
+                    imgElement.style.display = 'none';
+                    iconElement.style.display = 'block';
+                }
+            }
+        }
+
+        async function handleLogout() {
+            if (!isAuthReady || !currentUser) {
+                showMessageBox("Not ready to log out or no user found.", 'info');
+                return;
+            }
+
+            try {
+                await signOut(auth);
+                showMessageBox("Logged out successfully! 👋", 'success');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error logging out:", error);
+                showMessageBox(`Failed to log out: ${error.message}. Please try again.`, 'error');
+            }
+        }
+
+        async function fetchNotificationCount(userId) {
+            if (!isAuthReady) return;
+            try {
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
+                const q = query(notificationsCollectionRef, where("read", "==", false));
+                const querySnapshot = await getDocs(q);
+                const unreadCount = querySnapshot.size;
+
+                if (notificationCountElement) {
+                    if (unreadCount > 0) {
+                        notificationCountElement.textContent = unreadCount;
+                        notificationCountElement.style.display = 'flex';
+                    } else {
+                        notificationCountElement.style.display = 'none';
+                    }
+                }
+            }
+            catch (error) {
+                console.error("JCHAT_ERROR: Error fetching notification count:", error);
+                if (notificationCountElement) notificationCountElement.style.display = 'none';
+            }
+        }
+
+        async function fetchAndDisplayHeaderProfile(user) {
+            console.log("JCHAT_DEBUG: Entering fetchAndDisplayHeaderProfile for user:", user.uid);
+            try {
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                const privateDocSnap = await getDoc(privateProfileDocRef);
+                let profileData = null;
+
+                if (privateDocSnap.exists()) {
+                    profileData = privateDocSnap.data();
+                    console.log("JCHAT_DEBUG: Fetched existing private profile data:", profileData);
+                } else {
+                    profileData = {
+                        username: user.displayName || `User_${user.uid.substring(0, 8)}`,
+                        profilePicId: user.photoURL || null,
+                        bio: "", location: "", friendsCount: 0, followersCount: 0, followingCount: 0,
+                        createdAt: new Date(), updatedAt: new Date(),
+                        inspirationType: "motivational",
+                        visibility: {
+                            displayName: true, profilePic: true, bio: false, location: false,
+                            emailPublic: false, allowFriendRequests: true, allowMessages: true,
+                        },
+                        totalPosts: 0, jCoins: 0, gas: 0, level: 1, currentXp: 0, xpToNextLevel: 500,
+                        lastLoginBonusClaimed: null, isBanned: false
+                    };
+                    await setDoc(privateProfileDocRef, { ...profileData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+                    console.log("JCHAT_DEBUG: Created new private profile data for header display:", profileData);
+                }
+                currentUserProfileData = profileData;
+
+                const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
+                if (headerProfilePic && headerAvatarIcon && headerDisplayName) {
+                    displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                    headerDisplayName.textContent = profileData.username || "JCHAT User";
+                }
+                if (profileLink) profileLink.href = `/profile.html?userId=${user.uid}`;
+
+                // Admin icon visibility
+                if (adminIconLink) {
+                    if (user.uid === ADMIN_UID) {
+                        adminIconLink.style.display = 'block';
+                        console.log("JCHAT_DEBUG: Admin icon displayed.");
+                    } else {
+                        adminIconLink.style.display = 'none';
+                        console.log("JCHAT_DEBUG: Admin icon hidden.");
+                    }
+                }
+
+                // Show admin links in main sidebar if user is admin
+                if (currentUser.uid === ADMIN_UID) {
+                    adminLinks.forEach(link => link.style.display = 'flex');
+                } else {
+                    adminLinks.forEach(link => link.style.display = 'none');
+                }
+
+                console.log("JCHAT_DEBUG: fetchAndDisplayHeaderProfile completed successfully.");
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching or creating profile for header:", error);
+                const usernameInitial = (user.displayName || "J").charAt(0).toUpperCase();
+                if (headerProfilePic && headerAvatarIcon && headerDisplayName) {
+                    displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                    headerDisplayName.textContent = user.displayName || "JCHAT User";
+                }
+                showMessageBox(`Error loading header profile: ${error.message}`, 'error');
+            }
+        }
+
+        // --- Authentication State Listener ---
+        onAuthStateChanged(auth, async (user) => {
+            console.log("JCHAT_DEBUG: onAuthStateChanged triggered. User:", user ? user.uid : "null");
+            if (user) {
+                currentUser = user;
+                isAuthReady = true;
+                await fetchAndDisplayHeaderProfile(user);
+                await fetchNotificationCount(user.uid);
+            } else {
+                console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("JCHAT_DEBUG: Signed in with custom token.");
+                        currentUser = auth.currentUser; // Update currentUser after sign-in
+                        isAuthReady = true;
+                        await fetchAndDisplayHeaderProfile(currentUser);
+                        await fetchNotificationCount(currentUser.uid);
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("JCHAT_DEBUG: Signed in anonymously.");
+                        currentUser = auth.currentUser; // Update currentUser after sign-in
+                        isAuthReady = true;
+                        await fetchAndDisplayHeaderProfile(currentUser);
+                        await fetchNotificationCount(currentUser.uid);
+                    }
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error during anonymous sign-in or custom token sign-in:", error);
+                    if (!auth.currentUser) { // If still no user after attempts
+                        window.location.href = '/login.html';
+                    }
+                }
+            }
+        });
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("JCHAT_DEBUG: DOMContentLoaded fired.");
+            const savedTheme = localStorage.getItem('jchat-theme');
+            if (savedTheme && themes.includes(savedTheme)) {
+                applyTheme(savedTheme);
+            } else {
+                applyTheme('theme-dark-mode');
+            }
+
+            // Set active class for current page in main sidebar
+            const currentPagePath = window.location.pathname;
+            sidebarNavItems.forEach(item => {
+                if (currentPagePath.endsWith(item.getAttribute('href'))) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            // User Guide Sidebar Navigation (smooth scroll and active class)
+            userGuideSidebarLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                        // Update active class in user guide sidebar
+                        userGuideSidebarLinks.forEach(l => l.classList.remove('active-section'));
+                        this.classList.add('active-section');
+                    }
+                });
+            });
+
+            // Set initial active section in user guide sidebar (based on URL hash or first section)
+            const initialHash = window.location.hash;
+            if (initialHash) {
+                const initialLink = document.querySelector(`.user-guide-sidebar a[href="${initialHash}"]`);
+                if (initialLink) {
+                    initialLink.classList.add('active-section');
+                    document.getElementById(initialHash.substring(1)).scrollIntoView();
+                }
+            } else if (userGuideSidebarLinks.length > 0) {
+                userGuideSidebarLinks[0].classList.add('active-section');
+            }
+
+            // Optional: Update active section on scroll
+            window.addEventListener('scroll', () => {
+                let currentActiveSection = null;
+                userGuideContentSections.forEach(section => {
+                    const rect = section.getBoundingClientRect();
+                    // If the section is in the viewport (or slightly above)
+                    if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
+                        currentActiveSection = section.id;
+                    }
+                });
+
+                userGuideSidebarLinks.forEach(link => {
+                    link.classList.remove('active-section');
+                    if (link.getAttribute('href').substring(1) === currentActiveSection) {
+                        link.classList.add('active-section');
+                    }
+                });
+            });
+        });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'jchat-theme') {
+                const newTheme = event.newValue || 'theme-dark-mode';
+                if (themes.includes(newTheme)) {
+                    applyTheme(newTheme);
+                }
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            // No specific Firestore listeners to unsubscribe from on this page currently
+        });
+
+        // Sidebar toggle logic
+        function toggleSidebar() {
+            sidebarNav.classList.toggle('sidebar-hidden');
+            sidebarNav.classList.toggle('sidebar-visible');
+        }
+
+        if (sidebarToggleFab) sidebarToggleFab.addEventListener('click', toggleSidebar);
+        if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleSidebar);
+        if (sidebarLogoutLink) sidebarLogoutLink.addEventListener('click', handleLogout);
+
+        // Function to apply theme (copied from Home.html for consistency)
+        function applyTheme(themeName) {
+            document.body.classList.remove(...themes);
+            document.body.classList.add(themeName);
+            localStorage.setItem('jchat-theme', themeName);
+        }
+    </script>
+</body>
+</html>
+

@@ -202,7 +202,7 @@
             --accent-color: #ffd700;
             --accent-color-dark: #ccaa00;
             --border-color: rgba(255, 255, 255, 0.3);
-            --input-background-color: rgba(255, 255, 255, 0.1);
+            --input-background: rgba(255, 255, 255, 0.1);
             --button-background: rgba(255, 255, 255, 0.2);
             --button-hover-background: rgba(255, 255, 255, 0.3);
             --active-item-background: rgba(255, 215, 0, 0.1);
@@ -1567,7 +1567,8 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, onSnapshot, serverTimestamp, addDoc, orderBy, arrayUnion, arrayRemove, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, onSnapshot, serverTimestamp, addDoc, orderBy, arrayUnion, arrayRemove, runTransaction, documentId } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1591,6 +1592,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         // --- DOM Elements ---
         // Sidebar Utility Header Elements (modified)
@@ -1602,20 +1604,9 @@
 
         const chatSidebar = document.getElementById('chatSidebar');
         const chatsTab = document.getElementById('chatsTab');
-        // const findFriendsTab = document.getElementById('findFriendsTab'); // REMOVED
-        // const requestsTab = document.getElementById('requestsTab'); // REMOVED
-        // const pendingRequestsBadge = document.getElementById('pendingRequestsBadge'); // REMOVED
         const leftPanelContent = document.getElementById('leftPanelContent');
         const recentChatsList = document.getElementById('recentChatsList');
         const noRecentChatsMessage = document.getElementById('noRecentChatsMessage');
-        // const findFriendsView = document.getElementById('findFriendsView'); // REMOVED
-        // const findFriendsSearchInput = document.getElementById('findFriendsSearchInput'); // REMOVED
-        // const findFriendsResultsList = document.getElementById('findFriendsResultsList'); // REMOVED
-        // const noFindFriendsResults = document.getElementById('noFindFriendsResults'); // REMOVED
-        // const incomingRequestsView = document.getElementById('incomingRequestsView'); // REMOVED
-        // const incomingRequestsList = document.getElementById('incomingRequestsList'); // REMOVED
-        // const noIncomingRequestsMessage = document.getElementById('noIncomingRequestsMessage'); // REMOVED
-        // const overlayFindUsersLink = document.getElementById('overlayFindUsersLink'); // REMOVED
 
         const chatContentArea = document.getElementById('chatContentArea');
         const recipientAvatar = document.getElementById('recipientAvatar');
@@ -1675,15 +1666,11 @@
         let unsubscribeMessagesListener = null;
         let unsubscribeRecentChatsListener = null;
         let unsubscribeRecipientTypingListener = null;
-        // let unsubscribeFriendRequestsListener = null; // REMOVED
         let typingTimeout = null;
         let isEditingMessage = false;
         let messageToEditId = null;
         let selectedMessageData = null;
-        let currentLeftPanelMode = 'chats'; // Only 'chats' is needed now
-
-        // let friendsList = []; // REMOVED
-        // let pendingFriendRequests = []; // REMOVED
+        let currentLeftPanelMode = 'chats'; // Only 'chats' is supported now
 
         // Voice Note Recording State
         let mediaRecorder;
@@ -1902,8 +1889,6 @@
                     if (profileData.lastLoginBonusClaimed === undefined) updates.lastLoginBonusClaimed = null;
                     if (profileData.isTyping === undefined) updates.isTyping = false; // Initialize isTyping
                     if (profileData.starredMessages === undefined) updates.starredMessages = []; // Initialize starredMessages
-                    // if (profileData.friends === undefined) updates.friends = []; // REMOVED
-                    // if (profileData.receivedFriendRequests === undefined) updates.receivedFriendRequests = []; // REMOVED
 
                     if (Object.keys(updates).length > 0) {
                         await updateDoc(privateProfileDocRef, updates);
@@ -1918,26 +1903,34 @@
                         profilePicId: user.photoURL || null,
                         bio: "",
                         location: "",
+                        school: "",
+                        work: "",
+                        interests: "",
+                        website: "",
+                        socialLinks: "",
                         friendsCount: 0,
                         followersCount: 0,
                         followingCount: 0,
                         createdAt: serverTimestamp(),
                         updatedAt: serverTimestamp(),
+                        lastOnline: serverTimestamp(),
+                        status: "online", // Default to online
                         inspirationType: "motivational",
                         visibility: {
                             displayName: true, profilePic: true, bio: false, location: false,
                             emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
+                            school: false, work: false, interests: false, website: false, socialLinks: false
                         },
                         totalPosts: 0,
                         jCoins: 0,
+                        gas: 0,
+                        totalGasEarned: 0,
                         level: 1,
-                        currentXp: 0,
                         walletUnlocked: false,
+                        unlockedBenefits: [],
                         lastLoginBonusClaimed: null,
                         isTyping: false, // Default to not typing
                         starredMessages: [], // Default empty array
-                        // friends: [], // REMOVED
-                        // receivedFriendRequests: [] // REMOVED
                     };
                     await setDoc(privateProfileDocRef, profileData);
                     console.log("JCHAT_DEBUG: Created new profile data for current user:", profileData);
@@ -1948,19 +1941,24 @@
                         profilePicId: profileData.profilePicId,
                         bio: profileData.bio,
                         location: profileData.location,
+                        school: profileData.school,
+                        work: profileData.work,
+                        interests: profileData.interests,
+                        website: profileData.website,
+                        socialLinks: profileData.socialLinks,
                         createdAt: profileData.createdAt,
                         updatedAt: profileData.updatedAt,
+                        lastOnline: profileData.lastOnline,
+                        status: profileData.status,
                         visibility: profileData.visibility,
                         totalPosts: profileData.totalPosts,
                         level: profileData.level,
-                        currentXp: profileData.currentXp,
+                        totalGasEarned: profileData.totalGasEarned,
                         isTyping: profileData.isTyping, // Sync isTyping to public profile
-                        // friends: profileData.friends // REMOVED
                     }, { merge: true });
                 }
 
                 currentUserProfileData = profileData;
-                // friendsList = currentUserProfileData.friends || []; // REMOVED
 
                 if (logoutButton) logoutButton.disabled = false;
                 if (adminIconLink) {
@@ -1971,8 +1969,6 @@
                     }
                 }
                 if (chatsTab) chatsTab.disabled = false;
-                // if (findFriendsTab) findFriendsTab.disabled = false; // REMOVED
-                // if (requestsTab) requestsTab.disabled = false; // REMOVED
 
 
             } catch (error) {
@@ -2009,26 +2005,9 @@
                     }
                 }
 
-                // Fetch pending friend requests count // REMOVED
-                // let pendingRequestsCount = 0; // REMOVED
-                // const friendRequestsColRef = collection(db, "artifacts", appId, "public", "data", "friend_requests"); // REMOVED
-                // const requestsQuery = query(friendRequestsColRef, where("recipientId", "==", userId), where("status", "==", "pending")); // REMOVED
-                // const requestsSnapshot = await getDocs(requestsQuery); // REMOVED
-                // pendingRequestsCount = requestsSnapshot.size; // REMOVED
-
-                // if (pendingRequestsBadge) { // REMOVED
-                //     if (pendingRequestsCount > 0) { // REMOVED
-                //         pendingRequestsBadge.textContent = pendingRequestsCount; // REMOVED
-                //         pendingRequestsBadge.style.display = 'flex'; // REMOVED
-                //     } else { // REMOVED
-                //         pendingRequestsBadge.style.display = 'none'; // REMOVED
-                //     } // REMOVED
-                // } // REMOVED
-
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching notification count:", error);
                 if (notificationCountElement) notificationCountElement.style.display = 'none';
-                // if (pendingRequestsBadge) pendingRequestsBadge.style.display = 'none'; // REMOVED
             }
         }
 
@@ -2047,7 +2026,6 @@
                 if (unsubscribeMessagesListener) unsubscribeMessagesListener();
                 if (unsubscribeRecentChatsListener) unsubscribeRecentChatsListener();
                 if (unsubscribeRecipientTypingListener) unsubscribeRecipientTypingListener();
-                // if (unsubscribeFriendRequestsListener) unsubscribeFriendRequestsListener(); // REMOVED
 
                 // Stop media recorder if active
                 if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -2082,7 +2060,8 @@
             }
 
             const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatId, "messages");
-            const q = query(messagesCollectionRef, orderBy("timestamp"));
+            // Order by timestamp, and then by documentId for stable ordering of messages with same timestamp
+            const q = query(messagesCollectionRef, orderBy("timestamp"), orderBy(documentId()));
 
             unsubscribeMessagesListener = onSnapshot(q, async (snapshot) => {
                 messagesDisplay.innerHTML = '';
@@ -2418,7 +2397,7 @@
                     });
                     const activeItem = document.querySelector(`.chat-list-item[data-chat-id="${newChatId}"]`);
                     if (activeItem) {
-                        activeItem.classList.add('active');
+                        item.classList.add('active');
                         // Remove unread badge from the active item
                         const badge = activeItem.querySelector('.unread-badge');
                         if (badge) badge.style.display = 'none';
@@ -2580,7 +2559,7 @@
                     document.querySelectorAll('.chat-list-item').forEach(item => {
                         if (item.dataset.chatId === currentChatId) {
                             item.classList.add('active');
-                            // Remove unread badge if it's the active chat
+                            // Remove unread badge from the active item
                             const badge = item.querySelector('.unread-badge');
                             if (badge) badge.style.display = 'none';
                         } else {
@@ -3233,11 +3212,7 @@
                 recentChatsList.innerHTML = '';
                 noRecentChatsMessage.textContent = "Please log in to see your recent chats.";
                 noRecentChatsMessage.style.display = 'block';
-                // findFriendsView.style.display = 'none'; // REMOVED
-                // incomingRequestsView.style.display = 'none'; // REMOVED
                 chatsTab.disabled = true;
-                // findFriendsTab.disabled = true; // REMOVED
-                // requestsTab.disabled = true; // REMOVED
             }
         });
 
@@ -3261,9 +3236,6 @@
                     displayLeftPanelContent();
                 });
             }
-
-            // Removed Find Friends Search Input and Overlay Find Users Link listeners
-
 
             if (sendMessageBtn) {
                 sendMessageBtn.addEventListener('click', () => {
@@ -3388,8 +3360,6 @@
             videoCallBtn.disabled = true;
             if (logoutButton) logoutButton.disabled = true; // Disable until auth is ready
             if (chatsTab) chatsTab.disabled = true;
-            // if (findFriendsTab) findFriendsTab.disabled = true; // REMOVED
-            // if (requestsTab) requestsTab.disabled = true; // REMOVED
 
         });
 
@@ -3433,7 +3403,6 @@
             if (unsubscribeMessagesListener) unsubscribeMessagesListener();
             if (unsubscribeRecentChatsListener) unsubscribeRecentChatsListener();
             if (unsubscribeRecipientTypingListener) unsubscribeRecipientTypingListener();
-            // if (unsubscribeFriendRequestsListener) unsubscribeFriendRequestsListener(); // REMOVED
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
