@@ -1316,13 +1316,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        #jcoinRequestModal .modal-content .calculated-jcoins {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--white);
-            margin-top: 10px;
-            text-align: center;
-        }
         .gradient-text { /* Reused from Home.html for consistency */
             background-clip: text;
             color: transparent;
@@ -1375,120 +1368,6 @@
             display: flex;
             gap: 15px;
             margin-top: 1.5rem;
-        }
-
-        /* NEW: Pending Rewards Section Styles */
-        .pending-rewards-section {
-            background: var(--card-background);
-            border: 1px solid var(--glass-blue);
-            backdrop-filter: blur(10px) saturate(180%);
-            border-radius: var(--radius);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
-            padding: 2rem;
-            width: 90%;
-            max-width: 600px;
-            margin: 20px auto;
-            display: none; /* Hidden by default, shown if current user and has rewards */
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5rem;
-            text-align: center;
-        }
-
-        .pending-rewards-section h2 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 800;
-            background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            margin: 0;
-        }
-
-        .pending-rewards-list {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .reward-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-light);
-            border-radius: 10px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-start;
-            text-align: left;
-        }
-
-        .reward-item-header {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .reward-type {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .reward-type i {
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback */
-        }
-
-        .reward-timestamp {
-            font-size: 0.8rem;
-            color: var(--text-light);
-        }
-
-        .reward-details {
-            font-size: 0.95rem;
-            color: var(--text-light);
-        }
-
-        .claim-reward-button {
-            background: linear-gradient(90deg, #4CAF50, #8BC34A); /* Green gradient for claim */
-            color: var(--white);
-            border: none;
-            border-radius: 10px;
-            padding: 8px 15px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        .claim-reward-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.5);
-        }
-        .claim-reward-button.loading {
-            opacity: 0.7;
-            cursor: default;
-        }
-        .claim-reward-button .button-loader {
-            border-color: rgba(255, 255, 255, 0.5);
-            border-top-color: var(--white);
-        }
-        .no-rewards-message {
-            font-size: 1rem;
-            color: var(--text-light);
-            text-align: center;
         }
 
 
@@ -1608,24 +1487,6 @@
             }
             body {
                 padding-bottom: 110px; /* 55px (nav) + 55px (toggle) */
-            }
-
-            /* Pending Rewards Section Responsive */
-            .pending-rewards-section {
-                padding: 1.5rem;
-            }
-            .pending-rewards-section h2 {
-                font-size: 1.5rem;
-            }
-            .reward-type {
-                font-size: 1rem;
-            }
-            .reward-details {
-                font-size: 0.85rem;
-            }
-            .claim-reward-button {
-                padding: 7px 12px;
-                font-size: 0.8rem;
             }
         }
     </style>
@@ -1834,13 +1695,6 @@
                             <p>Manage your data: <a href="#">Download Data</a> | <a href="#">Delete Account</a></p>
                         </div>
                     </div>
-                </div>
-            </div>
-            <!-- NEW: Pending Rewards Section -->
-            <div class="pending-rewards-section" id="pendingRewardsSection">
-                <h2>Pending Rewards</h2>
-                <div class="pending-rewards-list" id="pendingRewardsList">
-                    <p class="no-rewards-message">No pending rewards at this time.</p>
                 </div>
             </div>
             <!-- User's posts could be displayed here if desired -->
@@ -2058,9 +1912,9 @@
         const incomingRequestsList = document.getElementById('incomingRequestsList');
         const noRequestsMessage = document.getElementById('noRequestsMessage');
 
-        // NEW: Pending Rewards Section Elements
-        const pendingRewardsSection = document.getElementById('pendingRewardsSection');
-        const pendingRewardsList = document.getElementById('pendingRewardsList');
+        // Removed: Pending Rewards Section Elements
+        // const pendingRewardsSection = document.getElementById('pendingRewardsSection');
+        // const pendingRewardsList = document.getElementById('pendingRewardsList');
 
         // --- Global State ---
         let currentUser = null; // The currently authenticated user (Firebase Auth object)
@@ -2116,7 +1970,7 @@
             } else if (type === 'info') {
                 messageBoxIcon.classList.add('fas', 'fa-info-circle');
             } else if (type === 'warning') {
-                messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
+                 messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
             } else if (type === 'loading') {
                  messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); // Spinner for loading
             } else {
@@ -2838,7 +2692,7 @@
                 if (level === 175) otherRewards.push("Title: 'Elite Communicator'", "Unlock: Custom Chat Font (Style 2)");
                 if (level === 180) otherRewards.push("Increased Message Character Limit (+25)");
                 if (level === 190) otherRewards.push("Permanent: 4% JCoin Shop Discount");
-                if (level === 200) otherRewards.push("Badge: 'Double Century'", "Title: 'JCHAT Champion'", "Unlock: Exclusive 'Diamond' Profile Picture Frame", "Voucher: 1-Day Free Group Promotion");
+                if (level === 200) otherRewards.push("Badge: 'Double Century'", "Title: 'JCHAT Champion'", "Unlock: Exclusive 'Golden' Profile Picture Frame", "Voucher: 1-Day Free Group Promotion");
                 if (level === 210) otherRewards.push("Increased Media Upload Size (+10MB)");
                 if (level === 220) otherRewards.push("Unlock: Premium Profile Theme (Animated 2)");
                 if (level === 230) otherRewards.push("Unlock: Rare Emote Pack (Set 2)");
@@ -3456,7 +3310,7 @@
             if (profileDetailsSection) {
                 profileDetailsSection.style.display = 'none';
             }
-            if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards by default
+            // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards by default
             if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings by default
             if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button by default
 
@@ -3691,11 +3545,11 @@
                         // Friend requests section is no longer directly on Profile.html
                         if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide for other users, null check
 
-                        // NEW: Fetch and display pending rewards for the owner
-                        if (pendingRewardsSection) { // Null check
-                            pendingRewardsSection.style.display = 'flex'; // Use flex for column layout
-                            await fetchAndDisplayPendingRewards(currentUser.uid);
-                        }
+                        // Removed: Fetch and display pending rewards for the owner
+                        // if (pendingRewardsSection) { // Null check
+                        //     pendingRewardsSection.style.display = 'flex'; // Use flex for column layout
+                        //     await fetchAndDisplayPendingRewards(currentUser.uid);
+                        // }
 
 
                     } else if (currentUser) { // If logged in and viewing another user
@@ -3713,9 +3567,7 @@
                         if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings for others
 
                         if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide for other users, null check
-                        if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide for other users, null check
-
-                        // No "Add Friend" or "Message" buttons as per request.
+                        // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide for other users, null check
 
                     } else { // Not logged in, viewing any profile
                         // if (editProfileButton) editProfileButton.style.display = 'none'; // Removed
@@ -3730,7 +3582,7 @@
                         if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
                         if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
                         if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide friend requests section, null check
-                        if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards section, null check
+                        // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards section, null check
                         // Ensure loader is dismissed in this case too
                         if (messageBox && messageBox.classList.contains('loading-pulse')) { // Null check
                             messageBox.style.opacity = '0';
@@ -3765,7 +3617,7 @@
                     if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
                     if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
                     if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide if profile not found, null check
-                    if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide if profile not found, null check
+                    // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide if profile not found, null check
                 }
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching user profile:", error);
@@ -3780,7 +3632,7 @@
                 if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
                 if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
                 if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide on error, null check
-                if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide on error, null check
+                // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide on error, null check
             } finally {
                 // Ensure the message box clears if it was persistent loading type
                 // This ensures the loader is always dismissed.
@@ -3795,201 +3647,9 @@
             }
         }
 
-        /**
-         * Fetches and displays pending activity rewards for the current user.
-         * Only visible to the owner of the profile.
-         */
-        async function fetchAndDisplayPendingRewards(userId) {
-            if (!currentUser || currentUser.uid !== userId) {
-                if (pendingRewardsSection) pendingRewardsSection.style.display = 'none';
-                return;
-            }
-
-            if (pendingRewardsList) pendingRewardsList.innerHTML = ''; // Clear existing rewards
-            if (pendingRewardsSection) pendingRewardsSection.style.display = 'flex'; // Show the section
-
-            try {
-                const rewardsCollectionRef = collection(db, "artifacts", appId, "public", "data", "pending_activity_rewards");
-                const q = query(rewardsCollectionRef,
-                    where("userId", "==", userId),
-                    where("status", "==", "approved"),
-                    orderBy("timestamp", "desc")
-                );
-
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    if (pendingRewardsList) pendingRewardsList.innerHTML = '<p class="no-rewards-message">No pending rewards at this time.</p>';
-                } else {
-                    querySnapshot.docs.forEach(docSnap => {
-                        const reward = docSnap.data();
-                        const rewardId = docSnap.id;
-                        const rewardItem = createRewardItem(rewardId, reward);
-                        if (pendingRewardsList) pendingRewardsList.appendChild(rewardItem);
-                    });
-                }
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching pending rewards:", error);
-                if (pendingRewardsList) pendingRewardsList.innerHTML = '<p class="no-rewards-message">Failed to load rewards.</p>';
-            }
-        }
-
-        /**
-         * Creates an HTML element for a single pending reward item.
-         * @param {string} rewardId - The ID of the reward document.
-         * @param {Object} rewardData - The data of the reward.
-         * @returns {HTMLElement} The created reward item div.
-         */
-        function createRewardItem(rewardId, rewardData) {
-            const rewardItem = document.createElement('div');
-            rewardItem.classList.add('reward-item');
-
-            let iconClass = 'fas fa-gift'; // Default icon
-            let activityDescription = 'Reward';
-
-            switch (rewardData.activityType) {
-                case 'daily_login':
-                    iconClass = 'fas fa-calendar-check';
-                    activityDescription = 'Daily Login Bonus';
-                    break;
-                case 'post_creation':
-                    iconClass = 'fas fa-pen-nib';
-                    activityDescription = 'Post Creation Reward';
-                    break;
-                case 'post_comment':
-                    iconClass = 'fas fa-comment-alt';
-                    activityDescription = 'Comment Reward';
-                    break;
-                case 'react_like':
-                case 'react_love':
-                case 'react_haha':
-                    iconClass = 'fas fa-heart'; // Generic reaction icon
-                    activityDescription = `Reaction Reward (${rewardData.activityType.split('_')[1]})`;
-                    break;
-                case 'jcoin_purchase':
-                    iconClass = 'fas fa-money-bill-wave';
-                    activityDescription = 'JCoin Purchase';
-                    break;
-                case 'group_message_gas_reward':
-                    iconClass = 'fas fa-gas-pump';
-                    activityDescription = 'Group Message Gas Reward';
-                    break;
-                case 'quest_completion':
-                    iconClass = 'fas fa-trophy';
-                    activityDescription = 'Quest Completion Reward';
-                    break;
-                // Add more cases for other activity types
-            }
-
-            let rewardDetailsText = '';
-            if (rewardData.suggestedJCoinAmount && rewardData.suggestedJCoinAmount !== 0) {
-                rewardDetailsText += `${rewardData.suggestedJCoinAmount} JCoins`;
-            }
-            if (rewardData.suggestedGasAmount && rewardData.suggestedGasAmount !== 0) {
-                if (rewardDetailsText) rewardDetailsText += ' and ';
-                rewardDetailsText += `${rewardData.suggestedGasAmount} Gas`;
-            }
-            if (rewardData.suggestedXpAmount && rewardData.suggestedXpAmount !== 0) {
-                if (rewardDetailsText) rewardDetailsText += ' and ';
-                rewardDetailsText += `${rewardData.suggestedXpAmount} XP`;
-            }
-            if (!rewardDetailsText) rewardDetailsText = 'No specific rewards'; // Fallback if all are zero
-
-            rewardItem.innerHTML = `
-                <div class="reward-item-header">
-                    <span class="reward-type"><i class="${iconClass}"></i> ${activityDescription}</span>
-                    <span class="reward-timestamp">${rewardData.timestamp ? new Date(rewardData.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
-                </div>
-                <div class="reward-details">
-                    <p>Awarded: <span style="font-weight:600;">${rewardDetailsText}</span></p>
-                </div>
-                <button class="claim-reward-button" data-reward-id="${rewardId}">
-                    <span class="button-text">Claim Reward</span>
-                    <div class="button-loader"></div>
-                </button>
-            `;
-
-            const claimButton = rewardItem.querySelector('.claim-reward-button');
-            if (claimButton) {
-                claimButton.addEventListener('click', async () => {
-                    await claimReward(rewardId, rewardData, claimButton);
-                });
-            }
-
-            return rewardItem;
-        }
-
-        /**
-         * Handles the claiming of an approved reward.
-         * Updates user's profile and marks the reward as claimed.
-         * @param {string} rewardId - The ID of the reward document.
-         * @param {Object} rewardData - The data of the reward.
-         * @param {HTMLElement} buttonElement - The button element that triggered the action.
-         */
-        async function claimReward(rewardId, rewardData, buttonElement) {
-            if (!currentUser || !currentUserProfileData) {
-                showMessageBox("You must be logged in to claim rewards.", 'error');
-                return;
-            }
-
-            toggleButtonLoading(buttonElement, true);
-            showMessageBox("Claiming reward...", 'loading', true);
-
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const rewardDocRef = doc(db, "artifacts", appId, "public", "data", "pending_activity_rewards", rewardId);
-                    const userProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
-
-                    const rewardSnap = await transaction.get(rewardDocRef);
-                    const userProfileSnap = await transaction.get(userProfileDocRef);
-
-                    if (!rewardSnap.exists() || rewardSnap.data().status !== 'approved') {
-                        throw new Error("Reward not found or not approved.");
-                    }
-                    if (!userProfileSnap.exists()) {
-                        throw new Error("User profile not found.");
-                    }
-
-                    const currentProfileData = userProfileSnap.data();
-                    const newJCoins = (currentProfileData.jCoins || 0) + (rewardData.suggestedJCoinAmount || 0);
-                    const newGas = (currentProfileData.gas || 0) + (rewardData.suggestedGasAmount || 0);
-                    const newTotalGasEarned = (currentProfileData.totalGasEarned || 0) + (rewardData.suggestedGasAmount || 0);
-
-                    // Update user profile with new JCoins and Gas (current and total earned)
-                    transaction.update(userProfileDocRef, {
-                        jCoins: newJCoins,
-                        gas: newGas,
-                        totalGasEarned: newTotalGasEarned,
-                        updatedAt: serverTimestamp()
-                    });
-
-                    // Mark reward as claimed
-                    transaction.update(rewardDocRef, {
-                        status: 'claimed',
-                        claimedAt: serverTimestamp()
-                    });
-                });
-
-                showMessageBox(`Reward claimed! You received ${rewardData.suggestedJCoinAmount || 0} JCoins and ${rewardData.suggestedGasAmount || 0} Gas.`, 'success');
-                // Refresh profile data to show updated JCoins and Gas, and trigger level update
-                await fetchAndDisplayUserProfile(currentUser.uid);
-                // Remove the claimed reward from the list
-                const claimedItem = buttonElement.closest('.reward-item');
-                if (claimedItem) claimedItem.remove();
-
-                // Check if list is empty after removal
-                if (pendingRewardsList && pendingRewardsList.children.length === 0) {
-                    pendingRewardsList.innerHTML = '<p class="no-rewards-message">No pending rewards at this time.</p>';
-                }
-
-
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error claiming reward:", error);
-                showMessageBox(`Failed to claim reward: ${error.message}`, 'error');
-            } finally {
-                toggleButtonLoading(buttonElement, false);
-            }
-        }
+        // Removed: fetchAndDisplayPendingRewards function
+        // Removed: createRewardItem function
+        // Removed: claimReward function
 
 
         // --- Authentication State Listener ---
@@ -4060,7 +3720,7 @@
                 }
                 if (userPostsFeed) userPostsFeed.style.display = 'none'; // Hide user posts, null check
                 if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide friend requests section, null check
-                if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards section, null check
+                // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards section, null check
                 if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
                 if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
                 // Ensure loader is dismissed in this case too
