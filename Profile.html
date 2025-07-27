@@ -692,22 +692,22 @@
             font-size: 1.5rem;
             font-weight: 700;
             /* Apply gradient to level name */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback */
             margin: 0; /* Remove default margin */
         }
 
         .profile-level-icon {
             font-size: 2.5rem; /* Larger icon for the main level display */
             /* Apply gradient to level icon */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback */
         }
 
         .progress-bar-container {
@@ -722,10 +722,12 @@
 
         .progress-bar-fill {
             height: 100%;
-            width: 0%; /* Will be set by JS */
-            background: linear-gradient(90deg, var(--pink), var(--blue)); /* Pink to blue gradient */
-            border-radius: 55px;
-            transition: width 0.5s ease-out;
+            width: 100%; /* Always 100% width, the gradient moves */
+            background-image: linear-gradient(90deg, var(--pink), var(--blue)); /* Pink to blue gradient */
+            background-size: 200% 100%; /* Make gradient twice as wide */
+            background-position: right; /* Start with blue showing */
+            border-radius: 5px; /* Match container border-radius */
+            transition: background-position 0.5s ease-out; /* Smooth transition for position */
         }
 
         /* Hide the "XP Level" label as requested */
@@ -826,11 +828,11 @@
         /* Icons within action buttons */
         .profile-action-button i {
             /* Apply gradient to icons */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback */
         }
 
 
@@ -1012,11 +1014,11 @@
             font-size: 2.5rem; /* Larger icon for prominence */
             margin-bottom: 5px; /* Space between icon and text */
             /* Apply gradient to message box icons */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback */
         }
         #messageBox.success i { color: var(--white); } /* White icon for success */
         #messageBox.error i { color: var(--delete-button-color); }
@@ -1251,11 +1253,11 @@
         }
         #jcoinRequestModal .modal-content h3 i {
             /* Apply gradient to modal header icon */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback */
             margin-right: 10px;
         }
         #jcoinRequestModal .modal-content .input-group {
@@ -1303,11 +1305,11 @@
         }
         #jcoinRequestModal .modal-content .file-input-wrapper i {
             /* Apply gradient to file input icon */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback */
         }
         #jcoinRequestModal .modal-content .file-name {
             flex-grow: 1;
@@ -1552,7 +1554,7 @@
                         <span id="xpLevelName" class="profile-level-name">Loading Level...</span>
                     </div>
                     <div class="progress-bar-container" id="progressBarContainer">
-                        <div id="xpProgressBarFill" class="progress-bar-fill" style="width: 0%;"></div>
+                        <div id="xpProgressBarFill" class="progress-bar-fill" style="background-position: right;"></div>
                     </div>
                     <!-- End NEW: Level Info Display -->
 
@@ -3226,7 +3228,7 @@
          * @returns {HTMLElement} The created list item div element.
          */
         function createFriendRequestItem(senderId, requestData) {
-            // This function is no longer needed on the Profile page after removing friend request buttons.
+            // This function is no longer directly triggered from Profile.html after removing the button.
             return document.createElement('div'); // Return dummy element
         }
 
@@ -3295,6 +3297,8 @@
             if (xpLevelIcon) xpLevelIcon.className = "fas fa-question-circle profile-level-icon"; // Reset icon
             if (xpLevelName) xpLevelName.textContent = "Loading Level..."; // Reset level name
             if (xpProgressBarFill) xpProgressBarFill.style.width = "0%"; // Reset progress bar
+            if (xpProgressBarFill) xpProgressBarFill.style.backgroundPosition = "right"; // Reset gradient position
+
 
             if (profilePagePic) profilePagePic.style.display = 'none';
             if (profilePageAvatarIcon) profilePageAvatarIcon.style.display = 'block';
@@ -3492,7 +3496,15 @@
                         progressPercentage = 100; // Maxed out for levels beyond 500
                         if (xpLevelName) xpLevelName.textContent = `MAX Level (${levelInfo.name})`;
                     }
-                    if (xpProgressBarFill) xpProgressBarFill.style.width = `${progressPercentage}%`; // Null check
+
+                    // Set background-position for the gradient fill
+                    // When progressPercentage is 0, background-position is right (0% of the gradient shown)
+                    // When progressPercentage is 100, background-position is left (100% of the gradient shown)
+                    const backgroundPosition = 100 - progressPercentage; // Invert for background-position: left to right fill
+                    if (xpProgressBarFill) {
+                        xpProgressBarFill.style.backgroundPosition = `${backgroundPosition}% 0`; // Set background-position
+                        xpProgressBarFill.style.width = `100%`; // Ensure width is always 100%
+                    }
 
 
                     // Action Buttons and Inline Edit Fields
