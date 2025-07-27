@@ -1142,6 +1142,61 @@
         #callOverlay .call-actions button.end-call-btn {
             background: var(--delete-button-color);
         }
+        #callOverlay .call-actions button.toggle-mute-btn {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        #callOverlay .call-actions button.toggle-mute-btn.active {
+            background: #ccc; /* Grey when muted */
+            color: #333;
+        }
+        #callOverlay .call-actions button.toggle-video-btn {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        #callOverlay .call-actions button.toggle-video-btn.active {
+            background: #ccc; /* Grey when video off */
+            color: #333;
+        }
+
+        /* Video elements within call overlay */
+        #callOverlay .video-streams {
+            position: relative;
+            width: 90%;
+            max-width: 800px;
+            height: 50%;
+            max-height: 450px;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
+        #remoteVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-color: #000;
+            display: none; /* Hidden by default until stream is active */
+        }
+        #localVideo {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            width: 120px;
+            height: 90px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+            background-color: #333;
+            z-index: 1;
+            transform: scaleX(-1); /* Mirror local video */
+            display: none; /* Hidden by default until stream is active */
+        }
+        #callOverlay.voice-call .video-streams {
+            display: none; /* Hide video streams for voice calls */
+        }
 
         /* Custom Message Box Styles */
         #messageBox {
@@ -1426,6 +1481,12 @@
                 height: 50px;
                 font-size: 1.8rem;
             }
+            #localVideo {
+                width: 90px;
+                height: 70px;
+                bottom: 10px;
+                right: 10px;
+            }
         }
     </style>
 </head>
@@ -1539,12 +1600,18 @@
 
     <!-- Call Overlay -->
     <div id="callOverlay">
+        <div class="video-streams">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
         <i id="callStatusIcon" class="fas fa-phone"></i>
         <p id="callStatusText" class="call-status-text">Calling...</p>
         <p id="callTimer" class="call-timer" style="display: none;">00:00</p>
         <div class="call-actions" id="callActions">
             <button id="acceptCallBtn" class="accept-call-btn" style="display: none;"><i class="fas fa-phone"></i></button>
             <button id="declineCallBtn" class="decline-call-btn" style="display: none;"><i class="fas fa-phone-slash"></i></button>
+            <button id="toggleMuteBtn" class="toggle-mute-btn" style="display: none;" title="Mute/Unmute"><i class="fas fa-microphone"></i></button>
+            <button id="toggleVideoBtn" class="toggle-video-btn" style="display: none;" title="Turn Video On/Off"><i class="fas fa-video"></i></button>
             <button id="endCallBtn" class="end-call-btn" style="display: none;"><i class="fas fa-phone-slash"></i></button>
         </div>
     </div>
@@ -1640,6 +1707,11 @@
         const acceptCallBtn = document.getElementById('acceptCallBtn');
         const declineCallBtn = document.getElementById('declineCallBtn');
         const endCallBtn = document.getElementById('endCallBtn');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const toggleMuteBtn = document.getElementById('toggleMuteBtn');
+        const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+
 
         // Custom Confirmation Modal elements
         const customConfirmModal = document.getElementById('customConfirmModal');
@@ -1666,6 +1738,7 @@
         let unsubscribeMessagesListener = null;
         let unsubscribeRecentChatsListener = null;
         let unsubscribeRecipientTypingListener = null;
+        let unsubscribeCallListener = null; // New: for real-time call updates
         let typingTimeout = null;
         let isEditingMessage = false;
         let messageToEditId = null;
@@ -1678,20 +1751,40 @@
         let recordingStartTime;
         let recordingTimerInterval;
 
-        // Call State
-        let callState = 'idle'; // 'idle', 'calling', 'ringing', 'connected'
+        // WebRTC Call State
+        let localStream;
+        let remoteStream;
+        let peerConnection;
+        let currentCallType; // 'voice' or 'video'
+        let isMuted = false;
+        let isVideoOff = false;
+        let callState = 'idle'; // 'idle', 'calling', 'ringing', 'connected', 'busy', 'declined', 'ended', 'no-answer'
         let callDuration = 0;
         let callDurationInterval;
-        let callTimeoutId;
-        let isIncomingCall = false;
+        let callTimeoutId; // For call ringing timeout
+        let callRef; // Firestore document reference for the current call
+        let isIncomingCall = false; // Flag to differentiate initiator from receiver
 
         // --- Constants ---
         const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID
+
+        // WebRTC STUN/TURN servers
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+            ]
+        };
 
         // --- Tone.js Synths for Notification Sounds ---
         const successSynth = new Tone.Synth().toDestination();
         const errorSynth = new Tone.Synth().toDestination();
         const infoSynth = new Tone.Synth().toDestination();
+        const ringingSynth = new Tone.Synth().toDestination(); // For incoming call ring
+        const dialToneSynth = new Tone.Synth().toDestination(); // For outgoing call dial tone
 
         // Set up basic sounds
         successSynth.oscillator.type = "sine";
@@ -1712,9 +1805,33 @@
         infoSynth.envelope.sustain = 0.0;
         infoSynth.envelope.release = 0.3;
 
+        // Ringing sound (similar to a phone ring)
+        ringingSynth.oscillator.type = "square";
+        ringingSynth.envelope.attack = 0.01;
+        ringingSynth.envelope.decay = 0.6;
+        ringingSynth.envelope.sustain = 0.0;
+        ringingSynth.envelope.release = 0.8;
+        const ringingPattern = new Tone.Pattern(function(time, note){
+            ringingSynth.triggerAttackRelease(note, "8n", time);
+        }, ["C5", "C5", "C5", "C5"]).start(0);
+        ringingPattern.interval = "1s"; // Adjust interval for ringing pattern
+        ringingPattern.humanize = true;
+        ringingPattern.playbackRate = 1;
+        ringingPattern.loop = true;
+        ringingPattern.autostart = false; // Will start manually
+
+        // Dial tone (simple continuous tone)
+        dialToneSynth.oscillator.type = "sine";
+        dialToneSynth.envelope.attack = 0.01;
+        dialToneSynth.envelope.decay = 0.0;
+        dialToneSynth.envelope.sustain = 1.0;
+        dialToneSynth.envelope.release = 0.1;
+        dialToneSynth.volume.value = -10; // Slightly lower volume
+        let dialTonePlaying = false;
+
         /**
          * Plays a notification sound.
-         * @param {string} type - 'success', 'error', or 'info'.
+         * @param {string} type - 'success', 'error', 'info'.
          */
         function playNotificationSound(type) {
             Tone.start(); // Ensure audio context is started
@@ -1724,6 +1841,42 @@
                 errorSynth.triggerAttackRelease("C3", "8n");
             } else if (type === 'info') {
                 infoSynth.triggerAttackRelease("E4", "16n");
+            }
+        }
+
+        /**
+         * Starts the ringing sound.
+         */
+        function startRingingSound() {
+            Tone.start();
+            ringingPattern.start();
+        }
+
+        /**
+         * Stops the ringing sound.
+         */
+        function stopRingingSound() {
+            ringingPattern.stop();
+        }
+
+        /**
+         * Starts the dial tone sound.
+         */
+        function startDialTone() {
+            Tone.start();
+            if (!dialTonePlaying) {
+                dialToneSynth.triggerAttack("F4");
+                dialTonePlaying = true;
+            }
+        }
+
+        /**
+         * Stops the dial tone sound.
+         */
+        function stopDialTone() {
+            if (dialTonePlaying) {
+                dialToneSynth.triggerRelease();
+                dialTonePlaying = false;
             }
         }
 
@@ -1889,6 +2042,7 @@
                     if (profileData.lastLoginBonusClaimed === undefined) updates.lastLoginBonusClaimed = null;
                     if (profileData.isTyping === undefined) updates.isTyping = false; // Initialize isTyping
                     if (profileData.starredMessages === undefined) updates.starredMessages = []; // Initialize starredMessages
+                    if (profileData.inCall === undefined) updates.inCall = false; // Initialize inCall status
 
                     if (Object.keys(updates).length > 0) {
                         await updateDoc(privateProfileDocRef, updates);
@@ -1931,6 +2085,7 @@
                         lastLoginBonusClaimed: null,
                         isTyping: false, // Default to not typing
                         starredMessages: [], // Default empty array
+                        inCall: false, // Default to not in call
                     };
                     await setDoc(privateProfileDocRef, profileData);
                     console.log("JCHAT_DEBUG: Created new profile data for current user:", profileData);
@@ -1955,6 +2110,7 @@
                         level: profileData.level,
                         totalGasEarned: profileData.totalGasEarned,
                         isTyping: profileData.isTyping, // Sync isTyping to public profile
+                        inCall: profileData.inCall, // Sync inCall to public profile
                     }, { merge: true });
                 }
 
@@ -2017,15 +2173,16 @@
         async function handleLogout() {
             if (!isAuthReady) return;
             try {
-                // Set user's typing status to false on logout
+                // Set user's typing status and inCall status to false on logout
                 if (currentUser && currentUserProfileData) {
                     const userPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
-                    await updateDoc(userPublicProfileRef, { isTyping: false }).catch(e => console.error("Failed to update typing status on logout:", e));
+                    await updateDoc(userPublicProfileRef, { isTyping: false, inCall: false }).catch(e => console.error("Failed to update status on logout:", e));
                 }
                 // Unsubscribe all listeners
                 if (unsubscribeMessagesListener) unsubscribeMessagesListener();
                 if (unsubscribeRecentChatsListener) unsubscribeRecentChatsListener();
                 if (unsubscribeRecipientTypingListener) unsubscribeRecipientTypingListener();
+                if (unsubscribeCallListener) unsubscribeCallListener(); // New: Unsubscribe call listener
 
                 // Stop media recorder if active
                 if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -2036,6 +2193,11 @@
                 clearInterval(callDurationInterval);
                 clearTimeout(callTimeoutId);
                 clearTimeout(typingTimeout);
+
+                // End any active WebRTC call
+                if (callState !== 'idle') {
+                    await endCall(false); // End call without updating Firestore status to avoid conflicts during logout
+                }
 
                 await signOut(auth);
                 showMessageBox("Logged out successfully! 👋", 'success');
@@ -2346,6 +2508,7 @@
             // Clean up previous chat listeners/states
             if (unsubscribeMessagesListener) unsubscribeMessagesListener();
             if (unsubscribeRecipientTypingListener) unsubscribeRecipientTypingListener();
+            if (unsubscribeCallListener) unsubscribeCallListener(); // New: Unsubscribe previous call listener
             await updateTypingStatus(false); // Ensure own typing status is off when switching
 
             messagesDisplay.innerHTML = '';
@@ -2390,6 +2553,7 @@
 
                     listenForMessages(currentChatId); // Start listening for messages in the new chat
                     listenForRecipientTypingStatus(recipientUserId); // Start listening for recipient's typing status
+                    listenForIncomingCalls(); // New: Listen for incoming calls to this user
 
                     // Update active class in sidebar
                     document.querySelectorAll('.chat-list-item').forEach(item => {
@@ -2397,7 +2561,7 @@
                     });
                     const activeItem = document.querySelector(`.chat-list-item[data-chat-id="${newChatId}"]`);
                     if (activeItem) {
-                        item.classList.add('active');
+                        activeItem.classList.add('active');
                         // Remove unread badge from the active item
                         const badge = activeItem.querySelector('.unread-badge');
                         if (badge) badge.style.display = 'none';
@@ -2694,94 +2858,318 @@
         }
 
 
-        // --- Simulated Call Functions ---
+        // --- WebRTC Call Functions ---
 
         /**
-         * Starts a simulated voice or video call.
+         * Initializes a new RTCPeerConnection.
+         * @returns {RTCPeerConnection} The initialized peer connection.
+         */
+        function createPeerConnection() {
+            const pc = new RTCPeerConnection(iceServers);
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    // Send ICE candidate to the other peer via Firestore
+                    if (callRef) {
+                        const candidateData = JSON.parse(JSON.stringify(event.candidate)); // Deep copy to avoid Firestore issues
+                        if (isIncomingCall) { // If this peer is the receiver
+                            updateDoc(callRef, {
+                                receiverCandidates: arrayUnion(candidateData)
+                            }).catch(e => console.error("Error adding receiver candidate:", e));
+                        } else { // If this peer is the caller
+                            updateDoc(callRef, {
+                                callerCandidates: arrayUnion(candidateData)
+                            }).catch(e => console.error("Error adding caller candidate:", e));
+                        }
+                    }
+                }
+            };
+
+            pc.ontrack = (event) => {
+                // Attach remote stream to remoteVideo element
+                if (event.streams && event.streams[0]) {
+                    remoteVideo.srcObject = event.streams[0];
+                    remoteVideo.style.display = 'block';
+                    remoteStream = event.streams[0];
+                } else {
+                    // Fallback for older browsers or individual tracks
+                    if (!remoteStream) {
+                        remoteStream = new MediaStream();
+                        remoteVideo.srcObject = remoteStream;
+                        remoteVideo.style.display = 'block';
+                    }
+                    remoteStream.addTrack(event.track);
+                }
+            };
+
+            return pc;
+        }
+
+        /**
+         * Starts a voice or video call.
          * @param {string} type - 'voice' or 'video'.
          */
         async function startCall(type) {
             if (callState !== 'idle') {
-                showMessageBox("Already in a call.", "info");
+                showMessageBox("Already in a call or call in progress.", "info");
                 playNotificationSound('info');
                 return;
             }
-            if (!currentChatId || !recipientUserId || !recipientUserProfileData) {
-                showMessageBox("Please select a chat to start a call.", "warning");
+            if (!currentChatId || !recipientUserId || !recipientUserProfileData || !currentUser) {
+                showMessageBox("Please select a chat and ensure you are logged in to start a call.", "warning");
                 playNotificationSound('info');
                 return;
             }
 
-            // Request microphone permission before initiating call UI
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'video' });
-                stream.getTracks().forEach(track => track.stop()); // Stop tracks immediately as we only need permission
-            } catch (error) {
-                console.error("JCHAT_ERROR: Microphone/Camera permission denied:", error);
-                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                    showMessageBox("Microphone/Camera access denied. Please allow permissions in your browser settings to make calls.", "error", true, 5000);
-                } else if (error.name === 'NotFoundError') {
-                    showMessageBox("No microphone/camera found. Please ensure one is connected.", "error", true, 5000);
-                } else {
-                    showMessageBox(`Failed to access media devices: ${error.message}`, "error", true, 5000);
-                }
-                playNotificationSound('error');
+            // Check if recipient is already in a call
+            const recipientProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", recipientUserId);
+            const recipientProfileSnap = await getDoc(recipientProfileDocRef);
+            if (recipientProfileSnap.exists() && recipientProfileSnap.data().inCall) {
+                showMessageBox(`${recipientUserProfileData.username} is currently on another call.`, "info");
+                playNotificationSound('info');
                 return;
             }
 
+            currentCallType = type;
             isIncomingCall = false; // This user is initiating the call
             callState = 'calling';
             callOverlay.classList.add('active');
+            callOverlay.classList.remove('voice-call', 'video-call'); // Clear previous
+            callOverlay.classList.add(type === 'voice' ? 'voice-call' : 'video-call');
+
             callStatusIcon.className = `fas fa-${type === 'voice' ? 'phone' : 'video'} call-status-icon`;
             callStatusText.textContent = `Calling ${recipientUserProfileData?.username || 'user'}...`;
             callTimerDisplay.style.display = 'none';
-            callActions.style.display = 'none'; // Hide accept/decline/end for initiator initially
+            callActions.style.display = 'flex'; // Show controls
+            acceptCallBtn.style.display = 'none';
+            declineCallBtn.style.display = 'none';
+            toggleMuteBtn.style.display = 'none'; // Will show once connected
+            toggleVideoBtn.style.display = 'none'; // Will show once connected
+            endCallBtn.style.display = 'block';
             callStatusIcon.style.animation = 'pulse-color 2s infinite alternate'; // Start animation
 
-            callDuration = 0;
-            clearInterval(callDurationInterval);
-            clearTimeout(callTimeoutId);
+            isMuted = false;
+            toggleMuteBtn.classList.remove('active');
+            toggleMuteBtn.querySelector('i').className = 'fas fa-microphone';
 
-            // Simulate ringing after 3 seconds
-            callTimeoutId = setTimeout(() => {
-                if (callState === 'calling') { // Only transition if still in calling state
-                    callState = 'ringing';
-                    callStatusText.textContent = `Ringing ${recipientUserProfileData?.username || 'user'}...`;
-                    // For outgoing calls, the initiator only has the 'End Call' option
-                    callActions.style.display = 'flex';
-                    acceptCallBtn.style.display = 'none';
-                    declineCallBtn.style.display = 'none';
-                    endCallBtn.style.display = 'block';
-                }
+            isVideoOff = false;
+            toggleVideoBtn.classList.remove('active');
+            toggleVideoBtn.querySelector('i').className = 'fas fa-video';
 
-                // Simulate no answer/auto-decline after 15 seconds of ringing
-                callTimeoutId = setTimeout(() => {
-                    if (callState === 'ringing') {
-                        showMessageBox("Call unanswered.", "info");
-                        playNotificationSound('info');
-                        endCall();
-                    }
-                }, 15000); // 15 seconds after ringing starts
-            }, 3000); // 3 seconds after initiating call
+            localVideo.style.display = 'none';
+            remoteVideo.style.display = 'none';
 
             setChatInputState(false);
             voiceCallBtn.disabled = true;
             videoCallBtn.disabled = true;
+
+            try {
+                // Get local media stream
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: type === 'video' // Only request video if it's a video call
+                });
+                localVideo.srcObject = localStream;
+                if (type === 'video') {
+                    localVideo.style.display = 'block';
+                }
+
+                // Create Peer Connection
+                peerConnection = createPeerConnection();
+
+                // Add local tracks to peer connection
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                // Create offer
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                // Store offer in Firestore
+                callRef = doc(db, "artifacts", appId, "public", "data", "calls", currentChatId);
+                await setDoc(callRef, {
+                    callerId: currentUser.uid,
+                    receiverId: recipientUserId,
+                    callType: type,
+                    status: 'ringing',
+                    offer: {
+                        type: offer.type,
+                        sdp: offer.sdp
+                    },
+                    callerCandidates: [],
+                    receiverCandidates: [],
+                    timestamp: serverTimestamp(),
+                    lastActivity: serverTimestamp()
+                }, { merge: true });
+
+                // Update current user's inCall status
+                const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                await updateDoc(currentUserPublicProfileRef, { inCall: true });
+
+                startDialTone(); // Play dial tone
+
+                // Listen for changes in the call document (answer, candidates, status)
+                unsubscribeCallListener = onSnapshot(callRef, async (docSnap) => {
+                    if (!docSnap.exists()) {
+                        console.log("JCHAT_DEBUG: Call document disappeared. Ending call.");
+                        endCall(false); // Call ended by other party or cleanup
+                        return;
+                    }
+
+                    const callData = docSnap.data();
+
+                    // Handle status changes
+                    if (callData.status === 'accepted' && callState === 'calling') {
+                        stopDialTone();
+                        await handleCallAccepted(callData);
+                    } else if (callData.status === 'declined' && callState === 'calling') {
+                        stopDialTone();
+                        showMessageBox(`${recipientUserProfileData.username} declined the call.`, "info");
+                        playNotificationSound('info');
+                        endCall(true); // End call, update Firestore status
+                    } else if (callData.status === 'busy' && callState === 'calling') {
+                        stopDialTone();
+                        showMessageBox(`${recipientUserProfileData.username} is busy.`, "info");
+                        playNotificationSound('info');
+                        endCall(true); // End call, update Firestore status
+                    } else if (callData.status === 'no-answer' && callState === 'calling') {
+                        stopDialTone();
+                        showMessageBox(`${recipientUserProfileData.username} did not answer.`, "info");
+                        playNotificationSound('info');
+                        endCall(true); // End call, update Firestore status
+                    } else if (callData.status === 'ended' && callState !== 'idle') {
+                        stopDialTone();
+                        stopRingingSound();
+                        showMessageBox("Call ended by other party.", "info");
+                        playNotificationSound('info');
+                        endCall(false); // End call, don't update Firestore status as it's already ended
+                    }
+
+                    // Handle answer (if not already handled by status change)
+                    if (callData.answer && peerConnection.remoteDescription?.type !== 'answer') {
+                        const remoteAnswer = new RTCSessionDescription(callData.answer);
+                        await peerConnection.setRemoteDescription(remoteAnswer);
+                        console.log("JCHAT_DEBUG: Remote answer set.");
+                    }
+
+                    // Handle ICE candidates
+                    if (callData.receiverCandidates && callData.receiverCandidates.length > 0) {
+                        callData.receiverCandidates.forEach(async (candidate) => {
+                            try {
+                                const iceCandidate = new RTCIceCandidate(candidate);
+                                await peerConnection.addIceCandidate(iceCandidate);
+                            } catch (e) {
+                                console.error("Error adding receiver ICE candidate:", e);
+                            }
+                        });
+                        // Clear candidates after adding to prevent re-adding
+                        await updateDoc(callRef, { receiverCandidates: [] });
+                    }
+                });
+
+                // Set a timeout for no answer (20 seconds for ringing + initial 5 seconds for setup)
+                callTimeoutId = setTimeout(async () => {
+                    if (callState === 'calling') {
+                        stopDialTone();
+                        await updateDoc(callRef, { status: 'no-answer' });
+                        showMessageBox("Call unanswered.", "info");
+                        playNotificationSound('info');
+                        endCall(true);
+                    }
+                }, 25000); // 25 seconds total for no answer
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error starting call:", error);
+                showMessageBox(`Failed to start call: ${error.message}`, "error", true, 5000);
+                playNotificationSound('error');
+                endCall(true); // Ensure cleanup
+            }
         }
 
         /**
-         * Handles accepting a simulated call.
+         * Listens for incoming calls to the current user.
          */
-        function acceptCall() {
-            // This function is primarily for the *recipient* of a simulated call.
-            // The initiator of a call does not "accept" their own call.
-            if (callState !== 'ringing') {
-                showMessageBox("Cannot accept call in current state.", "warning");
-                playNotificationSound('info');
-                return;
+        function listenForIncomingCalls() {
+            if (unsubscribeCallListener) {
+                unsubscribeCallListener(); // Unsubscribe from previous listener
             }
+            if (!currentUser) return;
 
-            clearTimeout(callTimeoutId);
+            const callsCollectionRef = collection(db, "artifacts", appId, "public", "data", "calls");
+            const q = query(callsCollectionRef, where("receiverId", "==", currentUser.uid), where("status", "==", "ringing"));
+
+            unsubscribeCallListener = onSnapshot(q, async (snapshot) => {
+                if (snapshot.empty) {
+                    // No incoming calls
+                    stopRingingSound();
+                    if (callState === 'ringing') { // If we were ringing and call disappeared
+                        showMessageBox("Incoming call ended.", "info");
+                        playNotificationSound('info');
+                        endCall(false);
+                    }
+                    return;
+                }
+
+                const incomingCallDoc = snapshot.docs[0]; // Take the first incoming call
+                const callData = incomingCallDoc.data();
+
+                if (callState !== 'idle') {
+                    // Already in a call or busy, decline new incoming call
+                    await updateDoc(incomingCallDoc.ref, { status: 'busy' });
+                    showMessageBox(`Another call from ${callData.callerId === recipientUserId ? recipientUserProfileData?.username : 'someone'} is incoming, but you are busy.`, "warning");
+                    playNotificationSound('info');
+                    return;
+                }
+
+                // New incoming call
+                callRef = incomingCallDoc.ref;
+                isIncomingCall = true;
+                callState = 'ringing';
+                currentCallType = callData.callType;
+
+                // Fetch caller's profile for display
+                const callerProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", callData.callerId);
+                const callerProfileSnap = await getDoc(callerProfileDocRef);
+                const callerUsername = callerProfileSnap.exists() ? callerProfileSnap.data().username : 'Unknown User';
+                recipientUserProfileData = callerProfileSnap.exists() ? callerProfileSnap.data() : null; // Set recipient for UI
+
+                callOverlay.classList.add('active');
+                callOverlay.classList.remove('voice-call', 'video-call'); // Clear previous
+                callOverlay.classList.add(currentCallType === 'voice' ? 'voice-call' : 'video-call');
+
+                callStatusIcon.className = `fas fa-${currentCallType === 'voice' ? 'phone' : 'video'} call-status-icon`;
+                callStatusText.textContent = `Incoming ${currentCallType} call from ${callerUsername}...`;
+                callTimerDisplay.style.display = 'none';
+                callActions.style.display = 'flex';
+                acceptCallBtn.style.display = 'block';
+                declineCallBtn.style.display = 'block';
+                toggleMuteBtn.style.display = 'none';
+                toggleVideoBtn.style.display = 'none';
+                endCallBtn.style.display = 'none'; // Only accept/decline for incoming
+                callStatusIcon.style.animation = 'pulse-color 2s infinite alternate'; // Start animation
+
+                startRingingSound(); // Play ringing sound
+
+                // Set a timeout for no answer (20 seconds)
+                callTimeoutId = setTimeout(async () => {
+                    if (callState === 'ringing') {
+                        stopRingingSound();
+                        await updateDoc(callRef, { status: 'no-answer' });
+                        showMessageBox("Incoming call unanswered.", "info");
+                        playNotificationSound('info');
+                        endCall(true);
+                    }
+                }, 20000);
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening for incoming calls:", error);
+            });
+        }
+
+        /**
+         * Handles the call being accepted by the remote peer (for the caller).
+         * @param {object} callData - The call document data from Firestore.
+         */
+        async function handleCallAccepted(callData) {
+            if (callState !== 'calling' || !peerConnection) return;
+
             callState = 'connected';
             callStatusText.textContent = `Call with ${recipientUserProfileData?.username || 'user'}`;
             callTimerDisplay.style.display = 'block';
@@ -2789,32 +3177,214 @@
             acceptCallBtn.style.display = 'none';
             declineCallBtn.style.display = 'none';
             endCallBtn.style.display = 'block';
-            callStatusIcon.style.animation = 'none'; // Stop animation when connected
+            toggleMuteBtn.style.display = 'block';
+            toggleVideoBtn.style.display = currentCallType === 'video' ? 'block' : 'none';
+            callStatusIcon.style.animation = 'none'; // Stop animation
 
+            clearInterval(callDurationInterval);
             callDurationInterval = setInterval(updateCallTimer, 1000);
+            clearTimeout(callTimeoutId); // Clear no-answer timeout
+
             showMessageBox("Call connected!", "success");
             playNotificationSound('success');
+
+            // Set remote description with the answer
+            if (callData.answer && peerConnection.remoteDescription?.type !== 'answer') {
+                const remoteAnswer = new RTCSessionDescription(callData.answer);
+                await peerConnection.setRemoteDescription(remoteAnswer);
+                console.log("JCHAT_DEBUG: Remote answer set for caller.");
+            }
+
+            // Add any initial candidates that might have arrived before answer
+            if (callData.receiverCandidates && callData.receiverCandidates.length > 0) {
+                for (const candidate of callData.receiverCandidates) {
+                    try {
+                        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                    } catch (e) {
+                        console.error("Error adding initial receiver ICE candidate:", e);
+                    }
+                }
+                await updateDoc(callRef, { receiverCandidates: [] }); // Clear them
+            }
+
+            // Ensure local video is visible if it's a video call
+            if (currentCallType === 'video' && localStream) {
+                localVideo.style.display = 'block';
+            }
+        }
+
+
+        /**
+         * Handles accepting an incoming call.
+         */
+        async function acceptCall() {
+            if (callState !== 'ringing' || !callRef || !currentUser) {
+                showMessageBox("Cannot accept call in current state.", "warning");
+                playNotificationSound('info');
+                return;
+            }
+
+            stopRingingSound();
+            clearTimeout(callTimeoutId); // Clear no-answer timeout
+
+            callState = 'connected';
+            callStatusText.textContent = `Call with ${recipientUserProfileData?.username || 'user'}`;
+            callTimerDisplay.style.display = 'block';
+            callActions.style.display = 'flex';
+            acceptCallBtn.style.display = 'none';
+            declineCallBtn.style.display = 'none';
+            endCallBtn.style.display = 'block';
+            toggleMuteBtn.style.display = 'block';
+            toggleVideoBtn.style.display = currentCallType === 'video' ? 'block' : 'none';
+            callStatusIcon.style.animation = 'none'; // Stop animation
+
+            clearInterval(callDurationInterval);
+            callDurationInterval = setInterval(updateCallTimer, 1000);
+
+            showMessageBox("Call connected!", "success");
+            playNotificationSound('success');
+
+            try {
+                // Get local media stream
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: currentCallType === 'video'
+                });
+                localVideo.srcObject = localStream;
+                if (currentCallType === 'video') {
+                    localVideo.style.display = 'block';
+                }
+
+                // Create Peer Connection
+                peerConnection = createPeerConnection();
+
+                // Add local tracks to peer connection
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                // Get the offer from Firestore
+                const callDocSnap = await getDoc(callRef);
+                const callData = callDocSnap.data();
+                const remoteOffer = new RTCSessionDescription(callData.offer);
+                await peerConnection.setRemoteDescription(remoteOffer);
+
+                // Create answer
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+
+                // Update Firestore with answer and status
+                await updateDoc(callRef, {
+                    status: 'accepted',
+                    answer: {
+                        type: answer.type,
+                        sdp: answer.sdp
+                    },
+                    lastActivity: serverTimestamp()
+                });
+
+                // Update current user's inCall status
+                const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                await updateDoc(currentUserPublicProfileRef, { inCall: true });
+
+                // Add any initial candidates from caller that might have arrived before answer
+                if (callData.callerCandidates && callData.callerCandidates.length > 0) {
+                    for (const candidate of callData.callerCandidates) {
+                        try {
+                            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                        } catch (e) {
+                            console.error("Error adding initial caller ICE candidate:", e);
+                        }
+                    }
+                    await updateDoc(callRef, { callerCandidates: [] }); // Clear them
+                }
+
+                // Listen for caller candidates (new ones)
+                unsubscribeCallListener = onSnapshot(callRef, async (docSnap) => {
+                    if (!docSnap.exists()) {
+                        console.log("JCHAT_DEBUG: Call document disappeared. Ending call.");
+                        endCall(false);
+                        return;
+                    }
+                    const data = docSnap.data();
+                    if (data.callerCandidates && data.callerCandidates.length > 0) {
+                        for (const candidate of data.callerCandidates) {
+                            try {
+                                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                            } catch (e) {
+                                console.error("Error adding caller ICE candidate:", e);
+                            }
+                        }
+                        await updateDoc(callRef, { callerCandidates: [] }); // Clear candidates after adding
+                    }
+                    if (data.status === 'ended' && callState !== 'idle') {
+                        showMessageBox("Call ended by other party.", "info");
+                        playNotificationSound('info');
+                        endCall(false);
+                    }
+                });
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error accepting call:", error);
+                showMessageBox(`Failed to accept call: ${error.message}`, "error", true, 5000);
+                playNotificationSound('error');
+                endCall(true); // Ensure cleanup
+            }
         }
 
         /**
-         * Handles declining a simulated call.
+         * Handles declining an incoming call.
          */
-        function declineCall() {
-            // This function is primarily for the *recipient* of a simulated call.
-            if (callState !== 'ringing') {
+        async function declineCall() {
+            if (callState !== 'ringing' || !callRef) {
                 showMessageBox("Cannot decline call in current state.", "warning");
                 playNotificationSound('info');
                 return;
             }
 
+            stopRingingSound();
             clearTimeout(callTimeoutId);
             showMessageBox("Call declined.", "info");
             playNotificationSound('info');
-            endCall();
+
+            try {
+                await updateDoc(callRef, { status: 'declined', lastActivity: serverTimestamp() });
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error updating call status to declined:", error);
+            } finally {
+                endCall(false); // End call locally, Firestore already updated
+            }
         }
 
         /**
-         * Updates the simulated call timer.
+         * Toggles microphone mute/unmute.
+         */
+        function toggleMute() {
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => {
+                    track.enabled = !track.enabled;
+                    isMuted = !track.enabled;
+                    toggleMuteBtn.classList.toggle('active', isMuted);
+                    toggleMuteBtn.querySelector('i').className = isMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
+                });
+            }
+        }
+
+        /**
+         * Toggles video on/off.
+         */
+        function toggleVideo() {
+            if (localStream) {
+                localStream.getVideoTracks().forEach(track => {
+                    track.enabled = !track.enabled;
+                    isVideoOff = !track.enabled;
+                    toggleVideoBtn.classList.toggle('active', isVideoOff);
+                    toggleVideoBtn.querySelector('i').className = isVideoOff ? 'fas fa-video-slash' : 'fas fa-video';
+                    localVideo.style.display = track.enabled ? 'block' : 'none'; // Hide local video element if off
+                });
+            }
+        }
+
+        /**
+         * Updates the call timer.
          */
         function updateCallTimer() {
             callDuration++;
@@ -2824,23 +3394,73 @@
         }
 
         /**
-         * Ends the simulated call.
+         * Ends the call and cleans up resources.
+         * @param {boolean} updateFirestore - Whether to update the Firestore call status to 'ended'.
          */
-        function endCall() {
+        async function endCall(updateFirestore = true) {
+            stopRingingSound();
+            stopDialTone();
             clearInterval(callDurationInterval);
             clearTimeout(callTimeoutId);
-            callOverlay.classList.remove('active');
+
+            if (unsubscribeCallListener) {
+                unsubscribeCallListener();
+                unsubscribeCallListener = null;
+            }
+
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            if (remoteStream) {
+                remoteStream.getTracks().forEach(track => track.stop());
+                remoteStream = null;
+            }
+
+            localVideo.srcObject = null;
+            remoteVideo.srcObject = null;
+            localVideo.style.display = 'none';
+            remoteVideo.style.display = 'none';
+
+            callOverlay.classList.remove('active', 'voice-call', 'video-call');
             callState = 'idle';
-            isIncomingCall = false; // Reset incoming call flag
-            callStatusIcon.style.animation = 'none'; // Stop animation
+            isIncomingCall = false;
+            callDuration = 0;
+            callTimerDisplay.textContent = '00:00';
 
-            showMessageBox("Call ended.", "info");
-            playNotificationSound('info');
-
+            // Reset button states
             setChatInputState(true);
             voiceCallBtn.disabled = false;
             videoCallBtn.disabled = false;
+            toggleMuteBtn.style.display = 'none';
+            toggleVideoBtn.style.display = 'none';
+            acceptCallBtn.style.display = 'none';
+            declineCallBtn.style.display = 'none';
+            endCallBtn.style.display = 'none';
+            callStatusIcon.style.animation = 'none';
+
+            // Update user's inCall status in Firestore
+            if (currentUser && currentUser.uid) {
+                const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                await updateDoc(currentUserPublicProfileRef, { inCall: false }).catch(e => console.error("Failed to update inCall status on endCall:", e));
+            }
+
+            // Update Firestore call document status if explicitly requested
+            if (updateFirestore && callRef) {
+                try {
+                    await updateDoc(callRef, { status: 'ended', lastActivity: serverTimestamp() });
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error updating call status to ended in Firestore:", error);
+                }
+            }
+            callRef = null; // Clear call reference
         }
+
 
         /**
          * Prompts for microphone permission and initializes MediaRecorder.
@@ -3180,6 +3800,7 @@
                 await fetchCurrentUserProfileData(user); // Fetch profile data for current user
                 fetchNotificationCount(user.uid);
                 initializeChatPage();
+                listenForIncomingCalls(); // Start listening for incoming calls for this user immediately
 
             } else {
                 console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
@@ -3324,13 +3945,17 @@
             });
 
 
-            // New Feature Event Listeners (Call & Media)
+            // WebRTC Call Event Listeners
             if (voiceCallBtn) voiceCallBtn.addEventListener('click', () => startCall('voice'));
             if (videoCallBtn) videoCallBtn.addEventListener('click', () => startCall('video'));
             if (acceptCallBtn) acceptCallBtn.addEventListener('click', acceptCall);
             if (declineCallBtn) declineCallBtn.addEventListener('click', declineCall);
-            if (endCallBtn) endCallBtn.addEventListener('click', endCall);
+            if (endCallBtn) endCallBtn.addEventListener('click', () => endCall(true)); // Pass true to update Firestore
+            if (toggleMuteBtn) toggleMuteBtn.addEventListener('click', toggleMute);
+            if (toggleVideoBtn) toggleVideoBtn.addEventListener('click', toggleVideo);
 
+
+            // Media File & Voice Note Listeners
             if (attachMediaBtn) {
                 attachMediaBtn.addEventListener('click', () => mediaFileInput.click());
             }
@@ -3396,13 +4021,16 @@
         });
 
         window.addEventListener('beforeunload', async () => {
-            // Ensure typing status is turned off when leaving the page
+            // Ensure typing status and inCall status are turned off when leaving the page
             if (currentUser && currentUser.uid) {
                 await updateTypingStatus(false);
+                const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                await updateDoc(currentUserPublicProfileRef, { inCall: false }).catch(e => console.error("Failed to update inCall status on beforeunload:", e));
             }
             if (unsubscribeMessagesListener) unsubscribeMessagesListener();
             if (unsubscribeRecentChatsListener) unsubscribeRecentChatsListener();
             if (unsubscribeRecipientTypingListener) unsubscribeRecipientTypingListener();
+            if (unsubscribeCallListener) unsubscribeCallListener(); // Unsubscribe call listener
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
@@ -3411,6 +4039,11 @@
             clearInterval(callDurationInterval);
             clearTimeout(callTimeoutId);
             clearTimeout(typingTimeout);
+
+            // End any active WebRTC call
+            if (callState !== 'idle') {
+                await endCall(false); // End call without updating Firestore status to avoid conflicts during unload
+            }
         });
 
         if (logoutButton) logoutButton.addEventListener('click', handleLogout);
