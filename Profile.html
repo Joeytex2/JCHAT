@@ -54,7 +54,7 @@
             --content-background-color: #20203a;
             --card-background-color: #2a2a4a;
             --text-color-primary: #e0e0e0;
-            --text-color-secondary: #bbbbbb;
+            --text-color-secondary: #b0b0d0;
             --notification-badge-color: #ff2e92;
             --status-online: #4CAF50;
             --status-offline: #6c757d;
@@ -200,7 +200,7 @@
             --accent-color: #ffd700;
             --accent-color-dark: #ccaa00;
             --border-color: rgba(255, 255, 255, 0.3);
-            --input-background-color: rgba(255, 255, 255, 0.1);
+            --input-background-color: rgba(255, 255, 255, 0.2);
             --button-background: rgba(255, 255, 255, 0.2);
             --button-hover-background: rgba(255, 255, 255, 0.3);
             --active-item-background: rgba(255, 215, 0, 0.1);
@@ -2735,18 +2735,13 @@
 
         /**
          * Calculates the total cumulative Gas required to reach a specific level N.
-         * Formula: Total_Gas_for_Level_N = 100 * N * (N + 1) / 2
-         * Where 100 is the base XP needed per level, summing up.
-         * For example:
-         * Level 1: 100 XP (Total: 100)
-         * Level 2: 200 XP (Total: 300)
-         * Level 3: 300 XP (Total: 600)
+         * Formula: Total_Gas_for_Level_N = 1500 * N * (N + 1) / 2
          * @param {number} level - The target level N.
          * @returns {number} The total cumulative Gas required to reach that level.
          */
         function getTotalGasRequiredToReachLevel(level) {
             if (level <= 0) return 0;
-            return 100 * level * (level + 1) / 2;
+            return 1500 * level * (level + 1) / 2;
         }
 
         /**
@@ -2762,8 +2757,9 @@
             let icon = "fas fa-question-circle";
             let otherRewards = []; // Array to hold other reward descriptions
 
-            // Tier 1: Early Explorer (Levels 1 - 25)
-            if (level >= 1 && level <= 25) {
+            // Base JCoin and Gas rewards scale linearly
+            // Starting values and increments are adjusted to provide a smoother curve up to 500
+            if (level >= 1 && level <= 25) { // Tier 1: Early Explorer
                 jCoinReward = 10 + (level - 1) * 5; // Start 10, +5/level
                 gasReward = 5 + (level - 1) * 2;   // Start 5, +2/level
                 const levelNames = [
@@ -4195,9 +4191,7 @@
             if (progressBarContainer) { // Null check
                 progressBarContainer.style.cursor = 'pointer'; // Add pointer cursor to indicate clickability
                 progressBarContainer.addEventListener('click', () => {
-                    // Navigate to levels.html or show a levels modal/section
-                    showMessageBox("Levels page coming soon!", "info", 2000);
-                    // window.location.href = '/levels.html'; // Ensure levels.html exists
+                    window.location.href = '/levels.html'; // Navigate to levels.html
                 });
             }
 
