@@ -42,7 +42,7 @@
             --border-light: rgba(255, 255, 255, .05);
             --input-background: rgba(255, 255, 255, 0.05);
             --button-background-gradient: linear-gradient(90deg, var(--blue), var(--pink));
-            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+            --button-shadow: 0 4px 15px var(--blue), 0 44px 15px var(--pink);
 
             /* Semantic Colors */
             --background-color-primary: #1a1a2e;
@@ -251,53 +251,6 @@
             margin-right: auto; /* Push other elements to the right */
         }
 
-        header nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            gap: 25px;
-        }
-
-        header nav ul li a {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            padding: 5px 0;
-            position: relative;
-            transition: color var(--transition);
-        }
-
-        header nav ul li a::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 0;
-            height: 3px;
-            background: var(--blue);
-            border-radius: 2px;
-            transition: width var(--transition);
-        }
-        
-        /* Active link styling */
-        header nav ul li a.active {
-            color: var(--blue); /* Highlight active link */
-        }
-        header nav ul li a.active::after {
-            width: 100%; /* Full underline for active link */
-            background: var(--blue);
-        }
-
-        header nav ul li a:hover {
-            color: var(--blue);
-        }
-
-        header nav ul li a:hover::after {
-            width: 100%;
-        }
-
         .user-profile-header {
             display: flex;
             align-items: center;
@@ -373,7 +326,7 @@
             transition: opacity 0.3s ease;
         }
 
-        .user-profile-header i {
+        .user-profile-header .user-avatar-icon { /* Specific for the user profile icon in header */
             font-size: 30px;
             color: var(--text-light);
         }
@@ -419,15 +372,168 @@
             min-height: calc(100vh - 55px); /* Make main content take full height minus header */
         }
 
-        .content-wrapper {
+        .market-layout-container {
+            display: flex;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1200px;
             padding: 20px;
+            gap: 20px;
+            align-items: flex-start; /* Align sidebar and main content to top */
+        }
+
+        /* Sidebar Styles */
+        .market-sidebar {
+            flex-shrink: 0;
+            width: 250px;
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 20px;
+            text-align: left;
+            position: sticky; /* Make sidebar sticky */
+            top: 80px; /* Stick below header */
+            align-self: flex-start; /* Align to top of parent */
+        }
+
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+
+        .sidebar-section h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 10px;
+        }
+
+        .category-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .category-list li {
+            margin-bottom: 10px;
+        }
+
+        .category-list li a {
+            color: var(--text-color-secondary);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.2s ease;
+            display: block;
+            padding: 5px 0;
+        }
+
+        .category-list li a:hover, .category-list li a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .location-select, .currency-select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--input-background);
+            color: var(--text-color-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            -webkit-appearance: none; /* Remove default arrow */
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0e0e0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+        }
+        .location-select:focus, .currency-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+        .price-range-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .price-range-inputs input {
+            width: 50%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--input-background);
+            color: var(--text-color-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .price-range-inputs input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+        /* Main Content Area */
+        .market-main-content {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             gap: 25px;
-            align-items: center;
         }
+
+        .main-search-bar {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--card-background); /* Match section card styling */
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 15px;
+        }
+        .main-search-bar input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--input-background);
+            color: var(--text-color-primary);
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .main-search-bar input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+        .main-search-bar button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            color: var(--white);
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .main-search-bar button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+
 
         .section-card {
             background: var(--card-background);
@@ -436,9 +542,7 @@
             border-radius: var(--radius);
             box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
             padding: 2.5rem;
-            width: 95%;
-            max-width: 900px;
-            margin: 0 auto;
+            width: 100%; /* Take full width of its parent */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -468,11 +572,11 @@
         .listing-grid-container {
             width: 100%;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Adjusted for more items in a row */
             gap: 20px;
             max-height: 600px; /* Make listing lists scrollable */
             overflow-y: auto;
-            padding-right: 10px;
+            padding-right: 10px; /* For scrollbar */
         }
 
         .listing-grid-container::-webkit-scrollbar {
@@ -497,11 +601,11 @@
             background: var(--input-background);
             border: 1px solid var(--border-light);
             border-radius: 15px;
-            padding: 20px;
+            padding: 15px; /* Slightly less padding to fit more */
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 8px; /* Slightly less gap */
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             text-decoration: none;
@@ -516,27 +620,28 @@
 
         .listing-card .listing-image {
             width: 100%;
-            height: 180px;
+            height: 160px; /* Slightly smaller image */
             object-fit: cover;
             border-radius: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             border: 2px solid var(--accent-color);
             transition: border-color 0.3s ease;
         }
 
         .listing-card h3 {
             font-family: 'Poppins', sans-serif;
-            font-size: 1.4rem;
+            font-size: 1.2rem; /* Slightly smaller title */
             font-weight: 700;
             color: var(--text-color-primary);
             margin: 0;
             text-align: center;
             word-break: break-word;
+            min-height: 1.4em; /* Ensure consistent height for single/double line titles */
         }
 
         .listing-card .listing-description {
             margin: 0;
-            font-size: 0.9rem;
+            font-size: 0.85rem; /* Slightly smaller description */
             color: var(--text-color-secondary);
             text-align: center;
             flex-grow: 1;
@@ -545,28 +650,28 @@
             display: -webkit-box;
             -webkit-line-clamp: 2; /* Limit to 2 lines */
             -webkit-box-orient: vertical;
-            line-height: 1.4em;
-            max-height: 2.8em;
+            line-height: 1.3em; /* Adjusted line height */
+            max-height: 2.6em; /* max-height for 2 lines */
         }
 
         .listing-card .listing-price {
-            font-size: 1.2rem;
+            font-size: 1.1rem; /* Slightly smaller price */
             font-weight: 700;
             color: var(--pink); /* Default to JCoins color */
             display: flex;
             align-items: center;
             gap: 5px;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         .listing-card .listing-price.gas {
             color: var(--blue); /* Gas color */
         }
         .listing-card .listing-price i {
-            font-size: 1.4rem;
+            font-size: 1.3rem; /* Adjusted icon size */
         }
 
         .listing-card .seller-info {
-            font-size: 0.85rem;
+            font-size: 0.8rem; /* Slightly smaller seller info */
             color: var(--text-light);
             display: flex;
             align-items: center;
@@ -588,15 +693,15 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 8px; /* Slightly less gap */
+            margin-top: 10px;
             width: 100%;
         }
 
         .listing-card .action-button {
-            padding: 10px 20px;
+            padding: 8px 15px; /* Slightly smaller padding */
             border: none;
-            border-radius: 10px;
+            border-radius: 8px; /* Slightly smaller radius */
             font-weight: 600;
             cursor: pointer;
             background: linear-gradient(90deg, var(--blue), var(--pink));
@@ -609,7 +714,8 @@
             justify-content: center;
             gap: 8px;
             flex-grow: 1;
-            min-width: 120px;
+            min-width: 100px; /* Adjusted min width */
+            font-size: 0.9rem;
         }
 
         .listing-card .action-button:hover {
@@ -643,48 +749,6 @@
             padding: 20px;
             font-size: 1rem;
             width: 100%;
-        }
-
-        .search-container {
-            width: 100%;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .search-container input {
-            flex-grow: 1;
-            max-width: 500px;
-            padding: 12px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            background: var(--input-background);
-            color: var(--text-color-primary);
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .search-container input:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
-        }
-
-        .search-container select {
-            padding: 12px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            background: var(--input-background);
-            color: var(--text-color-primary);
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .search-container select option {
-            background-color: var(--input-background);
-            color: var(--text-color-primary);
         }
 
         /* Post Listing FAB */
@@ -769,11 +833,10 @@
         .modal-content label {
             font-weight: 600;
             font-size: 0.95rem;
-            /* Apply gradient to labels */
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent; /* Ensure text color is transparent for gradient to show */
+            color: transparent;
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
         }
         .modal-content input[type="text"],
@@ -993,39 +1056,22 @@
         }
 
         /* Responsive Adjustments */
-        @media (max-width: 600px) {
-            header .header-content-wrapper {
-                padding: 0 20px;
+        @media (max-width: 768px) {
+            .market-layout-container {
+                flex-direction: column;
+                align-items: center;
             }
-            .header-main-title {
-                font-size: 1.6rem;
+            .market-sidebar {
+                position: static; /* Remove sticky behavior on small screens */
+                width: 100%;
+                margin-bottom: 20px;
             }
-            header nav ul {
-                gap: 15px;
+            .main-search-bar {
+                flex-direction: column;
+                padding: 10px;
             }
-            header nav ul li a {
-                font-size: 1.1rem;
-            }
-            .user-profile-header #profileLink {
-                padding: 5px;
-            }
-            .user-profile-header span {
-                max-width: 90px;
-            }
-            .user-profile-header img {
-                width: 30px;
-                height: 30px;
-            }
-            .user-profile-header i {
-                font-size: 25px;
-            }
-            .jcoin-gas-display {
-                font-size: 0.8rem;
-                gap: 5px;
-                margin-left: 10px;
-            }
-            .jcoin-gas-display .jcoin-icon, .jcoin-gas-display .gas-icon {
-                font-size: 1rem;
+            .main-search-bar button {
+                width: 100%;
             }
             .section-card {
                 padding: 1.5rem;
@@ -1037,48 +1083,59 @@
                 font-size: 1.7rem;
             }
             .listing-grid-container {
-                grid-template-columns: 1fr;
-                padding-right: 0;
-            }
-            .listing-card {
-                padding: 15px;
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjust for smaller cards on mobile */
+                padding-right: 0; /* No right padding if no scrollbar is expected */
             }
             .listing-card .listing-image {
-                height: 150px;
+                height: 120px;
             }
             .listing-card h3 {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
             }
             .listing-card .listing-description {
-                font-size: 0.8rem;
+                font-size: 0.75rem;
+                -webkit-line-clamp: 2; /* Keep max lines */
+                max-height: 2.5em;
+            }
+            .listing-card .listing-price {
+                font-size: 1rem;
             }
             .listing-card .action-button {
-                padding: 8px 15px;
-                font-size: 0.9rem;
-            }
-            .search-container input, .search-container select {
-                font-size: 0.9rem;
-                padding: 10px 12px;
-            }
-            #postListingFab {
-                width: 50px;
-                height: 50px;
-                font-size: 1.5rem;
-                bottom: 10px;
+                font-size: 0.8rem;
+                padding: 6px 10px;
+                min-width: 80px;
             }
             .modal-content {
+                width: 95%;
                 padding: 20px;
             }
             .modal-content h3 {
                 font-size: 1.5rem;
             }
-            .modal-content input, .modal-content textarea, .modal-content select {
+            .modal-content label, .modal-content input, .modal-content textarea, .modal-content select {
                 font-size: 0.9rem;
-                padding: 10px 12px;
             }
             .modal-buttons button {
                 padding: 8px 15px;
                 font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .listing-grid-container {
+                grid-template-columns: 1fr; /* Single column on very small screens */
+            }
+            .header-content-wrapper {
+                padding: 0 15px;
+            }
+            .user-profile-header {
+                gap: 5px;
+            }
+            .jcoin-gas-display {
+                margin-left: 5px;
+            }
+            .notification-icon-wrapper {
+                margin-right: 10px;
             }
         }
     </style>
@@ -1087,14 +1144,9 @@
 
     <header>
         <div class="header-content-wrapper">
+            <!-- The main title link, consistent with Groups.html -->
             <a href="/groups.html" class="header-main-title">JCHAT</a>
-            <nav>
-                <ul>
-                    <li><a href="/groups.html">Groups</a></li>
-                    <li><a href="/market.html" class="active">Market</a></li>
-                    <li><a href="/profile.html" id="profileNavLink">Profile</a></li>
-                </ul>
-            </nav>
+            <!-- The <nav> element and its contents are entirely removed -->
             <div class="user-profile-header">
                 <!-- Notification Icon with Badge -->
                 <div class="notification-icon-wrapper">
@@ -1108,9 +1160,10 @@
                     <span id="jCoinsDisplay"><i class="fas fa-coins jcoin-icon"></i> 0</span>
                     <span id="gasDisplay"><i class="fas fa-gas-pump gas-icon"></i> 0</span>
                 </div>
+                <!-- Profile Link - this still goes to profile.html -->
                 <a href="/profile.html" id="profileLink">
                     <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
-                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                    <i id="headerAvatarIcon" class="fas fa-user-circle user-avatar-icon"></i>
                     <span id="headerDisplayName">Loading...</span>
                 </a>
             </div>
@@ -1118,33 +1171,70 @@
     </header>
 
     <main>
-        <div class="content-wrapper">
-            <div class="section-card">
-                <h1>JCHAT Market</h1>
-                <p class="section-description">
-                    Buy and sell virtual items using JCoins and Gas!
-                </p>
-
-                <h2>My Listings</h2>
-                <p class="no-listings-message" id="loadingMyListingsMessage">Loading your listings...</p>
-                <div id="myListingsGrid" class="listing-grid-container">
-                    <!-- My listings will be loaded here -->
+        <div class="market-layout-container">
+            <aside class="market-sidebar">
+                <div class="sidebar-section">
+                    <h3>Categories</h3>
+                    <ul id="categoryFilterList" class="category-list">
+                        <!-- Categories will be dynamically generated here -->
+                    </ul>
                 </div>
-
-                <h2>Browse All Listings</h2>
-                <div class="search-container">
-                    <input type="text" id="searchMarketInput" placeholder="Search items...">
-                    <select id="priceCurrencyFilter">
+                <div class="sidebar-section">
+                    <h3>Location</h3>
+                    <select id="locationFilterSelect" class="location-select">
+                        <option value="all">All Nigeria</option>
+                        <option value="Lagos">Lagos</option>
+                        <option value="Abuja">Abuja</option>
+                        <option value="Port Harcourt">Port Harcourt</option>
+                        <option value="Kano">Kano</option>
+                        <option value="Ibadan">Ibadan</option>
+                        <option value="Enugu">Enugu</option>
+                    </select>
+                </div>
+                <div class="sidebar-section">
+                    <h3>Price Range</h3>
+                    <div class="price-range-inputs">
+                        <input type="number" id="minPriceInput" placeholder="Min Price">
+                        <input type="number" id="maxPriceInput" placeholder="Max Price">
+                    </div>
+                    <select id="currencyFilter" class="currency-select">
                         <option value="all">All Currencies</option>
                         <option value="JCoins">JCoins</option>
                         <option value="Gas">Gas</option>
                     </select>
                 </div>
-                <p class="no-listings-message" id="loadingBrowseListingsMessage">Loading marketplace items...</p>
-                <div id="browseListingsGrid" class="listing-grid-container">
-                    <!-- Browseable listings will be loaded here -->
+            </aside>
+
+            <section class="market-main-content">
+                <div class="main-search-bar">
+                    <input type="text" id="mainSearchInput" placeholder="Search for anything...">
+                    <button id="mainSearchBtn">Search</button>
                 </div>
-            </div>
+
+                <div class="section-card">
+                    <h2>Featured Listings</h2>
+                    <p class="no-listings-message" id="loadingFeaturedListingsMessage">Loading featured listings...</p>
+                    <div id="featuredListingsGrid" class="listing-grid-container">
+                        <!-- Featured listings will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="section-card" style="margin-top: 25px;">
+                    <h2>All Listings</h2>
+                    <p class="no-listings-message" id="loadingAllListingsMessage">Loading all listings...</p>
+                    <div id="allListingsGrid" class="listing-grid-container">
+                        <!-- All listings will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="section-card" style="margin-top: 25px;">
+                    <h2>My Listings</h2>
+                    <p class="no-listings-message" id="loadingMyListingsMessage">Loading your listings...</p>
+                    <div id="myListingsGrid" class="listing-grid-container">
+                        <!-- My listings will be loaded here -->
+                    </div>
+                </div>
+            </section>
         </div>
     </main>
 
@@ -1180,6 +1270,18 @@
                 <label for="itemImageUrlInput">Item Image URL (Optional):</label>
                 <input type="text" id="itemImageUrlInput" placeholder="Enter image URL or leave blank">
             </div>
+            <div class="form-group">
+                <label for="itemCategorySelect">Category:</label>
+                <select id="itemCategorySelect">
+                    <!-- Categories will be dynamically generated here from predefined list -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="itemLocationSelect">Location:</label>
+                <select id="itemLocationSelect">
+                    <!-- Locations will be dynamically generated here from predefined list -->
+                </select>
+            </div>
             <div class="modal-buttons">
                 <button id="submitPostListingBtn" class="primary-btn">
                     <span class="button-text"><i class="fas fa-plus-circle"></i> Post Listing</span>
@@ -1212,8 +1314,7 @@
         </div>
     </div>
 
-
-    <!-- Custom Message Box (from Groups.html or local) -->
+    <!-- Custom Message Box -->
     <div id="messageBox"></div>
 
     <!-- Custom Confirmation Modal -->
@@ -1263,22 +1364,35 @@
         const notificationCountElement = document.getElementById('notificationCount');
         const jCoinsDisplay = document.getElementById('jCoinsDisplay');
         const gasDisplay = document.getElementById('gasDisplay');
-        const profileNavLink = document.getElementById('profileNavLink');
+        const profileLink = document.getElementById('profileLink');
 
+        // Sidebar elements
+        const categoryFilterList = document.getElementById('categoryFilterList');
+        const locationFilterSelect = document.getElementById('locationFilterSelect');
+        const minPriceInput = document.getElementById('minPriceInput');
+        const maxPriceInput = document.getElementById('maxPriceInput');
+        const currencyFilter = document.getElementById('currencyFilter');
+
+        // Main content elements
+        const mainSearchInput = document.getElementById('mainSearchInput');
+        const mainSearchBtn = document.getElementById('mainSearchBtn');
+        const featuredListingsGrid = document.getElementById('featuredListingsGrid');
+        const loadingFeaturedListingsMessage = document.getElementById('loadingFeaturedListingsMessage');
+        const allListingsGrid = document.getElementById('allListingsGrid');
+        const loadingAllListingsMessage = document.getElementById('loadingAllListingsMessage');
         const myListingsGrid = document.getElementById('myListingsGrid');
         const loadingMyListingsMessage = document.getElementById('loadingMyListingsMessage');
-        const browseListingsGrid = document.getElementById('browseListingsGrid');
-        const loadingBrowseListingsMessage = document.getElementById('loadingBrowseListingsMessage');
-        const searchMarketInput = document.getElementById('searchMarketInput');
-        const priceCurrencyFilter = document.getElementById('priceCurrencyFilter');
         const postListingFab = document.getElementById('postListingFab');
 
+        // Post Listing Modal elements
         const postListingModal = document.getElementById('postListingModal');
         const itemNameInput = document.getElementById('itemNameInput');
         const itemDescriptionInput = document.getElementById('itemDescriptionInput');
         const itemPriceInput = document.getElementById('itemPriceInput');
         const itemPriceCurrencySelect = document.getElementById('itemPriceCurrencySelect');
         const itemImageUrlInput = document.getElementById('itemImageUrlInput');
+        const itemCategorySelect = document.getElementById('itemCategorySelect');
+        const itemLocationSelect = document.getElementById('itemLocationSelect');
         const submitPostListingBtn = document.getElementById('submitPostListingBtn');
         const cancelPostListingBtn = document.getElementById('cancelPostListingBtn');
 
@@ -1305,8 +1419,18 @@
         let isAuthReady = false;
         let currentUser = null;
         let currentUserProfileData = null;
-        let myListingsData = []; // Stores listings by the current user
         let allMarketListingsData = []; // Stores all publicly available listings
+
+        // --- Predefined Categories and Locations for Jiji-like functionality ---
+        const categories = [
+            "Electronics", "Vehicles", "Property", "Fashion", "Home & Garden",
+            "Sports & Hobbies", "Jobs", "Services", "Baby & Kids", "Animals", "Other"
+        ];
+        const locations = [
+            "Lagos", "Abuja", "Port Harcourt", "Kano", "Ibadan", "Enugu", "Kaduna",
+            "Benin City", "Maiduguri", "Onitsha", "Abeokuta", "Jos", "Zaria", "Ilorin"
+        ];
+
 
         // --- Utility Functions (reused from other pages) ---
 
@@ -1506,12 +1630,11 @@
                 }
                 currentUserProfileData = profileData; // Store profile data globally
 
-                // Ensure referral code exists and is displayed (copied from Groups.html)
+                // Ensure referral code exists (copied from Groups.html, even if not displayed here)
                 if (!currentUserProfileData.referralCode) {
                     currentUserProfileData.referralCode = generateReferralCode();
                     await updateDoc(privateProfileDocRef, { referralCode: currentUserProfileData.referralCode });
                 }
-                // (No need to display referral code on this page, but keeping the logic to ensure it exists)
 
                 const publicProfileSummary = {
                     username: profileData.username,
@@ -1527,7 +1650,7 @@
                 const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
                 displayPicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
                 headerDisplayName.textContent = profileData.username || "JCHAT User";
-                profileNavLink.href = `/profile.html?userId=${user.uid}`; // Update profile link
+                profileLink.href = `/profile.html?userId=${user.uid}`;
 
                 // Update JCoin and Gas display in header
                 jCoinsDisplay.innerHTML = `<i class="fas fa-coins jcoin-icon"></i> ${currentUserProfileData.jCoins || 0}`;
@@ -1542,7 +1665,7 @@
             }
         }
 
-        // Placeholder for generateReferralCode from Groups.html (not directly used on this page but might be by fetchAndDisplayHeaderProfile)
+        // Helper function for generating referral codes (used by fetchAndDisplayHeaderProfile)
         function generateReferralCode(length = 8) {
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let result = '';
@@ -1554,7 +1677,7 @@
 
         /**
          * Fetches and displays the notification count for the current user.
-         * (Placeholder for future functionality)
+         * (Placeholder for future functionality, kept for header display)
          * @param {string} userId - The UID of the current user.
          */
         async function fetchNotificationCount(userId) {
@@ -1611,7 +1734,7 @@
 
             const sellerAvatar = listingData.sellerProfilePicId ?
                 getCloudinaryImageUrl(listingData.sellerProfilePicId, 'w_50,h_50,c_fill,g_face,r_max') :
-                `https://placehold.co/50x50/CCCCCC/000000?text=${listingData.sellerUsername.charAt(0).toUpperCase()}`;
+                `https://placehold.co/50x50/CCCCCC/000000?text=${(listingData.sellerUsername || 'U').charAt(0).toUpperCase()}`; // Fallback if no username
 
             listingCard.innerHTML = `
                 <img src="${imageUrl}" alt="${listingData.itemName}" class="listing-image">
@@ -1668,11 +1791,50 @@
         }
 
         /**
+         * Populates the category filter list and item category select.
+         */
+        function populateCategories() {
+            categoryFilterList.innerHTML = `<li><a href="#" data-category="all" class="active">All Categories</a></li>`;
+            itemCategorySelect.innerHTML = `<option value="">Select Category</option>`;
+            categories.forEach(category => {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#" data-category="${category}">${category}</a>`;
+                categoryFilterList.appendChild(li);
+
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                itemCategorySelect.appendChild(option);
+            });
+        }
+
+        /**
+         * Populates the location filter select and item location select.
+         */
+        function populateLocations() {
+            locationFilterSelect.innerHTML = `<option value="all">All Nigeria</option>`;
+            itemLocationSelect.innerHTML = `<option value="">Select Location</option>`;
+            locations.forEach(location => {
+                const optionFilter = document.createElement('option');
+                optionFilter.value = location;
+                optionFilter.textContent = location;
+                locationFilterSelect.appendChild(optionFilter);
+
+                const optionItem = document.createElement('option');
+                optionItem.value = location;
+                optionItem.textContent = location;
+                itemLocationSelect.appendChild(optionItem);
+            });
+        }
+
+
+        /**
          * Fetches and displays listings owned by the current user.
          */
         function fetchMyListings() {
             if (!currentUser) {
                 loadingMyListingsMessage.textContent = "Please log in to see your listings.";
+                myListingsGrid.innerHTML = ''; // Clear previous list
                 return;
             }
 
@@ -1684,17 +1846,15 @@
             onSnapshot(q, (querySnapshot) => {
                 if (querySnapshot.empty) {
                     loadingMyListingsMessage.textContent = "You have no items listed for sale yet.";
-                    myListingsData = [];
+                    myListingsGrid.innerHTML = '';
                     return;
                 }
 
                 loadingMyListingsMessage.style.display = 'none';
                 myListingsGrid.innerHTML = '';
-                myListingsData = [];
 
                 querySnapshot.docs.forEach(docSnapshot => {
                     const listing = { id: docSnapshot.id, ...docSnapshot.data() };
-                    myListingsData.push(listing);
                     myListingsGrid.appendChild(renderListingCard(listing, true)); // True for isMyListing
                 });
                 showMessageBox("Your listings updated.", "info", 1500);
@@ -1708,21 +1868,25 @@
         /**
          * Fetches and displays all available market listings.
          */
-        function fetchBrowseListings() {
-            loadingBrowseListingsMessage.style.display = 'block';
-            browseListingsGrid.innerHTML = ''; // Clear previous list
+        function fetchAllMarketListings() {
+            loadingAllListingsMessage.style.display = 'block';
+            loadingFeaturedListingsMessage.style.display = 'block';
+            allListingsGrid.innerHTML = ''; // Clear previous list
+            featuredListingsGrid.innerHTML = '';
 
             // Only fetch active (not sold) listings
             const q = query(collection(db, "artifacts", appId, "public", "data", "market_listings"), where("isSold", "==", false));
 
             onSnapshot(q, async (querySnapshot) => {
                 if (querySnapshot.empty) {
-                    loadingBrowseListingsMessage.textContent = "No items available in the marketplace.";
+                    loadingAllListingsMessage.textContent = "No items available in the marketplace.";
+                    loadingFeaturedListingsMessage.textContent = "No featured items available.";
                     allMarketListingsData = [];
                     return;
                 }
 
-                loadingBrowseListingsMessage.style.display = 'none';
+                loadingAllListingsMessage.style.display = 'none';
+                loadingFeaturedListingsMessage.style.display = 'none';
                 allMarketListingsData = [];
 
                 // Fetch seller details for each item to display username and profile pic
@@ -1740,44 +1904,71 @@
                 });
 
                 allMarketListingsData = await Promise.all(listingsPromises);
-                filterAndDisplayBrowseListings(); // Apply initial filter (empty search)
+                filterAndDisplayAllListings(); // Apply all filters
                 showMessageBox("Marketplace listings updated.", "info", 1500);
             }, (error) => {
                 console.error("JCHAT_ERROR: Error fetching browse listings:", error);
-                loadingBrowseListingsMessage.textContent = `Error loading marketplace: ${error.message}`;
+                loadingAllListingsMessage.textContent = `Error loading marketplace: ${error.message}`;
+                loadingFeaturedListingsMessage.textContent = `Error loading featured listings: ${error.message}`;
                 showMessageBox(`Error fetching marketplace: ${error.message}`, 'error');
             });
         }
 
         /**
-         * Filters and displays browseable listings based on search input and currency filter.
+         * Filters and displays all listings based on search input, category, location, price range, and currency.
          */
-        function filterAndDisplayBrowseListings() {
-            const searchTerm = searchMarketInput.value.toLowerCase().trim();
-            const currencyFilter = priceCurrencyFilter.value;
-            browseListingsGrid.innerHTML = ''; // Clear current list
+        function filterAndDisplayAllListings() {
+            const searchTerm = mainSearchInput.value.toLowerCase().trim();
+            const selectedCategory = categoryFilterList.querySelector('.active')?.dataset.category || 'all';
+            const selectedLocation = locationFilterSelect.value;
+            const minPrice = parseFloat(minPriceInput.value) || 0;
+            const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
+            const selectedCurrency = currencyFilter.value;
+
+            allListingsGrid.innerHTML = '';
+            featuredListingsGrid.innerHTML = ''; // Clear grids before re-rendering
 
             const filteredListings = allMarketListingsData.filter(listing => {
                 const matchesSearch = listing.itemName.toLowerCase().includes(searchTerm) ||
                                       listing.description.toLowerCase().includes(searchTerm) ||
                                       listing.sellerUsername.toLowerCase().includes(searchTerm);
-                const matchesCurrency = currencyFilter === 'all' || listing.priceCurrency === currencyFilter;
-                return matchesSearch && matchesCurrency;
+
+                const matchesCategory = selectedCategory === 'all' || listing.category === selectedCategory;
+                const matchesLocation = selectedLocation === 'all' || listing.location === selectedLocation;
+                const matchesCurrency = selectedCurrency === 'all' || listing.priceCurrency === selectedCurrency;
+                const matchesPrice = listing.price >= minPrice && listing.price <= maxPrice;
+
+                // Ensure current user is not the seller and item is not sold
+                const isMyListing = currentUser && listing.sellerId === currentUser.uid;
+
+                return matchesSearch && matchesCategory && matchesLocation && matchesCurrency && matchesPrice && !isMyListing && !listing.isSold;
             });
 
             if (filteredListings.length === 0) {
-                browseListingsGrid.innerHTML = '<p class="no-listings-message">No items found matching your criteria.</p>';
+                allListingsGrid.innerHTML = '<p class="no-listings-message">No items found matching your criteria.</p>';
+                featuredListingsGrid.innerHTML = '<p class="no-listings-message">No featured items found.</p>';
                 return;
             }
 
+            // Simple logic for featured listings: Take the first few matching items
+            const featuredItems = filteredListings.slice(0, Math.min(filteredListings.length, 4)); // Up to 4 featured items
+            if (featuredItems.length > 0) {
+                loadingFeaturedListingsMessage.style.display = 'none';
+                featuredItems.forEach(listing => {
+                    featuredListingsGrid.appendChild(renderListingCard(listing, false));
+                });
+            } else {
+                loadingFeaturedListingsMessage.textContent = "No featured items found matching your criteria.";
+                featuredListingsGrid.innerHTML = '';
+            }
+
+            // Display all other listings
+            loadingAllListingsMessage.style.display = 'none';
             filteredListings.forEach(listing => {
-                // Ensure current user is not the seller and item is not sold
-                const isMyListing = currentUser && listing.sellerId === currentUser.uid;
-                if (!isMyListing && !listing.isSold) {
-                    browseListingsGrid.appendChild(renderListingCard(listing, false));
-                }
+                allListingsGrid.appendChild(renderListingCard(listing, false));
             });
         }
+
 
         /**
          * Handles posting a new item for sale.
@@ -1793,9 +1984,11 @@
             const itemPrice = parseFloat(itemPriceInput.value);
             const itemCurrency = itemPriceCurrencySelect.value;
             const itemImageUrl = itemImageUrlInput.value.trim();
+            const itemCategory = itemCategorySelect.value;
+            const itemLocation = itemLocationSelect.value;
 
-            if (!itemName || !itemPrice || itemPrice <= 0) {
-                showMessageBox("Please provide item name and a valid price.", "warning");
+            if (!itemName || !itemPrice || itemPrice <= 0 || !itemCategory || !itemLocation) {
+                showMessageBox("Please fill all required fields (Name, Price, Category, Location).", "warning");
                 return;
             }
 
@@ -1810,9 +2003,11 @@
                     price: itemPrice,
                     priceCurrency: itemCurrency,
                     imageUrl: itemImageUrl || null,
+                    category: itemCategory, // New field
+                    location: itemLocation, // New field
                     sellerId: currentUser.uid,
-                    sellerUsername: currentUserProfileData.username, // Store seller username for easy display
-                    sellerProfilePicId: currentUserProfileData.profilePicId || null, // Store profile pic for easy display
+                    sellerUsername: currentUserProfileData.username,
+                    sellerProfilePicId: currentUserProfileData.profilePicId || null,
                     isSold: false,
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
@@ -1826,6 +2021,8 @@
                 itemPriceInput.value = '';
                 itemPriceCurrencySelect.value = 'JCoins';
                 itemImageUrlInput.value = '';
+                itemCategorySelect.value = '';
+                itemLocationSelect.value = '';
 
                 // onSnapshot listeners will handle UI updates for listings
             } catch (error) {
@@ -2010,7 +2207,7 @@
                 await fetchAndDisplayHeaderProfile(user);
                 fetchNotificationCount(user.uid);
                 fetchMyListings(); // Start fetching user's listings
-                fetchBrowseListings(); // Start fetching all listings
+                fetchAllMarketListings(); // Start fetching all listings
             } else {
                 isAuthReady = false;
                 currentUser = null;
@@ -2019,8 +2216,10 @@
                 headerAvatarIcon.style.display = 'block';
                 jCoinsDisplay.innerHTML = `<i class="fas fa-coins jcoin-icon"></i> 0`;
                 gasDisplay.innerHTML = `<i class="fas fa-gas-pump gas-icon"></i> 0`;
-                myListingsGrid.innerHTML = '<p class="no-listings-message">Please log in to see your listings.</p>';
-                browseListingsGrid.innerHTML = '<p class="no-listings-message">Please log in to browse the marketplace.</p>';
+                loadingMyListingsMessage.textContent = 'Please log in to see your listings.';
+                loadingFeaturedListingsMessage.textContent = 'Please log in to browse the marketplace.';
+                loadingAllListingsMessage.textContent = 'Please log in to browse the marketplace.';
+
                 showMessageBox("You must be logged in to access the marketplace.", 'error', 2000, true);
                 setTimeout(() => {
                     window.location.href = '/login.html';
@@ -2040,8 +2239,29 @@
                 document.body.classList.add('theme-dark-mode'); // Default to dark mode
             }
 
-            searchMarketInput.addEventListener('input', filterAndDisplayBrowseListings);
-            priceCurrencyFilter.addEventListener('change', filterAndDisplayBrowseListings);
+            populateCategories();
+            populateLocations();
+
+            // Filters and Search
+            mainSearchInput.addEventListener('input', filterAndDisplayAllListings);
+            mainSearchBtn.addEventListener('click', filterAndDisplayAllListings); // Trigger filter on button click
+            locationFilterSelect.addEventListener('change', filterAndDisplayAllListings);
+            minPriceInput.addEventListener('input', filterAndDisplayAllListings);
+            maxPriceInput.addEventListener('input', filterAndDisplayAllListings);
+            currencyFilter.addEventListener('change', filterAndDisplayAllListings);
+
+            categoryFilterList.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = e.target.closest('a');
+                if (target && target.dataset.category) {
+                    // Remove active class from all category links
+                    categoryFilterList.querySelectorAll('a').forEach(link => link.classList.remove('active'));
+                    // Add active class to the clicked link
+                    target.classList.add('active');
+                    filterAndDisplayAllListings(); // Re-filter listings
+                }
+            });
+
 
             postListingFab.addEventListener('click', () => {
                 if (!currentUser || !currentUserProfileData) {
@@ -2054,6 +2274,8 @@
                 itemPriceInput.value = '';
                 itemPriceCurrencySelect.value = 'JCoins';
                 itemImageUrlInput.value = '';
+                itemCategorySelect.value = ''; // Reset category
+                itemLocationSelect.value = ''; // Reset location
                 postListingModal.classList.add('active');
             });
             cancelPostListingBtn.addEventListener('click', () => {
@@ -2075,8 +2297,6 @@
                     listingDetailsModal.classList.remove('active');
                 }
             });
-            // The buyItemBtn inside listingDetailsModal would call handleBuyItem once details are displayed
-            // buyItemBtn.addEventListener('click', () => handleBuyItem(...));
         });
 
         window.addEventListener('storage', (event) => {

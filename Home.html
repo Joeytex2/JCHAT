@@ -1855,7 +1855,7 @@
             apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
             authDomain: "jchat-1.firebaseapp.com",
             projectId: "jchat-1",
-            storageBucket: "jchat-1.firebasestorage.app",
+            storageBucket: "jchat-1.firebase.appspot.com",
             messagingSenderId: "328479683167",
             appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
             measurementId: "G-S6Z9GG0R9P"
@@ -2596,9 +2596,7 @@
             document.querySelectorAll('.edit-post-button').forEach(button => {
                 button.disabled = !finalEnableState;
             });
-            document.querySelectorAll('.delete-post-button').forEach(button => {
-                button.disabled = !finalEnableState;
-            });
+            // The delete-post-button is removed from here as per user request.
             document.querySelectorAll('.share-post-button').forEach(button => {
                 button.disabled = !finalEnableState;
             });
@@ -3443,6 +3441,7 @@
             currentEditMediaType = null;
         }
 
+        // The deletePost function is no longer called from the UI, but it's kept here just in case it's needed elsewhere.
         async function deletePost(postId, postAuthorId) {
             if (!isAuthReady || !currentUser || (currentUser.uid !== postAuthorId && currentUser.uid !== ADMIN_UID)) { // Admin can delete any post
                 showMessageBox("You can only delete your own posts unless you are an admin.", 'error');
@@ -3544,9 +3543,7 @@
                         <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) || (!isAuthor && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="delete-post-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) || (!isAuthor && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
-                            <i class="fas fa-trash-alt"></i> Delete
-                        </button>
+                        <!-- Delete button removed as per user request -->
                         <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
                             <i class="fas fa-share"></i> Share
                         </button>
@@ -3887,11 +3884,13 @@
                 const dropdown = document.getElementById(`dropdown-${postId}`);
                 if (dropdown) dropdown.classList.remove('active');
             }
-            // Handle Delete Post Button
+            // Handle Delete Post Button (This button is now removed from renderPost function, but keeping the handler for robustness)
             else if (event.target.closest('.delete-post-button')) {
                 const button = event.target.closest('.delete-post-button');
+                // This block should ideally not be reached if the button is not rendered.
+                // However, for safety, if it somehow appears, it will be handled.
                 if (!isAuthReady) { showMessageBox("Please log in to delete posts.", 'error'); return; }
-                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post deletion is currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post deletion is currently disabled by administrators.", 'warning'); return; }
                 const postId = button.dataset.postId;
                 const authorId = button.dataset.authorId;
                 deletePost(postId, authorId);
@@ -4085,8 +4084,8 @@
                     button.disabled = !isAuthReady || (!currentSystemSettings.enablePublicChat && !isCurrentUserAdmin) || (!isCommentOwner && !isCurrentUserAdmin);
                 });
 
-                // Post options (edit, delete, share)
-                postCard.querySelectorAll('.post-options-button, .edit-post-button, .delete-post-button, .share-post-button').forEach(button => {
+                // Post options (edit, share)
+                postCard.querySelectorAll('.post-options-button, .edit-post-button, .share-post-button').forEach(button => {
                     // Only enable if current user is the author OR if current user is admin AND the feature is enabled
                     // The isAuthor check is handled in renderPost, here we just control the disabled state based on settings and admin
                     const buttonPostId = button.dataset.postId;

@@ -44,7 +44,7 @@
             --border-light: rgba(255, 255, 255, .05);
             --input-background: rgba(255, 255, 255, 0.05);
             --button-background: linear-gradient(90deg, var(--blue), var(--pink));
-            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+            --button-shadow: 0 4px 15px var(--blue), 0 44px 15px var(--pink);
 
             /* New variables for consistent theming */
             --background-color-primary: #1a1a2e;
@@ -2735,17 +2735,17 @@
 
         /**
          * Calculates the total cumulative Gas required to reach a specific level N.
-         * Formula: Total_Gas_for_Level_N = 1500 * N * (N + 1) / 2
+         * Formula: Total_Gas_for_Level_N = 100 * N * (N + 1) / 2
+         * Where 100 is the base XP needed per level, summing up.
+         * For example:
+         * Level 1: 100 XP (Total: 100)
+         * Level 2: 200 XP (Total: 300)
+         * Level 3: 300 XP (Total: 600)
          * @param {number} level - The target level N.
          * @returns {number} The total cumulative Gas required to reach that level.
          */
         function getTotalGasRequiredToReachLevel(level) {
             if (level <= 0) return 0;
-            // This formula is for cumulative XP.
-            // If Level 1 needs 100 XP, Level 2 needs 200 XP (total 300), Level 3 needs 300 XP (total 600)
-            // Then XP for level N is N*100. Total XP for N levels is Sum(i*100 from i=1 to N) = 100 * N*(N+1)/2
-            // Let's adjust the base multiplier to make leveling less steep.
-            // Using 100 as the base for each level, so total XP for level N is 100 * N * (N+1) / 2
             return 100 * level * (level + 1) / 2;
         }
 
@@ -2936,67 +2936,70 @@
 
             while (true) {
                 const nextLevel = currentLevel + 1;
+                // If it's a new user with 0 totalGasEarned, and the initial level is 1
+                // The condition totalGasEarned >= gasNeededForNextLevel should only trigger if they have enough for Level 1, then Level 2, etc.
                 const gasNeededForNextLevel = getTotalGasRequiredToReachLevel(nextLevel);
 
-                if (newTotalGasEarned >= gasNeededForNextLevel) {
-                    const levelInfo = getLevelInfo(nextLevel);
-                    currentLevel = nextLevel;
-                    updated = true;
+                // If user has not yet earned enough XP for the next level, or has reached max defined level
+                if (newTotalGasEarned < gasNeededForNextLevel) {
+                    break;
+                }
 
-                    // Apply updates in a transaction to ensure atomicity
-                    try {
-                        await runTransaction(db, async (transaction) => {
-                            const userProfileDocRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
-                            const userProfileSnap = await transaction.get(userProfileDocRef);
+                // If here, user has enough XP for nextLevel
+                const levelInfo = getLevelInfo(nextLevel);
+                currentLevel = nextLevel;
+                updated = true;
 
-                            if (!userProfileSnap.exists()) {
-                                throw new Error("User profile not found during level-up transaction.");
-                            }
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        const userProfileDocRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+                        const userProfileSnap = await transaction.get(userProfileDocRef);
 
-                            const currentProfileData = userProfileSnap.data();
-                            const updatedJCoins = (currentProfileData.jCoins || 0) + levelInfo.jCoinReward;
-                            const updatedGas = (currentProfileData.gas || 0) + levelInfo.gasReward;
-                            const updatedUnlockedBenefits = [...(currentProfileData.unlockedBenefits || [])];
+                        if (!userProfileSnap.exists()) {
+                            throw new Error("User profile not found during level-up transaction.");
+                        }
 
-                            // Add new benefits, avoiding duplicates
-                            if (levelInfo.otherRewards && levelInfo.otherRewards.length > 0) {
-                                levelInfo.otherRewards.forEach(benefit => {
-                                    if (!updatedUnlockedBenefits.includes(benefit)) {
-                                        updatedUnlockedBenefits.push(benefit);
-                                    }
-                                });
-                            }
+                        const currentProfileData = userProfileSnap.data();
+                        const updatedJCoins = (currentProfileData.jCoins || 0) + levelInfo.jCoinReward;
+                        const updatedGas = (currentProfileData.gas || 0) + levelInfo.gasReward;
+                        const updatedUnlockedBenefits = [...(currentProfileData.unlockedBenefits || [])];
 
-                            transaction.update(userProfileDocRef, {
-                                level: currentLevel,
-                                jCoins: updatedJCoins,
-                                gas: updatedGas,
-                                unlockedBenefits: updatedUnlockedBenefits,
-                                updatedAt: serverTimestamp()
+                        // Add new benefits, avoiding duplicates
+                        if (levelInfo.otherRewards && levelInfo.otherRewards.length > 0) {
+                            levelInfo.otherRewards.forEach(benefit => {
+                                if (!updatedUnlockedBenefits.includes(benefit)) {
+                                    updatedUnlockedBenefits.push(benefit);
+                                }
                             });
+                        }
 
-                            // Also update public profile for level and totalGasEarned
-                            const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", userId);
-                            transaction.update(publicProfileDocRef, {
-                                level: currentLevel,
-                                totalGasEarned: newTotalGasEarned, // Ensure public profile also reflects totalGasEarned
-                                updatedAt: serverTimestamp()
-                            });
+                        transaction.update(userProfileDocRef, {
+                            level: currentLevel,
+                            jCoins: updatedJCoins,
+                            gas: updatedGas,
+                            unlockedBenefits: updatedUnlockedBenefits,
+                            updatedAt: serverTimestamp()
                         });
 
-                        levelsGainedMessages.push(`🎉 You reached Level ${currentLevel}: ${levelInfo.name}! You received ${levelInfo.jCoinReward} JCoins and ${levelInfo.gasReward} Gas.`);
-                        if (levelInfo.otherRewards.length > 0) {
-                            levelsGainedMessages[levelsGainedMessages.length - 1] += ` Unlocked: ${levelInfo.otherRewards.join(', ')}.`;
-                        }
-                        console.log(`JCHAT_DEBUG: User ${userId} leveled up to ${currentLevel}.`);
+                        // Also update public profile for level and totalGasEarned
+                        const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", userId);
+                        transaction.update(publicProfileDocRef, {
+                            level: currentLevel,
+                            totalGasEarned: newTotalGasEarned, // Ensure public profile also reflects totalGasEarned
+                            updatedAt: serverTimestamp()
+                        });
+                    });
 
-                    } catch (transactionError) {
-                        console.error("JCHAT_ERROR: Transaction failed during level-up:", transactionError);
-                        showMessageBox(`Failed to apply level-up rewards for Level ${currentLevel}: ${transactionError.message}`, 'error');
-                        break; // Stop processing further levels if a transaction fails
+                    levelsGainedMessages.push(`🎉 You reached Level ${currentLevel}: ${levelInfo.name}! You received ${levelInfo.jCoinReward} JCoins and ${levelInfo.gasReward} Gas.`);
+                    if (levelInfo.otherRewards.length > 0) {
+                        levelsGainedMessages[levelsGainedMessages.length - 1] += ` Unlocked: ${levelInfo.otherRewards.join(', ')}.`;
                     }
-                } else {
-                    break; // No more levels gained
+                    console.log(`JCHAT_DEBUG: User ${userId} leveled up to ${currentLevel}.`);
+
+                } catch (transactionError) {
+                    console.error("JCHAT_ERROR: Transaction failed during level-up:", transactionError);
+                    showMessageBox(`Failed to apply level-up rewards for Level ${currentLevel}: ${transactionError.message}`, 'error');
+                    break; // Stop processing further levels if a transaction fails
                 }
             }
 
@@ -3017,6 +3020,8 @@
         async function fetchAndDisplayHeaderProfile(user) {
             try {
                 const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+                
                 const privateDocSnap = await getDoc(privateProfileDocRef);
 
                 let profileData = null;
@@ -3103,7 +3108,6 @@
                     console.log("JCHAT_DEBUG: Created new profile data for header:", profileData);
 
                     // Also create/update public profile
-                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
                     await setDoc(publicProfileDocRef, {
                         username: profileData.username,
                         profilePicId: profileData.profilePicId,
@@ -3601,16 +3605,16 @@
                     const totalGasEarned = displayedUserProfileData.totalGasEarned ?? 0; // Cumulative Gas for leveling
 
                     // Determine current level based on totalGasEarned
-                    let currentLevel = 0;
-                    for (let i = 1; i <= 500; i++) { // Check up to max level 500
-                        const gasNeededForThisLevel = getTotalGasRequiredToReachLevel(i);
-                        if (totalGasEarned >= gasNeededForThisLevel) {
+                    let currentLevel = 1; // Start from Level 1
+                    for (let i = 1; i <= 500; i++) { // Check up to max level 500 (or higher if you extend getLevelInfo)
+                        const gasNeededForLevelI = getTotalGasRequiredToReachLevel(i);
+                        if (totalGasEarned >= gasNeededForLevelI) {
                             currentLevel = i;
                         } else {
-                            break; // Stop when totalGasEarned is less than what's needed for the next level
+                            break; // Stop when totalGasEarned is less than what's needed for the current 'i' level
                         }
                     }
-                    // Ensure level is at least 1 for display purposes if totalGasEarned is 0
+                    // Ensure level displayed is at least 1, even if totalGasEarned is 0
                     currentLevel = Math.max(1, currentLevel);
 
                     const levelInfo = getLevelInfo(currentLevel); // Get info for the calculated level
@@ -3622,20 +3626,21 @@
                     if (xpLevelIcon) xpLevelIcon.className = `${levelInfo.icon} profile-level-icon`; // Null check
 
                     let progressPercentage = 0;
+                    const gasNeededForCurrentDisplayedLevel = getTotalGasRequiredToReachLevel(currentLevel);
                     const gasNeededForNextLevel = getTotalGasRequiredToReachLevel(currentLevel + 1);
-                    const gasNeededForCurrentLevel = getTotalGasRequiredToReachLevel(currentLevel);
 
                     if (currentLevel < 500) { // For levels up to 500, calculate progress
-                        const gasEarnedInCurrentLevel = totalGasEarned - gasNeededForCurrentLevel;
-                        const gasRequiredForCurrentLevelSegment = gasNeededForNextLevel - gasNeededForCurrentLevel;
+                        const gasEarnedInCurrentLevelSegment = totalGasEarned - gasNeededForCurrentDisplayedLevel;
+                        const gasRequiredForCurrentLevelSegment = gasNeededForNextLevel - gasNeededForCurrentDisplayedLevel;
                         
                         if (gasRequiredForCurrentLevelSegment > 0) {
-                            progressPercentage = Math.min(100, (gasEarnedInCurrentLevel / gasRequiredForCurrentLevelSegment) * 100);
+                            progressPercentage = Math.min(100, (gasEarnedInCurrentLevelSegment / gasRequiredForCurrentLevelSegment) * 100);
                         } else {
-                            progressPercentage = 100; // Should not happen if formula is correct, but as a safeguard
+                            progressPercentage = 100; // Should not happen if formula is correct, but as a safeguard (e.g., if totalGasEarned is exactly at target)
                         }
                     } else {
                         progressPercentage = 100; // Maxed out for levels beyond 500
+                        if (xpLevelName) xpLevelName.textContent = `MAX Level (${levelInfo.name})`;
                     }
                     if (xpProgressBarFill) xpProgressBarFill.style.width = `${progressPercentage}%`; // Null check
 
@@ -3728,7 +3733,6 @@
                         }
                         if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
                         if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
-
                         if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide friend requests section, null check
                         if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards section, null check
                         // Ensure loader is dismissed in this case too
@@ -4191,7 +4195,9 @@
             if (progressBarContainer) { // Null check
                 progressBarContainer.style.cursor = 'pointer'; // Add pointer cursor to indicate clickability
                 progressBarContainer.addEventListener('click', () => {
-                    window.location.href = '/levels.html'; // Ensure levels.html exists
+                    // Navigate to levels.html or show a levels modal/section
+                    showMessageBox("Levels page coming soon!", "info", 2000);
+                    // window.location.href = '/levels.html'; // Ensure levels.html exists
                 });
             }
 
