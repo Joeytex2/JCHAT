@@ -1491,6 +1491,137 @@
             color: var(--text-light);
         }
 
+        /* Call Overlay Styles (NEW) */
+        #callOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: var(--white);
+            font-family: 'Poppins', sans-serif;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        #callOverlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        #callOverlay .call-status-icon {
+            font-size: 5rem;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            /* Animation for calling/ringing state */
+            animation: pulse-color 2s infinite alternate;
+        }
+        /* New animation for call icon when active */
+        @keyframes pulse-color {
+            0% { color: var(--accent-color); }
+            100% { color: var(--pink); }
+        }
+        #callOverlay .call-status-text {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        #callOverlay .call-timer {
+            font-size: 1.5rem;
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+        #callOverlay .call-actions {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        #callOverlay .call-actions button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        #callOverlay .call-actions button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        #callOverlay .call-actions button.accept-call-btn {
+            background: #28a745;
+        }
+        #callOverlay .call-actions button.decline-call-btn,
+        #callOverlay .call-actions button.end-call-btn {
+            background: var(--delete-button-color);
+        }
+        #callOverlay .call-actions button.toggle-mute-btn {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        #callOverlay .call-actions button.toggle-mute-btn.active {
+            background: #ccc; /* Grey when muted */
+            color: #333;
+        }
+        #callOverlay .call-actions button.toggle-video-btn {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        #callOverlay .call-actions button.toggle-video-btn.active {
+            background: #ccc; /* Grey when video off */
+            color: #333;
+        }
+
+        /* Video elements within call overlay */
+        #callOverlay .video-streams {
+            position: relative;
+            width: 90%;
+            max-width: 800px;
+            height: 50%;
+            max-height: 450px;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
+        #remoteVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-color: #000;
+            display: none; /* Hidden by default until stream is active */
+        }
+        #localVideo {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            width: 120px;
+            height: 90px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+            background-color: #333;
+            z-index: 1;
+            transform: scaleX(-1); /* Mirror local video */
+            display: none; /* Hidden by default until stream is active */
+        }
+        #callOverlay.voice-call .video-streams {
+            display: none; /* Hide video streams for voice calls */
+        }
+
 
         /* Responsive Adjustments */
         @media (max-width: 600px) {
@@ -1620,6 +1751,27 @@
             }
             #maintenanceOverlay i {
                 font-size: 4rem;
+            }
+            /* Call Overlay on Mobile */
+            #callOverlay .call-status-icon {
+                font-size: 4rem;
+            }
+            #callOverlay .call-status-text {
+                font-size: 1.5rem;
+            }
+            #callOverlay .call-timer {
+                font-size: 1.2rem;
+            }
+            #callOverlay .call-actions button {
+                width: 50px;
+                height: 50px;
+                font-size: 1.8rem;
+            }
+            #localVideo {
+                width: 90px;
+                height: 70px;
+                bottom: 10px;
+                right: 10px;
             }
         }
     </style>
@@ -1784,6 +1936,24 @@
         <p id="maintenanceAnnouncementText">JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!</p>
     </div>
 
+    <!-- Call Overlay (NEW) -->
+    <div id="callOverlay">
+        <div class="video-streams">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+        <i id="callStatusIcon" class="fas fa-phone"></i>
+        <p id="callStatusText" class="call-status-text">Calling...</p>
+        <p id="callTimer" class="call-timer" style="display: none;">00:00</p>
+        <div class="call-actions" id="callActions">
+            <button id="acceptCallBtn" class="accept-call-btn" style="display: none;"><i class="fas fa-phone"></i></button>
+            <button id="declineCallBtn" class="decline-call-btn" style="display: none;"><i class="fas fa-phone-slash"></i></button>
+            <button id="toggleMuteBtn" class="toggle-mute-btn" style="display: none;" title="Mute/Unmute"><i class="fas fa-microphone"></i></button>
+            <button id="toggleVideoBtn" class="toggle-video-btn" style="display: none;" title="Turn Video On/Off"><i class="fas fa-video"></i></button>
+            <button id="endCallBtn" class="end-call-btn" style="display: none;"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
+
     <!-- Sidebar Navigation -->
     <aside id="sidebarNav" class="sidebar-hidden">
         <div class="sidebar-header">
@@ -1855,7 +2025,7 @@
             apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
             authDomain: "jchat-1.firebaseapp.com",
             projectId: "jchat-1",
-            storageBucket: "jchat-1.firebase.appspot.com",
+            storageBucket: "jchat-1.firebasestorage.app",
             messagingSenderId: "328479683167",
             appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
             measurementId: "G-S6Z9GG0R9P"
@@ -1940,6 +2110,20 @@
         const maintenanceOverlay = document.getElementById('maintenanceOverlay');
         const maintenanceAnnouncementText = document.getElementById('maintenanceAnnouncementText');
 
+        // Call Overlay Elements (NEW)
+        const callOverlay = document.getElementById('callOverlay');
+        const callStatusIcon = document.getElementById('callStatusIcon');
+        const callStatusText = document.getElementById('callStatusText');
+        const callTimerDisplay = document.getElementById('callTimer');
+        const callActions = document.getElementById('callActions');
+        const acceptCallBtn = document.getElementById('acceptCallBtn');
+        const declineCallBtn = document.getElementById('declineCallBtn');
+        const endCallBtn = document.getElementById('endCallBtn');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const toggleMuteBtn = document.getElementById('toggleMuteBtn');
+        const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+
 
         // --- Global State ---
         let currentUser = null;
@@ -1954,6 +2138,21 @@
         let isAuthReady = false;
         let unsubscribeListeners = []; // Array to store all onSnapshot unsubscribe functions
         let currentSystemSettings = {}; // NEW: Store system settings
+
+        // WebRTC Call State (NEW)
+        let localStream;
+        let remoteStream;
+        let peerConnection;
+        let currentCallType; // 'voice' or 'video'
+        let isMuted = false;
+        let isVideoOff = false;
+        let callState = 'idle'; // 'idle', 'calling', 'ringing', 'connected', 'busy', 'declined', 'ended', 'no-answer'
+        let callDuration = 0;
+        let callDurationInterval;
+        let callTimeoutId; // For call ringing timeout
+        let callRef; // Firestore document reference for the current call
+        let isIncomingCall = false; // Flag to differentiate initiator from receiver
+        let recipientUserProfileData = null; // To store caller's profile for display
 
 
         // --- Theme Management Variables ---
@@ -2287,6 +2486,7 @@
         const successSynth = new Tone.Synth().toDestination();
         const errorSynth = new Tone.Synth().toDestination();
         const infoSynth = new Tone.Synth().toDestination();
+        const ringingSynth = new Tone.Synth().toDestination(); // For incoming call ring
 
         // Set up basic sounds
         successSynth.oscillator.type = "sine";
@@ -2307,6 +2507,21 @@
         infoSynth.envelope.sustain = 0.0;
         infoSynth.envelope.release = 0.3;
 
+        // Ringing sound (similar to a phone ring)
+        ringingSynth.oscillator.type = "square";
+        ringingSynth.envelope.attack = 0.01;
+        ringingSynth.envelope.decay = 0.6;
+        ringingSynth.envelope.sustain = 0.0;
+        ringingSynth.envelope.release = 0.8;
+        const ringingPattern = new Tone.Pattern(function(time, note){
+            ringingSynth.triggerAttackRelease(note, "8n", time);
+        }, ["C5", "C5", "C5", "C5"]).start(0);
+        ringingPattern.interval = "1s"; // Adjust interval for ringing pattern
+        ringingPattern.humanize = true;
+        ringingPattern.playbackRate = 1;
+        ringingPattern.loop = true;
+        ringingPattern.autostart = false; // Will start manually
+
         /**
          * Plays a notification sound.
          * @param {string} type - 'success', 'error', or 'info'.
@@ -2320,6 +2535,21 @@
             } else if (type === 'info') {
                 infoSynth.triggerAttackRelease("E4", "16n");
             }
+        }
+
+        /**
+         * Starts the ringing sound.
+         */
+        function startRingingSound() {
+            Tone.start();
+            ringingPattern.start();
+        }
+
+        /**
+         * Stops the ringing sound.
+         */
+        function stopRingingSound() {
+            ringingPattern.stop();
         }
 
         // --- Utility Functions ---
@@ -2656,6 +2886,17 @@
             }
 
             try {
+                // Set user's inCall status to false on logout
+                if (currentUser && currentUserProfileData) {
+                    const userPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                    await updateDoc(userPublicProfileRef, { inCall: false }).catch(e => console.error("Failed to update inCall status on logout:", e));
+                }
+
+                // End any active WebRTC call
+                if (callState !== 'idle') {
+                    await endCall(false); // End call without updating Firestore status to avoid conflicts during logout
+                }
+
                 await signOut(auth);
                 showMessageBox("Logged out successfully! 👋", 'success');
                 setTimeout(() => {
@@ -2726,7 +2967,8 @@
                         level: 1, // Ensure level is initialized
                         currentXp: 0, // Ensure currentXp is initialized
                         xpToNextLevel: getLevelInfo(1).xpToNextLevel, // Ensure xpToNextLevel is initialized
-                        lastLoginBonusClaimed: null // Ensure lastLoginBonusClaimed is initialized
+                        lastLoginBonusClaimed: null, // Ensure lastLoginBonusClaimed is initialized
+                        inCall: false, // Ensure inCall is initialized
                     };
                     await setDoc(privateProfileDocRef, profileData);
                     console.log("JCHAT_DEBUG: Created new private profile data:", profileData);
@@ -2742,6 +2984,7 @@
                 }
                 if (profileData.lastLoginBonusClaimed === undefined) updates.lastLoginBonusClaimed = null;
                 if (profileData.jCoins === undefined) updates.jCoins = 0; // Ensure jCoins is initialized
+                if (profileData.inCall === undefined) updates.inCall = false; // Ensure inCall is initialized
 
                 if (Object.keys(updates).length > 0) {
                     await updateDoc(privateProfileDocRef, updates);
@@ -2760,6 +3003,7 @@
                     totalPosts: profileData.totalPosts, // Ensure totalPosts is synced
                     visibility: profileData.visibility, // Ensure visibility is synced
                     updatedAt: serverTimestamp(),
+                    inCall: profileData.inCall, // Sync inCall status to public profile
                 };
                 // Only explicitly set createdAt if the public profile document does NOT exist
                 const publicDocSnap = await getDoc(publicProfileDocRef);
@@ -3950,7 +4194,8 @@
                         enablePostCreation: true,
                         enableEmailNotifications: true,
                         maintenanceMode: false,
-                        globalAnnouncement: ""
+                        globalAnnouncement: "",
+                        enableCalls: true, // NEW: Default to true for calls
                     };
                     await setDoc(SYSTEM_SETTINGS_DOC_REF, currentSystemSettings);
                     console.log("JCHAT_DEBUG: Default system settings created.");
@@ -4098,6 +4343,408 @@
             checkAndStartDailyBonusTimer();
         }
 
+        // WebRTC STUN/TURN servers (NEW)
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+            ]
+        };
+
+        /**
+         * Initializes a new RTCPeerConnection.
+         * @returns {RTCPeerConnection} The initialized peer connection.
+         */
+        function createPeerConnection() {
+            const pc = new RTCPeerConnection(iceServers);
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    // Send ICE candidate to the other peer via Firestore
+                    if (callRef) {
+                        const candidateData = JSON.parse(JSON.stringify(event.candidate)); // Deep copy to avoid Firestore issues
+                        if (isIncomingCall) { // If this peer is the receiver
+                            updateDoc(callRef, {
+                                receiverCandidates: arrayUnion(candidateData)
+                            }).catch(e => console.error("Error adding receiver candidate:", e));
+                        } else { // If this peer is the caller
+                            updateDoc(callRef, {
+                                callerCandidates: arrayUnion(candidateData)
+                            }).catch(e => console.error("Error adding caller candidate:", e));
+                        }
+                    }
+                }
+            };
+
+            pc.ontrack = (event) => {
+                // Attach remote stream to remoteVideo element
+                if (event.streams && event.streams[0]) {
+                    remoteVideo.srcObject = event.streams[0];
+                    remoteVideo.style.display = 'block';
+                    remoteStream = event.streams[0];
+                } else {
+                    // Fallback for older browsers or individual tracks
+                    if (!remoteStream) {
+                        remoteStream = new MediaStream();
+                        remoteVideo.srcObject = remoteStream;
+                        remoteVideo.style.display = 'block';
+                    }
+                    remoteStream.addTrack(event.track);
+                }
+            };
+
+            return pc;
+        }
+
+        /**
+         * Listens for incoming calls to the current user.
+         */
+        let unsubscribeCallListener = null; // Declare here so it can be cleared on unload
+
+        function listenForIncomingCalls() {
+            if (unsubscribeCallListener) {
+                unsubscribeCallListener(); // Unsubscribe from previous listener
+            }
+            if (!currentUser) return;
+
+            const callsCollectionRef = collection(db, "artifacts", appId, "public", "data", "calls");
+            const q = query(callsCollectionRef, where("receiverId", "==", currentUser.uid), where("status", "==", "ringing"));
+
+            unsubscribeCallListener = onSnapshot(q, async (snapshot) => {
+                if (snapshot.empty) {
+                    // No incoming calls
+                    stopRingingSound();
+                    if (callState === 'ringing') { // If we were ringing and call disappeared
+                        showMessageBox("Incoming call ended.", "info");
+                        playNotificationSound('info');
+                        endCall(false);
+                    }
+                    return;
+                }
+
+                const incomingCallDoc = snapshot.docs[0]; // Take the first incoming call
+                const callData = incomingCallDoc.data();
+
+                // NEW: Check if calls are enabled by system settings
+                if (!currentSystemSettings.enableCalls && currentUser.uid !== ADMIN_UID) {
+                    console.log("JCHAT_DEBUG: Calls disabled by admin. Declining incoming call.");
+                    await updateDoc(incomingCallDoc.ref, { status: 'declined_by_system' });
+                    showMessageBox("Incoming call declined: Calls are currently disabled by administrators.", "warning", true, 5000);
+                    playNotificationSound('error');
+                    return;
+                }
+
+                if (callState !== 'idle') {
+                    // Already in a call or busy, decline new incoming call
+                    await updateDoc(incomingCallDoc.ref, { status: 'busy' });
+                    showMessageBox(`Another call from ${callData.callerId === recipientUserProfileData?.userId ? recipientUserProfileData?.username : 'someone'} is incoming, but you are busy.`, "warning");
+                    playNotificationSound('info');
+                    return;
+                }
+
+                // New incoming call
+                callRef = incomingCallDoc.ref;
+                isIncomingCall = true;
+                callState = 'ringing';
+                currentCallType = callData.callType;
+
+                // Fetch caller's profile for display
+                const callerProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", callData.callerId);
+                const callerProfileSnap = await getDoc(callerProfileDocRef);
+                const callerUsername = callerProfileSnap.exists() ? callerProfileSnap.data().username : 'Unknown User';
+                recipientUserProfileData = callerProfileSnap.exists() ? callerProfileSnap.data() : null; // Set recipient for UI
+
+                callOverlay.classList.add('active');
+                callOverlay.classList.remove('voice-call', 'video-call'); // Clear previous
+                callOverlay.classList.add(currentCallType === 'voice' ? 'voice-call' : 'video-call');
+
+                callStatusIcon.className = `fas fa-${currentCallType === 'voice' ? 'phone' : 'video'} call-status-icon`;
+                callStatusText.textContent = `Incoming ${currentCallType} call from ${callerUsername}...`;
+                callTimerDisplay.style.display = 'none';
+                callActions.style.display = 'flex';
+                acceptCallBtn.style.display = 'block';
+                declineCallBtn.style.display = 'block';
+                toggleMuteBtn.style.display = 'none';
+                toggleVideoBtn.style.display = 'none';
+                endCallBtn.style.display = 'none'; // Only accept/decline for incoming
+                callStatusIcon.style.animation = 'pulse-color 2s infinite alternate'; // Start animation
+
+                startRingingSound(); // Play ringing sound
+
+                // Set a timeout for no answer (20 seconds)
+                callTimeoutId = setTimeout(async () => {
+                    if (callState === 'ringing') {
+                        stopRingingSound();
+                        await updateDoc(callRef, { status: 'no-answer' });
+                        showMessageBox("Incoming call unanswered.", "info");
+                        playNotificationSound('info');
+                        endCall(true);
+                    }
+                }, 20000);
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening for incoming calls:", error);
+            });
+        }
+
+        /**
+         * Handles accepting an incoming call.
+         */
+        async function acceptCall() {
+            if (callState !== 'ringing' || !callRef || !currentUser) {
+                showMessageBox("Cannot accept call in current state.", "warning");
+                playNotificationSound('info');
+                return;
+            }
+
+            stopRingingSound();
+            clearTimeout(callTimeoutId); // Clear no-answer timeout
+
+            callState = 'connected';
+            callStatusText.textContent = `Call with ${recipientUserProfileData?.username || 'user'}`;
+            callTimerDisplay.style.display = 'block';
+            callActions.style.display = 'flex';
+            acceptCallBtn.style.display = 'none';
+            declineCallBtn.style.display = 'none';
+            endCallBtn.style.display = 'block';
+            toggleMuteBtn.style.display = 'block';
+            toggleVideoBtn.style.display = currentCallType === 'video' ? 'block' : 'none';
+            callStatusIcon.style.animation = 'none'; // Stop animation
+
+            clearInterval(callDurationInterval);
+            callDurationInterval = setInterval(updateCallTimer, 1000);
+
+            showMessageBox("Call connected!", "success");
+            playNotificationSound('success');
+
+            try {
+                // Get local media stream
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: currentCallType === 'video'
+                });
+                localVideo.srcObject = localStream;
+                if (currentCallType === 'video') {
+                    localVideo.style.display = 'block';
+                }
+
+                // Update current user's inCall status
+                const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                await updateDoc(currentUserPublicProfileRef, { inCall: true });
+
+                // Create Peer Connection
+                peerConnection = createPeerConnection();
+
+                // Add local tracks to peer connection
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                // Get the offer from Firestore
+                const callDocSnap = await getDoc(callRef);
+                const callData = callDocSnap.data();
+                const remoteOffer = new RTCSessionDescription(callData.offer);
+                await peerConnection.setRemoteDescription(remoteOffer);
+
+                // Create answer
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+
+                // Update Firestore with answer and status
+                await updateDoc(callRef, {
+                    status: 'accepted',
+                    answer: {
+                        type: answer.type,
+                        sdp: answer.sdp
+                    },
+                    lastActivity: serverTimestamp()
+                });
+
+                // Add any initial candidates from caller that might have arrived before answer
+                if (callData.callerCandidates && callData.callerCandidates.length > 0) {
+                    for (const candidate of callData.callerCandidates) {
+                        try {
+                            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                        } catch (e) {
+                            console.error("Error adding initial caller ICE candidate:", e);
+                        }
+                    }
+                    await updateDoc(callRef, { callerCandidates: [] }); // Clear them
+                }
+
+                // Listen for caller candidates (new ones)
+                // This listener needs to be distinct from the one in listenForIncomingCalls
+                // to avoid issues when the status changes from ringing to accepted.
+                // Re-assigning unsubscribeCallListener here will replace the previous one.
+                unsubscribeCallListener = onSnapshot(callRef, async (docSnap) => {
+                    if (!docSnap.exists()) {
+                        console.log("JCHAT_DEBUG: Call document disappeared. Ending call.");
+                        endCall(false);
+                        return;
+                    }
+                    const data = docSnap.data();
+                    if (data.callerCandidates && data.callerCandidates.length > 0) {
+                        for (const candidate of data.callerCandidates) {
+                            try {
+                                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                            } catch (e) {
+                                console.error("Error adding caller ICE candidate:", e);
+                            }
+                        }
+                        await updateDoc(callRef, { callerCandidates: [] }); // Clear candidates after adding
+                    }
+                    if (data.status === 'ended' && callState !== 'idle') {
+                        showMessageBox("Call ended by other party.", "info");
+                        playNotificationSound('info');
+                        endCall(false);
+                    }
+                });
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error accepting call:", error);
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    showMessageBox(`Failed to accept call: Microphone/Camera access denied. Please allow permissions in your browser settings.`, "error", true, 5000);
+                } else if (error.name === 'NotFoundError') {
+                    showMessageBox(`Failed to accept call: No microphone or camera found. Please ensure one is connected.`, "error", true, 5000);
+                } else {
+                    showMessageBox(`Failed to accept call: ${error.message}`, "error", true, 5000);
+                }
+                playNotificationSound('error');
+                endCall(true); // Ensure cleanup
+            }
+        }
+
+        /**
+         * Handles declining an incoming call.
+         */
+        async function declineCall() {
+            if (callState !== 'ringing' || !callRef) {
+                showMessageBox("Cannot decline call in current state.", "warning");
+                playNotificationSound('info');
+                return;
+            }
+
+            stopRingingSound();
+            clearTimeout(callTimeoutId);
+            showMessageBox("Call declined.", "info");
+            playNotificationSound('info');
+
+            try {
+                await updateDoc(callRef, { status: 'declined', lastActivity: serverTimestamp() });
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error updating call status to declined:", error);
+            } finally {
+                endCall(false); // End call locally, Firestore already updated
+            }
+        }
+
+        /**
+         * Toggles microphone mute/unmute.
+         */
+        function toggleMute() {
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => {
+                    track.enabled = !track.enabled;
+                    isMuted = !track.enabled;
+                    toggleMuteBtn.classList.toggle('active', isMuted);
+                    toggleMuteBtn.querySelector('i').className = isMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
+                });
+            }
+        }
+
+        /**
+         * Toggles video on/off.
+         */
+        function toggleVideo() {
+            if (localStream) {
+                localStream.getVideoTracks().forEach(track => {
+                    track.enabled = !track.enabled;
+                    isVideoOff = !track.enabled;
+                    toggleVideoBtn.classList.toggle('active', isVideoOff);
+                    toggleVideoBtn.querySelector('i').className = isVideoOff ? 'fas fa-video-slash' : 'fas fa-video';
+                    localVideo.style.display = track.enabled ? 'block' : 'none'; // Hide local video element if off
+                });
+            }
+        }
+
+        /**
+         * Updates the call timer.
+         */
+        function updateCallTimer() {
+            callDuration++;
+            const minutes = Math.floor(callDuration / 60);
+            const seconds = callDuration % 60;
+            callTimerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        /**
+         * Ends the call and cleans up resources.
+         * @param {boolean} updateFirestore - Whether to update the Firestore call status to 'ended'.
+         */
+        async function endCall(updateFirestore = true) {
+            stopRingingSound();
+            clearInterval(callDurationInterval);
+            clearTimeout(callTimeoutId);
+
+            if (unsubscribeCallListener) {
+                unsubscribeCallListener();
+                unsubscribeCallListener = null;
+            }
+
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            if (remoteStream) {
+                remoteStream.getTracks().forEach(track => track.stop());
+                remoteStream = null;
+            }
+
+            localVideo.srcObject = null;
+            remoteVideo.srcObject = null;
+            localVideo.style.display = 'none';
+            remoteVideo.style.display = 'none';
+
+            callOverlay.classList.remove('active', 'voice-call', 'video-call');
+            callState = 'idle';
+            isIncomingCall = false;
+            callDuration = 0;
+            callTimerDisplay.textContent = '00:00';
+
+            // Reset button states
+            toggleMuteBtn.classList.remove('active');
+            toggleVideoBtn.classList.remove('active');
+            toggleMuteBtn.querySelector('i').className = 'fas fa-microphone';
+            toggleVideoBtn.querySelector('i').className = 'fas fa-video';
+            toggleMuteBtn.style.display = 'none';
+            toggleVideoBtn.style.display = 'none';
+            acceptCallBtn.style.display = 'none';
+            declineCallBtn.style.display = 'none';
+            endCallBtn.style.display = 'none';
+            callStatusIcon.style.animation = 'none';
+
+            // Update user's inCall status in Firestore
+            if (currentUser && currentUser.uid) {
+                const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                await updateDoc(currentUserPublicProfileRef, { inCall: false }).catch(e => console.error("Failed to update inCall status on endCall:", e));
+            }
+
+            // Update Firestore call document status if explicitly requested
+            if (updateFirestore && callRef) {
+                try {
+                    await updateDoc(callRef, { status: 'ended', lastActivity: serverTimestamp() });
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error updating call status to ended in Firestore:", error);
+                }
+            }
+            callRef = null; // Clear call reference
+        }
+
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
@@ -4114,6 +4761,19 @@
                         currentSystemSettings = docSnap.data();
                         console.log("JCHAT_DEBUG: Real-time system settings update:", currentSystemSettings);
                         applySystemSettings(currentSystemSettings); // Apply settings on every change
+                        // Start listening for calls only after settings are loaded and calls are enabled
+                        if (currentSystemSettings.enableCalls) {
+                            listenForIncomingCalls();
+                        } else {
+                            if (unsubscribeCallListener) {
+                                unsubscribeCallListener(); // Stop listening if calls are disabled
+                                unsubscribeCallListener = null;
+                            }
+                            if (callState !== 'idle') {
+                                endCall(false); // End any active call if feature is disabled
+                                showMessageBox("Call ended: Calls are now disabled by administrators.", "warning", true, 5000);
+                            }
+                        }
                     } else {
                         console.warn("JCHAT_WARNING: System settings document not found during snapshot. Re-fetching.");
                         fetchSystemSettings(); // Re-fetch if document disappears
@@ -4161,6 +4821,7 @@
                             currentSystemSettings = docSnap.data();
                             console.log("JCHAT_DEBUG: Real-time system settings update for anonymous user:", currentSystemSettings);
                             applySystemSettings(currentSystemSettings);
+                            // Calls are disabled for anonymous users by default by applySystemSettings, so no need to start listener
                         } else {
                             console.warn("JCHAT_WARNING: System settings document not found during snapshot for anonymous user. Re-fetching.");
                             fetchSystemSettings();
@@ -4205,7 +4866,7 @@
                         defaultInspirationType: "motivational", profanityFilterSensitivity: 5,
                         enableUserRegistration: true, enableFriendRequests: true, enablePublicChat: true,
                         enablePostCreation: true, enableEmailNotifications: true, maintenanceMode: false,
-                        globalAnnouncement: ""
+                        globalAnnouncement: "", enableCalls: true, // Default to true for calls even for anonymous users to see UI
                     };
                     applySystemSettings(currentSystemSettings); // Apply default settings for unauthenticated state
                 }
@@ -4233,6 +4894,13 @@
                     item.classList.remove('active');
                 }
             });
+
+            // Call Overlay Button Listeners (NEW)
+            if (acceptCallBtn) acceptCallBtn.addEventListener('click', acceptCall);
+            if (declineCallBtn) declineCallBtn.addEventListener('click', declineCall);
+            if (endCallBtn) endCallBtn.addEventListener('click', () => endCall(true)); // Pass true to update Firestore
+            if (toggleMuteBtn) toggleMuteBtn.addEventListener('click', toggleMute);
+            if (toggleVideoBtn) toggleVideoBtn.addEventListener('click', toggleVideo);
         });
 
         window.addEventListener('storage', (event) => {
@@ -4244,7 +4912,7 @@
             }
         });
 
-        window.addEventListener('beforeunload', () => {
+        window.addEventListener('beforeunload', async () => {
             // Detach all Firestore listeners before the page unloads
             unsubscribeListeners.forEach(unsubscribe => {
                 if (typeof unsubscribe === 'function') {
@@ -4260,6 +4928,16 @@
             if (dailyBonusCountdownInterval) {
                 clearInterval(dailyBonusCountdownInterval);
                 console.log("JCHAT_DEBUG: Daily bonus countdown interval cleared.");
+            }
+
+            // Ensure inCall status is turned off when leaving the page
+            if (currentUser && currentUser.uid) {
+                const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                await updateDoc(currentUserPublicProfileRef, { inCall: false }).catch(e => console.error("Failed to update inCall status on beforeunload:", e));
+            }
+            // End any active WebRTC call
+            if (callState !== 'idle') {
+                await endCall(false); // End call without updating Firestore status to avoid conflicts during unload
             }
         });
 
