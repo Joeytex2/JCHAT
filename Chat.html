@@ -491,11 +491,36 @@
             flex-shrink: 0;
         }
 
+        /* NEW: Status indicator for chat list items */
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 8px; /* Space from name */
+            flex-shrink: 0;
+        }
+        .status-online { background-color: var(--status-online); } /* Green */
+        .status-offline { background-color: var(--status-offline); } /* Grey */
+        .status-away { background-color: var(--status-away); } /* Yellow/Orange */
+
+
         .chat-list-item .chat-info {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative; /* For status indicator positioning */
+        }
+
+        /* NEW: Container for name and status in chat list item */
+        .chat-list-item .chat-name-and-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .chat-list-item .chat-name-and-status .chat-name {
+            margin: 0; /* Override default margin */
         }
 
         .chat-list-item .chat-name {
@@ -585,6 +610,16 @@
             object-fit: cover;
             border: 2px solid var(--accent-color);
             flex-shrink: 0;
+        }
+
+        /* NEW: Container for recipient name and status in chat header */
+        .chat-header .recipient-name-and-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .chat-header .recipient-name-and-status .recipient-name {
+            margin: 0; /* Override default margin */
         }
 
         .chat-header .recipient-name {
@@ -1535,7 +1570,10 @@
                     <button class="back-button" id="chatHeaderBackButton"><i class="fas fa-arrow-left"></i></button>
                     <img src="" alt="Recipient Avatar" class="recipient-avatar" id="recipientAvatar" style="display: none;">
                     <i class="fas fa-user-circle recipient-avatar" id="recipientAvatarIcon"></i>
-                    <p class="recipient-name" id="recipientName">Loading Chat...</p>
+                    <div class="recipient-name-and-status">
+                        <p class="recipient-name" id="recipientName">Loading Chat...</p>
+                        <span class="status-indicator" id="recipientStatusIndicator"></span>
+                    </div>
                     <div class="call-buttons">
                         <button id="voiceCallBtn" title="Voice Call" disabled><i class="fas fa-phone"></i></button>
                         <button id="videoCallBtn" title="Video Call" disabled><i class="fas fa-video"></i></button>
@@ -1679,6 +1717,7 @@
         const recipientAvatar = document.getElementById('recipientAvatar');
         const recipientAvatarIcon = document.getElementById('recipientAvatarIcon');
         const recipientName = document.getElementById('recipientName');
+        const recipientStatusIndicator = document.getElementById('recipientStatusIndicator'); // NEW
         const messagesDisplay = document.getElementById('messagesDisplay');
         const noMessagesMessage = document.getElementById('noMessagesMessage');
         const messageInput = document.getElementById('messageInput');
@@ -1738,7 +1777,9 @@
         let unsubscribeMessagesListener = null;
         let unsubscribeRecentChatsListener = null;
         let unsubscribeRecipientTypingListener = null;
+        let unsubscribeRecipientStatusListener = null; // NEW: For listening to recipient's online status
         let unsubscribeCallListener = null; // New: for real-time call updates
+        let unsubscribeRecentChatStatusListeners = {}; // NEW: Store listeners for recent chats' user statuses
         let typingTimeout = null;
         let isEditingMessage = false;
         let messageToEditId = null;
@@ -1765,6 +1806,10 @@
         let callRef; // Firestore document reference for the current call
         let isIncomingCall = false; // Flag to differentiate initiator from receiver
 
+        // Presence Tracking
+        const OFFLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes for 'offline' inference
+        let presenceInterval = null; // For periodic online status updates
+
         // --- Constants ---
         const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID
 
@@ -1785,7 +1830,7 @@
         // 2. Users to update documents in `/artifacts/{appId}/public/data/calls`
         //    (specifically, the caller and receiver should be able to update their respective candidates,
         //     and update the `status` and `answer` fields)
-        // 3. Users to update their own `inCall` status in `/artifacts/{appId}/public/data/users/{userId}`
+        // 3. Users to update their own `inCall`, `status`, and `lastOnline` status in their public user profiles.
 
         // Example (simplified) Firestore rules that would allow this:
         /*
@@ -1798,7 +1843,11 @@
             }
             match /artifacts/{appId}/public/data/users/{userId} {
               allow read: if request.auth != null;
-              allow update: if request.auth != null && request.auth.uid == userId;
+              allow update: if request.auth != null && request.auth.uid == userId
+                && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                    // ... other fields ...
+                    'isTyping', 'inCall', 'status', 'lastOnline' // Add these
+                ]);
             }
             // ... other rules for messages, chats, profiles etc.
           }
@@ -2049,8 +2098,99 @@
         }
 
         /**
+         * Updates the status indicator element based on user's status and lastOnline timestamp.
+         * @param {HTMLElement} indicatorElement - The span element for the status indicator.
+         * @param {string} status - The user's explicit status ('online', 'offline', 'away').
+         * @param {firebase.firestore.Timestamp} lastOnlineTimestamp - The last online timestamp.
+         */
+        function updateStatusIndicator(indicatorElement, status, lastOnlineTimestamp) {
+            if (!indicatorElement) return;
+
+            indicatorElement.className = 'status-indicator'; // Reset classes
+            let displayStatus = status;
+            let titleText = `Last seen: ${lastOnlineTimestamp ? new Date(lastOnlineTimestamp.toDate()).toLocaleString() : 'N/A'}`;
+
+            if (status === 'online') {
+                indicatorElement.classList.add('status-online');
+                titleText = 'Online';
+            } else if (status === 'away') {
+                indicatorElement.classList.add('status-away');
+                titleText = 'Away';
+            } else if (status === 'offline') {
+                indicatorElement.classList.add('status-offline');
+                titleText = 'Offline';
+            } else if (lastOnlineTimestamp) {
+                const now = Date.now();
+                const lastOnlineMs = lastOnlineTimestamp.toDate().getTime();
+                if (now - lastOnlineMs <= OFFLINE_THRESHOLD_MS) {
+                    indicatorElement.classList.add('status-online'); // Assume online if recently active
+                    displayStatus = 'online';
+                    titleText = 'Online (recently active)';
+                } else {
+                    indicatorElement.classList.add('status-offline');
+                    displayStatus = 'offline';
+                }
+            } else {
+                indicatorElement.classList.add('status-offline');
+                displayStatus = 'offline';
+                titleText = 'Offline';
+            }
+            indicatorElement.title = titleText;
+        }
+
+        /**
+         * Updates the current user's online status in their public profile.
+         * @param {boolean} isOnline - True if the user is online, false if offline.
+         */
+        async function updateUserOnlineStatus(isOnline) {
+            if (!currentUser) return;
+            try {
+                const userPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                await updateDoc(userPublicProfileRef, {
+                    status: isOnline ? 'online' : 'offline',
+                    lastOnline: serverTimestamp()
+                });
+                if (currentUserProfileData) { // Update local state
+                    currentUserProfileData.status = isOnline ? 'online' : 'offline';
+                    currentUserProfileData.lastOnline = { toDate: () => new Date() };
+                }
+                console.log(`JCHAT_DEBUG: User ${currentUser.uid} status set to ${isOnline ? 'online' : 'offline'}.`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error updating user online status:", error);
+            }
+        }
+
+        /**
+         * Starts periodic updates of the user's `lastOnline` timestamp to maintain 'online' status.
+         */
+        function startPresenceTracking() {
+            if (presenceInterval) {
+                clearInterval(presenceInterval);
+            }
+            // Update every 30 seconds
+            presenceInterval = setInterval(() => {
+                if (currentUser) {
+                    updateUserOnlineStatus(true); // Keep status as online
+                } else {
+                    stopPresenceTracking(); // Stop if user logs out
+                }
+            }, 30 * 1000); // Every 30 seconds
+            console.log("JCHAT_DEBUG: Presence tracking started.");
+        }
+
+        /**
+         * Stops periodic presence updates.
+         */
+        function stopPresenceTracking() {
+            if (presenceInterval) {
+                clearInterval(presenceInterval);
+                presenceInterval = null;
+                console.log("JCHAT_DEBUG: Presence tracking stopped.");
+            }
+        }
+
+        /**
          * Fetches the current user's profile data.
-         * This function no longer updates header elements directly.
          * @param {firebase.User} user - The authenticated Firebase user object.
          */
         async function fetchCurrentUserProfileData(user) {
@@ -2067,9 +2207,11 @@
                     if (profileData.currentXp === undefined) updates.currentXp = 0;
                     if (profileData.walletUnlocked === undefined) updates.walletUnlocked = false;
                     if (profileData.lastLoginBonusClaimed === undefined) updates.lastLoginBonusClaimed = null;
-                    if (profileData.isTyping === undefined) updates.isTyping = false; // Initialize isTyping
-                    if (profileData.starredMessages === undefined) updates.starredMessages = []; // Initialize starredMessages
-                    if (profileData.inCall === undefined) updates.inCall = false; // Initialize inCall status
+                    if (profileData.isTyping === undefined) updates.isTyping = false;
+                    if (profileData.starredMessages === undefined) updates.starredMessages = [];
+                    if (profileData.inCall === undefined) updates.inCall = false;
+                    if (profileData.status === undefined) updates.status = 'offline'; // NEW: Initialize status
+                    if (profileData.lastOnline === undefined) updates.lastOnline = serverTimestamp(); // NEW: Initialize lastOnline
 
                     if (Object.keys(updates).length > 0) {
                         await updateDoc(privateProfileDocRef, updates);
@@ -2095,7 +2237,7 @@
                         createdAt: serverTimestamp(),
                         updatedAt: serverTimestamp(),
                         lastOnline: serverTimestamp(),
-                        status: "online", // Default to online
+                        status: "online", // Default to online on creation
                         inspirationType: "motivational",
                         visibility: {
                             displayName: true, profilePic: true, bio: false, location: false,
@@ -2110,38 +2252,44 @@
                         walletUnlocked: false,
                         unlockedBenefits: [],
                         lastLoginBonusClaimed: null,
-                        isTyping: false, // Default to not typing
-                        starredMessages: [], // Default empty array
-                        inCall: false, // Default to not in call
+                        isTyping: false,
+                        starredMessages: [],
+                        inCall: false,
                     };
                     await setDoc(privateProfileDocRef, profileData);
-                    console.log("JCHAT_DEBUG: Created new profile data for current user:", profileData);
-
-                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
-                    await setDoc(publicProfileDocRef, {
-                        username: profileData.username,
-                        profilePicId: profileData.profilePicId,
-                        bio: profileData.bio,
-                        location: profileData.location,
-                        school: profileData.school,
-                        work: profileData.work,
-                        interests: profileData.interests,
-                        website: profileData.website,
-                        socialLinks: profileData.socialLinks,
-                        createdAt: profileData.createdAt,
-                        updatedAt: profileData.updatedAt,
-                        lastOnline: profileData.lastOnline,
-                        status: profileData.status,
-                        visibility: profileData.visibility,
-                        totalPosts: profileData.totalPosts,
-                        level: profileData.level,
-                        totalGasEarned: profileData.totalGasEarned,
-                        isTyping: profileData.isTyping, // Sync isTyping to public profile
-                        inCall: profileData.inCall, // Sync inCall to public profile
-                    }, { merge: true });
+                    console.log("JCHAT_DEBUG: Created new private profile data:", profileData);
                 }
 
                 currentUserProfileData = profileData;
+
+                // Update public profile with current status and lastOnline
+                const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+                await setDoc(publicProfileDocRef, {
+                    username: profileData.username,
+                    profilePicId: profileData.profilePicId,
+                    bio: profileData.bio,
+                    location: profileData.location,
+                    school: profileData.school,
+                    work: profileData.work,
+                    interests: profileData.interests,
+                    website: profileData.website,
+                    socialLinks: profileData.socialLinks,
+                    createdAt: profileData.createdAt,
+                    updatedAt: serverTimestamp(), // Always update updatedAt
+                    lastOnline: serverTimestamp(), // Set lastOnline to now on login
+                    status: 'online', // Set status to online on login
+                    visibility: profileData.visibility,
+                    totalPosts: profileData.totalPosts,
+                    level: profileData.level,
+                    totalGasEarned: profileData.totalGasEarned,
+                    isTyping: profileData.isTyping,
+                    inCall: profileData.inCall,
+                }, { merge: true });
+
+                // Update local currentUserProfileData with the latest status and lastOnline from the public profile
+                currentUserProfileData.status = 'online';
+                currentUserProfileData.lastOnline = { toDate: () => new Date() };
+
 
                 if (logoutButton) logoutButton.disabled = false;
                 if (adminIconLink) {
@@ -2152,7 +2300,6 @@
                     }
                 }
                 if (chatsTab) chatsTab.disabled = false;
-
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching or creating current user profile:", error);
@@ -2202,14 +2349,22 @@
             try {
                 // Set user's typing status and inCall status to false on logout
                 if (currentUser && currentUserProfileData) {
-                    const userPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
-                    await updateDoc(userPublicProfileRef, { isTyping: false, inCall: false }).catch(e => console.error("Failed to update status on logout:", e));
+                    await updateTypingStatus(false);
+                    await updateUserOnlineStatus(false); // Set status to offline
                 }
                 // Unsubscribe all listeners
                 if (unsubscribeMessagesListener) unsubscribeMessagesListener();
                 if (unsubscribeRecentChatsListener) unsubscribeRecentChatsListener();
                 if (unsubscribeRecipientTypingListener) unsubscribeRecipientTypingListener();
-                if (unsubscribeCallListener) unsubscribeCallListener(); // New: Unsubscribe call listener
+                if (unsubscribeRecipientStatusListener) unsubscribeRecipientStatusListener(); // NEW
+                for (const userId in unsubscribeRecentChatStatusListeners) { // NEW
+                    if (unsubscribeRecentChatStatusListeners[userId]) {
+                        unsubscribeRecentChatStatusListeners[userId]();
+                    }
+                }
+                unsubscribeRecentChatStatusListeners = {}; // Clear the object // NEW
+
+                if (unsubscribeCallListener) unsubscribeCallListener();
 
                 // Stop media recorder if active
                 if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -2220,6 +2375,7 @@
                 clearInterval(callDurationInterval);
                 clearTimeout(callTimeoutId);
                 clearTimeout(typingTimeout);
+                stopPresenceTracking(); // Stop presence tracking on logout
 
                 // End any active WebRTC call
                 if (callState !== 'idle') {
@@ -2535,13 +2691,15 @@
             // Clean up previous chat listeners/states
             if (unsubscribeMessagesListener) unsubscribeMessagesListener();
             if (unsubscribeRecipientTypingListener) unsubscribeRecipientTypingListener();
-            if (unsubscribeCallListener) unsubscribeCallListener(); // New: Unsubscribe previous call listener
+            if (unsubscribeRecipientStatusListener) unsubscribeRecipientStatusListener(); // NEW
+            if (unsubscribeCallListener) unsubscribeCallListener();
             await updateTypingStatus(false); // Ensure own typing status is off when switching
 
             messagesDisplay.innerHTML = '';
             noMessagesMessage.style.display = 'none';
             noChatSelectedOverlay.style.display = 'none';
             typingIndicator.classList.remove('active'); // Hide typing indicator
+            typingIndicator.textContent = ''; // Clear typing indicator text
             messageSearchInput.value = ''; // Clear search input
             messageSearchInput.style.display = 'none'; // Hide search input
             toggleSearchBtn.classList.remove('active'); // Deactivate search icon
@@ -2565,6 +2723,9 @@
                     recipientName.textContent = recipientUserProfileData.username || "Unknown User";
                     displayProfilePicture(recipientAvatar, recipientUserProfileData.profilePicId, usernameInitial, "w_80,h_80,c_fill,g_face,r_max", recipientAvatarIcon);
 
+                    // NEW: Update recipient status in header
+                    updateStatusIndicator(recipientStatusIndicator, recipientUserProfileData.status, recipientUserProfileData.lastOnline);
+
                     messageInput.focus();
                     showMessageBox("Chat loaded.", "success");
                     playNotificationSound('success');
@@ -2580,6 +2741,7 @@
 
                     listenForMessages(currentChatId); // Start listening for messages in the new chat
                     listenForRecipientTypingStatus(recipientUserId); // Start listening for recipient's typing status
+                    listenForRecipientStatus(recipientUserId); // NEW: Listen for recipient's online status
                     listenForIncomingCalls(); // New: Listen for incoming calls to this user
 
                     // Update active class in sidebar
@@ -2609,6 +2771,7 @@
                 } else {
                     showMessageBox("Recipient profile not found.", "error", true);
                     recipientName.textContent = "Recipient Not Found";
+                    updateStatusIndicator(recipientStatusIndicator, 'offline', null); // Set to offline if not found
                     setChatInputState(false); // Disable input if recipient not found
                     voiceCallBtn.disabled = true;
                     videoCallBtn.disabled = true;
@@ -2619,6 +2782,7 @@
                 showMessageBox(`Error loading chat: ${error.message}`, "error", true);
                 playNotificationSound('error');
                 recipientName.textContent = "Error Loading Chat";
+                updateStatusIndicator(recipientStatusIndicator, 'offline', null); // Set to offline on error
                 setChatInputState(false); // Disable input on error
                 voiceCallBtn.disabled = true;
                 videoCallBtn.disabled = true;
@@ -2646,7 +2810,10 @@
                 <img src="" alt="Avatar" class="avatar" id="chat-list-avatar-${otherUserProfile.userId}" style="display: none;">
                 <i class="fas fa-user-circle avatar" id="chat-list-avatar-icon-${otherUserProfile.userId}"></i>
                 <div class="chat-info">
-                    <p class="chat-name">${otherUserProfile.username || 'Unknown User'}</p>
+                    <div class="chat-name-and-status">
+                        <p class="chat-name">${otherUserProfile.username || 'Unknown User'}</p>
+                        <span class="status-indicator" id="status-indicator-${otherUserProfile.userId}"></span>
+                    </div>
                     <p class="last-message">${lastMessageContent}</p>
                 </div>
                 ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
@@ -2657,6 +2824,25 @@
             const avatarImg = chatListItem.querySelector(`#chat-list-avatar-${otherUserProfile.userId}`);
             const avatarIcon = chatListItem.querySelector(`#chat-list-avatar-icon-${otherUserProfile.userId}`);
             displayProfilePicture(avatarImg, otherUserProfile.profilePicId, usernameInitial, "w_90,h_90,c_fill,g_face,r_max", avatarIcon);
+
+            // NEW: Update status indicator for this item
+            const statusIndicator = chatListItem.querySelector(`#status-indicator-${otherUserProfile.userId}`);
+            updateStatusIndicator(statusIndicator, otherUserProfile.status, otherUserProfile.lastOnline);
+
+            // NEW: Listen for real-time status updates for this user
+            if (unsubscribeRecentChatStatusListeners[otherUserProfile.userId]) {
+                unsubscribeRecentChatStatusListeners[otherUserProfile.userId](); // Unsubscribe old listener
+            }
+            const otherUserProfileRef = doc(db, "artifacts", appId, "public", "data", "users", otherUserProfile.userId);
+            unsubscribeRecentChatStatusListeners[otherUserProfile.userId] = onSnapshot(otherUserProfileRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const updatedProfile = docSnap.data();
+                    updateStatusIndicator(statusIndicator, updatedProfile.status, updatedProfile.lastOnline);
+                }
+            }, (error) => {
+                console.error(`JCHAT_ERROR: Error listening to status for ${otherUserProfile.userId}:`, error);
+            });
+
 
             // Add click listener to switch chat
             chatListItem.addEventListener('click', () => {
@@ -2678,6 +2864,14 @@
             if (unsubscribeRecentChatsListener) {
                 unsubscribeRecentChatsListener(); // Unsubscribe from previous listener
             }
+            // Clear all previous status listeners for recent chats
+            for (const userId in unsubscribeRecentChatStatusListeners) {
+                if (unsubscribeRecentChatStatusListeners[userId]) {
+                    unsubscribeRecentChatStatusListeners[userId]();
+                }
+            }
+            unsubscribeRecentChatStatusListeners = {};
+
 
             const chatsCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats");
             // Query chats where the current user is a member, ordered by last message timestamp
@@ -2810,6 +3004,7 @@
                 // If no chatId in URL, show the "no chat selected" overlay initially
                 noChatSelectedOverlay.style.display = 'flex';
                 recipientName.textContent = "No Chat Selected";
+                updateStatusIndicator(recipientStatusIndicator, 'offline', null); // Set initial status for no chat selected
                 messagesDisplay.innerHTML = '';
                 noMessagesMessage.style.display = 'none';
                 setChatInputState(false);
@@ -2881,6 +3076,30 @@
                 console.error("JCHAT_ERROR: Error listening for recipient typing status:", error);
                 typingIndicator.classList.remove('active');
                 typingIndicator.textContent = '';
+            });
+        }
+
+        /**
+         * NEW: Listens for the recipient's online status and updates the UI.
+         * @param {string} recipientId - The UID of the recipient.
+         */
+        function listenForRecipientStatus(recipientId) {
+            if (unsubscribeRecipientStatusListener) {
+                unsubscribeRecipientStatusListener();
+            }
+
+            const recipientPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", recipientId);
+            unsubscribeRecipientStatusListener = onSnapshot(recipientPublicProfileRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    updateStatusIndicator(recipientStatusIndicator, data.status, data.lastOnline);
+                } else {
+                    // If recipient profile disappears, assume offline
+                    updateStatusIndicator(recipientStatusIndicator, 'offline', null);
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening for recipient status:", error);
+                updateStatusIndicator(recipientStatusIndicator, 'offline', null); // Default to offline on error
             });
         }
 
@@ -3840,6 +4059,7 @@
                 fetchNotificationCount(user.uid);
                 initializeChatPage();
                 listenForIncomingCalls(); // Start listening for incoming calls for this user immediately
+                startPresenceTracking(); // Start presence tracking
 
             } else {
                 console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
@@ -3865,6 +4085,7 @@
 
                 showMessageBox("Please log in to view chats.", 'info', true);
                 recipientName.textContent = "Please Log In";
+                updateStatusIndicator(recipientStatusIndicator, 'offline', null); // Set to offline for unauthenticated
                 setChatInputState(false);
                 voiceCallBtn.disabled = true;
                 videoCallBtn.disabled = true;
@@ -4063,13 +4284,20 @@
             // Ensure typing status and inCall status are turned off when leaving the page
             if (currentUser && currentUser.uid) {
                 await updateTypingStatus(false);
-                const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
-                await updateDoc(currentUserPublicProfileRef, { inCall: false }).catch(e => console.error("Failed to update inCall status on beforeunload:", e));
+                await updateUserOnlineStatus(false); // Set status to offline
             }
             if (unsubscribeMessagesListener) unsubscribeMessagesListener();
             if (unsubscribeRecentChatsListener) unsubscribeRecentChatsListener();
             if (unsubscribeRecipientTypingListener) unsubscribeRecipientTypingListener();
-            if (unsubscribeCallListener) unsubscribeCallListener(); // Unsubscribe call listener
+            if (unsubscribeRecipientStatusListener) unsubscribeRecipientStatusListener(); // NEW
+            for (const userId in unsubscribeRecentChatStatusListeners) { // NEW
+                if (unsubscribeRecentChatStatusListeners[userId]) {
+                    unsubscribeRecentChatStatusListeners[userId]();
+                }
+            }
+            unsubscribeRecentChatStatusListeners = {}; // Clear the object // NEW
+
+            if (unsubscribeCallListener) unsubscribeCallListener();
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
@@ -4078,6 +4306,7 @@
             clearInterval(callDurationInterval);
             clearTimeout(callTimeoutId);
             clearTimeout(typingTimeout);
+            stopPresenceTracking(); // Stop presence tracking on unload
 
             // End any active WebRTC call
             if (callState !== 'idle') {
