@@ -2964,10 +2964,10 @@
             videoCallBtn.disabled = true;
 
             try {
-                // Get local media stream
+                // Request media permissions
                 localStream = await navigator.mediaDevices.getUserMedia({
                     audio: true,
-                    video: type === 'video' // Only request video if it's a video call
+                    video: type === 'video'
                 });
                 localVideo.srcObject = localStream;
                 if (type === 'video') {
@@ -3078,7 +3078,13 @@
                 }, 25000); // 25 seconds total for no answer
             } catch (error) {
                 console.error("JCHAT_ERROR: Error starting call:", error);
-                showMessageBox(`Failed to start call: ${error.message}`, "error", true, 5000);
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    showMessageBox(`Failed to start call: Microphone/Camera access denied. Please allow permissions in your browser settings.`, "error", true, 5000);
+                } else if (error.name === 'NotFoundError') {
+                    showMessageBox(`Failed to start call: No microphone or camera found. Please ensure one is connected.`, "error", true, 5000);
+                } else {
+                    showMessageBox(`Failed to start call: ${error.message}`, "error", true, 5000);
+                }
                 playNotificationSound('error');
                 endCall(true); // Ensure cleanup
             }
@@ -3324,7 +3330,13 @@
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error accepting call:", error);
-                showMessageBox(`Failed to accept call: ${error.message}`, "error", true, 5000);
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    showMessageBox(`Failed to accept call: Microphone/Camera access denied. Please allow permissions in your browser settings.`, "error", true, 5000);
+                } else if (error.name === 'NotFoundError') {
+                    showMessageBox(`Failed to accept call: No microphone or camera found. Please ensure one is connected.`, "error", true, 5000);
+                } else {
+                    showMessageBox(`Failed to accept call: ${error.message}`, "error", true, 5000);
+                }
                 playNotificationSound('error');
                 endCall(true); // Ensure cleanup
             }
