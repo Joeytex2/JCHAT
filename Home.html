@@ -856,7 +856,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            transition: color 0.2s ease;
+            transition: color 0.2s ease, transform 0.1s ease-out; /* Added transform for animation */
             padding: 8px 12px;
             border-radius: 10px;
         }
@@ -864,6 +864,7 @@
         .post-action-button:hover:not(:disabled) {
             color: var(--blue);
             background-color: rgba(0, 213, 255, 0.05);
+            transform: translateY(-2px); /* Slight lift on hover */
         }
         .post-action-button:disabled {
             opacity: 0.6;
@@ -872,17 +873,27 @@
             box-shadow: none;
         }
 
+        /* Reaction button animations */
         .post-action-button.reacted-like {
             color: var(--blue);
             background-color: rgba(0, 213, 255, 0.1);
+            animation: pop-reaction 0.3s ease-out;
         }
         .post-action-button.reacted-love {
             color: var(--pink);
             background-color: rgba(255, 46, 146, 0.1);
+            animation: pop-reaction 0.3s ease-out;
         }
         .post-action-button.reacted-haha {
             color: #ffd700; /* Gold */
             background-color: rgba(255, 215, 0, 0.1);
+            animation: pop-reaction 0.3s ease-out;
+        }
+
+        @keyframes pop-reaction {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
         /* Comments Section */
@@ -1799,9 +1810,9 @@
                     </a>
                 </div>
                 <!-- Profile Link with Picture and Name (kept as per request) -->
-                <a href="/profile.html" id="profileLink">
+                <a href="/profile.html" id="profileLink" aria-label="View Profile">
                     <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
-                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                    <i id="headerAvatarIcon" class="fas fa-user-circle" role="img" aria-label="User Avatar"></i>
                     <span id="headerDisplayName">Loading...</span>
                 </a>
             </div>
@@ -1816,16 +1827,16 @@
                 <p id="inspirationQuote" class="quote-text">Loading your daily dose of inspiration...</p>
                 <p id="inspirationAuthor" class="quote-author"></p>
                 <div class="inspiration-actions">
-                    <button id="sharePostInspirationButton" class="inspiration-action-button" disabled>
+                    <button id="sharePostInspirationButton" class="inspiration-action-button" disabled aria-label="Share Inspiration as Post">
                         <i class="fas fa-share-alt"></i> Share / Post
                     </button>
-                    <button id="customizeInspirationButton" class="inspiration-action-button" disabled>
+                    <button id="customizeInspirationButton" class="inspiration-action-button" disabled aria-label="Customize Inspiration Type">
                         <i class="fas fa-cog"></i> Customize Inspiration
                     </button>
                     <!-- NEW: Daily Bonus Button -->
-                    <button id="claimDailyBonusButton" class="inspiration-action-button" disabled>
+                    <button id="claimDailyBonusButton" class="inspiration-action-button" disabled aria-label="Claim Daily Bonus">
                         <span class="button-text"><i class="fas fa-calendar-check"></i> Claim Daily Bonus</span>
-                        <div class="button-loader"></div>
+                        <div class="button-loader" role="status" aria-label="Loading"></div>
                     </button>
                 </div>
             </div>
@@ -1833,9 +1844,9 @@
             <!-- Post Creation Section -->
             <div class="post-creation-section" id="postCreationSection">
                 <h3>Create New Post</h3>
-                <textarea id="postContent" placeholder="What's on your mind?" maxlength="50000" disabled></textarea>
+                <textarea id="postContent" placeholder="What's on your mind?" maxlength="50000" disabled aria-label="Post Content"></textarea>
                 <div class="media-upload-area">
-                    <label for="postMediaUpload" class="file-input-label">
+                    <label for="postMediaUpload" class="file-input-label" aria-label="Add Media to Post">
                         <i class="fas fa-image"></i> Add Media
                     </label>
                     <input type="file" id="postMediaUpload" accept="image/*,video/*" disabled>
@@ -1843,9 +1854,9 @@
                     <video id="mediaVideoPreview" class="media-preview" src="" controls style="display: none;"></video>
                 </div>
                 <div class="post-actions">
-                    <button id="createPostButton" class="post-button" disabled>
+                    <button id="createPostButton" class="post-button" disabled aria-label="Create Post">
                         <span class="button-text">Post</span>
-                        <div class="button-loader"></div>
+                        <div class="button-loader" role="status" aria-label="Loading"></div>
                     </button>
                 </div>
             </div>
@@ -1859,103 +1870,103 @@
     </main>
 
     <!-- Customization Modal -->
-    <div id="customizeInspirationModal" class="modal-overlay">
+    <div id="customizeInspirationModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="customizeInspirationModalTitle">
         <div class="modal-content">
-            <h3>Customize Inspiration Type</h3>
+            <h3 id="customizeInspirationModalTitle">Customize Inspiration Type</h3>
             <div class="radio-group">
                 <label class="radio-option">
-                    <input type="radio" name="inspirationType" value="motivational" checked>
+                    <input type="radio" name="inspirationType" value="motivational" checked aria-label="Motivational Inspiration">
                     Motivational
                 </label>
                 <label class="radio-option">
-                    <input type="radio" name="inspirationType" value="peaceful">
+                    <input type="radio" name="inspirationType" value="peaceful" aria-label="Peaceful Inspiration">
                     Peaceful
                 </label>
                 <label class="radio-option">
-                    <input type="radio" name="inspirationType" value="funny">
+                    <input type="radio" name="inspirationType" value="funny" aria-label="Funny Inspiration">
                     Funny
                 </label>
                 <label class="radio-option">
-                    <input type="radio" name="inspirationType" value="wisdom">
+                    <input type="radio" name="inspirationType" value="wisdom" aria-label="Wisdom Inspiration">
                     Wisdom
                 </label>
             </div>
             <div class="button-group">
-                <button id="cancelCustomize" class="modal-button cancel-button">Cancel</button>
-                <button id="saveCustomize" class="modal-button save-button">Save</button>
+                <button id="cancelCustomize" class="modal-button cancel-button" aria-label="Cancel Customization">Cancel</button>
+                <button id="saveCustomize" class="modal-button save-button" aria-label="Save Customization">Save</button>
             </div>
         </div>
     </div>
 
     <!-- Edit Post Modal -->
-    <div id="editPostModal" class="modal-overlay">
+    <div id="editPostModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editPostModalTitle">
         <div class="modal-content">
-            <h3>Edit Post</h3>
+            <h3 id="editPostModalTitle">Edit Post</h3>
             <div class="input-group">
                 <label for="editPostContent">Post Content:</label>
-                <textarea id="editPostContent" maxlength="500"></textarea>
+                <textarea id="editPostContent" maxlength="500" aria-label="Edit Post Content"></textarea>
             </div>
             <div class="media-upload-area">
-                <label for="editPostMediaUpload" class="file-input-label">
+                <label for="editPostMediaUpload" class="file-input-label" aria-label="Change Media for Post">
                     <i class="fas fa-image"></i> Change Media
                 </label>
                 <input type="file" id="editPostMediaUpload" accept="image/*,video/*">
                 <img id="editMediaImagePreview" class="media-preview" src="" alt="Image Preview" style="display: none;">
                 <video id="editMediaVideoPreview" class="media-preview" src="" controls style="display: none;"></video>
-                <button id="removeEditMedia" class="modal-button cancel-button" style="display: none;">Remove Media</button>
+                <button id="removeEditMedia" class="modal-button cancel-button" style="display: none;" aria-label="Remove Media from Post">Remove Media</button>
             </div>
             <div class="button-group">
-                <button id="cancelEditPost" class="modal-button cancel-button">Cancel</button>
-                <button id="saveEditedPost" class="modal-button save-button">
+                <button id="cancelEditPost" class="modal-button cancel-button" aria-label="Cancel Editing">Cancel</button>
+                <button id="saveEditedPost" class="modal-button save-button" aria-label="Save Edited Post">
                     <span class="button-text">Save Changes</span>
-                    <div class="button-loader"></div>
+                    <div class="button-loader" role="status" aria-label="Loading"></div>
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="modal-overlay">
+    <div id="confirmationModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirmationTitle">
         <div class="modal-content">
             <h3 id="confirmationTitle">Confirm Action</h3>
             <p id="confirmationMessage">Are you sure you want to proceed with this action?</p>
             <div class="button-group">
-                <button id="confirmCancelButton" class="modal-button cancel-button">Cancel</button>
-                <button id="confirmProceedButton" class="modal-button confirm-button">Proceed</button>
+                <button id="confirmCancelButton" class="modal-button cancel-button" aria-label="Cancel">Cancel</button>
+                <button id="confirmProceedButton" class="modal-button confirm-button" aria-label="Proceed">Proceed</button>
             </div>
         </div>
     </div>
 
     <!-- Custom Message Box -->
-    <div id="messageBox"></div>
+    <div id="messageBox" role="alert" aria-live="polite"></div>
 
     <!-- NEW: Maintenance Mode Overlay -->
-    <div id="maintenanceOverlay">
-        <i class="fas fa-tools"></i>
-        <h2>Maintenance Mode</h2>
+    <div id="maintenanceOverlay" role="dialog" aria-modal="true" aria-labelledby="maintenanceOverlayTitle">
+        <i class="fas fa-tools" role="img" aria-label="Maintenance Icon"></i>
+        <h2 id="maintenanceOverlayTitle">Maintenance Mode</h2>
         <p id="maintenanceAnnouncementText">JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!</p>
     </div>
 
     <!-- Call Overlay (NEW) -->
-    <div id="callOverlay">
+    <div id="callOverlay" role="dialog" aria-modal="true" aria-labelledby="callStatusText">
         <div class="video-streams">
-            <video id="remoteVideo" autoplay playsinline></video>
-            <video id="localVideo" autoplay playsinline muted></video>
+            <video id="remoteVideo" autoplay playsinline aria-label="Remote Video Stream"></video>
+            <video id="localVideo" autoplay playsinline muted aria-label="Local Video Stream"></video>
         </div>
-        <i id="callStatusIcon" class="fas fa-phone"></i>
+        <i id="callStatusIcon" class="fas fa-phone" role="img" aria-label="Call Status Icon"></i>
         <p id="callStatusText" class="call-status-text">Calling...</p>
-        <p id="callTimer" class="call-timer" style="display: none;">00:00</p>
+        <p id="callTimer" class="call-timer" style="display: none;" aria-live="polite">00:00</p>
         <div class="call-actions" id="callActions">
-            <button id="acceptCallBtn" class="accept-call-btn" style="display: none;"><i class="fas fa-phone"></i></button>
-            <button id="declineCallBtn" class="decline-call-btn" style="display: none;"><i class="fas fa-phone-slash"></i></button>
-            <button id="toggleMuteBtn" class="toggle-mute-btn" style="display: none;" title="Mute/Unmute"><i class="fas fa-microphone"></i></button>
-            <button id="toggleVideoBtn" class="toggle-video-btn" style="display: none;" title="Turn Video On/Off"><i class="fas fa-video"></i></button>
-            <button id="endCallBtn" class="end-call-btn" style="display: none;"><i class="fas fa-phone-slash"></i></button>
+            <button id="acceptCallBtn" class="accept-call-btn" style="display: none;" aria-label="Accept Call"><i class="fas fa-phone"></i></button>
+            <button id="declineCallBtn" class="decline-call-btn" style="display: none;" aria-label="Decline Call"><i class="fas fa-phone-slash"></i></button>
+            <button id="toggleMuteBtn" class="toggle-mute-btn" style="display: none;" title="Mute/Unmute" aria-label="Toggle Mute"><i class="fas fa-microphone"></i></button>
+            <button id="toggleVideoBtn" class="toggle-video-btn" style="display: none;" title="Turn Video On/Off" aria-label="Toggle Video"><i class="fas fa-video"></i></button>
+            <button id="endCallBtn" class="end-call-btn" style="display: none;" aria-label="End Call"><i class="fas fa-phone-slash"></i></button>
         </div>
     </div>
 
     <!-- Sidebar Navigation -->
-    <aside id="sidebarNav" class="sidebar-hidden">
+    <aside id="sidebarNav" class="sidebar-hidden" role="navigation" aria-label="Main Navigation">
         <div class="sidebar-header">
             <span class="sidebar-title">JCHAT Menu</span>
             <button id="sidebarCloseBtn" aria-label="Close Menu">
@@ -1963,7 +1974,7 @@
             </button>
         </div>
         <div class="sidebar-links">
-            <a href="/home.html" class="sidebar-nav-item active">
+            <a href="/home.html" class="sidebar-nav-item active" aria-current="page">
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
@@ -2021,6 +2032,8 @@
         import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, where, getDocs, addDoc, runTransaction, writeBatch, serverTimestamp, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
+        // Firebase configuration, dynamically loaded from Canvas environment variables if available.
+        // Provides fallback values for local development if environment variables are not set.
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
             authDomain: "jchat-1.firebaseapp.com",
@@ -2030,24 +2043,28 @@
             appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
             measurementId: "G-S6Z9GG0R9P"
         };
+        // Application ID, dynamically loaded from Canvas environment or defaults for local.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // Initial authentication token for Canvas environment.
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Cloudinary Configuration
+        // Cloudinary Configuration for media uploads.
         const cloudinaryConfig = {
             cloudName: "dxld01rcp",
             uploadPreset: "Storage_preset"
         };
 
-        // Initialize Firebase services
+        // Initialize Firebase services: App, Auth, and Firestore.
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         // --- ADMIN UID ---
-        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // The specific UID for the administrator
+        // The specific UID for the administrator, used for feature toggling and permissions.
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2';
 
         // --- DOM Elements ---
+        // Header elements
         const headerProfilePic = document.getElementById('headerProfilePic');
         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
         const headerDisplayName = document.getElementById('headerDisplayName');
@@ -2055,18 +2072,21 @@
         const adminIconLink = document.getElementById('adminIconLink');
         const profileLink = document.getElementById('profileLink');
 
+        // Daily Inspiration section elements
         const inspirationQuoteElement = document.getElementById('inspirationQuote');
         const inspirationAuthorElement = document.getElementById('inspirationAuthor');
         const sharePostInspirationButton = document.getElementById('sharePostInspirationButton');
         const customizeInspirationButton = document.getElementById('customizeInspirationButton');
         const claimDailyBonusButton = document.getElementById('claimDailyBonusButton');
 
+        // Customize Inspiration Modal elements
         const customizeInspirationModal = document.getElementById('customizeInspirationModal');
         const inspirationTypeRadios = document.querySelectorAll('input[name="inspirationType"]');
         const cancelCustomizeButton = document.getElementById('cancelCustomize');
         const saveCustomizeButton = document.getElementById('saveCustomize');
 
-        const postCreationSection = document.getElementById('postCreationSection'); // NEW
+        // Post Creation section elements
+        const postCreationSection = document.getElementById('postCreationSection');
         const postContentInput = document.getElementById('postContent');
         const postMediaUpload = document.getElementById('postMediaUpload');
         const mediaImagePreview = document.getElementById('mediaImagePreview');
@@ -2075,6 +2095,7 @@
         const postsFeed = document.getElementById('postsFeed');
         const loadingPostsMessage = document.getElementById('loadingPostsMessage');
 
+        // Edit Post Modal elements
         const editPostModal = document.getElementById('editPostModal');
         const editPostContentInput = document.getElementById('editPostContent');
         const editPostMediaUpload = document.getElementById('editPostMediaUpload');
@@ -2084,12 +2105,14 @@
         const cancelEditPostButton = document.getElementById('cancelEditPost');
         const saveEditedPostButton = document.getElementById('saveEditedPost');
 
+        // Confirmation Modal elements
         const confirmationModal = document.getElementById('confirmationModal');
         const confirmationTitle = document.getElementById('confirmationTitle');
         const confirmationMessage = document.getElementById('confirmationMessage');
         const confirmCancelButton = document.getElementById('confirmCancelButton');
         const confirmProceedButton = document.getElementById('confirmProceedButton');
 
+        // Message Box element for notifications
         const messageBox = document.getElementById('messageBox');
 
         // Sidebar elements
@@ -2099,18 +2122,18 @@
         const sidebarNavItems = document.querySelectorAll('.sidebar-nav-item');
         const sidebarLogoutLink = document.getElementById('sidebarLogoutLink');
 
-        // NEW: Feature toggle related sidebar links
+        // Feature toggle related sidebar links (for dynamic enabling/disabling)
         const chatLink = document.getElementById('chatLink');
         const findFriendsLink = document.getElementById('findFriendsLink');
         const friendsLink = document.getElementById('friendsLink');
         const groupsLink = document.getElementById('groupsLink');
         const jcoinShopLink = document.getElementById('jcoinShopLink');
 
-        // NEW: Maintenance Overlay elements
+        // Maintenance Overlay elements
         const maintenanceOverlay = document.getElementById('maintenanceOverlay');
         const maintenanceAnnouncementText = document.getElementById('maintenanceAnnouncementText');
 
-        // Call Overlay Elements (NEW)
+        // Call Overlay Elements (WebRTC)
         const callOverlay = document.getElementById('callOverlay');
         const callStatusIcon = document.getElementById('callStatusIcon');
         const callStatusText = document.getElementById('callStatusText');
@@ -2125,34 +2148,34 @@
         const toggleVideoBtn = document.getElementById('toggleVideoBtn');
 
 
-        // --- Global State ---
-        let currentUser = null;
-        let currentUserProfileData = null; // Stores the authenticated user's own profile data
-        let inspirationIntervalId = null;
-        let dailyBonusCountdownInterval = null; // New: Interval for daily bonus countdown
-        let currentMediaFile = null;
-        let currentEditPostId = null;
-        let currentEditMediaFile = null;
-        let currentEditMediaUrl = null;
-        let currentEditMediaType = null;
-        let isAuthReady = false;
-        let unsubscribeListeners = []; // Array to store all onSnapshot unsubscribe functions
-        let currentSystemSettings = {}; // NEW: Store system settings
+        // --- Global State Variables ---
+        let currentUser = null; // Stores the Firebase authenticated user object.
+        let currentUserProfileData = null; // Stores the authenticated user's own profile data from Firestore.
+        let inspirationIntervalId = null; // Interval ID for refreshing daily inspiration.
+        let dailyBonusCountdownInterval = null; // Interval for daily bonus cooldown countdown.
+        let currentMediaFile = null; // Stores the file object for new post media.
+        let currentEditPostId = null; // Stores the ID of the post being edited.
+        let currentEditMediaFile = null; // Stores the new file object for edited post media.
+        let currentEditMediaUrl = null; // Stores the existing media URL for edited post.
+        let currentEditMediaType = null; // Stores the existing media type for edited post.
+        let isAuthReady = false; // Flag indicating if Firebase authentication state has been determined.
+        let unsubscribeListeners = []; // Array to store all onSnapshot unsubscribe functions for cleanup.
+        let currentSystemSettings = {}; // Stores global system settings fetched from Firestore.
 
-        // WebRTC Call State (NEW)
-        let localStream;
-        let remoteStream;
-        let peerConnection;
-        let currentCallType; // 'voice' or 'video'
-        let isMuted = false;
-        let isVideoOff = false;
-        let callState = 'idle'; // 'idle', 'calling', 'ringing', 'connected', 'busy', 'declined', 'ended', 'no-answer'
-        let callDuration = 0;
-        let callDurationInterval;
-        let callTimeoutId; // For call ringing timeout
-        let callRef; // Firestore document reference for the current call
-        let isIncomingCall = false; // Flag to differentiate initiator from receiver
-        let recipientUserProfileData = null; // To store caller's profile for display
+        // WebRTC Call State Variables
+        let localStream; // Local media stream (audio/video).
+        let remoteStream; // Remote media stream from the other peer.
+        let peerConnection; // RTCPeerConnection object.
+        let currentCallType; // 'voice' or 'video'.
+        let isMuted = false; // Mute state for local audio.
+        let isVideoOff = false; // Video off state for local video.
+        let callState = 'idle'; // Current call state: 'idle', 'calling', 'ringing', 'connected', 'busy', 'declined', 'ended', 'no-answer'.
+        let callDuration = 0; // Duration of the current call in seconds.
+        let callDurationInterval; // Interval ID for updating call timer.
+        let callTimeoutId; // Timeout ID for incoming call no-answer.
+        let callRef; // Firestore document reference for the current call.
+        let isIncomingCall = false; // Flag to differentiate initiator from receiver.
+        let recipientUserProfileData = null; // To store caller's profile for display in incoming calls.
 
 
         // --- Theme Management Variables ---
@@ -2164,7 +2187,7 @@
         ];
 
         // --- Inspiration Quotes Data (Local Fallback) ---
-        // These are used as the primary source of inspiration quotes now that LLM is removed.
+        // These are used as the primary source of inspiration quotes.
         const inspirationalQuotes = {
             motivational: [
                 { quote: "Every sunrise is an invitation to brighten your world.", author: "JCHAT" },
@@ -2196,7 +2219,12 @@
             ]
         };
 
-        // --- Level and XP Progression Logic (Admin Reference) ---
+        // --- Level and XP Progression Logic ---
+        /**
+         * Provides information about user levels, XP requirements, and rewards.
+         * @param {number} level - The current level of the user.
+         * @returns {object} An object containing level details.
+         */
         function getLevelInfo(level) {
             const levelData = [
                 { level: 1, name: "Novice", icon: "fas fa-leaf", jCoinReward: 50, timeEstimate: "3 days" },
@@ -2232,14 +2260,15 @@
             ];
 
             let xpToNextLevel;
-            let jCoinReward;
             let name;
             let icon;
+            let jCoinReward;
             let timeEstimate;
 
             if (level < 1) level = 1;
 
             // XP Calculation Logic - Designed for "harder" progression
+            // This defines how much XP is needed to reach the next level.
             if (level === 1) {
                 xpToNextLevel = 500;
             } else if (level <= 5) {
@@ -2255,9 +2284,10 @@
             } else if (level <= 500) {
                 xpToNextLevel = (((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (50 - 20) * 5000) + (100 - 50) * 5000) + (level - 100) * 10000;
             } else {
-                xpToNextLevel = 10000000;
+                xpToNextLevel = 10000000; // Very high XP for levels beyond 500
             }
 
+            // Find specific level data or generate generic tier names
             const specificLevel = levelData.find(l => l.level === level);
             if (specificLevel) {
                 name = specificLevel.name;
@@ -2265,6 +2295,7 @@
                 jCoinReward = specificLevel.jCoinReward;
                 timeEstimate = specificLevel.timeEstimate;
             } else if (level > 30 && level <= 500) {
+                // Tiered naming for higher levels
                 const tierNames = [
                     "Adept", "Master", "Grandmaster", "Exalted", "Ascendant",
                     "Divine", "Apex", "Cosmic", "Ethereal", "Legendary",
@@ -2282,15 +2313,15 @@
                 ];
 
                 const baseLevelForTier = 30;
-                const levelsPerTierName = 10;
-                const levelsPerTierIcon = 10;
+                const levelsPerTierName = 10; // How many levels share the same tier name
+                const levelsPerTierIcon = 10; // How many levels share the same tier icon
 
                 const tierNameIndex = Math.floor((level - (baseLevelForTier + 1)) / levelsPerTierName);
                 const tierIconIndex = Math.floor((level - (baseLevelForTier + 1)) / levelsPerTierIcon);
 
                 name = `${tierNames[tierNameIndex % tierNames.length]} Lv. ${level}`;
                 icon = tierIcons[tierIconIndex % tierIcons.length];
-                jCoinReward = 1500 + (level - 30) * 100;
+                jCoinReward = 1500 + (level - 30) * 100; // JCoin reward increases with level
             } else if (level > 500) {
                 name = `Master Lv. ${level}`;
                 icon = "fas fa-star";
@@ -2314,11 +2345,12 @@
         // --- NEW: Pending Activity Reward Creation Function ---
         /**
          * Creates a pending activity reward document for admin review.
+         * This system allows for manual approval of XP/JCoin rewards, preventing abuse.
          * @param {string} userId - The ID of the user who performed the activity.
          * @param {string} username - The username of the user.
          * @param {string} activityType - The type of activity (e.g., 'daily_login', 'react_like', 'post_comment', 'post_creation', 'post_deletion').
-         * @param {number} suggestedXpReward - The suggested XP amount to award.
-         * @param {number} suggestedJCoinReward - The suggested JCoin amount to award.
+         * @param {number} suggestedXpReward - The suggested XP amount to award (can be negative for deductions).
+         * @param {number} suggestedJCoinReward - The suggested JCoin amount to award (can be negative for deductions).
          * @param {string} [activityId=null] - Optional: ID of the specific activity (e.g., commentId, reactionId).
          * @param {string} [postId=null] - Optional: ID of the post related to the activity.
          */
@@ -2354,7 +2386,12 @@
 
 
         // --- Daily Login Bonus Logic ---
+        /**
+         * Updates the countdown timer and state of the daily bonus button.
+         * This function is called every second by an interval.
+         */
         function updateDailyBonusCountdown() {
+            // If user or profile data is not available, stop the timer and disable the button.
             if (!currentUserProfileData || !claimDailyBonusButton) {
                 if (dailyBonusCountdownInterval) {
                     clearInterval(dailyBonusCountdownInterval);
@@ -2364,11 +2401,12 @@
             }
 
             const now = new Date();
+            // Convert Firestore Timestamp to Date object if it exists.
             const lastClaimedTimestamp = currentUserProfileData.lastLoginBonusClaimed ?
                 currentUserProfileData.lastLoginBonusClaimed.toDate() : null;
 
+            // If no previous claim, enable the button immediately.
             if (!lastClaimedTimestamp) {
-                // No previous claim, button should be enabled
                 claimDailyBonusButton.disabled = false;
                 claimDailyBonusButton.querySelector('.button-text').textContent = "Claim Daily Bonus";
                 if (dailyBonusCountdownInterval) {
@@ -2378,11 +2416,12 @@
                 return;
             }
 
+            // Calculate the next available claim time (24 hours after last claim).
             const nextClaimTime = new Date(lastClaimedTimestamp.getTime() + (24 * 60 * 60 * 1000));
             const timeLeft = nextClaimTime.getTime() - now.getTime();
 
             if (timeLeft <= 0) {
-                // Time is up, enable button
+                // If cooldown is over, enable the button.
                 claimDailyBonusButton.disabled = false;
                 claimDailyBonusButton.querySelector('.button-text').textContent = "Claim Daily Bonus";
                 if (dailyBonusCountdownInterval) {
@@ -2390,7 +2429,7 @@
                     dailyBonusCountdownInterval = null;
                 }
             } else {
-                // Still in cooldown, display countdown
+                // If still in cooldown, display the countdown.
                 claimDailyBonusButton.disabled = true;
                 const hours = Math.floor(timeLeft / (1000 * 60 * 60));
                 const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
@@ -2399,9 +2438,13 @@
             }
         }
 
+        /**
+         * Checks the daily bonus status and starts/stops the countdown timer.
+         * This is called on auth state change and after claiming a bonus.
+         */
         async function checkAndStartDailyBonusTimer() {
+            // Disable button and clear timer if not authenticated or profile not loaded.
             if (!currentUser || !currentUserProfileData) {
-                // If not logged in or profile not loaded, ensure button is disabled and timer is off.
                 if (claimDailyBonusButton) {
                     claimDailyBonusButton.disabled = true;
                     claimDailyBonusButton.querySelector('.button-text').textContent = "Login to Claim Bonus";
@@ -2413,22 +2456,27 @@
                 return;
             }
 
-            // Initial update
+            // Perform an initial update to set the correct state immediately.
             updateDailyBonusCountdown();
 
-            // Clear any existing interval before setting a new one
+            // Clear any existing interval before setting a new one to prevent duplicates.
             if (dailyBonusCountdownInterval) {
                 clearInterval(dailyBonusCountdownInterval);
             }
 
-            // Start interval only if the button is currently disabled (meaning there's a countdown)
+            // Start the interval only if the button is currently disabled (meaning there's an active cooldown).
             if (claimDailyBonusButton && claimDailyBonusButton.disabled) {
                 dailyBonusCountdownInterval = setInterval(updateDailyBonusCountdown, 1000); // Update every second
             }
         }
 
 
+        /**
+         * Handles the click event for claiming the daily bonus.
+         * Checks cooldown, updates Firestore, and creates a pending reward.
+         */
         async function handleClaimDailyBonusClick() {
+            // Pre-checks for authentication and profile data.
             if (!isAuthReady || !currentUser || !currentUserProfileData) {
                 showMessageBox("Please log in to claim daily bonus.", 'error');
                 return;
@@ -2438,6 +2486,7 @@
             const lastClaimedTimestamp = currentUserProfileData.lastLoginBonusClaimed ?
                 currentUserProfileData.lastLoginBonusClaimed.toDate() : null;
 
+            // Check if the bonus has already been claimed within the last 24 hours.
             if (lastClaimedTimestamp) {
                 const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
                 if (lastClaimedTimestamp > twentyFourHoursAgo) {
@@ -2446,19 +2495,20 @@
                 }
             }
 
+            // Show loading state for the button and message box.
             toggleButtonLoading(claimDailyBonusButton, true);
             showMessageBox("Claiming daily bonus...", 'loading', true);
 
             try {
                 const userProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
 
-                // Update only the lastLoginBonusClaimed timestamp
+                // Update the lastLoginBonusClaimed timestamp in the user's private profile.
                 await updateDoc(userProfileDocRef, {
                     lastLoginBonusClaimed: serverTimestamp(),
                     updatedAt: serverTimestamp()
                 });
 
-                // Instead of directly updating JCoins/Gas, create a pending reward for admin review
+                // Create a pending reward for admin review instead of directly awarding.
                 await createPendingActivityReward(
                     currentUser.uid,
                     currentUserProfileData.username,
@@ -2470,25 +2520,26 @@
                 showMessageBox(`Daily bonus claimed! 10 XP and 3 JCoins are pending admin review.`, 'success');
                 playNotificationSound('success');
 
-                // Update local profile data immediately for UI consistency for the timer
+                // Update local profile data immediately for UI consistency (especially for the timer).
                 currentUserProfileData.lastLoginBonusClaimed = { toDate: () => new Date() };
-                checkAndStartDailyBonusTimer(); // Re-check status and start/stop timer
+                checkAndStartDailyBonusTimer(); // Re-evaluate status and start/stop timer.
             } catch (error) {
                 console.error("JCHAT_ERROR: Error claiming daily bonus:", error);
                 showMessageBox(`Failed to claim bonus: ${error.message}`, 'error');
                 playNotificationSound('error');
             } finally {
-                toggleButtonLoading(claimDailyBonusButton, false);
+                toggleButtonLoading(claimDailyBonusButton, false); // Revert button loading state.
             }
         }
 
         // --- Tone.js Synths for Notification Sounds ---
+        // Initialize various synths for different notification types.
         const successSynth = new Tone.Synth().toDestination();
         const errorSynth = new Tone.Synth().toDestination();
         const infoSynth = new Tone.Synth().toDestination();
         const ringingSynth = new Tone.Synth().toDestination(); // For incoming call ring
 
-        // Set up basic sounds
+        // Configure basic sound properties for each synth.
         successSynth.oscillator.type = "sine";
         successSynth.envelope.attack = 0.01;
         successSynth.envelope.decay = 0.2;
@@ -2507,7 +2558,7 @@
         infoSynth.envelope.sustain = 0.0;
         infoSynth.envelope.release = 0.3;
 
-        // Ringing sound (similar to a phone ring)
+        // Ringing sound (similar to a phone ring) pattern setup.
         ringingSynth.oscillator.type = "square";
         ringingSynth.envelope.attack = 0.01;
         ringingSynth.envelope.decay = 0.6;
@@ -2516,18 +2567,18 @@
         const ringingPattern = new Tone.Pattern(function(time, note){
             ringingSynth.triggerAttackRelease(note, "8n", time);
         }, ["C5", "C5", "C5", "C5"]).start(0);
-        ringingPattern.interval = "1s"; // Adjust interval for ringing pattern
+        ringingPattern.interval = "1s"; // Adjust interval for ringing pattern.
         ringingPattern.humanize = true;
         ringingPattern.playbackRate = 1;
         ringingPattern.loop = true;
-        ringingPattern.autostart = false; // Will start manually
+        ringingPattern.autostart = false; // Will be started manually.
 
         /**
-         * Plays a notification sound.
+         * Plays a notification sound based on type.
          * @param {string} type - 'success', 'error', or 'info'.
          */
         function playNotificationSound(type) {
-            Tone.start();
+            Tone.start(); // Ensure audio context is started.
             if (type === 'success') {
                 successSynth.triggerAttackRelease("C5", "8n");
             } else if (type === 'error') {
@@ -2538,7 +2589,7 @@
         }
 
         /**
-         * Starts the ringing sound.
+         * Starts the ringing sound for incoming calls.
          */
         function startRingingSound() {
             Tone.start();
@@ -2553,25 +2604,34 @@
         }
 
         // --- Utility Functions ---
+        /**
+         * Displays a custom message box with a given message, type, and persistence.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success', 'error', 'info', 'warning', or 'loading'.
+         * @param {boolean} isPersistent - If true, the message box will not auto-hide.
+         */
         function showMessageBox(message, type, isPersistent = false) {
             if (!messageBox) {
                 console.error("JCHAT_ERROR: messageBox element not found.");
                 return;
             }
+            // Clear any existing auto-hide timeout.
             if (messageBox.timeoutId) {
                 clearTimeout(messageBox.timeoutId);
             }
 
+            // Set inner HTML with icon and text elements.
             messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
             const messageBoxIcon = document.getElementById('messageBoxIcon');
             const messageBoxText = document.getElementById('messageBoxText');
 
             messageBoxText.textContent = message;
-            messageBox.className = 'message-box show ' + type; // Add type class for styling
+            // Apply CSS classes for styling and visibility.
+            messageBox.className = 'message-box show ' + type;
 
-            // Set icon based on type
+            // Set icon based on message type.
             if (messageBoxIcon) {
-                messageBoxIcon.className = ''; // Clear existing classes
+                messageBoxIcon.className = ''; // Clear existing classes.
                 if (type === 'success') {
                     messageBoxIcon.classList.add('fas', 'fa-check-circle');
                 } else if (type === 'error') {
@@ -2581,20 +2641,22 @@
                 } else if (type === 'warning') {
                     messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
                 } else if (type === 'loading') {
-                    messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); // Spinner for loading
+                    messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); // Spinner for loading.
                 }
             }
 
-
+            // Apply pulsing animation for loading messages.
             if (type === 'loading') {
                 messageBox.classList.add('loading-pulse');
             } else {
                 messageBox.classList.remove('loading-pulse');
             }
 
+            // Make the message box visible.
             messageBox.style.display = 'flex';
             messageBox.style.opacity = '1';
 
+            // Set auto-hide timeout if not persistent.
             if (!isPersistent) {
                 messageBox.timeoutId = setTimeout(() => {
                     messageBox.style.opacity = '0';
@@ -2607,73 +2669,103 @@
             }
         }
 
+        /**
+         * Displays a confirmation modal and returns a Promise that resolves to true if confirmed, false otherwise.
+         * @param {string} title - The title of the confirmation modal.
+         * @param {string} message - The message to display in the confirmation modal.
+         * @returns {Promise<boolean>}
+         */
         function showConfirmationModal(title, message) {
             return new Promise((resolve) => {
+                // Check if all necessary modal elements exist.
                 if (!confirmationTitle || !confirmationMessage || !confirmationModal || !confirmProceedButton || !confirmCancelButton) {
                     console.error("JCHAT_ERROR: Confirmation modal elements not found.");
-                    resolve(false); // Resolve false if elements are missing
+                    resolve(false); // Resolve false if elements are missing.
                     return;
                 }
 
                 confirmationTitle.textContent = title;
                 confirmationMessage.textContent = message;
-                confirmationModal.classList.add('active');
+                confirmationModal.classList.add('active'); // Show the modal.
 
+                // Event handler for confirming the action.
                 const handleConfirm = () => {
-                    confirmationModal.classList.remove('active');
+                    confirmationModal.classList.remove('active'); // Hide modal.
+                    // Remove event listeners to prevent memory leaks and duplicate calls.
                     confirmProceedButton.removeEventListener('click', handleConfirm);
                     confirmCancelButton.removeEventListener('click', handleCancel);
-                    resolve(true);
+                    resolve(true); // Resolve with true (confirmed).
                 };
 
+                // Event handler for canceling the action.
                 const handleCancel = () => {
-                    confirmationModal.classList.remove('active');
+                    confirmationModal.classList.remove('active'); // Hide modal.
+                    // Remove event listeners.
                     confirmProceedButton.removeEventListener('click', handleConfirm);
                     confirmCancelButton.removeEventListener('click', handleCancel);
-                    resolve(false);
+                    resolve(false); // Resolve with false (canceled).
                 };
 
+                // Attach event listeners to buttons.
                 confirmProceedButton.addEventListener('click', handleConfirm);
                 confirmCancelButton.addEventListener('click', handleCancel);
 
+                // Close modal if clicking outside the content area.
                 confirmationModal.addEventListener('click', function outsideClickListener(event) {
                     if (event.target === confirmationModal) {
-                        handleCancel();
+                        handleCancel(); // Treat outside click as a cancel.
                         confirmationModal.removeEventListener('click', outsideClickListener);
                     }
                 });
             });
         }
 
+        /**
+         * Generates a Cloudinary image URL with specified transformations.
+         * Handles both public IDs and existing Cloudinary URLs.
+         * @param {string} urlOrPublicId - The Cloudinary public ID or an existing Cloudinary URL.
+         * @param {string} transformations - Cloudinary transformation string (e.g., "w_auto,f_auto,q_auto").
+         * @returns {string|null} The transformed Cloudinary URL or null if input is invalid.
+         */
         function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
             if (!urlOrPublicId) return null;
             if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
-                // If it's already a full URL, ensure it's a Cloudinary URL before transforming
+                // If it's already a full URL, ensure it's a Cloudinary URL before transforming.
                 if (urlOrPublicId.includes('res.cloudinary.com')) {
-                    // This is a basic attempt to insert transformations into an existing Cloudinary URL
-                    // More robust parsing might be needed for complex existing URLs
+                    // This is a basic attempt to insert transformations into an existing Cloudinary URL.
+                    // More robust parsing might be needed for complex existing URLs.
                     const parts = urlOrPublicId.split('/upload/');
                     if (parts.length === 2) {
-                        // Check if transformations are already present to avoid duplication
+                        // Check if transformations are already present to avoid duplication.
                         const currentTransformations = parts[1].split('/')[0];
-                        if (currentTransformations.includes(transformations.split(',')[0])) { // Simple check if first part of transformation is there
-                            return urlOrPublicId; // Assume already transformed
+                        if (currentTransformations.includes(transformations.split(',')[0])) {
+                            return urlOrPublicId; // Assume already transformed.
                         }
                         return `${parts[0]}/upload/${transformations}/${parts[1]}`;
                     }
                 }
-                return urlOrPublicId; // Return as is if not a recognizable Cloudinary URL or already transformed
+                return urlOrPublicId; // Return as is if not a recognizable Cloudinary URL or already transformed.
             }
+            // Construct URL from public ID.
             return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
         }
 
+        /**
+         * Displays a profile picture or a placeholder icon based on the provided profilePicId.
+         * @param {HTMLImageElement} imgElement - The <img> element to display the picture.
+         * @param {HTMLElement} iconElement - The <i> element to display the placeholder icon.
+         * @param {string|null} profilePicId - The Cloudinary public ID of the profile picture, or null.
+         * @param {string} usernameInitial - The first letter of the username for the placeholder.
+         * @param {string} transformations - Cloudinary transformation string for the image.
+         */
         function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
             if (imgElement && iconElement) {
                 if (profilePicId) {
                     const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
                     imgElement.src = imageUrl;
-                    imgElement.style.display = 'block';
-                    iconElement.style.display = 'none';
+                    imgElement.style.display = 'block'; // Show image.
+                    iconElement.style.display = 'none'; // Hide icon.
+                    // Fallback for image loading errors.
                     imgElement.onerror = () => {
                         console.error(`Failed to load profile picture: ${profilePicId}. Using placeholder.`);
                         imgElement.src = `https://placehold.co/120x120/CCCCCC/000000?text=${usernameInitial}`;
@@ -2682,12 +2774,20 @@
                     };
                 } else {
                     imgElement.src = '';
-                    imgElement.style.display = 'none';
-                    iconElement.style.display = 'block';
+                    imgElement.style.display = 'none'; // Hide image.
+                    iconElement.style.display = 'block'; // Show icon.
                 }
             }
         }
 
+        /**
+         * Resizes an image file using a canvas and returns it as a Blob.
+         * @param {File} file - The image file to resize.
+         * @param {number} maxWidth - Maximum width for the resized image.
+         * @param {number} maxHeight - Maximum height for the resized image.
+         * @param {number} quality - JPEG quality (0.0 to 1.0).
+         * @returns {Promise<Blob>} A Promise that resolves with the resized image Blob.
+         */
         function resizeImage(file, maxWidth = 800, maxHeight = 800, quality = 0.8) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -2698,6 +2798,7 @@
                         let width = img.width;
                         let height = img.height;
 
+                        // Calculate new dimensions to fit within maxWidth/maxHeight while maintaining aspect ratio.
                         if (width > maxWidth) {
                             height = height * (maxWidth / width);
                             width = maxWidth;
@@ -2713,6 +2814,7 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
+                        // Convert canvas content to a Blob.
                         canvas.toBlob((blob) => {
                             if (blob) {
                                 resolve(blob);
@@ -2740,6 +2842,11 @@
             });
         }
 
+        /**
+         * Uploads a media file (image or video) to Cloudinary.
+         * @param {File|Blob} file - The file to upload.
+         * @returns {Promise<string|null>} The secure URL of the uploaded media, or null if upload fails.
+         */
         async function uploadMediaToCloudinary(file) {
             try {
                 const formData = new FormData();
@@ -2767,35 +2874,49 @@
             }
         }
 
+        /**
+         * Applies the selected theme to the document body.
+         * @param {string} themeName - The CSS class name for the theme (e.g., 'theme-dark-mode').
+         */
         function applyTheme(themeName) {
-            document.body.classList.remove(...themes);
-            document.body.classList.add(themeName);
-            localStorage.setItem('jchat-theme', themeName);
+            document.body.classList.remove(...themes); // Remove all existing theme classes.
+            document.body.classList.add(themeName); // Add the new theme class.
+            localStorage.setItem('jchat-theme', themeName); // Save theme preference to local storage.
         }
 
+        /**
+         * Toggles the loading state of a button, showing/hiding a spinner.
+         * @param {HTMLButtonElement} buttonElement - The button element to toggle.
+         * @param {boolean} isLoading - True to show loading state, false to hide.
+         */
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
             const loader = buttonElement.querySelector('.button-loader');
             const text = buttonElement.querySelector('.button-text');
 
             if (isLoading) {
-                buttonElement.disabled = true;
+                buttonElement.disabled = true; // Disable button during loading.
                 buttonElement.classList.add('loading');
                 if (loader) loader.classList.add('active');
                 if (text) text.style.display = 'none';
             } else {
-                buttonElement.disabled = false;
+                buttonElement.disabled = false; // Re-enable button.
                 buttonElement.classList.remove('loading');
                 if (loader) loader.classList.remove('active');
                 if (text) text.style.display = 'block';
             }
         }
 
-        // NEW: Function to enable/disable all interactive elements
-        function toggleInteractiveElements(enable, isCurrentUserAdmin = false) { // Added isCurrentUserAdmin
+        /**
+         * Enables or disables all interactive elements on the page based on a global state.
+         * This is primarily used for maintenance mode or initial loading.
+         * @param {boolean} enable - True to enable, false to disable.
+         * @param {boolean} isCurrentUserAdmin - True if the current user is an admin (allows bypass for some features).
+         */
+        function toggleInteractiveElements(enable, isCurrentUserAdmin = false) {
             console.log(`JCHAT_DEBUG: toggleInteractiveElements called with enable: ${enable}, isAdmin: ${isCurrentUserAdmin}`);
 
-            // If enabling, and it's an admin, we want to ensure everything is truly enabled
+            // If enabling, and it's an admin, we want to ensure everything is truly enabled.
             // Otherwise, apply the 'enable' state universally.
             const finalEnableState = enable || isCurrentUserAdmin; // If enable is true, or if it's an admin, enable.
 
@@ -2807,7 +2928,8 @@
             if (postMediaUpload) postMediaUpload.disabled = !finalEnableState;
             if (createPostButton) createPostButton.disabled = !finalEnableState;
 
-            // Dynamically created elements (posts, comments) - these will be refined by applySystemSettings later
+            // Dynamically created elements (posts, comments) - these will be refined by applySystemSettings later.
+            // These are selected globally and then their disabled state is set.
             document.querySelectorAll('.comment-input').forEach(input => {
                 input.disabled = !finalEnableState;
             });
@@ -2845,7 +2967,7 @@
             if (confirmCancelButton) confirmCancelButton.disabled = !finalEnableState;
             if (confirmProceedButton) confirmProceedButton.disabled = !finalEnableState;
 
-            // Sidebar links (pointer-events and opacity, as they are not 'disabled' attributes)
+            // Sidebar links (pointer-events and opacity, as they are not 'disabled' attributes).
             // These will be further refined by applySystemSettings for specific toggles.
             if (chatLink) {
                 chatLink.style.pointerEvents = finalEnableState ? 'auto' : 'none';
@@ -2868,17 +2990,19 @@
                 jcoinShopLink.style.opacity = finalEnableState ? '1' : '0.5';
             }
 
-            // NEW: Guide link - also controlled by global enable state
+            // Guide link - also controlled by global enable state.
             const guideLink = document.querySelector('.sidebar-nav-item[href="/guide.html"]');
             if (guideLink) {
                 guideLink.style.pointerEvents = finalEnableState ? 'auto' : 'none';
                 guideLink.style.opacity = finalEnableState ? '1' : '0.5';
             }
 
-
             console.log(`JCHAT_DEBUG: Finished toggling interactive elements. Post content input disabled state: ${postContentInput ? postContentInput.disabled : 'N/A (element not found)'}`);
         }
 
+        /**
+         * Handles user logout, signs out from Firebase, updates inCall status, and redirects.
+         */
         async function handleLogout() {
             if (!isAuthReady || !currentUser) {
                 showMessageBox("Not ready to log out or no user found.", 'info');
@@ -2886,19 +3010,20 @@
             }
 
             try {
-                // Set user's inCall status to false on logout
+                // Set user's inCall status to false in public profile on logout.
                 if (currentUser && currentUserProfileData) {
                     const userPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
                     await updateDoc(userPublicProfileRef, { inCall: false }).catch(e => console.error("Failed to update inCall status on logout:", e));
                 }
 
-                // End any active WebRTC call
+                // End any active WebRTC call before logging out.
                 if (callState !== 'idle') {
-                    await endCall(false); // End call without updating Firestore status to avoid conflicts during logout
+                    await endCall(false); // End call without updating Firestore status to avoid conflicts during logout.
                 }
 
-                await signOut(auth);
+                await signOut(auth); // Sign out from Firebase.
                 showMessageBox("Logged out successfully! 👋", 'success');
+                // Redirect to login page after a short delay.
                 setTimeout(() => {
                     window.location.href = '/login.html';
                 }, 1500);
@@ -2909,6 +3034,12 @@
             }
         }
 
+        /**
+         * Updates the profile picture URL for all posts authored by a specific user.
+         * This ensures consistency across the feed when a user changes their profile picture.
+         * @param {string} userId - The ID of the user whose posts need updating.
+         * @param {string} newProfilePicId - The new Cloudinary public ID for the profile picture.
+         */
         async function updatePostsWithNewProfilePic(userId, newProfilePicId) {
             if (!isAuthReady) return;
             try {
@@ -2917,12 +3048,12 @@
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
-                    const batch = writeBatch(db);
+                    const batch = writeBatch(db); // Use a batch write for efficiency.
                     querySnapshot.forEach(docSnap => {
                         const postRef = doc(db, "artifacts", appId, "public", "data", "posts", docSnap.id);
                         batch.update(postRef, { profilePhoto: newProfilePicId });
                     });
-                    await batch.commit();
+                    await batch.commit(); // Commit all batched updates.
                     console.log(`JCHAT_DEBUG: Updated profile picture for ${querySnapshot.size} posts by user ${userId}.`);
                 }
             } catch (error) {
@@ -2930,6 +3061,12 @@
             }
         }
 
+        /**
+         * Fetches and displays the current user's profile information in the header.
+         * Creates a new profile if one doesn't exist.
+         * Also syncs public profile data and updates posts if profile pic changes.
+         * @param {object} user - The Firebase user object.
+         */
         async function fetchAndDisplayHeaderProfile(user) {
             console.log("JCHAT_DEBUG: Entering fetchAndDisplayHeaderProfile for user:", user.uid);
             try {
@@ -2945,6 +3082,7 @@
                     oldProfilePicId = profileData.profilePicId;
                     console.log("JCHAT_DEBUG: Fetched existing private profile data:", profileData);
                 } else {
+                    // Create a new default profile if one doesn't exist.
                     profileData = {
                         username: user.displayName || `User_${user.uid.substring(0, 8)}`,
                         email: user.email || "",
@@ -2974,7 +3112,7 @@
                     console.log("JCHAT_DEBUG: Created new private profile data:", profileData);
                 }
 
-                // Ensure new fields are present if they were added after initial profile creation
+                // Ensure new fields are present if they were added after initial profile creation (for existing users).
                 const updates = {};
                 if (profileData.gas === undefined) updates.gas = 0;
                 if (profileData.level === undefined) updates.level = 1;
@@ -2989,52 +3127,51 @@
                 if (Object.keys(updates).length > 0) {
                     await updateDoc(privateProfileDocRef, updates);
                     const updatedSnap = await getDoc(privateProfileDocRef);
-                    profileData = updatedSnap.data(); // Get the latest data after update
+                    profileData = updatedSnap.data(); // Get the latest data after update.
                     console.log("JCHAT_DEBUG: Updated private profile with new fields:", updates);
                 }
 
-                currentUserProfileData = profileData;
+                currentUserProfileData = profileData; // Store the fetched/updated profile data globally.
 
-                // For public profile, only include genuinely public fields and handle createdAt
+                // For public profile, only include genuinely public fields and handle createdAt.
                 const publicProfileUpdates = {
                     username: profileData.username,
                     profilePicId: profileData.profilePicId,
                     userId: user.uid,
-                    totalPosts: profileData.totalPosts, // Ensure totalPosts is synced
-                    visibility: profileData.visibility, // Ensure visibility is synced
+                    totalPosts: profileData.totalPosts, // Ensure totalPosts is synced.
+                    visibility: profileData.visibility, // Ensure visibility is synced.
                     updatedAt: serverTimestamp(),
-                    inCall: profileData.inCall, // Sync inCall status to public profile
+                    inCall: profileData.inCall, // Sync inCall status to public profile.
                 };
-                // Only explicitly set createdAt if the public profile document does NOT exist
+                // Only explicitly set createdAt if the public profile document does NOT exist.
                 const publicDocSnap = await getDoc(publicProfileDocRef);
                 if (!publicDocSnap.exists()) {
                     publicProfileUpdates.createdAt = serverTimestamp();
                 }
-                await setDoc(publicProfileDocRef, publicProfileUpdates, { merge: true });
+                await setDoc(publicProfileDocRef, publicProfileUpdates, { merge: true }); // Use merge to avoid overwriting.
                 console.log("JCHAT_DEBUG: Updated public profile summary:", publicProfileUpdates);
 
 
                 const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
-                // Update header UI for profile picture and display name
+                // Update header UI for profile picture and display name.
                 if (headerProfilePic && headerAvatarIcon && headerDisplayName) {
                     displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
                     headerDisplayName.textContent = profileData.username || "JCHAT User";
                 }
 
-                // Ensure profile link is correct
+                // Ensure profile link is correct.
                 if (profileLink) profileLink.href = `/profile.html?userId=${user.uid}`;
 
-
+                // If profile picture has changed, update all posts by this user.
                 if (oldProfilePicId !== profileData.profilePicId) {
                     await updatePostsWithNewProfilePic(user.uid, profileData.profilePicId);
                 }
 
+                // Start displaying daily inspiration based on user's preference.
                 startInspirationDisplay(currentUserProfileData.inspirationType || "motivational");
-                await fetchNotificationCount(user.uid);
-                // toggleInteractiveElements(true); // This will be handled by applySystemSettings now
-                console.log(`JCHAT_DEBUG: isAuthReady set to true. Post content input disabled state: ${postContentInput ? postContentInput.disabled : 'N/A (element not found)'}`);
+                await fetchNotificationCount(user.uid); // Fetch unread notification count.
 
-
+                // Display admin icon if the current user is the admin.
                 if (adminIconLink) {
                     if (user.uid === ADMIN_UID) {
                         adminIconLink.style.display = 'block';
@@ -3049,6 +3186,7 @@
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching or creating profile for header:", error);
+                // Fallback UI update in case of error.
                 const usernameInitial = (user.displayName || "J").charAt(0).toUpperCase();
                 if (headerProfilePic && headerAvatarIcon && headerDisplayName) {
                     displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
@@ -3060,6 +3198,10 @@
             }
         }
 
+        /**
+         * Fetches the count of unread notifications for the current user.
+         * @param {string} userId - The ID of the current user.
+         */
         async function fetchNotificationCount(userId) {
             if (!isAuthReady) return;
             try {
@@ -3071,9 +3213,9 @@
                 if (notificationCountElement) {
                     if (unreadCount > 0) {
                         notificationCountElement.textContent = unreadCount;
-                        notificationCountElement.style.display = 'flex';
+                        notificationCountElement.style.display = 'flex'; // Show badge.
                     } else {
-                        notificationCountElement.style.display = 'none';
+                        notificationCountElement.style.display = 'none'; // Hide badge.
                     }
                 }
             }
@@ -3084,48 +3226,68 @@
         }
 
         // --- Inspiration Quotes Display (No LLM) ---
-        // This function now only retrieves a random quote from the local inspirationalQuotes data.
+        /**
+         * Retrieves a random quote from the local inspirationalQuotes data based on type.
+         * @param {string} type - The category of inspiration (e.g., "motivational").
+         * @returns {object} A quote object with 'quote' and 'author' properties.
+         */
         function getRandomQuote(type = "motivational") {
-            const quotesOfType = inspirationalQuotes[type] || inspirationalQuotes.motivational;
+            const quotesOfType = inspirationalQuotes[type] || inspirationalQuotes.motivational; // Fallback to motivational.
             const randomIndex = Math.floor(Math.random() * quotesOfType.length);
             return quotesOfType[randomIndex];
         }
 
-        // This function now simply displays the randomly selected quote.
+        /**
+         * Displays a randomly selected inspiration quote on the page.
+         */
         async function displayInspiration() {
             const currentType = currentUserProfileData?.inspirationType || "motivational";
-            const quoteData = getRandomQuote(currentType); // Directly use local quotes
+            const quoteData = getRandomQuote(currentType); // Directly use local quotes.
             if (inspirationQuoteElement) inspirationQuoteElement.textContent = `"${quoteData.quote}"`;
             if (inspirationAuthorElement) inspirationAuthorElement.textContent = `- ${quoteData.author}`;
         }
 
+        /**
+         * Starts the interval for displaying new inspiration quotes periodically.
+         * @param {string} type - The inspiration type to display.
+         */
         function startInspirationDisplay(type) {
             if (inspirationIntervalId) {
-                clearInterval(inspirationIntervalId);
+                clearInterval(inspirationIntervalId); // Clear any existing interval.
             }
             if (currentUserProfileData) {
-                currentUserProfileData.inspirationType = type;
+                currentUserProfileData.inspirationType = type; // Update local profile data.
             }
-            displayInspiration(); // Initial display
-            inspirationIntervalId = setInterval(displayInspiration, 3 * 60 * 1000); // Every 3 minutes
+            displayInspiration(); // Display initial quote immediately.
+            inspirationIntervalId = setInterval(displayInspiration, 3 * 60 * 1000); // Refresh every 3 minutes.
         }
 
+        /**
+         * Opens the customization modal for daily inspiration.
+         */
         function openCustomizeModal() {
             if (!isAuthReady) {
                 showMessageBox("Please log in to customize inspiration.", 'error');
                 return;
             }
             const currentType = currentUserProfileData?.inspirationType || "motivational";
+            // Set the radio button corresponding to the current inspiration type.
             inspirationTypeRadios.forEach(radio => {
                 radio.checked = (radio.value === currentType);
             });
-            if (customizeInspirationModal) customizeInspirationModal.classList.add('active');
+            if (customizeInspirationModal) customizeInspirationModal.classList.add('active'); // Show modal.
         }
 
+        /**
+         * Closes the customization modal.
+         */
         function closeCustomizeModal() {
             if (customizeInspirationModal) customizeInspirationModal.classList.remove('active');
         }
 
+        /**
+         * Saves the selected inspiration type to Firestore.
+         */
         async function saveInspirationType() {
             if (!isAuthReady || !currentUser) {
                 showMessageBox("You must be logged in to save settings.", 'error');
@@ -3146,9 +3308,9 @@
                     updatedAt: serverTimestamp()
                 });
                 if (currentUserProfileData) {
-                    currentUserProfileData.inspirationType = newType;
+                    currentUserProfileData.inspirationType = newType; // Update local state.
                 }
-                startInspirationDisplay(newType);
+                startInspirationDisplay(newType); // Restart inspiration display with new type.
                 showMessageBox("Inspiration type saved!", 'success');
                 closeCustomizeModal();
             } catch (error) {
@@ -3157,10 +3319,12 @@
             }
         }
 
+        // Event listener for post media upload input.
         if (postMediaUpload) {
             postMediaUpload.addEventListener('change', (event) => {
                 const file = event.target.files[0];
-                currentMediaFile = file;
+                currentMediaFile = file; // Store the selected file.
+                // Reset previews.
                 if (mediaImagePreview) mediaImagePreview.style.display = 'none';
                 if (mediaVideoPreview) mediaVideoPreview.style.display = 'none';
                 if (mediaImagePreview) mediaImagePreview.src = '';
@@ -3181,19 +3345,23 @@
                             }
                         }
                     };
-                    reader.readAsDataURL(file);
+                    reader.readAsDataURL(file); // Read file as Data URL for preview.
                 }
             });
         }
 
+        /**
+         * Creates a new post with content and optional media.
+         * Handles media upload, Firestore transaction, and pending reward creation.
+         */
         async function createNewPost() {
             if (!isAuthReady || !currentUser || !currentUserProfileData) {
                 showMessageBox("Please log in to create a post.", 'error');
                 return;
             }
 
-            // NEW: Check if post creation is enabled by system settings
-            if (!currentSystemSettings.enablePostCreation) {
+            // Check if post creation is enabled by system settings (unless current user is admin).
+            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) {
                 showMessageBox("Post creation is currently disabled by administrators.", 'warning');
                 return;
             }
@@ -3204,8 +3372,8 @@
                 return;
             }
 
-            toggleButtonLoading(createPostButton, true);
-            showMessageBox("Creating post...", 'loading', true);
+            toggleButtonLoading(createPostButton, true); // Show loading spinner.
+            showMessageBox("Creating post...", 'loading', true); // Show persistent loading message.
 
             let mediaUrl = null;
             let mediaType = 'text';
@@ -3214,6 +3382,7 @@
                 if (currentMediaFile) {
                     showMessageBox('Uploading media...', 'loading', true);
                     let fileToUpload = currentMediaFile;
+                    // Resize image files before upload for optimization.
                     if (currentMediaFile.type.startsWith('image/')) {
                         fileToUpload = await resizeImage(currentMediaFile);
                     }
@@ -3222,7 +3391,7 @@
                         mediaType = currentMediaFile.type.startsWith('image/') ? 'image' : 'video';
                         showMessageBox('Media uploaded!', 'success');
                     } else {
-                        throw new Error("Failed to upload media.");
+                        throw new Error("Failed to upload media."); // Throw error if Cloudinary upload fails.
                     }
                 }
 
@@ -3244,52 +3413,32 @@
                     location: {}
                 };
 
-                // No direct update to totalPosts here. This will be handled by admin approval of reward.
-                let postId = null; // To store the ID of the newly created post
+                let postId = null; // To store the ID of the newly created post.
 
+                // Use a Firestore transaction to ensure atomicity for post creation.
                 await runTransaction(db, async (transaction) => {
-                    const privateProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
-                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
-
-                    const privateProfileSnap = await transaction.get(privateProfileDocRef);
-                    const publicProfileSnap = await transaction.get(publicProfileDocRef);
-
-                    // We will NOT update totalPosts here directly. It will be updated upon admin approval.
-                    // const currentPrivatePostsCount = privateProfileSnap.exists() ? (privateProfileSnap.data().totalPosts ?? 0) : 0;
-                    // newTotalPosts = currentPrivatePostsCount + 1;
-
-                    // // Update totalPosts in private profile
-                    // transaction.update(privateProfileDocRef, {
-                    //     totalPosts: newTotalPosts,
-                    //     updatedAt: serverTimestamp(),
-                    // });
-
-                    // // Update totalPosts in public profile
-                    // transaction.update(publicProfileDocRef, {
-                    //     totalPosts: newTotalPosts,
-                    //     updatedAt: serverTimestamp(),
-                    // });
-
+                    // Note: totalPosts update is removed here as it's now handled by admin approval of pending reward.
                     const newPostRef = doc(collection(db, "artifacts", appId, "public", "data", "posts"));
                     transaction.set(newPostRef, postData);
-                    postId = newPostRef.id; // Get the ID of the new post
+                    postId = newPostRef.id; // Get the ID of the new post.
                 });
 
-                // Create a pending reward for post creation
+                // Create a pending reward for post creation for admin review.
                 if (postId) {
                     await createPendingActivityReward(
                         currentUser.uid,
                         currentUserProfileData.username,
                         'post_creation',
-                        20, // Suggested XP for post creation
-                        5,  // Suggested JCoins for post creation
-                        null, // No specific activityId for post creation itself
-                        postId // Link to the created post
+                        20, // Suggested XP for post creation.
+                        5,  // Suggested JCoins for post creation.
+                        null, // No specific activityId for post creation itself.
+                        postId // Link to the created post.
                     );
                 }
 
                 showMessageBox("Post created successfully! 20 XP and 5 JCoins are pending admin review.", 'success', true);
                 playNotificationSound('success');
+                // Clear input fields and previews after successful post creation.
                 postContentInput.value = '';
                 if (postMediaUpload) postMediaUpload.value = '';
                 if (mediaImagePreview) mediaImagePreview.style.display = 'none';
@@ -3303,17 +3452,24 @@
                 showMessageBox(`Failed to create post: ${error.message}`, 'error');
                 playNotificationSound('error');
             } finally {
-                toggleButtonLoading(createPostButton, false);
+                toggleButtonLoading(createPostButton, false); // Hide loading spinner.
             }
         }
 
+        /**
+         * Handles user reactions (like, love, haha) to a post.
+         * Uses a transaction to update reaction counts and user's reaction status.
+         * Creates a pending reward for the reaction.
+         * @param {string} postId - The ID of the post being reacted to.
+         * @param {string} reactionType - The type of reaction ('like', 'love', 'haha').
+         */
         async function handleReaction(postId, reactionType) {
             if (!isAuthReady || !currentUser || !currentUserProfileData) {
                 showMessageBox("You must be logged in to react.", 'error');
                 return;
             }
-            // NEW: Check if public chat/interactions are enabled
-            if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { // Admins can always react
+            // Check if public chat/interactions are enabled by system settings (unless current user is admin).
+            if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) {
                 showMessageBox("Reactions are currently disabled by administrators.", 'warning');
                 return;
             }
@@ -3340,28 +3496,32 @@
                     let serverUserPreviousReaction = userReactionDoc.exists() ? userReactionDoc.data().type : null;
 
                     if (serverUserPreviousReaction === reactionType) {
-                        // User is un-reacting
+                        // User is un-reacting: decrement count, delete user reaction document.
                         serverReactions[reactionType] = Math.max(0, serverReactions[reactionType] - 1);
                         if (reactionType === 'like') serverLikesCount = Math.max(0, serverLikesCount - 1);
                         transaction.delete(userReactionRef);
                         activityType = `unreact_${reactionType}`;
-                        xpReward = -3; // Suggested XP deduction for un-reacting
-                        jCoinReward = -2; // Suggested JCoin deduction for un-reacting
+                        xpReward = -3; // Suggested XP deduction for un-reacting.
+                        jCoinReward = -2; // Suggested JCoin deduction for un-reacting.
                     } else {
-                        // User is reacting or changing reaction
+                        // User is reacting or changing reaction:
+                        // If there was a previous reaction, decrement its count.
                         if (serverUserPreviousReaction) {
                             serverReactions[serverUserPreviousReaction] = Math.max(0, serverReactions[serverUserPreviousReaction] - 1);
                             if (serverUserPreviousReaction === 'like') serverLikesCount = Math.max(0, serverLikesCount - 1);
                         }
+                        // Increment the new reaction type's count.
                         serverReactions[reactionType] = (serverReactions[reactionType] || 0) + 1;
                         if (reactionType === 'like') serverLikesCount = (serverLikesCount || 0) + 1;
 
+                        // Set/update the user's reaction document.
                         transaction.set(userReactionRef, { type: reactionType, userId: currentUser.uid, timestamp: serverTimestamp() });
                         activityType = `react_${reactionType}`;
-                        xpReward = 3; // Suggested XP for reacting
-                        jCoinReward = 2; // Suggested JCoins for reacting
+                        xpReward = 3; // Suggested XP for reacting.
+                        jCoinReward = 2; // Suggested JCoins for reacting.
                     }
 
+                    // Update the post document with new reaction counts.
                     transaction.update(postRef, {
                         reactions: serverReactions,
                         likesCount: serverLikesCount,
@@ -3369,7 +3529,7 @@
                     });
                 });
 
-                // Create a pending reward for reaction (or deduction for un-reaction)
+                // Create a pending reward for the reaction (or deduction for un-reaction).
                 if (xpReward !== 0 || jCoinReward !== 0) {
                     await createPendingActivityReward(
                         currentUser.uid,
@@ -3377,7 +3537,7 @@
                         activityType,
                         xpReward,
                         jCoinReward,
-                        null, // No specific activityId for reaction itself
+                        null, // No specific activityId for reaction itself.
                         postId
                     );
                 }
@@ -3391,13 +3551,20 @@
             }
         }
 
+        /**
+         * Adds a new comment to a post.
+         * Uses a transaction to update comment count on the post.
+         * Creates a pending reward for the comment.
+         * @param {string} postId - The ID of the post to comment on.
+         * @param {string} commentText - The content of the comment.
+         */
         async function addComment(postId, commentText) {
             if (!isAuthReady || !currentUser || !currentUserProfileData) {
                 showMessageBox("You must be logged in to comment.", 'error');
                 return;
             }
-            // NEW: Check if public chat/interactions are enabled
-            if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { // Admins can always comment
+            // Check if public chat/interactions are enabled (unless current user is admin).
+            if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) {
                 showMessageBox("Commenting is currently disabled by administrators.", 'warning');
                 return;
             }
@@ -3418,7 +3585,7 @@
                         throw new Error("Post does not exist.");
                     }
 
-                    const newCommentRef = doc(commentsCollectionRef);
+                    const newCommentRef = doc(commentsCollectionRef); // Create a new document reference for the comment.
                     const newComment = {
                         userId: currentUser.uid,
                         username: currentUserProfileData.username || "JCHAT User",
@@ -3426,25 +3593,25 @@
                         content: commentText.trim(),
                         timestamp: serverTimestamp()
                     };
-                    transaction.set(newCommentRef, newComment);
-                    commentId = newCommentRef.id;
+                    transaction.set(newCommentRef, newComment); // Set the new comment data.
+                    commentId = newCommentRef.id; // Get the ID of the new comment.
 
                     const currentCommentsCount = postDoc.data().commentsCount || 0;
                     transaction.update(postRef, {
-                        commentsCount: currentCommentsCount + 1,
+                        commentsCount: currentCommentsCount + 1, // Increment comments count on the post.
                         updatedAt: serverTimestamp()
                     });
                 });
 
-                // Create a pending reward for comment
+                // Create a pending reward for the comment for admin review.
                 if (commentId) {
                     await createPendingActivityReward(
                         currentUser.uid,
                         currentUserProfileData.username,
                         'post_comment',
-                        2, // Suggested XP for commenting
-                        4,  // Suggested JCoins for commenting
-                        commentId, // Pass commentId as activityId
+                        2, // Suggested XP for commenting.
+                        4,  // Suggested JCoins for commenting.
+                        commentId, // Pass commentId as activityId.
                         postId
                     );
                 }
@@ -3458,17 +3625,28 @@
             }
         }
 
+        /**
+         * Deletes a comment from a post.
+         * Only the comment author or an admin can delete a comment.
+         * Uses a transaction to decrement comment count on the post.
+         * Creates a pending reward for the deletion (negative XP/JCoins).
+         * @param {string} postId - The ID of the post the comment belongs to.
+         * @param {string} commentId - The ID of the comment to delete.
+         * @param {string} commentAuthorId - The ID of the user who authored the comment.
+         */
         async function deleteComment(postId, commentId, commentAuthorId) {
-            if (!isAuthReady || !currentUser || (currentUser.uid !== commentAuthorId && currentUser.uid !== ADMIN_UID)) { // Admin can delete any comment
+            // Check permissions: current user must be the comment author or an admin.
+            if (!isAuthReady || !currentUser || (currentUser.uid !== commentAuthorId && currentUser.uid !== ADMIN_UID)) {
                 showMessageBox("You can only delete your own comments unless you are an admin.", 'error');
                 return;
             }
-            // NEW: Check if public chat/interactions are enabled
-            if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { // Admins can always delete
+            // Check if public chat/interactions are enabled (unless current user is admin).
+            if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) {
                 showMessageBox("Commenting is currently disabled by administrators, so deletion is also restricted.", 'warning');
                 return;
             }
 
+            // Show confirmation modal before proceeding with deletion.
             const confirmed = await showConfirmationModal(
                 "Delete Comment",
                 "Are you sure you want to delete this comment? This action cannot be undone."
@@ -3489,24 +3667,23 @@
                         throw new Error("Post does not exist.");
                     }
 
-                    transaction.delete(commentRef);
+                    transaction.delete(commentRef); // Delete the comment document.
 
                     const currentCommentsCount = postDoc.data().commentsCount || 0;
                     transaction.update(postRef, {
-                        commentsCount: Math.max(0, currentCommentsCount - 1),
+                        commentsCount: Math.max(0, currentCommentsCount - 1), // Decrement comments count.
                         updatedAt: serverTimestamp()
                     });
                 });
 
-                // Create a pending reward for comment deletion (negative XP/JCoins)
+                // Create a pending reward for comment deletion (negative XP/JCoins).
                 await createPendingActivityReward(
-                    commentAuthorId, // The user who originally posted the comment
-                    // Note: username might need to be fetched if not available from commentAuthorId directly
-                    currentUserProfileData.username, // Using current user's username for logging purposes
+                    commentAuthorId, // The user who originally posted the comment.
+                    currentUserProfileData.username, // Using current user's username for logging purposes.
                     'comment_deletion',
-                    -2, // Suggested XP deduction for deleting a comment
-                    -4,  // Suggested JCoin deduction for deleting a comment
-                    commentId, // Pass commentId as activityId
+                    -2, // Suggested XP deduction for deleting a comment.
+                    -4,  // Suggested JCoin deduction for deleting a comment.
+                    commentId, // Pass commentId as activityId.
                     postId
                 );
 
@@ -3519,13 +3696,20 @@
             }
         }
 
+        /**
+         * Opens the edit post modal and populates it with existing post data.
+         * @param {string} postId - The ID of the post to edit.
+         * @param {string} currentContent - The current text content of the post.
+         * @param {string|null} currentMediaUrl - The current media URL of the post.
+         * @param {string} currentMediaType - The current media type of the post ('image', 'video', 'text').
+         */
         function openEditPostModal(postId, currentContent, currentMediaUrl, currentMediaType) {
             if (!isAuthReady || !currentUser) {
                 showMessageBox("You must be logged in to edit posts.", 'error');
                 return;
             }
-            // NEW: Check if post creation (and thus editing) is enabled
-            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { // Admins can always edit
+            // Check if post creation (and thus editing) is enabled (unless current user is admin).
+            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) {
                 showMessageBox("Post editing is currently disabled by administrators.", 'warning');
                 return;
             }
@@ -3534,14 +3718,16 @@
             if (editPostContentInput) editPostContentInput.value = currentContent;
             currentEditMediaUrl = currentMediaUrl;
             currentEditMediaType = currentMediaType;
-            currentEditMediaFile = null;
+            currentEditMediaFile = null; // Clear any previously selected new media file.
 
+            // Reset media previews and remove media button.
             if (editMediaImagePreview) editMediaImagePreview.style.display = 'none';
             if (editMediaVideoPreview) editMediaVideoPreview.style.display = 'none';
             if (editMediaImagePreview) editMediaImagePreview.src = '';
             if (editMediaVideoPreview) editMediaVideoPreview.src = '';
             if (removeEditMediaButton) removeEditMediaButton.style.display = 'none';
 
+            // Display existing media if available.
             if (currentMediaUrl) {
                 if (currentMediaType === 'image') {
                     if (editMediaImagePreview) {
@@ -3554,16 +3740,18 @@
                         editMediaVideoPreview.style.display = 'block';
                     }
                 }
-                if (removeEditMediaButton) removeEditMediaButton.style.display = 'inline-block';
+                if (removeEditMediaButton) removeEditMediaButton.style.display = 'inline-block'; // Show remove media button.
             }
 
-            if (editPostModal) editPostModal.classList.add('active');
+            if (editPostModal) editPostModal.classList.add('active'); // Show edit modal.
         }
 
+        // Event listener for edit post media upload input.
         if (editPostMediaUpload) {
             editPostMediaUpload.addEventListener('change', (event) => {
                 const file = event.target.files[0];
-                currentEditMediaFile = file;
+                currentEditMediaFile = file; // Store the newly selected file.
+                // Reset previews and hide remove media button.
                 if (editMediaImagePreview) editMediaImagePreview.style.display = 'none';
                 if (editMediaVideoPreview) editMediaVideoPreview.style.display = 'none';
                 if (editMediaImagePreview) editMediaImagePreview.src = '';
@@ -3590,28 +3778,34 @@
             });
         }
 
+        // Event listener for removing media from an edited post.
         if (removeEditMediaButton) {
             removeEditMediaButton.addEventListener('click', () => {
                 currentEditMediaFile = null;
                 currentEditMediaUrl = null;
                 currentEditMediaType = 'text';
+                // Clear and hide all media related elements.
                 if (editMediaImagePreview) editMediaImagePreview.style.display = 'none';
                 if (editMediaVideoPreview) editMediaVideoPreview.style.display = 'none';
                 if (editMediaImagePreview) editMediaImagePreview.src = '';
                 if (editMediaVideoPreview) editMediaVideoPreview.src = '';
-                if (editPostMediaUpload) editPostMediaUpload.value = '';
+                if (editPostMediaUpload) editPostMediaUpload.value = ''; // Clear file input.
                 if (removeEditMediaButton) removeEditMediaButton.style.display = 'none';
                 showMessageBox("Media removed.", "info");
             });
         }
 
+        /**
+         * Saves the changes made to an edited post.
+         * Handles new media upload, updates Firestore, and shows messages.
+         */
         async function saveEditedPost() {
             if (!isAuthReady || !currentUser || !currentEditPostId) {
                 showMessageBox("No post selected for editing.", 'error');
                 return;
             }
-            // NEW: Check if post creation (and thus editing) is enabled
-            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { // Admins can always edit
+            // Check if post creation (and thus editing) is enabled (unless current user is admin).
+            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) {
                 showMessageBox("Post editing is currently disabled by administrators.", 'warning');
                 return;
             }
@@ -3622,8 +3816,8 @@
                 return;
             }
 
-            toggleButtonLoading(saveEditedPostButton, true);
-            showMessageBox("Saving changes...", 'loading', true);
+            toggleButtonLoading(saveEditedPostButton, true); // Show loading spinner.
+            showMessageBox("Saving changes...", 'loading', true); // Show persistent loading message.
 
             let finalMediaUrl = currentEditMediaUrl;
             let finalMediaType = currentEditMediaType;
@@ -3632,6 +3826,7 @@
                 if (currentEditMediaFile) {
                     showMessageBox('Uploading new media...', 'loading', true);
                     let fileToUpload = currentEditMediaFile;
+                    // Resize image files before upload.
                     if (currentEditMediaFile.type.startsWith('image/')) {
                         fileToUpload = await resizeImage(currentEditMediaFile);
                     }
@@ -3643,6 +3838,7 @@
                         throw new Error("Failed to upload new media.");
                     }
                 } else if (!currentEditMediaUrl && !currentEditMediaFile) {
+                    // If no existing media and no new media, set to null/text.
                     finalMediaUrl = null;
                     finalMediaType = 'text';
                 }
@@ -3652,22 +3848,25 @@
                     content: newContent,
                     mediaUrl: finalMediaUrl,
                     mediaType: finalMediaType,
-                    isEdited: true,
+                    isEdited: true, // Mark post as edited.
                     updatedAt: serverTimestamp()
                 });
 
                 showMessageBox("Post updated successfully!", 'success');
                 playNotificationSound('success');
-                closeEditPostModal();
+                closeEditPostModal(); // Close the modal after successful save.
             } catch (error) {
                 console.error("JCHAT_ERROR: Error saving edited post:", error);
                 showMessageBox(`Failed to save changes: ${error.message}`, 'error');
                 playNotificationSound('error');
             } finally {
-                toggleButtonLoading(saveEditedPostButton, false);
+                toggleButtonLoading(saveEditedPostButton, false); // Hide loading spinner.
             }
         }
 
+        /**
+         * Closes the edit post modal and resets its fields.
+         */
         function closeEditPostModal() {
             if (editPostModal) editPostModal.classList.remove('active');
             if (editPostContentInput) editPostContentInput.value = '';
@@ -3679,6 +3878,7 @@
             if (editMediaImagePreview) editMediaImagePreview.src = '';
             if (editMediaVideoPreview) editMediaVideoPreview.src = '';
             if (removeEditMediaButton) removeEditMediaButton.style.display = 'none';
+            // Reset global state variables for editing.
             currentEditPostId = null;
             currentEditMediaFile = null;
             currentEditMediaUrl = null;
@@ -3686,17 +3886,26 @@
         }
 
         // The deletePost function is no longer called from the UI, but it's kept here just in case it's needed elsewhere.
+        /**
+         * Deletes a post from Firestore.
+         * Only the post author or an admin can delete a post.
+         * Creates a pending reward for the deletion (negative XP/JCoins).
+         * @param {string} postId - The ID of the post to delete.
+         * @param {string} postAuthorId - The ID of the user who authored the post.
+         */
         async function deletePost(postId, postAuthorId) {
-            if (!isAuthReady || !currentUser || (currentUser.uid !== postAuthorId && currentUser.uid !== ADMIN_UID)) { // Admin can delete any post
+            // Check permissions: current user must be the post author or an admin.
+            if (!isAuthReady || !currentUser || (currentUser.uid !== postAuthorId && currentUser.uid !== ADMIN_UID)) {
                 showMessageBox("You can only delete your own posts unless you are an admin.", 'error');
                 return;
             }
-            // NEW: Check if post creation (and thus deletion) is enabled
-            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { // Admins can always delete
+            // Check if post creation (and thus deletion) is enabled (unless current user is admin).
+            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) {
                 showMessageBox("Post deletion is currently disabled by administrators.", 'warning');
                 return;
             }
 
+            // Show confirmation modal before proceeding.
             const confirmed = await showConfirmationModal(
                 "Delete Post",
                 "Are you sure you want to delete this post? This action cannot be undone."
@@ -3708,40 +3917,19 @@
             showMessageBox("Deleting post...", 'loading', true);
 
             const postRef = doc(db, "artifacts", appId, "public", "data", "posts", postId);
-            // We will NOT directly update totalPosts here. This will be handled by admin approval of reward.
-            // const privateProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
-            // const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
 
             try {
                 await runTransaction(db, async (transaction) => {
-                    // const privateProfileSnap = await transaction.get(privateProfileDocRef);
-                    // const publicProfileSnap = await transaction.get(publicProfileDocRef);
-
-                    // const currentPrivatePostsCount = privateProfileSnap.exists() ? (privateProfileSnap.data().totalPosts ?? 0) : 0;
-                    // const newTotalPosts = Math.max(0, currentPrivatePostsCount - 1);
-
-                    transaction.delete(postRef); // Delete the post itself
-
-                    // // Update totalPosts in private profile
-                    // transaction.update(privateProfileDocRef, {
-                    //     totalPosts: newTotalPosts,
-                    //     updatedAt: serverTimestamp(),
-                    // });
-
-                    // // Update totalPosts in public profile
-                    // transaction.update(publicProfileDocRef, {
-                    //     totalPosts: newTotalPosts,
-                    //     updatedAt: serverTimestamp(),
-                    // });
+                    transaction.delete(postRef); // Delete the post document.
                 });
 
-                // Create a pending reward for post deletion (negative XP/JCoins)
+                // Create a pending reward for post deletion (negative XP/JCoins).
                 await createPendingActivityReward(
-                    postAuthorId, // The user who originally posted
-                    currentUserProfileData.username, // Using current user's username for logging purposes
+                    postAuthorId, // The user who originally posted.
+                    currentUserProfileData.username, // Using current user's username for logging purposes.
                     'post_deletion',
-                    -20, // Suggested XP deduction for deleting a post
-                    -5,  // Suggested JCoin deduction for deleting a post
+                    -20, // Suggested XP deduction for deleting a post.
+                    -5,  // Suggested JCoin deduction for deleting a post.
                     null,
                     postId
                 );
@@ -3755,6 +3943,12 @@
             }
         }
 
+        /**
+         * Renders a single post HTML element.
+         * @param {object} post - The post data object from Firestore.
+         * @param {string} postId - The ID of the post.
+         * @returns {HTMLElement} The created post HTML element.
+         */
         function renderPost(post, postId) {
             const isAuthor = currentUser && currentUser.uid === post.authorId;
             const authorInitial = (post.username || 'J').charAt(0).toUpperCase();
@@ -3763,15 +3957,14 @@
             postElement.classList.add('post-card');
             postElement.setAttribute('data-post-id', postId);
 
-            let userReactionType = '';
-
+            // Construct the inner HTML for the post card.
             postElement.innerHTML = `
                 <div class="post-header">
-                    <a href="/profile.html?userId=${post.authorId}">
+                    <a href="/profile.html?userId=${post.authorId}" aria-label="View ${post.username || 'Anonymous'}'s Profile">
                         <div class="author-pic-wrapper">
                             ${post.profilePhoto ?
                                 `<img src="${getCloudinaryImageUrl(post.profilePhoto, 'w_80,h_80,c_fill,g_face,r_max')}" alt="Author Pic" class="author-pic" onerror="this.onerror=null; this.src='https://placehold.co/80x80/CCCCCC/000000?text=${authorInitial}';">` :
-                                `<i class="fas fa-user-circle author-pic-placeholder"></i>`
+                                `<i class="fas fa-user-circle author-pic-placeholder" role="img" aria-label="Author Avatar"></i>`
                             }
                         </div>
                     </a>
@@ -3780,15 +3973,15 @@
                         <p class="post-timestamp">${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}</p>
                     </div>
                     ${isAuthor || (currentUser && currentUser.uid === ADMIN_UID) ? `
-                    <button class="post-options-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
+                    <button class="post-options-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Post Options">
                         <i class="fas fa-ellipsis-h"></i>
                     </button>
                     <div class="post-options-dropdown" id="dropdown-${postId}">
-                        <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) || (!isAuthor && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
+                        <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) || (!isAuthor && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Edit Post">
                             <i class="fas fa-edit"></i> Edit
                         </button>
                         <!-- Delete button removed as per user request -->
-                        <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
+                        <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Share Post">
                             <i class="fas fa-share"></i> Share
                         </button>
                     </div>
@@ -3813,16 +4006,16 @@
                     <span><span class="comments-count">${post.commentsCount || 0}</span> Comments</span>
                 </div>
                 <div class="post-actions-row">
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Like Post">
                         <i class="fas fa-thumbs-up"></i> Like
                     </button>
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="love" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="love" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Love Post">
                         <i class="fas fa-heart"></i> Love
                     </button>
-                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="haha" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
+                    <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="haha" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Haha Post">
                         <i class="fas fa-face-laugh"></i> Haha
                     </button>
-                    <button class="post-action-button comment-toggle-button" data-post-id="${postId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>
+                    <button class="post-action-button comment-toggle-button" data-post-id="${postId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Toggle Comments">
                         <i class="fas fa-comment"></i> Comment
                     </button>
                 </div>
@@ -3831,14 +4024,21 @@
                         <p style="font-size:0.85rem; color:var(--text-light); text-align:left; margin-left:10px;" class="no-comments-message">No comments yet.</p>
                     </div>
                     <div class="comment-input-area">
-                        <textarea placeholder="Write a comment..." class="comment-input" data-post-id="${postId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}></textarea>
-                        <button class="submit-comment-button" data-post-id="${postId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}>Post</button>
+                        <textarea placeholder="Write a comment..." class="comment-input" data-post-id="${postId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Write a comment"></textarea>
+                        <button class="submit-comment-button" data-post-id="${postId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Post Comment">Post</button>
                     </div>
                 </div>
             `;
             return postElement;
         }
 
+        /**
+         * Renders a single comment HTML element.
+         * @param {object} comment - The comment data object from Firestore.
+         * @param {string} commentId - The ID of the comment.
+         * @param {string} postId - The ID of the post the comment belongs to.
+         * @returns {HTMLElement} The created comment HTML element.
+         */
         function renderComment(comment, commentId, postId) {
             const commentAuthorInitial = (comment.username || 'J').charAt(0).toUpperCase();
             const isCommentOwner = currentUser && currentUser.uid === comment.userId;
@@ -3847,11 +4047,11 @@
             commentElement.classList.add('comment-item');
             commentElement.setAttribute('data-comment-id', commentId);
             commentElement.innerHTML = `
-                <a href="/profile.html?userId=${comment.userId}">
+                <a href="/profile.html?userId=${comment.userId}" aria-label="View ${comment.username || 'Anonymous'}'s Profile">
                     <div class="author-pic-wrapper" style="width:30px; height:30px; border-width:1px;">
                         ${comment.profilePhoto ?
                             `<img src="${getCloudinaryImageUrl(comment.profilePhoto, 'w_60,h_60,c_fill,g_face,r_max')}" alt="Author Pic" class="comment-author-pic" onerror="this.onerror=null; this.src='https://placehold.co/60x60/CCCCCC/000000?text=${commentAuthorInitial}';">` :
-                            `<i class="fas fa-user-circle comment-author-pic-placeholder" style="font-size:30px;"></i>`
+                            `<i class="fas fa-user-circle comment-author-pic-placeholder" style="font-size:30px;" role="img" aria-label="Comment Author Avatar"></i>`
                         }
                     </div>
                 </a>
@@ -3859,25 +4059,29 @@
                     <a href="/profile.html?userId=${comment.userId}" class="comment-author-name">${comment.username || 'Anonymous'}</a>
                     <span class="comment-text">${comment.content}</span>
                     <span class="comment-timestamp">${comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
-                    ${isCommentOwner || (currentUser && currentUser.uid === ADMIN_UID) ? `<button class="delete-comment-button" data-post-id="${postId}" data-comment-id="${commentId}" data-comment-author-id="${comment.userId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) || (!isCommentOwner && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''}><i class="fas fa-trash-alt"></i></button>` : ''}
+                    ${isCommentOwner || (currentUser && currentUser.uid === ADMIN_UID) ? `<button class="delete-comment-button" data-post-id="${postId}" data-comment-id="${commentId}" data-comment-author-id="${comment.userId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) || (!isCommentOwner && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Delete Comment"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
             `;
             return commentElement;
         }
 
 
+        /**
+         * Fetches and displays posts in real-time using Firestore onSnapshot.
+         * Manages post and comment listeners, and updates the UI dynamically.
+         */
         async function fetchAndDisplayPosts() {
             console.log("JCHAT_DEBUG: fetchAndDisplayPosts called. isAuthReady:", isAuthReady);
-            if (loadingPostsMessage) loadingPostsMessage.style.display = 'block';
+            if (loadingPostsMessage) loadingPostsMessage.style.display = 'block'; // Show loading message.
 
-            // Detach previous listeners to prevent memory leaks and duplicate updates
+            // Detach previous listeners to prevent memory leaks and duplicate updates.
             unsubscribeListeners.forEach(unsubscribe => {
                 if (typeof unsubscribe === 'function') {
                     unsubscribe();
                 }
             });
-            unsubscribeListeners = [];
-            if (postsFeed) postsFeed.innerHTML = ''; // Clear existing posts
+            unsubscribeListeners = []; // Clear the array of unsubscribe functions.
+            if (postsFeed) postsFeed.innerHTML = ''; // Clear existing posts from the DOM.
 
             if (!postsFeed) {
                 console.error("JCHAT_CRITICAL_ERROR: 'postsFeed' element not found in the DOM. Cannot display posts.");
@@ -3891,16 +4095,17 @@
 
             try {
                 const postsCollectionRef = collection(db, "artifacts", appId, "public", "data", "posts");
-                const q = query(postsCollectionRef, orderBy("timestamp", "desc"));
+                const q = query(postsCollectionRef, orderBy("timestamp", "desc")); // Order posts by timestamp descending.
 
+                // Set up real-time listener for posts.
                 const unsubscribePosts = onSnapshot(q, (querySnapshot) => {
                     console.log("JCHAT_DEBUG: onSnapshot for posts triggered. Number of posts:", querySnapshot.size);
-                    const currentPostElements = new Map(); // Map to store current DOM elements by postId
+                    const currentPostElements = new Map(); // Map to store current DOM elements by postId for efficient updates.
                     postsFeed.querySelectorAll('.post-card').forEach(card => {
                         currentPostElements.set(card.dataset.postId, card);
                     });
 
-                    const newOrderedPostIds = []; // To maintain order of posts
+                    const newOrderedPostIds = []; // To maintain the correct order of posts in the DOM.
                     querySnapshot.forEach(docSnapshot => {
                         const post = docSnapshot.data();
                         const postId = docSnapshot.id;
@@ -3914,7 +4119,7 @@
                         let postElement = currentPostElements.get(postId);
 
                         if (postElement) {
-                            // Update existing post element
+                            // If post already exists in DOM, update its content.
                             const contentP = postElement.querySelector('.post-content-text p');
                             if (contentP) contentP.textContent = post.content;
 
@@ -3930,7 +4135,7 @@
                                     `<video src="${post.mediaUrl}" controls onerror="this.style.display='none';"></video>`;
                                 postMediaDiv.style.display = 'block';
                             } else if (postMediaDiv) {
-                                postMediaDiv.remove(); // If media was removed
+                                postMediaDiv.remove(); // Remove media div if media was removed from post.
                             }
 
                             const timestampElement = postElement.querySelector('.post-timestamp');
@@ -3938,7 +4143,7 @@
                                 timestampElement.textContent = `${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}`;
                             }
 
-                            // Update reactions summary
+                            // Update reactions summary counts.
                             const summaryLikeCountElement = postElement.querySelector('.post-reactions-summary .like-count');
                             const summaryLoveCountElement = postElement.querySelector('.post-reactions-summary .love-count');
                             const summaryHahaCountElement = postElement.querySelector('.post-reactions-summary .haha-count');
@@ -3946,26 +4151,26 @@
                             if (summaryLoveCountElement) summaryLoveCountElement.textContent = post.reactions?.love || 0;
                             if (summaryHahaCountElement) summaryHahaCountElement.textContent = post.reactions?.haha || 0;
 
-                            // Update comments count
+                            // Update comments count.
                             const commentsCountElement = postElement.querySelector('.post-reactions-summary .comments-count');
                             if (commentsCountElement) commentsCountElement.textContent = post.commentsCount || 0;
 
                         } else {
-                            // Create new post element if it doesn't exist
+                            // If post is new, create and append a new element.
                             postElement = renderPost(post, postId);
-                            postsFeed.appendChild(postElement); // Add to DOM
+                            postsFeed.appendChild(postElement); // Add to DOM.
                         }
 
-                        // Always ensure comment inputs and buttons are enabled/disabled based on current auth state
+                        // Always ensure comment inputs and buttons are enabled/disabled based on current auth state and system settings.
                         const commentInput = postElement.querySelector('.comment-input');
                         const submitCommentButton = postElement.querySelector('.submit-comment-button');
                         if (commentInput) commentInput.disabled = !isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID);
                         if (submitCommentButton) submitCommentButton.disabled = !isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID);
 
 
-                        // Setup onSnapshot for comments for this specific post
+                        // Setup onSnapshot for comments for this specific post.
                         const commentsListElement = document.getElementById(`comments-list-${postId}`);
-                        if (commentsListElement && !commentsListElement.dataset.listenerAttached) { // Prevent attaching multiple listeners
+                        if (commentsListElement && !commentsListElement.dataset.listenerAttached) { // Prevent attaching multiple listeners.
                             const commentsQuery = query(
                                 collection(db, "artifacts", appId, "public", "data", "posts", postId, "comments"),
                                 orderBy("timestamp", "asc")
@@ -3975,7 +4180,7 @@
                                     console.error("JCHAT_ERROR: Comments list element not found for postId:", postId);
                                     return;
                                 }
-                                commentsListElement.innerHTML = ''; // Clear existing comments
+                                commentsListElement.innerHTML = ''; // Clear existing comments.
 
                                 if (commentsSnapshot.empty) {
                                     commentsListElement.innerHTML = '<p style="font-size:0.85rem; color:var(--text-light); text-align:left; margin-left:10px;" class="no-comments-message">No comments yet.</p>';
@@ -3986,21 +4191,21 @@
                                         commentsListElement.appendChild(renderComment(comment, commentId, postId));
                                     });
                                 }
-                                // Re-apply disabled state to delete comment buttons after rendering
+                                // Re-apply disabled state to delete comment buttons after rendering.
                                 commentsListElement.querySelectorAll('.delete-comment-button').forEach(button => {
                                     const commentAuthorId = button.dataset.commentAuthorId;
                                     const isCommentOwner = currentUser && currentUser.uid === commentAuthorId;
                                     button.disabled = !isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) || (!isCommentOwner && currentUser.uid !== ADMIN_UID);
                                 });
                             });
-                            unsubscribeListeners.push(unsubscribeComments);
-                            commentsListElement.dataset.listenerAttached = 'true'; // Mark listener as attached
+                            unsubscribeListeners.push(unsubscribeComments); // Add comment listener to the unsubscribe list.
+                            commentsListElement.dataset.listenerAttached = 'true'; // Mark listener as attached.
                         }
 
-                        // Setup onSnapshot for current user's reaction to this post (for newly added posts and updates)
+                        // Setup onSnapshot for current user's reaction to this post (for newly added posts and updates).
                         if (currentUser) {
                             const userReactionRef = doc(db, "artifacts", appId, "public", "data", "posts", postId, "userReactions", currentUser.uid);
-                            // Only attach if not already attached for this post and user
+                            // Only attach if not already attached for this post and user.
                             if (!postElement.dataset.userReactionListenerAttached) {
                                 const unsubscribeUserReaction = onSnapshot(userReactionRef, (reactionSnap) => {
                                     const currentPostCard = postsFeed.querySelector(`.post-card[data-post-id="${postId}"]`);
@@ -4009,7 +4214,7 @@
                                         const loveBtn = currentPostCard.querySelector(`.react-button[data-reaction-type="love"]`);
                                         const hahaBtn = currentPostCard.querySelector(`.react-button[data-reaction-type="haha"]`);
 
-                                        // Ensure buttons exist before manipulating classes
+                                        // Ensure buttons exist before manipulating classes.
                                         if (likeBtn) likeBtn.classList.remove('reacted-like');
                                         if (loveBtn) loveBtn.classList.remove('reacted-love');
                                         if (hahaBtn) hahaBtn.classList.remove('reacted-haha');
@@ -4023,13 +4228,13 @@
                                         }
                                     }
                                 });
-                                unsubscribeListeners.push(unsubscribeUserReaction);
-                                postElement.dataset.userReactionListenerAttached = 'true'; // Mark listener as attached
+                                unsubscribeListeners.push(unsubscribeUserReaction); // Add user reaction listener to unsubscribe list.
+                                postElement.dataset.userReactionListenerAttached = 'true'; // Mark listener as attached.
                             }
                         }
                     });
 
-                    // Reorder posts in the DOM if necessary (important for orderBy)
+                    // Reorder posts in the DOM if necessary (important for orderBy).
                     const orderedElements = newOrderedPostIds.map(id => postsFeed.querySelector(`.post-card[data-post-id="${id}"]`));
                     orderedElements.forEach((element, index) => {
                         if (element && postsFeed.children[index] !== element) {
@@ -4037,16 +4242,16 @@
                         }
                     });
 
-                    // Remove posts that no longer exist in the query snapshot (after reordering, to avoid re-inserting removed elements)
+                    // Remove posts that no longer exist in the query snapshot (after reordering, to avoid re-inserting removed elements).
                     currentPostElements.forEach((element, id) => {
                         if (!newOrderedPostIds.includes(id)) {
                             element.remove();
                         }
                     });
 
-
+                    // Display "No posts yet" message if the feed is empty.
                     if (querySnapshot.empty) {
-                        if (!document.getElementById('noPostsMessage')) { // Only add if not already there
+                        if (!document.getElementById('noPostsMessage')) {
                             postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);" id="noPostsMessage">No posts yet. Be the first to post!</p>';
                         }
                     } else {
@@ -4054,12 +4259,12 @@
                         if (noPostsMessage) noPostsMessage.remove();
                     }
 
-                    if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
-                    // After posts are rendered/updated, apply system settings to their interactive elements
+                    if (loadingPostsMessage) loadingPostsMessage.style.display = 'none'; // Hide loading message.
+                    // After posts are rendered/updated, apply system settings to their interactive elements.
                     applySystemSettings(currentSystemSettings);
 
                 });
-                unsubscribeListeners.push(unsubscribePosts); // Add the main posts listener to the unsubscribe list
+                unsubscribeListeners.push(unsubscribePosts); // Add the main posts listener to the unsubscribe list.
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching posts:", error);
@@ -4071,12 +4276,13 @@
 
 
         // --- Event Delegation for Dynamic Elements ---
+        // Attaches a single click listener to the document and delegates events to dynamically created elements.
         document.addEventListener('click', (event) => {
             // Handle React Buttons
             if (event.target.closest('.react-button')) {
                 const button = event.target.closest('.react-button');
                 if (!isAuthReady) { showMessageBox("Please log in to react.", 'error'); return; }
-                if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { showMessageBox("Reactions are currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { showMessageBox("Reactions are currently disabled by administrators.", 'warning'); return; }
                 const postId = button.dataset.postId;
                 const reactionType = button.dataset.reactionType;
                 handleReaction(postId, reactionType);
@@ -4093,40 +4299,41 @@
             else if (event.target.closest('.submit-comment-button')) {
                 const button = event.target.closest('.submit-comment-button');
                 if (!isAuthReady) { showMessageBox("Please log in to comment.", 'error'); return; }
-                if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { showMessageBox("Commenting is currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { showMessageBox("Commenting is currently disabled by administrators.", 'warning'); return; }
                 const postId = button.dataset.postId;
                 const commentInput = button.closest('.comment-input-area').querySelector('.comment-input');
                 addComment(postId, commentInput.value);
-                commentInput.value = '';
+                commentInput.value = ''; // Clear comment input after submission.
             }
             // Handle Post Options Buttons (ellipsis menu)
             else if (event.target.closest('.post-options-button')) {
                 const button = event.target.closest('.post-options-button');
                 if (!isAuthReady) { showMessageBox("Please log in to manage posts.", 'error'); return; }
-                // Admin can always manage posts, regular users only if feature is enabled
-                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post management is currently disabled by administrators.", 'warning'); return; } // NEW
+                // Admin can always manage posts, regular users only if feature is enabled.
+                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post management is currently disabled by administrators.", 'warning'); return; }
                 const postId = button.dataset.postId;
                 const dropdown = document.getElementById(`dropdown-${postId}`);
+                // Close any other open dropdowns.
                 document.querySelectorAll('.post-options-dropdown.active').forEach(openDropdown => {
                     if (openDropdown.id !== `dropdown-${postId}`) {
                         openDropdown.classList.remove('active');
                     }
                 });
-                if (dropdown) dropdown.classList.toggle('active');
-                event.stopPropagation(); // Prevent document click from closing it immediately
+                if (dropdown) dropdown.classList.toggle('active'); // Toggle visibility of the clicked dropdown.
+                event.stopPropagation(); // Prevent document click from closing it immediately.
             }
             // Handle Edit Post Button
             else if (event.target.closest('.edit-post-button')) {
                 const button = event.target.closest('.edit-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to edit posts.", 'error'); return; }
-                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post editing is currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post editing is currently disabled by administrators.", 'warning'); return; }
                 const postId = button.dataset.postId;
                 const content = button.dataset.content;
                 const mediaUrl = button.dataset.mediaUrl;
                 const mediaType = button.dataset.mediaType;
                 openEditPostModal(postId, content, mediaUrl, mediaType);
                 const dropdown = document.getElementById(`dropdown-${postId}`);
-                if (dropdown) dropdown.classList.remove('active');
+                if (dropdown) dropdown.classList.remove('active'); // Close dropdown after selecting edit.
             }
             // Handle Delete Post Button (This button is now removed from renderPost function, but keeping the handler for robustness)
             else if (event.target.closest('.delete-post-button')) {
@@ -4139,30 +4346,30 @@
                 const authorId = button.dataset.authorId;
                 deletePost(postId, authorId);
                 const dropdown = document.getElementById(`dropdown-${postId}`);
-                if (dropdown) dropdown.classList.remove('active');
+                if (dropdown) dropdown.classList.remove('active'); // Close dropdown after selecting delete.
             }
             // Handle Share Post Button
             else if (event.target.closest('.share-post-button')) {
                 const button = event.target.closest('.share-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to share posts.", 'error'); return; }
-                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post sharing is currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post sharing is currently disabled by administrators.", 'warning'); return; }
                 const postId = button.dataset.postId;
                 const content = button.dataset.content;
                 showMessageBox(`You can share/post this: ${content.substring(0, 50)}...`, 'info');
                 const dropdown = document.getElementById(`dropdown-${postId}`);
-                if (dropdown) dropdown.classList.remove('active');
+                if (dropdown) dropdown.classList.remove('active'); // Close dropdown after selecting share.
             }
             // Handle Delete Comment Button
             else if (event.target.closest('.delete-comment-button')) {
                 const button = event.target.closest('.delete-comment-button');
                 if (!isAuthReady) { showMessageBox("Please log in to delete comments.", 'error'); return; }
-                if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { showMessageBox("Comment deletion is currently disabled by administrators.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { showMessageBox("Comment deletion is currently disabled by administrators.", 'warning'); return; }
                 const postId = button.dataset.postId;
                 const commentId = button.dataset.commentId;
                 const commentAuthorId = button.dataset.commentAuthorId;
                 deleteComment(postId, commentId, commentAuthorId);
             }
-            // Close dropdowns if clicking anywhere else on the document
+            // Close dropdowns if clicking anywhere else on the document (outside of a dropdown).
             else if (!event.target.closest('.post-options-dropdown')) {
                 document.querySelectorAll('.post-options-dropdown.active').forEach(openDropdown => {
                     openDropdown.classList.remove('active');
@@ -4171,8 +4378,13 @@
         });
 
         // NEW: System Settings Logic
+        // Document reference for global system settings in Firestore.
         const SYSTEM_SETTINGS_DOC_REF = doc(db, "artifacts", appId, "public", "data", "settings", "system_settings");
 
+        /**
+         * Fetches global system settings from Firestore.
+         * If settings document doesn't exist, it creates it with default values.
+         */
         async function fetchSystemSettings() {
             console.log("JCHAT_DEBUG: Fetching system settings...");
             try {
@@ -4182,6 +4394,7 @@
                     console.log("JCHAT_DEBUG: System settings fetched:", currentSystemSettings);
                 } else {
                     console.warn("JCHAT_WARNING: System settings document not found. Initializing with default values.");
+                    // Define default system settings.
                     currentSystemSettings = {
                         jcoinNairaRate: 7.5,
                         gasJcoinRate: 0.1,
@@ -4195,49 +4408,53 @@
                         enableEmailNotifications: true,
                         maintenanceMode: false,
                         globalAnnouncement: "",
-                        enableCalls: true, // NEW: Default to true for calls
+                        enableCalls: true, // NEW: Default to true for calls.
                     };
-                    await setDoc(SYSTEM_SETTINGS_DOC_REF, currentSystemSettings);
+                    await setDoc(SYSTEM_SETTINGS_DOC_REF, currentSystemSettings); // Create the document.
                     console.log("JCHAT_DEBUG: Default system settings created.");
                 }
-                applySystemSettings(currentSystemSettings); // Apply settings immediately
+                applySystemSettings(currentSystemSettings); // Apply settings immediately after fetching/initializing.
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching system settings:", error);
                 showMessageBox(`Failed to load system settings: ${error.message}`, 'error', true);
             }
         }
 
-        // NEW: Function to apply system settings to UI elements
+        /**
+         * Applies the fetched system settings to various UI elements and features.
+         * Controls visibility and interactivity based on admin toggles and maintenance mode.
+         * @param {object} settings - The system settings object.
+         */
         function applySystemSettings(settings) {
             console.log("JCHAT_DEBUG: Applying system settings to UI:", settings);
 
             const isCurrentUserAdmin = currentUser && currentUser.uid === ADMIN_UID;
 
-            // First, handle the global maintenance mode
+            // First, handle the global maintenance mode.
             if (settings.maintenanceMode) {
                 if (isCurrentUserAdmin) {
-                    // Admin bypasses maintenance overlay and global disabling
+                    // Admin bypasses maintenance overlay and global disabling.
                     if (maintenanceOverlay) maintenanceOverlay.classList.remove('active');
                     document.body.style.overflow = 'auto';
                     showMessageBox("JCHAT is in Maintenance Mode, but you (Admin) have full access.", 'info', true);
-                    toggleInteractiveElements(true, true); // Enable everything for admin, pass isAdmin true
+                    toggleInteractiveElements(true, true); // Enable everything for admin, pass isAdmin true.
                 } else {
-                    // Regular user sees maintenance overlay and all interactions are disabled
+                    // Regular user sees maintenance overlay and all interactions are disabled.
                     if (maintenanceOverlay) {
                         maintenanceOverlay.classList.add('active');
                         if (maintenanceAnnouncementText) {
                             maintenanceAnnouncementText.textContent = settings.globalAnnouncement || "JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!";
                         }
                     }
-                    toggleInteractiveElements(false, false); // Disable all interactions for regular users, pass isAdmin false
+                    toggleInteractiveElements(false, false); // Disable all interactions for regular users, pass isAdmin false.
                     document.body.style.overflow = 'hidden';
-                    return; // IMPORTANT: Stop further processing of individual toggles for regular users in maintenance
+                    return; // IMPORTANT: Stop further processing of individual toggles for regular users in maintenance.
                 }
             } else {
-                // Maintenance mode is OFF for everyone
+                // Maintenance mode is OFF for everyone.
                 if (maintenanceOverlay) maintenanceOverlay.classList.remove('active');
                 document.body.style.overflow = 'auto';
-                toggleInteractiveElements(true, isCurrentUserAdmin); // Enable all interactions initially, pass isAdmin
+                toggleInteractiveElements(true, isCurrentUserAdmin); // Enable all interactions initially, pass isAdmin.
             }
 
             // Now, apply individual feature toggles.
@@ -4245,9 +4462,9 @@
             // For admins, these will apply normally. For regular users, if maintenance was ON,
             // this part is skipped. If maintenance was OFF, these apply normally.
 
-            // Post Creation Section
+            // Post Creation Section visibility and input states.
             if (postCreationSection) {
-                if (settings.enablePostCreation) {
+                if (settings.enablePostCreation || isCurrentUserAdmin) { // Admin can always see/use.
                     postCreationSection.style.display = 'flex';
                     if (postContentInput) postContentInput.disabled = false;
                     if (postMediaUpload) postMediaUpload.disabled = false;
@@ -4260,11 +4477,11 @@
                 }
             }
 
-            // Sidebar links (only if they correspond to features that can be toggled)
+            // Sidebar links (only if they correspond to features that can be toggled).
             // These need to reflect the feature toggle, but also respect the overall `toggleInteractiveElements` state
             // which is set by maintenance mode. The `pointer-events` and `opacity` are good for this.
             if (chatLink) {
-                if (settings.enablePublicChat) {
+                if (settings.enablePublicChat || isCurrentUserAdmin) {
                     chatLink.style.pointerEvents = 'auto';
                     chatLink.style.opacity = '1';
                 } else {
@@ -4273,7 +4490,7 @@
                 }
             }
             if (findFriendsLink) {
-                if (settings.enableFriendRequests) {
+                if (settings.enableFriendRequests || isCurrentUserAdmin) {
                     findFriendsLink.style.pointerEvents = 'auto';
                     findFriendsLink.style.opacity = '1';
                 } else {
@@ -4282,7 +4499,7 @@
                 }
             }
             if (friendsLink) {
-                if (settings.enableFriendRequests) {
+                if (settings.enableFriendRequests || isCurrentUserAdmin) {
                     friendsLink.style.pointerEvents = 'auto';
                     friendsLink.style.opacity = '1';
                 } else {
@@ -4290,14 +4507,14 @@
                     friendsLink.style.opacity = '0.5';
                 }
             }
-            if (groupsLink) { // Assuming a toggle for groups
+            if (groupsLink) { // Assuming a toggle for groups.
                 // For now, groups are not explicitly tied to a system setting.
                 // If a 'settings.enableGroups' existed, it would be used here.
                 // Otherwise, its state is controlled by the global `toggleInteractiveElements`.
                 groupsLink.style.pointerEvents = 'auto';
                 groupsLink.style.opacity = '1';
             }
-            if (jcoinShopLink) { // Assuming a toggle for shop
+            if (jcoinShopLink) { // Assuming a toggle for shop.
                 // For now, shop is not explicitly tied to a system setting.
                 // If a 'settings.enableJCoinShop' existed, it would be used here.
                 // Otherwise, its state is controlled by the global `toggleInteractiveElements`.
@@ -4305,45 +4522,45 @@
                 jcoinShopLink.style.opacity = '1';
             }
 
-            // Re-apply disabled states to dynamically rendered post/comment elements
+            // Re-apply disabled states to dynamically rendered post/comment elements.
             // This is crucial because these elements are rendered *before* settings are applied.
             document.querySelectorAll('.post-card').forEach(postCard => {
                 const postId = postCard.dataset.postId;
-                const postAuthorId = postCard.querySelector('.post-options-button')?.dataset.authorId || null; // Get authorId if options button exists
+                const postAuthorId = postCard.querySelector('.post-options-button')?.dataset.authorId || null; // Get authorId if options button exists.
 
-                // Post actions (reactions, comments, options menu)
+                // Post actions (reactions, comments, options menu).
                 postCard.querySelectorAll('.react-button, .comment-toggle-button').forEach(button => {
                     button.disabled = !isAuthReady || (!settings.enablePublicChat && !isCurrentUserAdmin);
                 });
 
-                // Comment input and submit button
+                // Comment input and submit button.
                 const commentInput = postCard.querySelector('.comment-input');
                 const submitCommentButton = postCard.querySelector('.submit-comment-button');
                 if (commentInput) commentInput.disabled = !isAuthReady || (!settings.enablePublicChat && !isCurrentUserAdmin);
                 if (submitCommentButton) submitCommentButton.disabled = !isAuthReady || (!settings.enablePublicChat && !isCurrentUserAdmin);
 
-                // Delete comment buttons (more complex logic: can delete own if enabled, admin can delete any)
+                // Delete comment buttons (more complex logic: can delete own if enabled, admin can delete any).
                 postCard.querySelectorAll('.delete-comment-button').forEach(button => {
                     const commentAuthorId = button.dataset.commentAuthorId;
                     const isCommentOwner = currentUser && currentUser.uid === commentAuthorId;
                     button.disabled = !isAuthReady || (!currentSystemSettings.enablePublicChat && !isCurrentUserAdmin) || (!isCommentOwner && !isCurrentUserAdmin);
                 });
 
-                // Post options (edit, share)
+                // Post options (edit, share).
                 postCard.querySelectorAll('.post-options-button, .edit-post-button, .share-post-button').forEach(button => {
-                    // Only enable if current user is the author OR if current user is admin AND the feature is enabled
-                    // The isAuthor check is handled in renderPost, here we just control the disabled state based on settings and admin
-                    const buttonPostId = button.dataset.postId;
-                    const isButtonAuthor = currentUser && currentUser.uid === postAuthorId; // Check if the current user is the author of *this* post
+                    // Only enable if current user is the author OR if current user is admin AND the feature is enabled.
+                    // The isAuthor check is handled in renderPost, here we just control the disabled state based on settings and admin.
+                    const isButtonAuthor = currentUser && currentUser.uid === postAuthorId;
                     button.disabled = !isAuthReady || ((!settings.enablePostCreation && !isCurrentUserAdmin) || (!isButtonAuthor && !isCurrentUserAdmin));
                 });
             });
 
-            // Re-evaluate daily bonus button state
+            // Re-evaluate daily bonus button state.
             checkAndStartDailyBonusTimer();
         }
 
         // WebRTC STUN/TURN servers (NEW)
+        // Configuration for ICE servers, essential for WebRTC connection establishment.
         const iceServers = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -4356,21 +4573,23 @@
 
         /**
          * Initializes a new RTCPeerConnection.
+         * Sets up onicecandidate and ontrack event handlers.
          * @returns {RTCPeerConnection} The initialized peer connection.
          */
         function createPeerConnection() {
             const pc = new RTCPeerConnection(iceServers);
 
+            // Event handler for ICE candidates (network information).
             pc.onicecandidate = (event) => {
                 if (event.candidate) {
-                    // Send ICE candidate to the other peer via Firestore
+                    // Send ICE candidate to the other peer via Firestore.
                     if (callRef) {
-                        const candidateData = JSON.parse(JSON.stringify(event.candidate)); // Deep copy to avoid Firestore issues
-                        if (isIncomingCall) { // If this peer is the receiver
+                        const candidateData = JSON.parse(JSON.stringify(event.candidate)); // Deep copy to avoid Firestore issues.
+                        if (isIncomingCall) { // If this peer is the receiver.
                             updateDoc(callRef, {
                                 receiverCandidates: arrayUnion(candidateData)
                             }).catch(e => console.error("Error adding receiver candidate:", e));
-                        } else { // If this peer is the caller
+                        } else { // If this peer is the caller.
                             updateDoc(callRef, {
                                 callerCandidates: arrayUnion(candidateData)
                             }).catch(e => console.error("Error adding caller candidate:", e));
@@ -4379,14 +4598,15 @@
                 }
             };
 
+            // Event handler for remote media tracks.
             pc.ontrack = (event) => {
-                // Attach remote stream to remoteVideo element
+                // Attach remote stream to remoteVideo element.
                 if (event.streams && event.streams[0]) {
                     remoteVideo.srcObject = event.streams[0];
                     remoteVideo.style.display = 'block';
                     remoteStream = event.streams[0];
                 } else {
-                    // Fallback for older browsers or individual tracks
+                    // Fallback for older browsers or individual tracks.
                     if (!remoteStream) {
                         remoteStream = new MediaStream();
                         remoteVideo.srcObject = remoteStream;
@@ -4400,24 +4620,25 @@
         }
 
         /**
-         * Listens for incoming calls to the current user.
+         * Listens for incoming calls to the current user in real-time.
          */
-        let unsubscribeCallListener = null; // Declare here so it can be cleared on unload
+        let unsubscribeCallListener = null; // Declare here so it can be cleared on unload.
 
         function listenForIncomingCalls() {
             if (unsubscribeCallListener) {
-                unsubscribeCallListener(); // Unsubscribe from previous listener
+                unsubscribeCallListener(); // Unsubscribe from previous listener to prevent duplicates.
             }
             if (!currentUser) return;
 
             const callsCollectionRef = collection(db, "artifacts", appId, "public", "data", "calls");
+            // Query for calls where current user is the receiver and status is 'ringing'.
             const q = query(callsCollectionRef, where("receiverId", "==", currentUser.uid), where("status", "==", "ringing"));
 
             unsubscribeCallListener = onSnapshot(q, async (snapshot) => {
                 if (snapshot.empty) {
-                    // No incoming calls
+                    // No incoming calls.
                     stopRingingSound();
-                    if (callState === 'ringing') { // If we were ringing and call disappeared
+                    if (callState === 'ringing') { // If we were ringing and call disappeared (e.g., caller ended).
                         showMessageBox("Incoming call ended.", "info");
                         playNotificationSound('info');
                         endCall(false);
@@ -4425,10 +4646,10 @@
                     return;
                 }
 
-                const incomingCallDoc = snapshot.docs[0]; // Take the first incoming call
+                const incomingCallDoc = snapshot.docs[0]; // Take the first incoming call.
                 const callData = incomingCallDoc.data();
 
-                // NEW: Check if calls are enabled by system settings
+                // Check if calls are enabled by system settings (unless current user is admin).
                 if (!currentSystemSettings.enableCalls && currentUser.uid !== ADMIN_UID) {
                     console.log("JCHAT_DEBUG: Calls disabled by admin. Declining incoming call.");
                     await updateDoc(incomingCallDoc.ref, { status: 'declined_by_system' });
@@ -4438,50 +4659,51 @@
                 }
 
                 if (callState !== 'idle') {
-                    // Already in a call or busy, decline new incoming call
+                    // Already in a call or busy, decline new incoming call.
                     await updateDoc(incomingCallDoc.ref, { status: 'busy' });
                     showMessageBox(`Another call from ${callData.callerId === recipientUserProfileData?.userId ? recipientUserProfileData?.username : 'someone'} is incoming, but you are busy.`, "warning");
                     playNotificationSound('info');
                     return;
                 }
 
-                // New incoming call
-                callRef = incomingCallDoc.ref;
+                // New incoming call detected.
+                callRef = incomingCallDoc.ref; // Store reference to the call document.
                 isIncomingCall = true;
                 callState = 'ringing';
                 currentCallType = callData.callType;
 
-                // Fetch caller's profile for display
+                // Fetch caller's profile for display in the UI.
                 const callerProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", callData.callerId);
                 const callerProfileSnap = await getDoc(callerProfileDocRef);
                 const callerUsername = callerProfileSnap.exists() ? callerProfileSnap.data().username : 'Unknown User';
-                recipientUserProfileData = callerProfileSnap.exists() ? callerProfileSnap.data() : null; // Set recipient for UI
+                recipientUserProfileData = callerProfileSnap.exists() ? callerProfileSnap.data() : null; // Set recipient for UI.
 
+                // Update call overlay UI.
                 callOverlay.classList.add('active');
-                callOverlay.classList.remove('voice-call', 'video-call'); // Clear previous
+                callOverlay.classList.remove('voice-call', 'video-call'); // Clear previous call type classes.
                 callOverlay.classList.add(currentCallType === 'voice' ? 'voice-call' : 'video-call');
 
                 callStatusIcon.className = `fas fa-${currentCallType === 'voice' ? 'phone' : 'video'} call-status-icon`;
                 callStatusText.textContent = `Incoming ${currentCallType} call from ${callerUsername}...`;
-                callTimerDisplay.style.display = 'none';
-                callActions.style.display = 'flex';
+                callTimerDisplay.style.display = 'none'; // Hide timer initially.
+                callActions.style.display = 'flex'; // Show call action buttons.
                 acceptCallBtn.style.display = 'block';
                 declineCallBtn.style.display = 'block';
                 toggleMuteBtn.style.display = 'none';
                 toggleVideoBtn.style.display = 'none';
-                endCallBtn.style.display = 'none'; // Only accept/decline for incoming
-                callStatusIcon.style.animation = 'pulse-color 2s infinite alternate'; // Start animation
+                endCallBtn.style.display = 'none'; // Only accept/decline for incoming.
+                callStatusIcon.style.animation = 'pulse-color 2s infinite alternate'; // Start icon animation.
 
-                startRingingSound(); // Play ringing sound
+                startRingingSound(); // Play ringing sound.
 
-                // Set a timeout for no answer (20 seconds)
+                // Set a timeout for no answer (20 seconds).
                 callTimeoutId = setTimeout(async () => {
                     if (callState === 'ringing') {
                         stopRingingSound();
                         await updateDoc(callRef, { status: 'no-answer' });
                         showMessageBox("Incoming call unanswered.", "info");
                         playNotificationSound('info');
-                        endCall(true);
+                        endCall(true); // End call and update Firestore.
                     }
                 }, 20000);
             }, (error) => {
@@ -4491,6 +4713,8 @@
 
         /**
          * Handles accepting an incoming call.
+         * Initializes WebRTC peer connection, gets local media, sets remote description,
+         * creates and sets local answer, and updates Firestore.
          */
         async function acceptCall() {
             if (callState !== 'ringing' || !callRef || !currentUser) {
@@ -4499,58 +4723,58 @@
                 return;
             }
 
-            stopRingingSound();
-            clearTimeout(callTimeoutId); // Clear no-answer timeout
+            stopRingingSound(); // Stop ringing sound.
+            clearTimeout(callTimeoutId); // Clear no-answer timeout.
 
-            callState = 'connected';
+            callState = 'connected'; // Update call state.
             callStatusText.textContent = `Call with ${recipientUserProfileData?.username || 'user'}`;
-            callTimerDisplay.style.display = 'block';
-            callActions.style.display = 'flex';
+            callTimerDisplay.style.display = 'block'; // Show call timer.
+            callActions.style.display = 'flex'; // Show call action buttons.
             acceptCallBtn.style.display = 'none';
             declineCallBtn.style.display = 'none';
             endCallBtn.style.display = 'block';
             toggleMuteBtn.style.display = 'block';
             toggleVideoBtn.style.display = currentCallType === 'video' ? 'block' : 'none';
-            callStatusIcon.style.animation = 'none'; // Stop animation
+            callStatusIcon.style.animation = 'none'; // Stop icon animation.
 
-            clearInterval(callDurationInterval);
-            callDurationInterval = setInterval(updateCallTimer, 1000);
+            clearInterval(callDurationInterval); // Clear any old timer.
+            callDurationInterval = setInterval(updateCallTimer, 1000); // Start new timer.
 
             showMessageBox("Call connected!", "success");
             playNotificationSound('success');
 
             try {
-                // Get local media stream
+                // Get local media stream (audio and optionally video).
                 localStream = await navigator.mediaDevices.getUserMedia({
                     audio: true,
                     video: currentCallType === 'video'
                 });
                 localVideo.srcObject = localStream;
                 if (currentCallType === 'video') {
-                    localVideo.style.display = 'block';
+                    localVideo.style.display = 'block'; // Show local video if it's a video call.
                 }
 
-                // Update current user's inCall status
+                // Update current user's inCall status in public profile.
                 const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
                 await updateDoc(currentUserPublicProfileRef, { inCall: true });
 
-                // Create Peer Connection
+                // Create Peer Connection.
                 peerConnection = createPeerConnection();
 
-                // Add local tracks to peer connection
+                // Add local tracks to peer connection.
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-                // Get the offer from Firestore
+                // Get the offer from Firestore.
                 const callDocSnap = await getDoc(callRef);
                 const callData = callDocSnap.data();
                 const remoteOffer = new RTCSessionDescription(callData.offer);
                 await peerConnection.setRemoteDescription(remoteOffer);
 
-                // Create answer
+                // Create and set local answer.
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
 
-                // Update Firestore with answer and status
+                // Update Firestore with answer and status.
                 await updateDoc(callRef, {
                     status: 'accepted',
                     answer: {
@@ -4560,7 +4784,7 @@
                     lastActivity: serverTimestamp()
                 });
 
-                // Add any initial candidates from caller that might have arrived before answer
+                // Add any initial candidates from caller that might have arrived before answer.
                 if (callData.callerCandidates && callData.callerCandidates.length > 0) {
                     for (const candidate of callData.callerCandidates) {
                         try {
@@ -4569,17 +4793,17 @@
                             console.error("Error adding initial caller ICE candidate:", e);
                         }
                     }
-                    await updateDoc(callRef, { callerCandidates: [] }); // Clear them
+                    await updateDoc(callRef, { callerCandidates: [] }); // Clear them after adding.
                 }
 
-                // Listen for caller candidates (new ones)
+                // Listen for caller candidates (new ones) after call is accepted.
                 // This listener needs to be distinct from the one in listenForIncomingCalls
                 // to avoid issues when the status changes from ringing to accepted.
                 // Re-assigning unsubscribeCallListener here will replace the previous one.
                 unsubscribeCallListener = onSnapshot(callRef, async (docSnap) => {
                     if (!docSnap.exists()) {
                         console.log("JCHAT_DEBUG: Call document disappeared. Ending call.");
-                        endCall(false);
+                        endCall(false); // End call locally if document is gone.
                         return;
                     }
                     const data = docSnap.data();
@@ -4591,8 +4815,9 @@
                                 console.error("Error adding caller ICE candidate:", e);
                             }
                         }
-                        await updateDoc(callRef, { callerCandidates: [] }); // Clear candidates after adding
+                        await updateDoc(callRef, { callerCandidates: [] }); // Clear candidates after adding.
                     }
+                    // If the other party ends the call, update local state.
                     if (data.status === 'ended' && callState !== 'idle') {
                         showMessageBox("Call ended by other party.", "info");
                         playNotificationSound('info');
@@ -4602,6 +4827,7 @@
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error accepting call:", error);
+                // Provide user-friendly error messages for common media issues.
                 if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
                     showMessageBox(`Failed to accept call: Microphone/Camera access denied. Please allow permissions in your browser settings.`, "error", true, 5000);
                 } else if (error.name === 'NotFoundError') {
@@ -4610,12 +4836,13 @@
                     showMessageBox(`Failed to accept call: ${error.message}`, "error", true, 5000);
                 }
                 playNotificationSound('error');
-                endCall(true); // Ensure cleanup
+                endCall(true); // Ensure cleanup even if acceptance fails.
             }
         }
 
         /**
          * Handles declining an incoming call.
+         * Updates Firestore status and cleans up.
          */
         async function declineCall() {
             if (callState !== 'ringing' || !callRef) {
@@ -4624,8 +4851,8 @@
                 return;
             }
 
-            stopRingingSound();
-            clearTimeout(callTimeoutId);
+            stopRingingSound(); // Stop ringing.
+            clearTimeout(callTimeoutId); // Clear no-answer timeout.
             showMessageBox("Call declined.", "info");
             playNotificationSound('info');
 
@@ -4634,41 +4861,41 @@
             } catch (error) {
                 console.error("JCHAT_ERROR: Error updating call status to declined:", error);
             } finally {
-                endCall(false); // End call locally, Firestore already updated
+                endCall(false); // End call locally, Firestore already updated.
             }
         }
 
         /**
-         * Toggles microphone mute/unmute.
+         * Toggles microphone mute/unmute during a call.
          */
         function toggleMute() {
             if (localStream) {
                 localStream.getAudioTracks().forEach(track => {
-                    track.enabled = !track.enabled;
-                    isMuted = !track.enabled;
-                    toggleMuteBtn.classList.toggle('active', isMuted);
-                    toggleMuteBtn.querySelector('i').className = isMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
+                    track.enabled = !track.enabled; // Toggle track's enabled state.
+                    isMuted = !track.enabled; // Update mute state.
+                    toggleMuteBtn.classList.toggle('active', isMuted); // Toggle active class for styling.
+                    toggleMuteBtn.querySelector('i').className = isMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone'; // Change icon.
                 });
             }
         }
 
         /**
-         * Toggles video on/off.
+         * Toggles video on/off during a call.
          */
         function toggleVideo() {
             if (localStream) {
                 localStream.getVideoTracks().forEach(track => {
-                    track.enabled = !track.enabled;
-                    isVideoOff = !track.enabled;
-                    toggleVideoBtn.classList.toggle('active', isVideoOff);
-                    toggleVideoBtn.querySelector('i').className = isVideoOff ? 'fas fa-video-slash' : 'fas fa-video';
-                    localVideo.style.display = track.enabled ? 'block' : 'none'; // Hide local video element if off
+                    track.enabled = !track.enabled; // Toggle track's enabled state.
+                    isVideoOff = !track.enabled; // Update video off state.
+                    toggleVideoBtn.classList.toggle('active', isVideoOff); // Toggle active class for styling.
+                    toggleVideoBtn.querySelector('i').className = isVideoOff ? 'fas fa-video-slash' : 'fas fa-video'; // Change icon.
+                    localVideo.style.display = track.enabled ? 'block' : 'none'; // Hide/show local video element.
                 });
             }
         }
 
         /**
-         * Updates the call timer.
+         * Updates the call timer display every second.
          */
         function updateCallTimer() {
             callDuration++;
@@ -4678,45 +4905,47 @@
         }
 
         /**
-         * Ends the call and cleans up resources.
+         * Ends the call and cleans up all WebRTC resources and UI.
          * @param {boolean} updateFirestore - Whether to update the Firestore call status to 'ended'.
          */
         async function endCall(updateFirestore = true) {
-            stopRingingSound();
-            clearInterval(callDurationInterval);
-            clearTimeout(callTimeoutId);
+            stopRingingSound(); // Stop any ringing sound.
+            clearInterval(callDurationInterval); // Stop call timer.
+            clearTimeout(callTimeoutId); // Clear any no-answer timeout.
 
             if (unsubscribeCallListener) {
-                unsubscribeCallListener();
+                unsubscribeCallListener(); // Unsubscribe from Firestore call listener.
                 unsubscribeCallListener = null;
             }
 
             if (peerConnection) {
-                peerConnection.close();
+                peerConnection.close(); // Close the RTCPeerConnection.
                 peerConnection = null;
             }
 
             if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
+                localStream.getTracks().forEach(track => track.stop()); // Stop all local media tracks.
                 localStream = null;
             }
             if (remoteStream) {
-                remoteStream.getTracks().forEach(track => track.stop());
+                remoteStream.getTracks().forEach(track => track.stop()); // Stop all remote media tracks.
                 remoteStream = null;
             }
 
+            // Reset video element sources and display.
             localVideo.srcObject = null;
             remoteVideo.srcObject = null;
             localVideo.style.display = 'none';
             remoteVideo.style.display = 'none';
 
+            // Hide call overlay and reset call state.
             callOverlay.classList.remove('active', 'voice-call', 'video-call');
             callState = 'idle';
             isIncomingCall = false;
             callDuration = 0;
             callTimerDisplay.textContent = '00:00';
 
-            // Reset button states
+            // Reset call action button states and icons.
             toggleMuteBtn.classList.remove('active');
             toggleVideoBtn.classList.remove('active');
             toggleMuteBtn.querySelector('i').className = 'fas fa-microphone';
@@ -4728,13 +4957,13 @@
             endCallBtn.style.display = 'none';
             callStatusIcon.style.animation = 'none';
 
-            // Update user's inCall status in Firestore
+            // Update user's inCall status in Firestore.
             if (currentUser && currentUser.uid) {
                 const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
                 await updateDoc(currentUserPublicProfileRef, { inCall: false }).catch(e => console.error("Failed to update inCall status on endCall:", e));
             }
 
-            // Update Firestore call document status if explicitly requested
+            // Update Firestore call document status if explicitly requested.
             if (updateFirestore && callRef) {
                 try {
                     await updateDoc(callRef, { status: 'ended', lastActivity: serverTimestamp() });
@@ -4742,50 +4971,51 @@
                     console.error("JCHAT_ERROR: Error updating call status to ended in Firestore:", error);
                 }
             }
-            callRef = null; // Clear call reference
+            callRef = null; // Clear call reference.
         }
 
 
         // --- Authentication State Listener ---
+        // This is the primary entry point after the DOM is loaded.
         onAuthStateChanged(auth, async (user) => {
             console.log("JCHAT_DEBUG: onAuthStateChanged triggered. User:", user ? user.uid : "null");
             if (user) {
                 currentUser = user;
-                isAuthReady = true; // Set to true early so profile fetching can proceed
-                await fetchAndDisplayHeaderProfile(user); // This sets currentUserProfileData and updates UI
+                isAuthReady = true; // Set to true early so profile fetching can proceed.
+                await fetchAndDisplayHeaderProfile(user); // This sets currentUserProfileData and updates UI.
                 console.log("JCHAT_DEBUG: Auth is ready. User ID:", currentUser.uid, "isAuthReady:", isAuthReady);
 
-                // Start listening to system settings in real-time
+                // Start listening to system settings in real-time.
                 const unsubscribeSettings = onSnapshot(SYSTEM_SETTINGS_DOC_REF, (docSnap) => {
                     if (docSnap.exists()) {
                         currentSystemSettings = docSnap.data();
                         console.log("JCHAT_DEBUG: Real-time system settings update:", currentSystemSettings);
-                        applySystemSettings(currentSystemSettings); // Apply settings on every change
-                        // Start listening for calls only after settings are loaded and calls are enabled
+                        applySystemSettings(currentSystemSettings); // Apply settings on every change.
+                        // Start listening for calls only after settings are loaded and calls are enabled.
                         if (currentSystemSettings.enableCalls) {
                             listenForIncomingCalls();
                         } else {
                             if (unsubscribeCallListener) {
-                                unsubscribeCallListener(); // Stop listening if calls are disabled
+                                unsubscribeCallListener(); // Stop listening if calls are disabled.
                                 unsubscribeCallListener = null;
                             }
                             if (callState !== 'idle') {
-                                endCall(false); // End any active call if feature is disabled
+                                endCall(false); // End any active call if feature is disabled.
                                 showMessageBox("Call ended: Calls are now disabled by administrators.", "warning", true, 5000);
                             }
                         }
                     } else {
                         console.warn("JCHAT_WARNING: System settings document not found during snapshot. Re-fetching.");
-                        fetchSystemSettings(); // Re-fetch if document disappears
+                        fetchSystemSettings(); // Re-fetch if document disappears.
                     }
                 }, (error) => {
                     console.error("JCHAT_ERROR: Error listening to system settings:", error);
                     showMessageBox("Failed to get real-time settings updates.", 'error', true);
                 });
-                unsubscribeListeners.push(unsubscribeSettings); // Add to list to unsubscribe on unload
+                unsubscribeListeners.push(unsubscribeSettings); // Add to list to unsubscribe on unload.
 
-                await fetchSystemSettings(); // Initial fetch of system settings
-                await fetchAndDisplayPosts(); // This will setup all real-time listeners for posts and comments
+                await fetchSystemSettings(); // Initial fetch of system settings.
+                await fetchAndDisplayPosts(); // This will setup all real-time listeners for posts and comments.
                 fetchNotificationCount(user.uid);
 
 
@@ -4802,12 +5032,12 @@
                 } catch (error) {
                     console.error("JCHAT_ERROR: Error during anonymous sign-in or custom token sign-in:", error);
                     if (!auth.currentUser) {
-                        window.location.href = '/login.html';
-                        return; // Stop further execution
+                        window.location.href = '/login.html'; // Redirect to login if all sign-in attempts fail.
+                        return; // Stop further execution.
                     }
                 }
-                // If we reach here, either anonymous sign-in succeeded or custom token worked
-                // Re-check currentUser after potential anonymous sign-in
+                // If we reach here, either anonymous sign-in succeeded or custom token worked.
+                // Re-check currentUser after potential anonymous sign-in.
                 currentUser = auth.currentUser;
                 if (currentUser) {
                     isAuthReady = true;
@@ -4815,13 +5045,13 @@
                     await fetchNotificationCount(currentUser.uid);
                     console.log("JCHAT_DEBUG: Anonymous/Custom Token Auth successful. User ID:", currentUser.uid, "isAuthReady:", isAuthReady);
 
-                    // Start listening to system settings for anonymous users too (e.g., for maintenance mode)
+                    // Start listening to system settings for anonymous users too (e.g., for maintenance mode).
                     const unsubscribeSettings = onSnapshot(SYSTEM_SETTINGS_DOC_REF, (docSnap) => {
                         if (docSnap.exists()) {
                             currentSystemSettings = docSnap.data();
                             console.log("JCHAT_DEBUG: Real-time system settings update for anonymous user:", currentSystemSettings);
                             applySystemSettings(currentSystemSettings);
-                            // Calls are disabled for anonymous users by default by applySystemSettings, so no need to start listener
+                            // Calls are disabled for anonymous users by default by applySystemSettings, so no need to start listener.
                         } else {
                             console.warn("JCHAT_WARNING: System settings document not found during snapshot for anonymous user. Re-fetching.");
                             fetchSystemSettings();
@@ -4832,24 +5062,24 @@
                     });
                     unsubscribeListeners.push(unsubscribeSettings);
 
-                    await fetchSystemSettings(); // Initial fetch for anonymous
-                    await fetchAndDisplayPosts(); // Fetch posts for anonymous (they can view, but not interact)
+                    await fetchSystemSettings(); // Initial fetch for anonymous.
+                    await fetchAndDisplayPosts(); // Fetch posts for anonymous (they can view, but not interact).
 
                 } else {
                     // This case should ideally not be reached if the above logic is correct,
                     // but as a fallback, ensure UI is for logged out state.
                     isAuthReady = false;
-                    toggleInteractiveElements(false, false); // Disable all elements for unauthenticated non-admin
+                    toggleInteractiveElements(false, false); // Disable all elements for unauthenticated non-admin.
                     if (headerDisplayName) headerDisplayName.textContent = "Guest";
                     if (headerProfilePic) headerProfilePic.style.display = 'none';
                     if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
-                    if (adminIconLink) adminIconLink.style.display = 'none'; // Ensure admin icon is hidden for guests
+                    if (adminIconLink) adminIconLink.style.display = 'none'; // Ensure admin icon is hidden for guests.
                     if (postsFeed) postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see posts and interact.</p>';
                     if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
                     if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Please log in to get your daily inspiration.";
                     if (inspirationAuthorElement) inspirationAuthorElement.textContent = "";
 
-                    // Ensure daily bonus button is disabled and countdown is cleared for logged out state
+                    // Ensure daily bonus button is disabled and countdown is cleared for logged out state.
                     if (claimDailyBonusButton) {
                         claimDailyBonusButton.disabled = true;
                         claimDailyBonusButton.querySelector('.button-text').textContent = "Login to Claim Bonus";
@@ -4860,15 +5090,16 @@
                     }
                     console.log("JCHAT_DEBUG: Auth is NOT ready (final fallback). isAuthReady:", isAuthReady);
 
-                    // Set default system settings for unauthenticated view if not fetched
+                    // Set default system settings for unauthenticated view if not fetched.
                     currentSystemSettings = {
                         jcoinNairaRate: 7.5, gasJcoinRate: 0.1, dailyBonusAmount: 50,
                         defaultInspirationType: "motivational", profanityFilterSensitivity: 5,
                         enableUserRegistration: true, enableFriendRequests: true, enablePublicChat: true,
                         enablePostCreation: true, enableEmailNotifications: true, maintenanceMode: false,
-                        globalAnnouncement: "", enableCalls: true, // Default to true for calls even for anonymous users to see UI
+                        enableCalls: true, // Default to true for calls even for anonymous users to see UI.
+                        globalAnnouncement: "",
                     };
-                    applySystemSettings(currentSystemSettings); // Apply default settings for unauthenticated state
+                    applySystemSettings(currentSystemSettings); // Apply default settings for unauthenticated state.
                 }
             }
         });
@@ -4876,16 +5107,18 @@
         // --- Event Listeners for static elements ---
         document.addEventListener('DOMContentLoaded', () => {
             console.log("JCHAT_DEBUG: DOMContentLoaded fired.");
+            // Apply saved theme or default.
             const savedTheme = localStorage.getItem('jchat-theme');
             if (savedTheme && themes.includes(savedTheme)) {
                 applyTheme(savedTheme);
             } else {
                 applyTheme('theme-dark-mode');
             }
-            toggleInteractiveElements(false, false); // Disable until auth state is confirmed (assume non-admin initially)
+            // Initially disable interactive elements until authentication state is confirmed.
+            toggleInteractiveElements(false, false);
             console.log(`JCHAT_DEBUG: Initial postContentInput disabled state: ${postContentInput ? postContentInput.disabled : 'N/A (element not found)'}`);
 
-            // Set active class for current page in sidebar
+            // Set active class for current page in sidebar.
             const currentPagePath = window.location.pathname;
             sidebarNavItems.forEach(item => {
                 if (item.getAttribute('href') === currentPagePath) {
@@ -4898,11 +5131,12 @@
             // Call Overlay Button Listeners (NEW)
             if (acceptCallBtn) acceptCallBtn.addEventListener('click', acceptCall);
             if (declineCallBtn) declineCallBtn.addEventListener('click', declineCall);
-            if (endCallBtn) endCallBtn.addEventListener('click', () => endCall(true)); // Pass true to update Firestore
+            if (endCallBtn) endCallBtn.addEventListener('click', () => endCall(true)); // Pass true to update Firestore.
             if (toggleMuteBtn) toggleMuteBtn.addEventListener('click', toggleMute);
             if (toggleVideoBtn) toggleVideoBtn.addEventListener('click', toggleVideo);
         });
 
+        // Listen for changes in local storage (e.g., theme changes from other tabs).
         window.addEventListener('storage', (event) => {
             if (event.key === 'jchat-theme') {
                 const newTheme = event.newValue || 'theme-dark-mode';
@@ -4912,14 +5146,15 @@
             }
         });
 
+        // Cleanup resources before the page unloads.
         window.addEventListener('beforeunload', async () => {
-            // Detach all Firestore listeners before the page unloads
+            // Detach all Firestore listeners before the page unloads.
             unsubscribeListeners.forEach(unsubscribe => {
                 if (typeof unsubscribe === 'function') {
                     unsubscribe();
                 }
             });
-            unsubscribeListeners = []; // Clear the array
+            unsubscribeListeners = []; // Clear the array.
             console.log("JCHAT_DEBUG: All Firestore listeners detached.");
             if (inspirationIntervalId) {
                 clearInterval(inspirationIntervalId);
@@ -4930,21 +5165,22 @@
                 console.log("JCHAT_DEBUG: Daily bonus countdown interval cleared.");
             }
 
-            // Ensure inCall status is turned off when leaving the page
+            // Ensure inCall status is turned off when leaving the page.
             if (currentUser && currentUser.uid) {
                 const currentUserPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
                 await updateDoc(currentUserPublicProfileRef, { inCall: false }).catch(e => console.error("Failed to update inCall status on beforeunload:", e));
             }
-            // End any active WebRTC call
+            // End any active WebRTC call.
             if (callState !== 'idle') {
-                await endCall(false); // End call without updating Firestore status to avoid conflicts during unload
+                await endCall(false); // End call without updating Firestore status to avoid conflicts during unload.
             }
         });
 
+        // Event listeners for specific UI buttons.
         if (sharePostInspirationButton) {
             sharePostInspirationButton.addEventListener('click', () => {
                 if (!isAuthReady) { showMessageBox("Please log in to share inspiration.", 'error'); return; }
-                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post creation is currently disabled by administrators, so sharing as a post is not possible.", 'warning'); return; } // NEW
+                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post creation is currently disabled by administrators, so sharing as a post is not possible.", 'warning'); return; }
                 const currentQuote = inspirationQuoteElement.textContent;
                 const currentAuthor = inspirationAuthorElement.textContent;
                 showMessageBox(`You can share/post this: ${currentQuote} ${currentAuthor}`, 'info');
@@ -4955,6 +5191,7 @@
         if (saveCustomizeButton) saveCustomizeButton.addEventListener('click', saveInspirationType);
         if (claimDailyBonusButton) claimDailyBonusButton.addEventListener('click', handleClaimDailyBonusClick);
 
+        // Close customization modal if clicking outside its content.
         if (customizeInspirationModal) {
             customizeInspirationModal.addEventListener('click', (event) => {
                 if (event.target === customizeInspirationModal) {
@@ -4968,6 +5205,7 @@
         if (cancelEditPostButton) cancelEditPostButton.addEventListener('click', closeEditPostModal);
         if (saveEditedPostButton) saveEditedPostButton.addEventListener('click', saveEditedPost);
 
+        // Close edit post modal if clicking outside its content.
         if (editPostModal) {
             editPostModal.addEventListener('click', (event) => {
                 if (event.target === editPostModal) {
@@ -4976,7 +5214,7 @@
             });
         }
 
-        // Sidebar toggle logic
+        // Sidebar toggle logic.
         function toggleSidebar() {
             sidebarNav.classList.toggle('sidebar-hidden');
             sidebarNav.classList.toggle('sidebar-visible');
@@ -4984,7 +5222,7 @@
 
         if (sidebarToggleFab) sidebarToggleFab.addEventListener('click', toggleSidebar);
         if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleSidebar);
-        if (sidebarLogoutLink) sidebarLogoutLink.addEventListener('click', handleLogout); // Add logout to sidebar
+        if (sidebarLogoutLink) sidebarLogoutLink.addEventListener('click', handleLogout); // Add logout to sidebar.
     </script>
 </body>
 </html>
