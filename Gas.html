@@ -17,6 +17,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Tone.js for audio notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -220,7 +222,7 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden; /* Prevent horizontal scroll */
-            padding-bottom: 120px; /* Space for nav bar (60px) + toggle button (60px) */
+            padding-bottom: 40px; /* Adjusted padding as bottom nav is removed */
             background-color: var(--background-main);
             background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
                               radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
@@ -264,43 +266,9 @@
             text-decoration: none;
         }
 
-        /* Header Navigation */
+        /* Header Navigation (Removed as per user request) */
         header nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            gap: 25px;
-        }
-
-        header nav ul li a {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            padding: 5px 0;
-            position: relative;
-            transition: color var(--transition);
-        }
-
-        header nav ul li a::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 0;
-            height: 3px;
-            background: var(--blue);
-            border-radius: 2px;
-            transition: width var(--transition);
-        }
-
-        header nav ul li a:hover {
-            color: var(--blue);
-        }
-
-        header nav ul li a:hover::after {
-            width: 100%;
+            display: none; /* Explicitly hide navigation */
         }
 
         /* User Profile Header Styling */
@@ -529,7 +497,10 @@
         }
 
         .input-group input[type="text"],
-        .input-group input[type="number"] {
+        .input-group input[type="number"],
+        .input-group textarea,
+        .input-group select,
+        .input-group input[type="datetime-local"] { /* Added datetime-local */
             width: 100%;
             padding: 0.8rem 1rem;
             border: 1px solid var(--border-light);
@@ -542,7 +513,10 @@
         }
 
         .input-group input[type="text"]:focus,
-        .input-group input[type="number"]:focus {
+        .input-group input[type="number"]:focus,
+        .input-group textarea:focus,
+        .input-group select:focus,
+        .input-group input[type="datetime-local"]:focus { /* Added datetime-local */
             border-color: var(--blue);
             box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
         }
@@ -568,7 +542,7 @@
             margin-top: 1rem;
         }
 
-        .admin-button:hover {
+        .admin-button:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
         }
@@ -580,10 +554,21 @@
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
         }
 
-        .admin-button.secondary:hover {
+        .admin-button.secondary:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.2);
             transform: translateY(-1px);
         }
+
+        .admin-button.danger {
+            background: var(--delete-button-color);
+            color: var(--white);
+            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
+        }
+        .admin-button.danger:hover:not(:disabled) {
+            background: #a72333;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+
 
         .admin-button i {
             background-clip: text;
@@ -592,6 +577,15 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        .admin-button.secondary i, .admin-button.danger i {
+            -webkit-text-fill-color: var(--white); /* Ensure icons are white for secondary/danger */
+        }
+        .admin-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
 
         .user-details-display {
             background: rgba(0, 0, 0, 0.2);
@@ -752,16 +746,15 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Pending Requests Section */
-        #pendingRequestsList {
+        /* Requests/Reports/Posts Lists/Tables */
+        #pendingRequestsList, #reportedContentList, #publicPostsList, #globalUsersList {
             display: flex;
             flex-direction: column;
             gap: 15px;
             width: 100%;
             margin-top: 20px;
         }
-
-        .request-card {
+        .request-card, .report-card, .post-card, .user-row-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-light);
             border-radius: 15px;
@@ -773,14 +766,14 @@
             position: relative;
         }
 
-        .request-card .request-header {
+        .request-card .request-header, .report-card .report-header, .post-card .post-header {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 10px;
         }
 
-        .request-card .requester-pic {
+        .request-card .requester-pic, .report-card .reporter-pic, .report-card .reported-pic, .post-card .post-author-pic {
             width: 50px;
             height: 50px;
             border-radius: 50%;
@@ -788,26 +781,36 @@
             border: 2px solid var(--accent-color);
         }
 
-        .request-card .requester-info {
+        .request-card .requester-info, .report-card .report-info, .post-card .post-info {
             display: flex;
             flex-direction: column;
         }
 
-        .request-card .requester-name {
+        .request-card .requester-name, .report-card .reporter-name, .report-card .reported-name, .post-card .post-author-name {
             font-weight: 700;
             color: var(--white);
         }
 
-        .request-card .request-timestamp {
+        .request-card .request-timestamp, .report-card .report-timestamp, .post-card .post-timestamp {
             font-size: 0.8rem;
             color: var(--text-light);
         }
 
-        .request-card .request-details p {
+        .request-card .request-details p, .report-card .report-details p, .post-card .post-content p {
             margin: 5px 0;
             font-size: 0.95rem;
             color: var(--text-color-secondary);
         }
+        .report-card .report-details pre {
+            background-color: rgba(0,0,0,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: 0.9em;
+        }
+
 
         .request-card .receipt-preview {
             max-width: 100%;
@@ -817,14 +820,14 @@
             border: 1px solid var(--border-light);
         }
 
-        .request-card .request-actions {
+        .request-card .request-actions, .report-card .report-actions, .post-card .post-actions, .user-row-card .user-actions {
             display: flex;
             gap: 10px;
             margin-top: 15px;
             justify-content: flex-end; /* Align buttons to the right */
         }
 
-        .request-card .request-actions button {
+        .request-card .request-actions button, .report-card .report-actions button, .post-card .post-actions button, .user-row-card .user-actions button {
             padding: 8px 15px;
             border-radius: 10px;
             font-weight: 600;
@@ -833,31 +836,202 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .request-card .request-actions .approve-btn {
+        /* Specific button styles (Approve/Reject/Delete) */
+        .approve-btn {
             background: linear-gradient(90deg, #28a745, #218838); /* Green gradient */
             color: var(--white);
             box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
         }
-
-        .request-card .request-actions .approve-btn:hover {
+        .approve-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
         }
-
-        .request-card .request-actions .reject-btn {
+        .reject-btn, .delete-btn {
             background: linear-gradient(90deg, #dc3545, #c82333); /* Red gradient */
             color: var(--white);
             box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
         }
-
-        .request-card .request-actions .reject-btn:hover {
+        .reject-btn:hover, .delete-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
         }
 
-        .no-requests-message {
+
+        .no-requests-message, .no-reports-message, .no-posts-message, .no-users-message {
             text-align: center;
             color: var(--text-light);
+            margin-top: 20px;
+        }
+
+        /* Bulk Actions Container */
+        .bulk-actions-container {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end; /* Align to right */
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-right: 5px; /* Small padding to align with table */
+        }
+        .bulk-actions-container button {
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            box-shadow: var(--button-shadow);
+        }
+        .bulk-actions-container button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
+        }
+        .bulk-actions-container button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--text-light);
+            box-shadow: none;
+        }
+
+
+        /* Tables */
+        .rewards-table-container, .reports-table-container, .posts-table-container, .users-table-container {
+            width: 100%;
+            overflow-x: auto; /* Enable horizontal scroll on small screens */
+        }
+        .rewards-table, .reports-table, .posts-table, .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background-color: rgba(0, 0, 0, 0.2); /* Slightly darker background for table */
+            border-radius: 10px;
+            overflow: hidden; /* Ensures rounded corners on children */
+        }
+        .rewards-table th, .rewards-table td,
+        .reports-table th, .reports-table td,
+        .posts-table th, .posts-table td,
+        .users-table th, .users-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        .rewards-table th, .reports-table th, .posts-table th, .users-table th {
+            background-color: rgba(0, 0, 0, 0.3); /* Darker header */
+            color: var(--white);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .rewards-table tbody tr:hover,
+        .reports-table tbody tr:hover,
+        .posts-table tbody tr:hover,
+        .users-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05); /* Subtle hover effect */
+        }
+        .rewards-table td .action-buttons,
+        .reports-table td .action-buttons,
+        .posts-table td .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+        .rewards-table td .action-buttons button,
+        .reports-table td .action-buttons button,
+        .posts-table td .action-buttons button {
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .rewards-table td .action-buttons button.approve-btn,
+        .reports-table td .action-buttons button.approve-btn {
+            background: linear-gradient(90deg, #28a745, #218838); /* Green gradient */
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+        .rewards-table td .action-buttons button.approve-btn:hover:not(:disabled),
+        .reports-table td .action-buttons button.approve-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.5);
+        }
+        .rewards-table td .action-buttons button.reject-btn,
+        .reports-table td .action-buttons button.reject-btn,
+        .posts-table td .action-buttons button.delete-btn {
+            background: linear-gradient(90deg, #dc3545, #c82333); /* Red gradient */
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+        .rewards-table td .action-buttons button.reject-btn:hover:not(:disabled),
+        .reports-table td .action-buttons button.reject-btn:hover:not(:disabled),
+        .posts-table td .action-buttons button.delete-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 44px 12px rgba(220, 53, 69, 0.5);
+        }
+        .rewards-table td .action-buttons button:disabled,
+        .reports-table td .action-buttons button:disabled,
+        .posts-table td .action-buttons button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Checkbox styling */
+        .rewards-table input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--blue);
+            border-radius: 4px;
+            background-color: var(--input-background);
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            vertical-align: middle; /* Align checkbox vertically with text */
+        }
+        .rewards-table input[type="checkbox"]:checked {
+            background-color: var(--blue);
+            border-color: var(--blue);
+        }
+        .rewards-table input[type="checkbox"]:checked::after {
+            content: '\f00c'; /* Font Awesome check icon */
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            color: var(--white);
+            font-size: 12px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .rewards-table input[type="checkbox"]:hover {
+            border-color: var(--pink);
+        }
+        .rewards-table input[type="checkbox"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* no data messages */
+        #noRewardsMessage, #noReportsMessage, #noPostsMessage, #noUsersMessage {
+            color: var(--text-light);
+            font-size: 1.1rem;
             margin-top: 20px;
         }
 
@@ -897,6 +1071,11 @@
         #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
         #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
         #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.loading { /* New loading state for message box */
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.9), rgba(46, 204, 113, 0.9)); /* Soft blue to green gradient */
+            box-shadow: 0 8px 30px rgba(52, 152, 219, 0.5), 0 8px 30px rgba(46, 204, 113, 0.5);
+            color: var(--white);
+        }
 
         #messageBox i {
             font-size: 2.5rem; /* Larger icon for prominence */
@@ -912,6 +1091,8 @@
         #messageBox.error i { color: var(--delete-button-color); }
         #messageBox.info i { color: var(--accent-color); }
         #messageBox.warning i { color: var(--warning-color); }
+        #messageBox.loading i { color: var(--white); } /* White icon for loading */
+
 
         #messageBox span {
             font-size: 1.1rem; /* Slightly larger text */
@@ -944,111 +1125,141 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- Bottom Navigation Bar --- */
-        #bottomNavBar {
+        /* Confirmation Modal Specific Styles */
+        .modal-overlay {
             position: fixed;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 60px;
-            background: var(--header-background);
-            border-top: 1px solid var(--border-light);
-            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
-            justify-content: space-around;
             align-items: center;
-            padding: 0 10px;
-            z-index: 50;
-            bottom: 60px; /* Positioned above the toggle button */
-            transition: bottom 0.3s ease-out; /* Smooth slide transition */
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-
-        #bottomNavBar.nav-bar-hidden-full {
-            bottom: -60px; /* Move it completely off-screen below */
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            width: 90%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
         }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-content h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+        .modal-content .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+        .modal-content .modal-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .modal-content .cancel-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        .modal-content .cancel-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        .modal-content .save-button {
+            background: var(--button-background);
+            color: var(--white);
+            box-shadow: var(--button-shadow);
+        }
+        .modal-content .save-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px var(--blue), 0 44px 15px var(--pink);
+        }
+        #confirmationModal .modal-content { max-width: 400px; text-align: center; padding: 1.8rem; }
+        #confirmationModal .modal-content h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.6rem;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--pink), var(--blue));
+            margin-bottom: 1rem;
+        }
+        #confirmationModal .modal-content p {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+        #confirmationModal .modal-content .button-group { justify-content: center; gap: 1rem; }
+        #confirmationModal .confirm-button { background: var(--pink); color: var(--white); box-shadow: 0 4px 15px var(--pink); }
+        #confirmationModal .confirm-button:hover { background: #e02a82; box-shadow: 0 6px 20px var(--pink); }
+        #confirmationModal .cancel-button { background: var(--blue); color: var(--white); box-shadow: 0 4px 15px var(--blue); }
+        #confirmationModal .cancel-button:hover { background: #00b5e0; box-shadow: 0 6px 20px var(--blue); }
 
-        .nav-icon-item {
+        /* Maintenance Mode Overlay */
+        #maintenanceOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-decoration: none;
+            justify-content: center;
+            z-index: 1000;
+            color: var(--white);
+            text-align: center;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #maintenanceOverlay.active { opacity: 1; visibility: visible; }
+        #maintenanceOverlay i {
+            font-size: 5rem;
+            color: var(--warning-color);
+            margin-bottom: 20px;
+        }
+        #maintenanceOverlay h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--warning-color);
+            margin-bottom: 10px;
+        }
+        #maintenanceOverlay p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            max-width: 600px;
             color: var(--text-light);
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: color 0.2s ease, transform 0.2s ease;
-            flex: 1;
-            max-width: 80px;
-        }
-
-        .nav-icon-item:hover {
-            color: var(--white);
-        }
-
-        .nav-icon-circle {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--blue), var(--pink));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .nav-icon-item:hover .nav-icon-circle {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px var(--blue), 0 4px 12px var(--pink);
-        }
-
-        .nav-icon-circle i {
-            color: var(--white);
-            font-size: 1.3rem;
-            transition: transform 0.2s ease;
-        }
-
-        .nav-icon-item.active .nav-icon-circle {
-            background: linear-gradient(45deg, var(--pink), var(--blue));
-            box-shadow: 0 4px 12px var(--pink), 0 44px 12px var(--blue);
-        }
-        .nav-icon-item.active {
-            color: var(--white);
-        }
-
-        /* Navigation Toggle Button */
-        #navToggleBtn {
-            position: fixed;
-            bottom: 0px; /* Position at the very bottom */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px; /* Slightly larger button */
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--pink), var(--blue)); /* Pink to blue gradient */
-            color: var(--white);
-            border: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem; /* Larger icon */
-            cursor: pointer;
-            z-index: 60; /* Higher than nav bar */
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-        }
-
-        #navToggleBtn:hover {
-            transform: translateX(-50%) scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(45deg, var(--blue), var(--pink)); /* Reverse gradient on hover */
-        }
-
-        #navToggleBtn i {
-            transition: transform 0.3s ease; /* Smooth icon rotation */
-        }
-
-        #navToggleBtn.rotated i {
-            transform: rotate(180deg); /* Rotate icon when nav is hidden */
         }
 
         /* Responsive Adjustments */
@@ -1074,23 +1285,31 @@
             .management-card .button-group .admin-button {
                 min-width: unset;
             }
-            .request-card {
+            .request-card, .report-card, .post-card, .user-row-card {
                 padding: 10px;
             }
-            .request-card .request-header {
+            .request-card .request-header, .report-card .report-header, .post-card .post-header {
                 flex-direction: column;
                 align-items: flex-start;
             }
-            .request-card .requester-pic {
+            .request-card .requester-pic, .report-card .reporter-pic, .report-card .reported-pic, .post-card .post-author-pic {
                 width: 40px;
                 height: 40px;
             }
-            .request-card .request-actions {
+            .request-card .request-actions, .report-card .report-actions, .post-card .post-actions, .user-row-card .user-actions {
                 flex-direction: column;
                 gap: 5px;
             }
-            .request-card .request-actions button {
+            .request-card .request-actions button, .report-card .report-actions button, .post-card .post-actions button, .user-row-card .user-actions button {
                 width: 100%;
+            }
+            .bulk-actions-container {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .bulk-actions-container button {
+                width: 100%;
+                justify-content: center;
             }
         }
 
@@ -1126,31 +1345,8 @@
             #logoutButton i {
                 font-size: 0.8rem;
             }
-            #bottomNavBar {
-                height: 55px;
-                padding: 0 5px;
-                bottom: 55px; /* Adjust for smaller button height on mobile */
-            }
-            #bottomNavBar.nav-bar-hidden-full {
-                bottom: -55px; /* Adjust for smaller button height on mobile */
-            }
-            #navToggleBtn {
-                width: 55px;
-                height: 55px;
-                font-size: 1.5rem;
-            }
-            .nav-icon-circle {
-                width: 40px;
-                height: 40px;
-            }
-            .nav-icon-circle i {
-                font-size: 1.2rem;
-            }
-            .nav-icon-item {
-                font-size: 0.7rem;
-            }
             body {
-                padding-bottom: 110px; /* 55px (nav) + 55px (toggle) */
+                padding-bottom: 40px; /* Adjusted padding for no bottom nav */
             }
         }
     </style>
@@ -1195,11 +1391,116 @@
             <div class="admin-section">
                 <h2>Admin Dashboard</h2>
 
+                <!-- System Settings Management Section -->
+                <h3>System Settings</h3>
+                <div class="user-management-grid">
+                    <div class="management-card">
+                        <h4>Economy Settings</h4>
+                        <div class="input-group">
+                            <label for="jcoinNairaRateInput">JCoin per Naira:</label>
+                            <input type="number" id="jcoinNairaRateInput" step="0.01" min="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="gasJcoinRateInput">Gas per JCoin:</label>
+                            <input type="number" id="gasJcoinRateInput" step="0.01" min="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="dailyBonusAmountInput">Daily Bonus (JCoins):</label>
+                            <input type="number" id="dailyBonusAmountInput" min="0">
+                        </div>
+                    </div>
+
+                    <div class="management-card">
+                        <h4>Feature Toggles</h4>
+                        <div class="input-group">
+                            <label for="enableUserRegistrationToggle">Enable User Registration:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableUserRegistrationToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label for="enableFriendRequestsToggle">Enable Friend Requests:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableFriendRequestsToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label for="enablePublicChatToggle">Enable Public Chat:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enablePublicChatToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label for="enablePostCreationToggle">Enable Post Creation:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enablePostCreationToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label for="enableEmailNotificationsToggle">Enable Email Notifications:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableEmailNotificationsToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label for="enableCallsToggle">Enable Calls:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableCallsToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="management-card">
+                        <h4>Maintenance & Announcements</h4>
+                        <div class="input-group">
+                            <label for="maintenanceModeToggle">Maintenance Mode:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="maintenanceModeToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label for="globalAnnouncementInput">Global Announcement Text:</label>
+                            <textarea id="globalAnnouncementInput" placeholder="Enter global announcement text" rows="3"></textarea>
+                        </div>
+                         <div class="input-group">
+                            <label for="announcementStartTime">Start Time:</label>
+                            <input type="datetime-local" id="announcementStartTime">
+                        </div>
+                        <div class="input-group">
+                            <label for="announcementEndTime">End Time:</label>
+                            <input type="datetime-local" id="announcementEndTime">
+                        </div>
+                        <div class="input-group">
+                            <label for="profanityFilterSensitivityInput">Profanity Filter Sensitivity (1-10):</label>
+                            <input type="number" id="profanityFilterSensitivityInput" min="1" max="10">
+                        </div>
+                    </div>
+                </div>
+                <button id="saveSystemSettingsButton" class="admin-button">
+                    <span class="button-text">Save System Settings</span>
+                    <div class="button-loader"></div>
+                </button>
+
                 <!-- User Lookup Section -->
                 <h3>Lookup User</h3>
                 <div class="input-group">
-                    <label for="lookupUserId">User ID:</label>
-                    <input type="text" id="lookupUserId" placeholder="Enter user's UID">
+                    <label for="searchTypeSelect">Search By:</label>
+                    <select id="searchTypeSelect">
+                        <option value="uid">User ID</option>
+                        <option value="username">Username</option>
+                        <option value="email">Email</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="lookupUserInput">Search Value:</label>
+                    <input type="text" id="lookupUserInput" placeholder="Enter User ID">
                 </div>
                 <button id="lookupUserButton" class="admin-button">
                     <span class="button-text">Lookup User</span>
@@ -1216,6 +1517,7 @@
                     <p>Current JCoins: <strong id="lookedUpUserJCoins">N/A</strong></p>
                     <p>Current Gas (XP): <strong id="lookedUpUserGas">N/A</strong></p>
                     <p>Wallet Status: <strong id="lookedUpUserWalletStatus">N/A</strong></p>
+                    <p>Ban Status: <strong id="lookedUpUserBanStatus">N/A</strong></p>
                 </div>
 
                 <!-- User Management Section (visible only after lookup) -->
@@ -1255,6 +1557,10 @@
                                     <span class="button-text">Deduct JCoins</span>
                                     <div class="button-loader"></div>
                                 </button>
+                                <button id="grantDailyBonusButton" class="admin-button secondary">
+                                    <span class="button-text">Grant Daily Bonus</span>
+                                    <div class="button-loader"></div>
+                                </button>
                             </div>
                         </div>
 
@@ -1278,10 +1584,10 @@
                             </div>
                         </div>
 
-                        <!-- Wallet Management Card -->
+                        <!-- Wallet & Ban Management Card -->
                         <div class="management-card">
-                            <h4>Wallet Management</h4>
-                            <p>Status: <strong id="currentWalletStatus">N/A</strong></p>
+                            <h4>Wallet & Ban Management</h4>
+                            <p>Wallet Status: <strong id="currentWalletStatus">N/A</strong></p>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="walletLockToggle">
                                 <span class="slider"></span>
@@ -1290,9 +1596,82 @@
                                 <span class="button-text">Toggle Wallet Lock</span>
                                 <div class="button-loader"></div>
                             </button>
+                            <p>Ban Status: <strong id="currentBanStatus">N/A</strong></p>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="banUserToggle">
+                                <span class="slider"></span>
+                            </label>
+                            <button id="toggleBanButton" class="admin-button secondary">
+                                <span class="button-text">Toggle Ban Status</span>
+                                <div class="button-loader"></div>
+                            </button>
+                            <button id="deleteUserAccountButton" class="admin-button danger">
+                                <span class="button-text"><i class="fas fa-trash-alt"></i> Delete User Account</span>
+                                <div class="button-loader"></div>
+                            </button>
                         </div>
                     </div>
+                     <!-- Admin Chat/Direct Message to User -->
+                    <div class="management-card" style="width: 100%;">
+                        <h4>Send Message to User</h4>
+                        <div class="input-group">
+                            <label for="adminMessageInput">Message:</label>
+                            <textarea id="adminMessageInput" placeholder="Enter message to user" rows="3"></textarea>
+                        </div>
+                        <button id="sendAdminMessageButton" class="admin-button">
+                            <span class="button-text">Send Message</span>
+                            <div class="button-loader"></div>
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Global User Search and Filter -->
+                <h3>Global User Management</h3>
+                <div class="input-group">
+                    <label for="globalUserSearchInput">Search Username or User ID:</label>
+                    <input type="text" id="globalUserSearchInput" placeholder="Search all users">
+                </div>
+                <div class="input-group">
+                    <label for="globalUserBanStatusFilter">Filter by Ban Status:</label>
+                    <select id="globalUserBanStatusFilter">
+                        <option value="all">All</option>
+                        <option value="banned">Banned</option>
+                        <option value="not_banned">Not Banned</option>
+                    </select>
+                </div>
+                 <div class="input-group">
+                    <label for="globalUserWalletStatusFilter">Filter by Wallet Status:</label>
+                    <select id="globalUserWalletStatusFilter">
+                        <option value="all">All</option>
+                        <option value="locked">Locked</option>
+                        <option value="unlocked">Unlocked</option>
+                    </select>
+                </div>
+                <button id="filterGlobalUsersButton" class="admin-button secondary">
+                    <span class="button-text"><i class="fas fa-filter"></i> Apply Filters</span>
+                    <div class="button-loader"></div>
+                </button>
+                <div class="users-table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>User ID</th>
+                                <th>Level</th>
+                                <th>JCoins</th>
+                                <th>Gas</th>
+                                <th>Wallet</th>
+                                <th>Ban Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="globalUsersTableBody">
+                            <!-- Global user list will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noUsersMessage" style="display: none;">No users found matching the criteria.</p>
+
 
                 <!-- Pending JCoin Requests Section -->
                 <h3>Pending JCoin Requests</h3>
@@ -1300,52 +1679,116 @@
                     <p class="no-requests-message" id="noPendingRequestsMessage">No pending JCoin requests.</p>
                     <!-- Pending requests will be dynamically loaded here -->
                 </div>
+
+                <!-- Pending Activity Rewards Section -->
+                <h3>Pending Activity Rewards</h3>
+                <div class="bulk-actions-container">
+                    <button id="approveSelectedBtn" disabled aria-label="Approve Selected Rewards">
+                        <span class="button-text"><i class="fas fa-check-double"></i> Approve Selected</span>
+                        <div class="button-loader" role="status" aria-label="Loading"></div>
+                    </button>
+                    <!-- Could add a "Reject Selected" button here too if desired -->
+                </div>
+
+                <div class="rewards-table-container">
+                    <table class="rewards-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllRewards" aria-label="Select All Rewards"></th>
+                                <th>User ID</th>
+                                <th>Username</th>
+                                <th>Activity Type</th>
+                                <th>XP</th>
+                                <th>JCoins</th>
+                                <th>Timestamp</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingRewardsTableBody">
+                            <!-- Pending rewards will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noRewardsMessage" style="display: none;">No pending activity rewards at the moment.</p>
+
+                <!-- New: Reported Content & Users Section -->
+                <h3>Reported Content & Users</h3>
+                <div class="reports-table-container">
+                    <table class="reports-table">
+                        <thead>
+                            <tr>
+                                <th>Report ID</th>
+                                <th>Reported By</th>
+                                <th>Reported User/Content ID</th>
+                                <th>Type</th>
+                                <th>Reason</th>
+                                <th>Timestamp</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportedContentTableBody">
+                            <!-- Reported content will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noReportsMessage" style="display: none;">No pending reports at the moment.</p>
+
+                <!-- New: Public Posts Overview Section -->
+                <h3>Public Posts Overview</h3>
+                <div class="posts-table-container">
+                    <table class="posts-table">
+                        <thead>
+                            <tr>
+                                <th>Post ID</th>
+                                <th>Author</th>
+                                <th>Content Snippet</th>
+                                <th>Likes</th>
+                                <th>Comments</th>
+                                <th>Timestamp</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="publicPostsTableBody">
+                            <!-- Public posts will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noPostsMessage" style="display: none;">No public posts to display.</p>
+
             </div>
         </div>
     </main>
 
     <!-- Custom Message Box -->
-    <div id="messageBox"></div>
+    <div id="messageBox" role="alert" aria-live="polite"></div>
 
-    <!-- Bottom Navigation Bar -->
-    <nav id="bottomNavBar" class="nav-bar-hidden-full">
-        <a href="/home.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-home"></i></div>
-            <span>Home</span>
-        </a>
-        <a href="/chat.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-comment-dots"></i></div>
-            <span>Chat</span>
-        </a>
-        <a href="/find_friends.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-users"></i></div>
-            <span>Users</span>
-        </a>
-        <a href="/friends.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-user-friends"></i></div>
-            <span>Friends</span>
-        </a>
-        <a href="/jcoin_shop.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-store"></i></div>
-            <span>Shop</span>
-        </a>
-        <a href="/settings.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-cog"></i></div>
-            <span>Settings</span>
-        </a>
-    </nav>
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirmationTitle">
+        <div class="modal-content">
+            <h3 id="confirmationTitle">Confirm Action</h3>
+            <p id="confirmationMessage">Are you sure you want to proceed with this action?</p>
+            <div class="button-group">
+                <button id="confirmCancelButton" class="modal-button cancel-button" aria-label="Cancel">Cancel</button>
+                <button id="confirmProceedButton" class="modal-button confirm-button" aria-label="Proceed">Proceed</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Navigation Toggle Button -->
-    <button id="navToggleBtn" aria-label="Toggle Navigation">
-        <i class="fas fa-chevron-up"></i>
-    </button>
+    <!-- Maintenance Mode Overlay (Admin can bypass) -->
+    <div id="maintenanceOverlay" role="dialog" aria-modal="true" aria-labelledby="maintenanceOverlayTitle">
+        <i class="fas fa-tools" role="img" aria-label="Maintenance Icon"></i>
+        <h2 id="maintenanceOverlayTitle">Maintenance Mode</h2>
+        <p id="maintenanceAnnouncementText">JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!</p>
+    </div>
 
     <script type="module">
+        console.log("JCHAT_DEBUG: Admin.html script started.");
+
         // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, runTransaction, writeBatch, serverTimestamp, onSnapshot, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, runTransaction, writeBatch, serverTimestamp, onSnapshot, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1353,6 +1796,7 @@
             authDomain: "jchat-1.firebaseapp.com",
             projectId: "jchat-1",
             storageBucket: "jchat-1.firebasestorage.app",
+            messagingSenderId: "328479683167",
             appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
             measurementId: "G-S6Z9GG0R9P"
         };
@@ -1371,6 +1815,9 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
+        // --- ADMIN UID ---
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Your admin UID
+
         // --- DOM Elements ---
         const headerProfilePic = document.getElementById('headerProfilePic');
         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
@@ -1381,8 +1828,26 @@
         const headerNavLinkProfile = document.getElementById('profileLink');
         const adminIconLink = document.getElementById('adminIconLink');
 
-        // Admin Page Specific Elements
-        const lookupUserIdInput = document.getElementById('lookupUserId');
+        // Admin Page Specific Elements - System Settings
+        const jcoinNairaRateInput = document.getElementById('jcoinNairaRateInput');
+        const gasJcoinRateInput = document.getElementById('gasJcoinRateInput');
+        const dailyBonusAmountInput = document.getElementById('dailyBonusAmountInput');
+        const profanityFilterSensitivityInput = document.getElementById('profanityFilterSensitivityInput');
+        const enableUserRegistrationToggle = document.getElementById('enableUserRegistrationToggle');
+        const enableFriendRequestsToggle = document.getElementById('enableFriendRequestsToggle');
+        const enablePublicChatToggle = document.getElementById('enablePublicChatToggle');
+        const enablePostCreationToggle = document.getElementById('enablePostCreationToggle');
+        const enableEmailNotificationsToggle = document.getElementById('enableEmailNotificationsToggle');
+        const enableCallsToggle = document.getElementById('enableCallsToggle');
+        const maintenanceModeToggle = document.getElementById('maintenanceModeToggle');
+        const globalAnnouncementInput = document.getElementById('globalAnnouncementInput');
+        const announcementStartTimeInput = document.getElementById('announcementStartTime'); // New
+        const announcementEndTimeInput = document.getElementById('announcementEndTime');     // New
+        const saveSystemSettingsButton = document.getElementById('saveSystemSettingsButton');
+
+        // Admin Page Specific Elements - User Lookup & Management
+        const searchTypeSelect = document.getElementById('searchTypeSelect');
+        const lookupUserInput = document.getElementById('lookupUserInput');
         const lookupUserButton = document.getElementById('lookupUserButton');
         const lookedUpUserDetailsDiv = document.getElementById('lookedUpUserDetails');
         const lookedUpUserPic = document.getElementById('lookedUpUserPic');
@@ -1393,6 +1858,7 @@
         const lookedUpUserJCoinsDisplay = document.getElementById('lookedUpUserJCoins');
         const lookedUpUserGasDisplay = document.getElementById('lookedUpUserGas');
         const lookedUpUserWalletStatus = document.getElementById('lookedUpUserWalletStatus');
+        const lookedUpUserBanStatus = document.getElementById('lookedUpUserBanStatus'); // New ban status display
 
         const userManagementSection = document.getElementById('userManagementSection');
         const currentLevelValue = document.getElementById('currentLevelValue');
@@ -1403,6 +1869,7 @@
         const jcoinAmountInput = document.getElementById('jcoinAmountInput');
         const creditJCoinsButton = document.getElementById('creditJCoinsButton');
         const deductJCoinsButton = document.getElementById('deductJCoinsButton');
+        const grantDailyBonusButton = document.getElementById('grantDailyBonusButton'); // New
 
         const currentGasValue = document.getElementById('currentGasValue');
         const gasAmountInput = document.getElementById('gasAmountInput');
@@ -1411,61 +1878,122 @@
 
         const walletLockToggle = document.getElementById('walletLockToggle');
         const toggleWalletLockButton = document.getElementById('toggleWalletLockButton');
+        const banUserToggle = document.getElementById('banUserToggle'); // New ban toggle
+        const toggleBanButton = document.getElementById('toggleBanButton'); // New ban button
+        const deleteUserAccountButton = document.getElementById('deleteUserAccountButton'); // New
+
+        const adminMessageInput = document.getElementById('adminMessageInput'); // New
+        const sendAdminMessageButton = document.getElementById('sendAdminMessageButton'); // New
 
         const pendingRequestsList = document.getElementById('pendingRequestsList');
         const noPendingRequestsMessage = document.getElementById('noPendingRequestsMessage');
 
-        // --- Global State ---
-        let currentUser = null; // The currently authenticated admin user
-        let currentUserProfileData = null; // The current admin user's own private profile data
-        let lookedUpUserId = null; // The ID of the user currently being managed
-        let lookedUpUserProfileData = null; // The profile data of the user currently being managed
-        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID (Replace with your actual admin UID)
+        // Activity Rewards Specific Elements
+        const selectAllRewardsCheckbox = document.getElementById('selectAllRewards');
+        const approveSelectedBtn = document.getElementById('approveSelectedBtn');
+        const pendingRewardsTableBody = document.getElementById('pendingRewardsTableBody');
+        const noRewardsMessage = document.getElementById('noRewardsMessage');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmationTitle = document.getElementById('confirmationTitle');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const confirmCancelButton = document.getElementById('confirmCancelButton');
+        const confirmProceedButton = document.getElementById('confirmProceedButton');
+        const maintenanceOverlay = document.getElementById('maintenanceOverlay');
+        const maintenanceAnnouncementText = document.getElementById('maintenanceAnnouncementText');
 
-        let unsubscribeLookedUpUserListener = null; // Listener for the looked-up user's profile
-        let unsubscribePendingRequestsListener = null; // Listener for pending JCoin requests
+        // New Reported Content Elements
+        const reportedContentTableBody = document.getElementById('reportedContentTableBody');
+        const noReportsMessage = document.getElementById('noReportsMessage');
 
-        // --- Utility Functions (Copied from Profile.html for consistency) ---
+        // New Public Posts Elements
+        const publicPostsTableBody = document.getElementById('publicPostsTableBody');
+        const noPostsMessage = document.getElementById('noPostsMessage');
 
-        /**
-         * Displays a temporary message box with a given message and type.
-         * @param {string} message - The message to display.
-         * @param {string} type - The type of message ('success', 'error', 'info', 'loading', 'warning').
-         * @param {boolean} [isPersistent=false] - If true, message stays until explicitly cleared or replaced.
-         * @param {number} [durationMs=3000] - Duration in milliseconds for the message to display if not persistent.
-         */
-        function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
-            if (messageBox.timeoutId) {
-                clearTimeout(messageBox.timeoutId);
+        // New Global User Search Elements
+        const globalUserSearchInput = document.getElementById('globalUserSearchInput');
+        const globalUserBanStatusFilter = document.getElementById('globalUserBanStatusFilter');
+        const globalUserWalletStatusFilter = document.getElementById('globalUserWalletStatusFilter');
+        const filterGlobalUsersButton = document.getElementById('filterGlobalUsersButton');
+        const globalUsersTableBody = document.getElementById('globalUsersTableBody');
+        const noUsersMessage = document.getElementById('noUsersMessage');
+
+
+        // --- Global State Variables ---
+        let currentUser = null;
+        let currentUserProfileData = null;
+        let isAuthReady = false;
+        let lookedUpUserId = null;
+        let lookedUpUserProfileData = null;
+        let currentSystemSettings = {};
+
+        let unsubscribeListeners = []; // To store all onSnapshot unsubscribe functions.
+        let unsubscribeLookedUpUserListener = null;
+        let unsubscribePendingRequestsListener = null;
+        let unsubscribeSystemSettingsListener = null;
+        let unsubscribeReportedContentListener = null; // New listener for reports
+        let unsubscribePublicPostsListener = null; // New listener for public posts
+
+
+        // Activity Rewards related state
+        let selectedRewardIds = new Set();
+        let allPendingRewardsData = new Map();
+
+
+        // --- Tone.js Synths for Notification Sounds ---
+        const successSynth = new Tone.Synth().toDestination();
+        const errorSynth = new Tone.Synth().toDestination();
+        const infoSynth = new Tone.Synth().toDestination();
+
+        successSynth.oscillator.type = "sine";
+        successSynth.envelope.attack = 0.01;
+        successSynth.envelope.decay = 0.2;
+        successSynth.envelope.sustain = 0.0;
+        successSynth.envelope.release = 0.5;
+
+        errorSynth.oscillator.type = "sawtooth";
+        errorSynth.envelope.attack = 0.01;
+        errorSynth.envelope.decay = 0.3;
+        errorSynth.envelope.sustain = 0.0;
+        errorSynth.envelope.release = 0.5;
+
+        infoSynth.oscillator.type = "triangle";
+        infoSynth.envelope.attack = 0.01;
+        infoSynth.envelope.decay = 0.1;
+        infoSynth.envelope.sustain = 0.0;
+        infoSynth.envelope.release = 0.3;
+
+        function playNotificationSound(type) {
+            Tone.start();
+            if (type === 'success') {
+                successSynth.triggerAttackRelease("C5", "8n");
+            } else if (type === 'error') {
+                errorSynth.triggerAttackRelease("C3", "8n");
+            } else if (type === 'info') {
+                infoSynth.triggerAttackRelease("E4", "16n");
             }
+        }
+
+        // --- Utility Functions ---
+        function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
+            if (!messageBox) { console.error("JCHAT_ERROR: messageBox element not found."); return; }
+            if (messageBox.timeoutId) { clearTimeout(messageBox.timeoutId); }
 
             messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
             const messageBoxIcon = document.getElementById('messageBoxIcon');
             const messageBoxText = document.getElementById('messageBoxText');
 
             messageBoxText.textContent = message;
-            messageBox.className = 'message-box show ' + type; // Add type class for styling
+            messageBox.className = 'message-box show ' + type;
 
-            // Set icon based on type
-            if (type === 'success') {
-                messageBoxIcon.classList.add('fas', 'fa-check-circle');
-            } else if (type === 'error') {
-                messageBoxIcon.classList.add('fas', 'fa-times-circle');
-            } else if (type === 'info') {
-                messageBoxIcon.classList.add('fas', 'fa-info-circle');
-            } else if (type === 'warning') {
-                 messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
-            } else if (type === 'loading') {
-                 messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); // Spinner for loading
-            } else {
-                messageBoxIcon.className = ''; // No specific icon
+            if (messageBoxIcon) {
+                messageBoxIcon.className = '';
+                if (type === 'success') { messageBoxIcon.classList.add('fas', 'fa-check-circle'); }
+                else if (type === 'error') { messageBoxIcon.classList.add('fas', 'fa-times-circle'); }
+                else if (type === 'info') { messageBoxIcon.classList.add('fas', 'fa-info-circle'); }
+                else if (type === 'warning') { messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle'); }
+                else if (type === 'loading') { messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); }
             }
-
-            if (type === 'loading') {
-                messageBox.classList.add('loading-pulse');
-            } else {
-                messageBox.classList.remove('loading-pulse');
-            }
+            if (type === 'loading') { messageBox.classList.add('loading-pulse'); } else { messageBox.classList.remove('loading-pulse'); }
 
             messageBox.style.display = 'flex';
             messageBox.style.opacity = '1';
@@ -1482,11 +2010,40 @@
             }
         }
 
-        /**
-         * Toggles loading state for a button.
-         * @param {HTMLElement} buttonElement - The button to toggle.
-         * @param {boolean} isLoading - True to show loading, false to hide.
-         */
+        function showConfirmationModal(title, message) {
+            return new Promise((resolve) => {
+                if (!confirmationTitle || !confirmationMessage || !confirmationModal || !confirmProceedButton || !confirmCancelButton) {
+                    console.error("JCHAT_ERROR: Confirmation modal elements not found.");
+                    resolve(false);
+                    return;
+                }
+                confirmationTitle.textContent = title;
+                confirmationMessage.textContent = message;
+                confirmationModal.classList.add('active');
+
+                const handleConfirm = () => {
+                    confirmationModal.classList.remove('active');
+                    confirmProceedButton.removeEventListener('click', handleConfirm);
+                    confirmCancelButton.removeEventListener('click', handleCancel);
+                    resolve(true);
+                };
+                const handleCancel = () => {
+                    confirmationModal.classList.remove('active');
+                    confirmProceedButton.removeEventListener('click', handleConfirm);
+                    confirmCancelButton.removeEventListener('click', handleCancel);
+                    resolve(false);
+                };
+                confirmProceedButton.addEventListener('click', handleConfirm);
+                confirmCancelButton.addEventListener('click', handleCancel);
+                confirmationModal.addEventListener('click', function outsideClickListener(event) {
+                    if (event.target === confirmationModal) {
+                        handleCancel();
+                        confirmationModal.removeEventListener('click', outsideClickListener);
+                    }
+                });
+            });
+        }
+
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
             const loader = buttonElement.querySelector('.button-loader');
@@ -1494,7 +2051,7 @@
 
             if (isLoading) {
                 buttonElement.disabled = true;
-                buttonElement.classList.add('loading'); // Add loading class for general styling
+                buttonElement.classList.add('loading');
                 if (loader) loader.classList.add('active');
                 if (text) text.style.display = 'none';
             } else {
@@ -1503,6 +2060,13 @@
                 if (loader) loader.classList.remove('active');
                 if (text) text.style.display = 'block';
             }
+        }
+
+        function applyTheme(themeName) {
+            const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+            document.body.classList.remove(...themes);
+            document.body.classList.add(themeName);
+            localStorage.setItem('jchat-theme', themeName);
         }
 
         /**
@@ -1600,6 +2164,7 @@
                     if (profileData.interests === undefined) { await updateDoc(privateProfileDocRef, { interests: "" }); profileData.interests = ""; }
                     if (profileData.website === undefined) { await updateDoc(privateProfileDocRef, { website: "" }); profileData.website = ""; }
                     if (profileData.socialLinks === undefined) { await updateDoc(privateProfileDocRef, { socialLinks: "" }); profileData.socialLinks = ""; }
+                    if (profileData.banned === undefined) { await updateDoc(privateProfileDocRef, { banned: false }); profileData.banned = false; } // New: banned field
 
                     console.log("JCHAT_DEBUG: Fetched existing profile data for header:", profileData);
                 } else {
@@ -1617,7 +2182,8 @@
                             emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
                             school: false, work: false, interests: false, website: false, socialLinks: false
                         },
-                        totalPosts: 0, jCoins: 0, gas: 0, totalGasEarned: 0, level: 1, walletUnlocked: false, unlockedBenefits: []
+                        totalPosts: 0, jCoins: 0, gas: 0, totalGasEarned: 0, level: 1, walletUnlocked: false, unlockedBenefits: [],
+                        banned: false // New: default to not banned
                     };
                     await setDoc(privateProfileDocRef, profileData);
                     console.log("JCHAT_DEBUG: Created new profile data for header:", profileData);
@@ -1940,7 +2506,7 @@
             if (updated) {
                 levelsGainedMessages.forEach(msg => showMessageBox(msg, 'success', false, 5000));
                 // Re-fetch and display the profile to update UI with new level, JCoins, Gas
-                await lookupUser(lookedUpUserId); // Refresh the displayed user's data
+                await lookupUser(lookedUpUserId, 'uid'); // Refresh the displayed user's data
             }
         }
 
@@ -1960,10 +2526,11 @@
             lookedUpUserJCoinsDisplay.textContent = 'N/A';
             lookedUpUserGasDisplay.textContent = 'N/A';
             lookedUpUserWalletStatus.textContent = 'N/A';
-            currentLevelValue.textContent = 'N/A';
-            currentJCoinsValue.textContent = 'N/A';
-            currentGasValue.textContent = 'N/A';
+            lookedUpUserBanStatus.textContent = 'N/A'; // Clear ban status
             walletLockToggle.checked = false;
+            banUserToggle.checked = false; // Clear ban toggle
+            adminMessageInput.value = ''; // Clear message input
+
             lookedUpUserId = null;
             lookedUpUserProfileData = null;
 
@@ -1975,13 +2542,16 @@
         }
 
         /**
-         * Looks up a user's profile by UID and displays their details.
-         * @param {string} [userIdToLookup] - Optional UID to lookup. If not provided, uses input field.
+         * Looks up a user's profile by UID, Username, or Email and displays their details.
+         * @param {string} [searchValue] - The value to search for. If not provided, uses input field.
+         * @param {string} [searchType] - The type of search ('uid', 'username', 'email'). If not provided, uses select field.
          */
-        async function lookupUser(userIdToLookupFromParam) {
-            const userId = userIdToLookupFromParam || lookupUserIdInput.value.trim();
-            if (!userId) {
-                showMessageBox("Please enter a User ID.", 'warning');
+        async function lookupUser(searchValueFromParam, searchTypeFromParam) {
+            const searchType = searchTypeFromParam || searchTypeSelect.value;
+            const searchValue = searchValueFromParam || lookupUserInput.value.trim();
+
+            if (!searchValue) {
+                showMessageBox(`Please enter a value to search by ${searchType}.`, 'warning');
                 return;
             }
 
@@ -1993,16 +2563,59 @@
             clearUserDetailsDisplay(); // Clear display before new lookup
 
             toggleButtonLoading(lookupUserButton, true);
-            showMessageBox("Looking up user...", 'loading', true);
+            showMessageBox(`Looking up user by ${searchType}...`, 'loading', true);
+
+            let userIdFound = null;
 
             try {
-                const userProfileDocRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
-                
+                if (searchType === 'uid') {
+                    userIdFound = searchValue;
+                } else {
+                    // For username/email, query the public profiles collection first to get the UID
+                    const publicUsersRef = collection(db, "artifacts", appId, "public", "data", "users");
+                    let q;
+                    if (searchType === 'username') {
+                        // Note: Firestore exact match for username. For "starts with" or "contains",
+                        // more advanced indexing or client-side filtering is needed.
+                        q = query(publicUsersRef, where("username", "==", searchValue));
+                    } else if (searchType === 'email') {
+                        // Note: Email is stored in private profile, so we need to query private profiles.
+                        // This assumes admin has access to private profiles.
+                        // Firestore cannot directly query subfield of a subcollection document without a composite index.
+                        // For simplicity in this Canvas, we will query all private user profiles and filter client-side.
+                        // For large scale, a Cloud Function or dedicated index would be needed.
+                        const allPrivateUsersSnapshot = await getDocs(collection(db, "artifacts", appId, "users"));
+                        const foundDoc = allPrivateUsersSnapshot.docs.find(doc => doc.data()?.profiles?.user_profile?.email === searchValue);
+                        if (foundDoc) {
+                             userIdFound = foundDoc.id;
+                        }
+                    }
+
+                    if (!querySnapshot || querySnapshot.empty) { // Check if querySnapshot exists and is not empty for 'username'
+                        showMessageBox("User not found with the provided criteria.", 'error');
+                        toggleButtonLoading(lookupUserButton, false);
+                        return;
+                    }
+                     // If it was a 'username' query, get the first doc's ID
+                    if (searchType === 'username' && querySnapshot) {
+                         userIdFound = querySnapshot.docs[0].id;
+                    }
+
+                }
+
+                if (!userIdFound) {
+                    showMessageBox("User not found.", 'error');
+                    toggleButtonLoading(lookupUserButton, false);
+                    return;
+                }
+
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", userIdFound, "profiles", "user_profile");
+
                 // Use onSnapshot for real-time updates on the looked-up user's profile
                 unsubscribeLookedUpUserListener = onSnapshot(userProfileDocRef, (docSnap) => {
                     if (docSnap.exists()) {
                         lookedUpUserProfileData = docSnap.data();
-                        lookedUpUserProfileData.userId = userId; // Add userId to the data object
+                        lookedUpUserProfileData.userId = userIdFound; // Add userId to the data object
                         console.log("JCHAT_DEBUG: Looked-up user profile data (real-time):", lookedUpUserProfileData);
 
                         // Update UI with fetched data
@@ -2012,11 +2625,16 @@
                         lookedUpUserJCoinsDisplay.textContent = (lookedUpUserProfileData.jCoins ?? 0).toLocaleString();
                         lookedUpUserGasDisplay.textContent = (lookedUpUserProfileData.gas ?? 0).toLocaleString();
                         lookedUpUserWalletStatus.textContent = lookedUpUserProfileData.walletUnlocked ? 'Unlocked' : 'Locked';
+                        lookedUpUserBanStatus.textContent = lookedUpUserProfileData.banned ? 'Banned' : 'Not Banned'; // Display ban status
                         walletLockToggle.checked = lookedUpUserProfileData.walletUnlocked;
+                        banUserToggle.checked = lookedUpUserProfileData.banned; // Set ban toggle state
 
                         currentLevelValue.textContent = lookedUpUserProfileData.level ?? 1;
                         currentJCoinsValue.textContent = (lookedUpUserProfileData.jCoins ?? 0).toLocaleString();
                         currentGasValue.textContent = (lookedUpUserProfileData.gas ?? 0).toLocaleString();
+                        document.getElementById('currentWalletStatus').textContent = lookedUpUserProfileData.walletUnlocked ? 'Unlocked' : 'Locked';
+                        document.getElementById('currentBanStatus').textContent = lookedUpUserProfileData.banned ? 'Banned' : 'Not Banned';
+
 
                         const usernameInitial = (lookedUpUserProfileData.username || 'U').charAt(0).toUpperCase();
                         displayProfilePicture(lookedUpUserPic, lookedUpUserAvatarIcon, lookedUpUserProfileData.profilePicId, usernameInitial, "w_160,h_160,c_fill,g_face,r_max");
@@ -2024,7 +2642,7 @@
                         lookedUpUserDetailsDiv.style.display = 'flex';
                         userManagementSection.style.display = 'block'; // Show management section
 
-                        lookedUpUserId = userId; // Store the ID of the currently looked-up user
+                        lookedUpUserId = userIdFound; // Store the ID of the currently looked-up user
                         showMessageBox("User found!", 'success');
                     } else {
                         clearUserDetailsDisplay(); // Clear if user not found
@@ -2078,7 +2696,7 @@
                     if (!userProfileSnap.exists()) {
                         throw new Error("User profile not found during level update transaction.");
                     }
-                    
+
                     // Update private profile
                     transaction.update(userProfileDocRef, {
                         level: newLevel,
@@ -2095,10 +2713,12 @@
                 });
 
                 showMessageBox(`Successfully updated ${lookedUpUserProfileData.username} to Level ${newLevel}!`, 'success');
+                playNotificationSound('success');
                 // The onSnapshot listener will automatically refresh the UI
             } catch (error) {
                 console.error("JCHAT_ERROR: Error updating user level:", error);
                 showMessageBox(`Failed to update level: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(updateLevelButton, false);
             }
@@ -2138,10 +2758,12 @@
                 });
 
                 showMessageBox(`Successfully credited ${amount} JCoins to ${lookedUpUserProfileData.username}!`, 'success');
+                playNotificationSound('success');
                 // The onSnapshot listener will automatically refresh the UI
             } catch (error) {
                 console.error("JCHAT_ERROR: Error crediting JCoins:", error);
                 showMessageBox(`Failed to credit JCoins: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(creditJCoinsButton, false);
             }
@@ -2182,10 +2804,12 @@
                 });
 
                 showMessageBox(`Successfully deducted ${amount} JCoins from ${lookedUpUserProfileData.username}!`, 'success');
+                playNotificationSound('success');
                 // The onSnapshot listener will automatically refresh the UI
             } catch (error) {
                 console.error("JCHAT_ERROR: Error deducting JCoins:", error);
                 showMessageBox(`Failed to deduct JCoins: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(deductJCoinsButton, false);
             }
@@ -2213,6 +2837,7 @@
                 const userProfileDocRef = doc(db, "artifacts", appId, "users", lookedUpUserId, "profiles", "user_profile");
                 const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", lookedUpUserId);
 
+
                 await runTransaction(db, async (transaction) => {
                     const userProfileSnap = await transaction.get(userProfileDocRef);
                     if (!userProfileSnap.exists()) {
@@ -2239,10 +2864,12 @@
                 });
 
                 showMessageBox(`Successfully credited ${amount} Gas to ${lookedUpUserProfileData.username}!`, 'success');
+                playNotificationSound('success');
                 // The onSnapshot listener will automatically refresh the UI
             } catch (error) {
                 console.error("JCHAT_ERROR: Error crediting Gas:", error);
                 showMessageBox(`Failed to credit Gas: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(creditGasButton, false);
             }
@@ -2295,10 +2922,12 @@
                 });
 
                 showMessageBox(`Successfully deducted ${amount} Gas from ${lookedUpUserProfileData.username}!`, 'success');
+                playNotificationSound('success');
                 // The onSnapshot listener will automatically refresh the UI
             } catch (error) {
                 console.error("JCHAT_ERROR: Error deducting Gas:", error);
                 showMessageBox(`Failed to deduct Gas: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(deductGasButton, false);
             }
@@ -2326,14 +2955,247 @@
                 });
 
                 showMessageBox(`Successfully ${newWalletStatus ? 'unlocked' : 'locked'} wallet for ${lookedUpUserProfileData.username}!`, 'success');
+                playNotificationSound('success');
                 // The onSnapshot listener will automatically refresh the UI
             } catch (error) {
                 console.error("JCHAT_ERROR: Error toggling wallet lock:", error);
                 showMessageBox(`Failed to toggle wallet lock: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(toggleWalletLockButton, false);
             }
         }
+
+        /**
+         * Toggles the banned status for the looked-up user.
+         */
+        async function toggleBanStatus() {
+            if (!lookedUpUserId || !lookedUpUserProfileData) {
+                showMessageBox("Please lookup a user first.", 'warning');
+                return;
+            }
+
+            const newBanStatus = !lookedUpUserProfileData.banned; // Toggle the current status
+
+            const confirmed = await showConfirmationModal(
+                `${newBanStatus ? 'Ban' : 'Unban'} User`,
+                `Are you sure you want to ${newBanStatus ? 'ban' : 'unban'} ${lookedUpUserProfileData.username}?`
+            );
+            if (!confirmed) {
+                banUserToggle.checked = !newBanStatus; // Revert toggle if cancelled
+                return;
+            }
+
+            toggleButtonLoading(toggleBanButton, true);
+            showMessageBox(`${newBanStatus ? 'Banning' : 'Unbanning'} ${lookedUpUserProfileData.username}...`, 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", lookedUpUserId, "profiles", "user_profile");
+                await updateDoc(userProfileDocRef, {
+                    banned: newBanStatus,
+                    updatedAt: serverTimestamp()
+                });
+
+                showMessageBox(`Successfully ${newBanStatus ? 'banned' : 'unbanned'} ${lookedUpUserProfileData.username}!`, 'success');
+                playNotificationSound('success');
+                // The onSnapshot listener will automatically refresh the UI
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error toggling ban status:", error);
+                showMessageBox(`Failed to toggle ban status: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(toggleBanButton, false);
+            }
+        }
+
+        /**
+         * Grants the daily bonus to the currently looked-up user.
+         */
+        async function grantDailyBonusToUser() {
+            if (!lookedUpUserId || !lookedUpUserProfileData) {
+                showMessageBox("Please lookup a user first.", 'warning');
+                return;
+            }
+            if (typeof currentSystemSettings.dailyBonusAmount === 'undefined' || currentSystemSettings.dailyBonusAmount === null) {
+                showMessageBox("Daily bonus amount is not configured in system settings.", 'error');
+                return;
+            }
+
+            const dailyBonusAmount = currentSystemSettings.dailyBonusAmount;
+
+            const confirmed = await showConfirmationModal(
+                "Grant Daily Bonus",
+                `Are you sure you want to grant ${lookedUpUserProfileData.username} their daily bonus of ${dailyBonusAmount} JCoins?`
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            toggleButtonLoading(grantDailyBonusButton, true);
+            showMessageBox(`Granting daily bonus to ${lookedUpUserProfileData.username}...`, 'loading', true);
+
+            try {
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", lookedUpUserId, "profiles", "user_profile");
+                await runTransaction(db, async (transaction) => {
+                    const userProfileSnap = await transaction.get(userProfileDocRef);
+                    if (!userProfileSnap.exists()) {
+                        throw new Error("User profile not found during daily bonus transaction.");
+                    }
+                    const currentJCoins = userProfileSnap.data().jCoins || 0;
+                    transaction.update(userProfileDocRef, {
+                        jCoins: currentJCoins + dailyBonusAmount,
+                        updatedAt: serverTimestamp()
+                    });
+                });
+
+                showMessageBox(`Daily bonus of ${dailyBonusAmount} JCoins granted to ${lookedUpUserProfileData.username}!`, 'success');
+                playNotificationSound('success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error granting daily bonus:", error);
+                showMessageBox(`Failed to grant daily bonus: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(grantDailyBonusButton, false);
+            }
+        }
+
+        /**
+         * Sends a direct admin message to the looked-up user.
+         */
+        async function sendAdminMessageToUser() {
+            if (!lookedUpUserId || !lookedUpUserProfileData) {
+                showMessageBox("Please lookup a user first.", 'warning');
+                return;
+            }
+            const messageText = adminMessageInput.value.trim();
+            if (!messageText) {
+                showMessageBox("Please enter a message to send.", 'warning');
+                return;
+            }
+
+            const confirmed = await showConfirmationModal(
+                "Send Message",
+                `Are you sure you want to send this message to ${lookedUpUserProfileData.username}?`
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            toggleButtonLoading(sendAdminMessageButton, true);
+            showMessageBox(`Sending message to ${lookedUpUserProfileData.username}...`, 'loading', true);
+
+            try {
+                // Store the message as a notification for the user
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", lookedUpUserId, "notifications");
+                await addDoc(notificationsCollectionRef, {
+                    type: "admin_message",
+                    message: messageText,
+                    senderId: currentUser.uid, // Admin's UID
+                    senderUsername: currentUserProfileData?.username || "Admin",
+                    timestamp: serverTimestamp(),
+                    read: false,
+                    imageUrl: null // Admins can send text messages for now
+                });
+
+                showMessageBox(`Message sent to ${lookedUpUserProfileData.username}!`, 'success');
+                playNotificationSound('success');
+                adminMessageInput.value = ''; // Clear input field
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error sending admin message:", error);
+                showMessageBox(`Failed to send message: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(sendAdminMessageButton, false);
+            }
+        }
+
+        /**
+         * Permanently deletes a user account and their associated data.
+         * THIS IS A DESTRUCTIVE ACTION.
+         */
+        async function deleteUserAccount() {
+            if (!lookedUpUserId || !lookedUpUserProfileData) {
+                showMessageBox("Please lookup a user first.", 'warning');
+                return;
+            }
+
+            const confirmed = await showConfirmationModal(
+                "PERMANENTLY DELETE USER ACCOUNT",
+                `WARNING: Are you absolutely sure you want to PERMANENTLY DELETE the account for ${lookedUpUserProfileData.username} (User ID: ${lookedUpUserId})? This action is irreversible and will remove ALL their data!`
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            toggleButtonLoading(deleteUserAccountButton, true);
+            showMessageBox(`Deleting account for ${lookedUpUserProfileData.username}... This may take a moment.`, 'loading', true, 10000); // Persistent message
+
+            try {
+                const batch = writeBatch(db);
+
+                // 1. Delete user's private profile
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", lookedUpUserId, "profiles", "user_profile");
+                batch.delete(privateProfileDocRef);
+
+                // 2. Delete user's public profile
+                const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", lookedUpUserId);
+                batch.delete(publicProfileDocRef);
+
+                // 3. Delete user's notifications
+                const notificationsQuery = query(collection(db, "artifacts", appId, "users", lookedUpUserId, "notifications"));
+                const notificationsSnapshot = await getDocs(notificationsQuery);
+                notificationsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+                // 4. Delete user's posts
+                const postsQuery = query(collection(db, "artifacts", appId, "public", "data", "posts"), where("authorId", "==", lookedUpUserId));
+                const postsSnapshot = await getDocs(postsQuery);
+                postsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+                // 5. Delete user's reported content
+                const reportsMadeByUserQuery = query(collection(db, "artifacts", appId, "public", "data", "reports"), where("reporterId", "==", lookedUpUserId));
+                const reportsMadeByUserSnapshot = await getDocs(reportsMadeByUserQuery);
+                reportsMadeByUserSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+                // 6. Delete reports where this user is REPORTED
+                const reportsOnUserQuery = query(collection(db, "artifacts", appId, "public", "data", "reports"), where("reportedId", "==", lookedUpUserId));
+                const reportsOnUserSnapshot = await getDocs(reportsOnUserQuery);
+                reportsOnUserSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+                // 7. Delete JCoin buy requests made by this user
+                const jcoinRequestsQuery = query(collection(db, "artifacts", appId, "public", "data", "jcoin_buy_requests"), where("userId", "==", lookedUpUserId));
+                const jcoinRequestsSnapshot = await getDocs(jcoinRequestsQuery);
+                jcoinRequestsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+                // 8. Delete pending activity rewards for this user
+                const pendingRewardsQuery = query(collection(db, "artifacts", appId, "public", "data", "pending_activity_rewards"), where("userId", "==", lookedUpUserId));
+                const pendingRewardsSnapshot = await getDocs(pendingRewardsQuery);
+                pendingRewardsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+                // --- IMPORTANT: Handling Chat Messages ---
+                // Deleting all chat messages involving a user can be very complex and resource-intensive
+                // as it involves querying all chat rooms they've participated in and potentially deleting
+                // millions of subcollection messages. For this example, we will NOT delete chat messages
+                // directly from here, as it requires more advanced distributed deletion strategies (e.g., Cloud Functions).
+                // If this is critical, you would need a separate backend process.
+                // For simplicity, we assume chat messages will remain and just not be linked to a profile.
+                // To delete messages, you would need to iterate through all chat rooms, find messages by this user,
+                // and delete them. This would be too slow and potentially hit limits for a client-side operation.
+                console.warn("JCHAT_WARNING: Chat messages for this user are NOT deleted by this client-side function. A Cloud Function is recommended for full chat data purging.");
+
+                await batch.commit();
+
+                showMessageBox(`Account for ${lookedUpUserProfileData.username} and associated data successfully deleted!`, 'success');
+                playNotificationSound('success');
+                clearUserDetailsDisplay(); // Clear and hide the user details section
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error deleting user account:", error);
+                showMessageBox(`Failed to delete user account: ${error.message}. Please check console for details.`, 'error', true);
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(deleteUserAccountButton, false);
+            }
+        }
+
 
         /**
          * Fetches and displays pending JCoin requests in real-time.
@@ -2343,7 +3205,7 @@
                 unsubscribePendingRequestsListener(); // Detach previous listener
             }
 
-            const q = query(collection(db, "artifacts", appId, "public", "data", "jcoin_buy_requests"), where("status", "==", "pending"), orderBy("timestamp", "asc"));
+            const q = query(collection(db, "artifacts", appId, "public", "data", "jcoin_buy_requests"), where("status", "==", "pending"));
 
             unsubscribePendingRequestsListener = onSnapshot(q, (querySnapshot) => {
                 pendingRequestsList.innerHTML = ''; // Clear existing requests
@@ -2390,20 +3252,20 @@
                         pendingRequestsList.appendChild(requestCard);
                     });
 
-                    // Attach event listeners to new buttons
-                    pendingRequestsList.querySelectorAll('.approve-btn').forEach(button => {
-                        button.addEventListener('click', (event) => {
-                            const requestId = event.target.dataset.requestId;
-                            const userId = event.target.dataset.userId;
-                            const jcoins = parseInt(event.target.dataset.jcoins);
-                            approveJCoinRequest(requestId, userId, jcoins, event.target);
-                        });
-                    });
-                    pendingRequestsList.querySelectorAll('.reject-btn').forEach(button => {
-                        button.addEventListener('click', (event) => {
-                            const requestId = event.target.dataset.requestId;
-                            rejectJCoinRequest(requestId, event.target);
-                        });
+                    // Attach event listeners to new buttons using event delegation
+                    pendingRequestsList.addEventListener('click', (event) => {
+                        const approveBtn = event.target.closest('.approve-btn');
+                        const rejectBtn = event.target.closest('.reject-btn');
+
+                        if (approveBtn) {
+                            const requestId = approveBtn.dataset.requestId;
+                            const userId = approveBtn.dataset.userId;
+                            const jcoins = parseInt(approveBtn.dataset.jcoins);
+                            approveJCoinRequest(requestId, userId, jcoins, approveBtn);
+                        } else if (rejectBtn) {
+                            const requestId = rejectBtn.dataset.requestId;
+                            rejectJCoinRequest(requestId, rejectBtn);
+                        }
                     });
                 }
             }, (error) => {
@@ -2458,9 +3320,11 @@
                 });
 
                 showMessageBox("JCoin request approved and JCoins credited!", 'success');
+                playNotificationSound('success');
             } catch (error) {
                 console.error("JCHAT_ERROR: Error approving JCoin request:", error);
                 showMessageBox(`Failed to approve request: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(buttonElement, false);
             }
@@ -2483,53 +3347,900 @@
                     processedAt: serverTimestamp()
                 });
                 showMessageBox("JCoin request rejected.", 'info');
+                playNotificationSound('info');
             } catch (error) {
                 console.error("JCHAT_ERROR: Error rejecting JCoin request:", error);
                 showMessageBox(`Failed to reject request: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(buttonElement, false);
             }
         }
 
+        // --- Activity Rewards Logic ---
+        /**
+         * Renders a single pending reward row in the table.
+         * @param {object} reward - The reward data object from Firestore.
+         * @param {string} rewardId - The ID of the reward document.
+         * @returns {HTMLTableRowElement} The created table row element.
+         */
+        function renderPendingRewardRow(reward, rewardId) {
+            const row = document.createElement('tr');
+            row.setAttribute('data-reward-id', rewardId);
+            row.innerHTML = `
+                <td><input type="checkbox" class="reward-select-checkbox" data-reward-id="${rewardId}" aria-label="Select reward"></td>
+                <td>${reward.userId}</td>
+                <td>${reward.username || 'N/A'}</td>
+                <td>${reward.activityType || 'N/A'}</td>
+                <td>${reward.suggestedXpReward || 0} XP</td>
+                <td>${reward.suggestedJCoinReward || 0} JCoins</td>
+                <td>${reward.timestamp ? new Date(reward.timestamp.toDate()).toLocaleString() : 'N/A'}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="approve-btn" data-reward-id="${rewardId}" aria-label="Approve Reward">
+                            <span class="button-text"><i class="fas fa-check"></i> Approve</span>
+                            <div class="button-loader" role="status" aria-label="Loading"></div>
+                        </button>
+                        <button class="reject-btn" data-reward-id="${rewardId}" aria-label="Reject Reward">
+                            <span class="button-text"><i class="fas fa-times"></i> Reject</span>
+                            <div class="button-loader" role="status" aria-label="Loading"></div>
+                        </button>
+                    </div>
+                </td>
+            `;
+            // If this reward was previously selected, ensure its checkbox is checked.
+            const checkbox = row.querySelector('.reward-select-checkbox');
+            if (selectedRewardIds.has(rewardId)) {
+                checkbox.checked = true;
+            }
+            return row;
+        }
 
-        // --- Bottom Navigation Bar Toggle Logic ---
-        const bottomNavBar = document.getElementById('bottomNavBar');
-        const navToggleBtn = document.getElementById('navToggleBtn');
+        /**
+         * Updates the state of the "Select All" checkbox and "Approve Selected" button.
+         */
+        function updateSelectedRewardsState() {
+            const allCheckboxes = document.querySelectorAll('.reward-select-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.reward-select-checkbox:checked');
 
-        function toggleNavBarVisibility() {
-            const toggleIcon = navToggleBtn.querySelector('i');
-            const isHidden = bottomNavBar.classList.toggle('nav-bar-hidden-full');
+            selectedRewardIds.clear(); // Clear the set.
+            checkedCheckboxes.forEach(cb => selectedRewardIds.add(cb.dataset.rewardId)); // Repopulate.
 
-            if (isHidden) {
-                if (toggleIcon) toggleIcon.classList.remove('fa-chevron-down');
-                if (toggleIcon) toggleIcon.classList.add('fa-chevron-up');
-            } else {
-                if (toggleIcon) toggleIcon.classList.remove('fa-chevron-up');
-                if (toggleIcon) toggleIcon.classList.add('fa-chevron-down');
+            if (selectAllRewardsCheckbox) {
+                if (allCheckboxes.length === 0) {
+                    selectAllRewardsCheckbox.checked = false;
+                    selectAllRewardsCheckbox.indeterminate = false;
+                } else if (checkedCheckboxes.length === allCheckboxes.length) {
+                    selectAllRewardsCheckbox.checked = true;
+                    selectAllRewardsCheckbox.indeterminate = false;
+                } else if (checkedCheckboxes.length > 0) {
+                    selectAllRewardsCheckbox.checked = false;
+                    selectAllRewardsCheckbox.indeterminate = true;
+                } else {
+                    selectAllRewardsCheckbox.checked = false;
+                    selectAllRewardsCheckbox.indeterminate = false;
+                }
+            }
+
+            // Enable/disable "Approve Selected" button based on selection.
+            if (approveSelectedBtn) {
+                approveSelectedBtn.disabled = selectedRewardIds.size === 0;
             }
         }
 
+        /**
+         * Fetches and displays pending activity rewards in real-time.
+         */
+        async function fetchAndDisplayPendingRewards() {
+            console.log("JCHAT_DEBUG: Fetching pending rewards...");
+            if (!pendingRewardsTableBody) {
+                console.error("JCHAT_CRITICAL_ERROR: 'pendingRewardsTableBody' element not found.");
+                return;
+            }
+
+            // Clear previous listener if any.
+            const existingListenerIndex = unsubscribeListeners.findIndex(l => l.name === 'pendingRewardsListener');
+            if (existingListenerIndex !== -1) {
+                unsubscribeListeners[existingListenerIndex]();
+                unsubscribeListeners.splice(existingListenerIndex, 1);
+            }
+
+            const pendingRewardsCollectionRef = collection(db, "artifacts", appId, "public", "data", "pending_activity_rewards");
+            const q = query(pendingRewardsCollectionRef, where("status", "==", "pending"));
+
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                console.log("JCHAT_DEBUG: onSnapshot for pending rewards triggered. Count:", querySnapshot.size);
+                pendingRewardsTableBody.innerHTML = ''; // Clear existing rows.
+                allPendingRewardsData.clear(); // Clear the map of all pending rewards.
+
+                if (querySnapshot.empty) {
+                    noRewardsMessage.style.display = 'block';
+                    if (selectAllRewardsCheckbox) selectAllRewardsCheckbox.disabled = true; // Disable select all if no rewards.
+                } else {
+                    noRewardsMessage.style.display = 'none';
+                    if (selectAllRewardsCheckbox) selectAllRewardsCheckbox.disabled = false; // Enable select all if rewards exist.
+                    querySnapshot.forEach(docSnap => {
+                        const reward = docSnap.data();
+                        const rewardId = docSnap.id;
+                        allPendingRewardsData.set(rewardId, reward); // Store full reward data.
+                        pendingRewardsTableBody.appendChild(renderPendingRewardRow(reward, rewardId));
+                    });
+                }
+                updateSelectedRewardsState(); // Update checkbox states after rendering.
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to pending rewards:", error);
+                showMessageBox(`Error loading rewards: ${error.message}`, 'error', true);
+            });
+            unsubscribe.name = 'pendingRewardsListener'; // Give it a name for easier management.
+            unsubscribeListeners.push(unsubscribe);
+        }
+
+        /**
+         * Handles approving a pending activity reward.
+         * Updates user profile and deletes the pending reward.
+         * @param {string} rewardId - The ID of the reward document.
+         * @param {object} rewardData - The full reward data object.
+         * @param {FirebaseFirestore.WriteBatch} batch - The Firestore batch to add operations to.
+         */
+        async function approveSingleRewardInBatch(rewardId, rewardData, batch) {
+            const userId = rewardData.userId;
+            const xpReward = rewardData.suggestedXpReward || 0;
+            const jCoinReward = rewardData.suggestedJCoinReward || 0;
+            const activityType = rewardData.activityType;
+
+            const userProfileRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+            const pendingRewardRef = doc(db, "artifacts", appId, "public", "data", "pending_activity_rewards", rewardId);
+            const userPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", userId);
+
+            const userProfileDoc = await getDoc(userProfileRef);
+            if (!userProfileDoc.exists()) {
+                console.warn(`User profile not found for userId: ${userId}. Skipping reward ${rewardId}.`);
+                return; // Skip this reward if user profile doesn't exist.
+            }
+
+            let userData = userProfileDoc.data();
+            let currentXp = userData.gas || 0; // 'gas' is XP
+            let currentJCoins = userData.jCoins || 0;
+            let totalPosts = userData.totalPosts || 0;
+            let totalGasEarned = userData.totalGasEarned || 0;
+
+            // Apply XP and JCoins
+            currentXp += xpReward;
+            currentJCoins += jCoinReward;
+            totalGasEarned += xpReward; // Update totalGasEarned for level calculation
+
+            // Update totalPosts if it's a post creation reward
+            if (activityType === 'post_creation') {
+                totalPosts++;
+            }
+
+            // Add updates to the batch
+            batch.update(userProfileRef, {
+                gas: currentXp, // Update current gas (XP)
+                jCoins: currentJCoins,
+                totalPosts: totalPosts, // Update totalPosts in private profile
+                totalGasEarned: totalGasEarned, // Update totalGasEarned in private profile
+                updatedAt: serverTimestamp()
+            });
+
+            // Update user's public profile for totalPosts and totalGasEarned sync
+            batch.update(userPublicProfileRef, {
+                totalPosts: totalPosts,
+                totalGasEarned: totalGasEarned,
+                updatedAt: serverTimestamp()
+            });
+
+            // Delete the pending reward
+            batch.delete(pendingRewardRef);
+        }
+
+        /**
+         * Handles approving a single pending activity reward (called from individual button).
+         * @param {string} rewardId - The ID of the reward document.
+         * @param {HTMLButtonElement} buttonElement - The button element that triggered the action.
+         */
+        async function handleApproveReward(rewardId, buttonElement) {
+            const rewardData = allPendingRewardsData.get(rewardId);
+            if (!rewardData) {
+                showMessageBox("Reward data not found.", 'error');
+                return;
+            }
+            const confirmed = await showConfirmationModal(
+                "Approve Reward",
+                `Are you sure you want to approve this reward for ${rewardData.suggestedXpReward || 0} XP and ${rewardData.suggestedJCoinReward || 0} JCoins?`
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox("Approving reward...", 'loading', true);
+
+            try {
+                const batch = writeBatch(db);
+                await approveSingleRewardInBatch(rewardId, rewardData, batch);
+                await batch.commit();
+
+                // After committing the batch, trigger level up check for the affected user
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", rewardData.userId, "profiles", "user_profile");
+                const userProfileSnap = await getDoc(userProfileDocRef);
+                if (userProfileSnap.exists()) {
+                    const userData = userProfileSnap.data();
+                    await checkAndApplyLevelUps(rewardData.userId, userData.level || 1, userData.totalGasEarned || 0);
+                }
+
+                showMessageBox("Reward approved and user credited successfully!", 'success');
+                playNotificationSound('success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error approving reward:", error);
+                showMessageBox(`Failed to approve reward: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Handles rejecting a pending activity reward.
+         * Deletes the pending reward without crediting the user.
+         * @param {string} rewardId - The ID of the reward document.
+         * @param {HTMLButtonElement} buttonElement - The button element that triggered the action.
+         */
+        async function handleRejectReward(rewardId, buttonElement) {
+            const confirmed = await showConfirmationModal(
+                "Reject Reward",
+                "Are you sure you want to reject this reward? It will be removed without crediting the user."
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox("Rejecting reward...", 'loading', true);
+
+            const pendingRewardRef = doc(db, "artifacts", appId, "public", "data", "pending_activity_rewards", rewardId);
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    transaction.delete(pendingRewardRef); // Delete the pending reward.
+                });
+
+                showMessageBox("Reward rejected successfully!", 'info');
+                playNotificationSound('info');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error rejecting reward:", error);
+                showMessageBox(`Failed to reject reward: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Handles approving all selected pending activity rewards.
+         */
+        async function handleApproveSelectedRewards() {
+            if (selectedRewardIds.size === 0) {
+                showMessageBox("No rewards selected for approval.", 'info');
+                return;
+            }
+
+            const confirmed = await showConfirmationModal(
+                "Approve Selected Rewards",
+                `Are you sure you want to approve ${selectedRewardIds.size} selected rewards? This action is irreversible.`
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            toggleButtonLoading(approveSelectedBtn, true);
+            showMessageBox(`Approving ${selectedRewardIds.size} rewards...`, 'loading', true);
+
+            const batch = writeBatch(db);
+            let approvedCount = 0;
+            let failedCount = 0;
+            const usersToUpdateLevels = new Set(); // Track users whose levels might change
+
+            try {
+                for (const rewardId of selectedRewardIds) {
+                    const rewardData = allPendingRewardsData.get(rewardId);
+                    if (rewardData) {
+                        await approveSingleRewardInBatch(rewardId, rewardData, batch);
+                        usersToUpdateLevels.add(rewardData.userId); // Add user to set for level check
+                        approvedCount++;
+                    } else {
+                        console.warn(`Reward data for ID ${rewardId} not found in cache. Skipping.`);
+                        failedCount++;
+                    }
+                }
+                await batch.commit();
+
+                // After committing the batch, check and apply level ups for affected users
+                for (const userId of usersToUpdateLevels) {
+                    const userProfileDocRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+                    const userProfileSnap = await getDoc(userProfileDocRef);
+                    if (userProfileSnap.exists()) {
+                        const userData = userProfileSnap.data();
+                        await checkAndApplyLevelUps(userId, userData.level || 1, userData.totalGasEarned || 0);
+                    }
+                }
+
+                showMessageBox(`Successfully approved ${approvedCount} rewards. ${failedCount > 0 ? `(${failedCount} failed to process locally)` : ''}`, 'success');
+                playNotificationSound('success');
+                selectedRewardIds.clear(); // Clear selection after successful batch.
+                updateSelectedRewardsState(); // Update UI.
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error approving selected rewards batch:", error);
+                showMessageBox(`Failed to approve selected rewards: ${error.message}. Some may not have been processed.`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(approveSelectedBtn, false);
+            }
+        }
+
+
+        // --- System Settings Logic ---
+        const SYSTEM_SETTINGS_DOC_REF = doc(db, "artifacts", appId, "public", "data", "settings", "system_settings");
+
+        /**
+         * Fetches global system settings from Firestore and populates the UI.
+         * If settings document doesn't exist, it creates it with default values.
+         */
+        async function fetchSystemSettings() {
+            console.log("JCHAT_DEBUG: Fetching system settings...");
+            try {
+                const docSnap = await getDoc(SYSTEM_SETTINGS_DOC_REF);
+                if (docSnap.exists()) {
+                    currentSystemSettings = docSnap.data();
+                    console.log("JCHAT_DEBUG: System settings fetched:", currentSystemSettings);
+                } else {
+                    console.warn("JCHAT_WARNING: System settings document not found. Initializing with default values.");
+                    currentSystemSettings = {
+                        jcoinNairaRate: 7.5, gasJcoinRate: 0.1, dailyBonusAmount: 50,
+                        profanityFilterSensitivity: 5,
+                        enableUserRegistration: true, enableFriendRequests: true, enablePublicChat: true,
+                        enablePostCreation: true, enableEmailNotifications: true, maintenanceMode: false,
+                        globalAnnouncement: "", enableCalls: true,
+                        announcementStartTime: null, // New default
+                        announcementEndTime: null,   // New default
+                    };
+                    await setDoc(SYSTEM_SETTINGS_DOC_REF, currentSystemSettings);
+                    console.log("JCHAT_DEBUG: Default system settings created.");
+                }
+                populateSystemSettingsUI(currentSystemSettings);
+                applySystemSettings(currentSystemSettings); // Apply maintenance mode etc.
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching system settings:", error);
+                showMessageBox(`Failed to load system settings: ${error.message}`, 'error', true);
+            }
+        }
+
+        /**
+         * Populates the system settings UI elements with fetched data.
+         * @param {object} settings - The system settings object.
+         */
+        function populateSystemSettingsUI(settings) {
+            if (jcoinNairaRateInput) jcoinNairaRateInput.value = settings.jcoinNairaRate ?? '';
+            if (gasJcoinRateInput) gasJcoinRateInput.value = settings.gasJcoinRate ?? '';
+            if (dailyBonusAmountInput) dailyBonusAmountInput.value = settings.dailyBonusAmount ?? '';
+            if (profanityFilterSensitivityInput) profanityFilterSensitivityInput.value = settings.profanityFilterSensitivity ?? '';
+
+            if (enableUserRegistrationToggle) enableUserRegistrationToggle.checked = settings.enableUserRegistration ?? true;
+            if (enableFriendRequestsToggle) enableFriendRequestsToggle.checked = settings.enableFriendRequests ?? true;
+            if (enablePublicChatToggle) enablePublicChatToggle.checked = settings.enablePublicChat ?? true;
+            if (enablePostCreationToggle) enablePostCreationToggle.checked = settings.enablePostCreation ?? true;
+            if (enableEmailNotificationsToggle) enableEmailNotificationsToggle.checked = settings.enableEmailNotifications ?? true;
+            if (enableCallsToggle) enableCallsToggle.checked = settings.enableCalls ?? true;
+
+            if (maintenanceModeToggle) maintenanceModeToggle.checked = settings.maintenanceMode ?? false;
+            if (globalAnnouncementInput) globalAnnouncementInput.value = settings.globalAnnouncement ?? '';
+
+            // Set datetime-local inputs
+            if (announcementStartTimeInput) {
+                announcementStartTimeInput.value = settings.announcementStartTime?.toDate ? new Date(settings.announcementStartTime.toDate()).toISOString().slice(0, 16) : '';
+            }
+            if (announcementEndTimeInput) {
+                announcementEndTimeInput.value = settings.announcementEndTime?.toDate ? new Date(settings.announcementEndTime.toDate()).toISOString().slice(0, 16) : '';
+            }
+        }
+
+        /**
+         * Saves the system settings from the UI to Firestore.
+         */
+        async function saveSystemSettings() {
+            toggleButtonLoading(saveSystemSettingsButton, true);
+            showMessageBox("Saving system settings...", 'loading', true);
+
+            try {
+                // Convert datetime-local strings to Date objects, then to Firestore Timestamps
+                const startTime = announcementStartTimeInput.value ? new Date(announcementStartTimeInput.value) : null;
+                const endTime = announcementEndTimeInput.value ? new Date(announcementEndTimeInput.value) : null;
+
+                const newSettings = {
+                    jcoinNairaRate: parseFloat(jcoinNairaRateInput.value),
+                    gasJcoinRate: parseFloat(gasJcoinRateInput.value),
+                    dailyBonusAmount: parseInt(dailyBonusAmountInput.value),
+                    profanityFilterSensitivity: parseInt(profanityFilterSensitivityInput.value),
+                    enableUserRegistration: enableUserRegistrationToggle.checked,
+                    enableFriendRequests: enableFriendRequestsToggle.checked,
+                    enablePublicChat: enablePublicChatToggle.checked,
+                    enablePostCreation: enablePostCreationToggle.checked,
+                    enableEmailNotifications: enableEmailNotificationsToggle.checked,
+                    enableCalls: enableCallsToggle.checked,
+                    maintenanceMode: maintenanceModeToggle.checked,
+                    globalAnnouncement: globalAnnouncementInput.value.trim(),
+                    announcementStartTime: startTime ? Timestamp.fromDate(startTime) : null,
+                    announcementEndTime: endTime ? Timestamp.fromDate(endTime) : null,
+                    updatedAt: serverTimestamp()
+                };
+
+                // Basic validation
+                if (isNaN(newSettings.jcoinNairaRate) || newSettings.jcoinNairaRate <= 0 ||
+                    isNaN(newSettings.gasJcoinRate) || newSettings.gasJcoinRate <= 0 ||
+                    isNaN(newSettings.dailyBonusAmount) || newSettings.dailyBonusAmount < 0 ||
+                    isNaN(newSettings.profanityFilterSensitivity) || newSettings.profanityFilterSensitivity < 1 || newSettings.profanityFilterSensitivity > 10) {
+                    showMessageBox("Please enter valid numeric values for economy/sensitivity settings.", 'warning');
+                    return;
+                }
+                if (newSettings.announcementStartTime && newSettings.announcementEndTime && newSettings.announcementStartTime.toDate() >= newSettings.announcementEndTime.toDate()) {
+                    showMessageBox("Announcement End Time must be after Start Time.", 'warning');
+                    return;
+                }
+
+
+                await setDoc(SYSTEM_SETTINGS_DOC_REF, newSettings, { merge: true });
+                showMessageBox("System settings saved successfully!", 'success');
+                playNotificationSound('success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error saving system settings:", error);
+                showMessageBox(`Failed to save settings: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(saveSystemSettingsButton, false);
+            }
+        }
+
+
+        /**
+         * Applies the fetched system settings, specifically handling maintenance mode for admin.
+         * @param {object} settings - The system settings object.
+         */
+        function applySystemSettings(settings) {
+            console.log("JCHAT_DEBUG: Applying system settings to Admin UI:", settings);
+            const isCurrentUserAdmin = currentUser && currentUser.uid === ADMIN_UID;
+            const now = new Date();
+
+            // Handle scheduled global announcement
+            let currentAnnouncement = settings.globalAnnouncement || "";
+            let isAnnouncementActive = false;
+
+            if (settings.globalAnnouncement) {
+                const startTime = settings.announcementStartTime?.toDate ? new Date(settings.announcementStartTime.toDate()) : null;
+                const endTime = settings.announcementEndTime?.toDate ? new Date(settings.announcementEndTime.toDate()) : null;
+
+                if (startTime && endTime) {
+                    if (now >= startTime && now <= endTime) {
+                        isAnnouncementActive = true;
+                    } else if (now < startTime) {
+                        currentAnnouncement += ` (Scheduled for ${startTime.toLocaleString()})`;
+                    } else { // now > endTime
+                        currentAnnouncement += ` (Expired on ${endTime.toLocaleString()})`;
+                    }
+                } else if (startTime) {
+                    if (now >= startTime) {
+                        isAnnouncementActive = true;
+                    } else {
+                        currentAnnouncement += ` (Starts ${startTime.toLocaleString()})`;
+                    }
+                } else if (endTime) {
+                    if (now <= endTime) {
+                        isAnnouncementActive = true;
+                    } else {
+                        currentAnnouncement += ` (Expired on ${endTime.toLocaleString()})`;
+                    }
+                } else { // No start/end time, always active if text exists
+                    isAnnouncementActive = true;
+                }
+            }
+            if (globalAnnouncementInput) globalAnnouncementInput.value = currentAnnouncement; // Update UI with status
+
+            if (settings.maintenanceMode) {
+                if (isCurrentUserAdmin) {
+                    // Admin bypasses maintenance overlay.
+                    if (maintenanceOverlay) maintenanceOverlay.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                    showMessageBox("JCHAT is in Maintenance Mode, but you (Admin) have full access.", 'info', true);
+                } else {
+                    // Non-admin sees maintenance overlay.
+                    if (maintenanceOverlay) {
+                        maintenanceOverlay.classList.add('active');
+                        if (maintenanceAnnouncementText) {
+                            maintenanceAnnouncementText.textContent = currentAnnouncement || "JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!";
+                        }
+                    }
+                    document.body.style.overflow = 'hidden';
+                    // Redirect non-admins if maintenance mode is active.
+                    if (window.location.pathname !== '/login.html') {
+                        window.location.href = '/login.html'; // Redirect to login page
+                        showMessageBox("JCHAT is currently in maintenance mode. Please try again later.", 'warning', true);
+                        playNotificationSound('error');
+                    }
+                }
+            } else {
+                // Maintenance mode is OFF.
+                if (maintenanceOverlay) maintenanceOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // --- New Feature: Reported Content & Users ---
+        /**
+         * Fetches and displays reported content and users in real-time.
+         */
+        async function fetchAndDisplayReportedContent() {
+            console.log("JCHAT_DEBUG: Fetching reported content...");
+            if (!reportedContentTableBody) return;
+
+            if (unsubscribeReportedContentListener) {
+                unsubscribeReportedContentListener();
+            }
+
+            const q = query(collection(db, "artifacts", appId, "public", "data", "reports"), where("status", "==", "pending"));
+
+            unsubscribeReportedContentListener = onSnapshot(q, (querySnapshot) => {
+                reportedContentTableBody.innerHTML = '';
+                if (querySnapshot.empty) {
+                    noReportsMessage.style.display = 'block';
+                } else {
+                    noReportsMessage.style.display = 'none';
+                    querySnapshot.forEach(docSnap => {
+                        const report = docSnap.data();
+                        const reportId = docSnap.id;
+                        const row = document.createElement('tr');
+                        row.setAttribute('data-report-id', reportId);
+
+                        const reporterInitial = (report.reporterUsername || 'U').charAt(0).toUpperCase();
+                        const reportedInitial = (report.reportedUsername || 'U').charAt(0).toUpperCase();
+
+                        // Truncate content for display
+                        let contentSnippet = report.content || 'N/A';
+                        if (contentSnippet.length > 100) {
+                            contentSnippet = contentSnippet.substring(0, 97) + '...';
+                        }
+
+                        row.innerHTML = `
+                            <td>${reportId.substring(0, 8)}...</td>
+                            <td>${report.reporterUsername || 'N/A'} (ID: ${report.reporterId.substring(0, 8)}...)</td>
+                            <td>${report.reportedUsername || 'N/A'} (ID: ${report.reportedId.substring(0, 8)}...)<br>Type: <strong>${report.contentType || 'N/A'}</strong></td>
+                            <td>${report.reason || 'No reason provided.'}</td>
+                            <td>${report.timestamp ? new Date(report.timestamp.toDate()).toLocaleString() : 'N/A'}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="approve-btn" data-report-id="${reportId}" data-action="resolve" aria-label="Resolve Report">
+                                        <span class="button-text"><i class="fas fa-check"></i> Resolve</span>
+                                    </button>
+                                    <button class="reject-btn" data-report-id="${reportId}" data-action="warn" aria-label="Warn User">
+                                        <span class="button-text"><i class="fas fa-exclamation-triangle"></i> Warn User</span>
+                                    </button>
+                                     <button class="delete-btn" data-report-id="${reportId}" data-action="delete_content" aria-label="Delete Content">
+                                        <span class="button-text"><i class="fas fa-trash-alt"></i> Delete Content</span>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        reportedContentTableBody.appendChild(row);
+                    });
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to reported content:", error);
+                showMessageBox(`Error loading reports: ${error.message}`, 'error');
+            });
+            unsubscribeListeners.push(unsubscribeReportedContentListener);
+        }
+
+        /**
+         * Handles actions on a reported item (resolve, warn, delete content).
+         * @param {string} reportId
+         * @param {string} action - 'resolve', 'warn', 'delete_content'
+         * @param {object} reportData - The full report data
+         * @param {HTMLElement} buttonElement - The button triggering the action
+         */
+        async function handleReportAction(reportId, action, reportData, buttonElement) {
+            const confirmed = await showConfirmationModal(
+                `${action === 'resolve' ? 'Resolve Report' : (action === 'warn' ? 'Warn User' : 'Delete Content')}`,
+                `Are you sure you want to ${action === 'resolve' ? 'resolve this report' : (action === 'warn' ? `warn ${reportData.reportedUsername || 'this user'}` : `delete the reported ${reportData.contentType || 'content'}`)}?`
+            );
+            if (!confirmed) return;
+
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox(`Performing action: ${action} on report ${reportId}...`, 'loading', true);
+
+            try {
+                const reportDocRef = doc(db, "artifacts", appId, "public", "data", "reports", reportId);
+                const batch = writeBatch(db);
+
+                if (action === 'resolve') {
+                    batch.update(reportDocRef, { status: 'resolved', resolvedAt: serverTimestamp(), resolvedBy: currentUser.uid });
+                } else if (action === 'warn') {
+                    // Add a warning notification to the reported user's profile
+                    const reportedUserNotificationsRef = collection(db, "artifacts", appId, "users", reportData.reportedId, "notifications");
+                    batch.add(reportedUserNotificationsRef, {
+                        type: "warning",
+                        message: `You have received a warning regarding your recent activity: "${reportData.reason || 'No specific reason provided.'}". Please review community guidelines.`,
+                        timestamp: serverTimestamp(),
+                        read: false,
+                        issuedByAdminId: currentUser.uid,
+                        relatedReportId: reportId
+                    });
+                    batch.update(reportDocRef, { status: 'warned', resolvedAt: serverTimestamp(), resolvedBy: currentUser.uid });
+                } else if (action === 'delete_content') {
+                    // Delete the actual reported content
+                    if (reportData.contentType === 'post' && reportData.contentId) {
+                        const postRef = doc(db, "artifacts", appId, "public", "data", "posts", reportData.contentId);
+                        batch.delete(postRef);
+                        // Also update report status
+                        batch.update(reportDocRef, { status: 'content_deleted', resolvedAt: serverTimestamp(), resolvedBy: currentUser.uid });
+                    } else if (reportData.contentType === 'message' && reportData.contentId && reportData.chatRoomId) {
+                        // This assumes chat messages are in a subcollection of chat rooms
+                        const messageRef = doc(db, "artifacts", appId, "public", "data", "chat_rooms", reportData.chatRoomId, "messages", reportData.contentId);
+                        batch.delete(messageRef);
+                        batch.update(reportDocRef, { status: 'content_deleted', resolvedAt: serverTimestamp(), resolvedBy: currentUser.uid });
+                    } else {
+                        throw new Error("Unsupported content type or missing content ID for deletion.");
+                    }
+                }
+                await batch.commit();
+                showMessageBox(`Report ${reportId.substring(0, 8)}... action "${action}" completed successfully!`, 'success');
+                playNotificationSound('success');
+            } catch (error) {
+                console.error(`JCHAT_ERROR: Error performing action ${action} on report ${reportId}:`, error);
+                showMessageBox(`Failed to complete action: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        // --- New Feature: Content Management (View/Delete Public Posts) ---
+        /**
+         * Fetches and displays recent public posts.
+         */
+        async function fetchAndDisplayPublicPosts() {
+            console.log("JCHAT_DEBUG: Fetching public posts...");
+            if (!publicPostsTableBody) return;
+
+            if (unsubscribePublicPostsListener) {
+                unsubscribePublicPostsListener();
+            }
+
+            // Fetch a limited number of most recent posts
+            const q = query(collection(db, "artifacts", appId, "public", "data", "posts")); // Removed orderBy
+
+            unsubscribePublicPostsListener = onSnapshot(q, async (querySnapshot) => {
+                publicPostsTableBody.innerHTML = '';
+                if (querySnapshot.empty) {
+                    noPostsMessage.style.display = 'block';
+                } else {
+                    noPostsMessage.style.display = 'none';
+                    let posts = [];
+                    querySnapshot.forEach(docSnap => {
+                        posts.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+
+                    // Sort posts by timestamp descending (newest first)
+                    posts.sort((a, b) => {
+                        const timeA = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : 0;
+                        const timeB = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : 0;
+                        return timeB - timeA;
+                    });
+
+                    // Limit to 50 most recent posts for display
+                    posts = posts.slice(0, 50);
+
+                    for (const post of posts) {
+                        const row = document.createElement('tr');
+                        const contentSnippet = post.content.length > 100 ? post.content.substring(0, 97) + '...' : post.content;
+                        const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A';
+
+                        // Fetch author's username for display
+                        let authorUsername = 'Unknown User';
+                        if (post.authorId) {
+                            const publicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", post.authorId);
+                            const publicProfileSnap = await getDoc(publicProfileRef);
+                            if (publicProfileSnap.exists()) {
+                                authorUsername = publicProfileSnap.data().username || authorUsername;
+                            }
+                        }
+
+                        row.innerHTML = `
+                            <td>${post.id.substring(0, 8)}...</td>
+                            <td>${authorUsername} (ID: ${post.authorId.substring(0, 8)}...)</td>
+                            <td>${contentSnippet}</td>
+                            <td>${post.likes || 0}</td>
+                            <td>${post.commentCount || 0}</td>
+                            <td>${timestamp}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="delete-btn" data-post-id="${post.id}" aria-label="Delete Post">
+                                        <span class="button-text"><i class="fas fa-trash-alt"></i> Delete</span>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        publicPostsTableBody.appendChild(row);
+                    }
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to public posts:", error);
+                showMessageBox(`Error loading public posts: ${error.message}`, 'error');
+            });
+            unsubscribeListeners.push(unsubscribePublicPostsListener);
+        }
+
+        /**
+         * Deletes a public post.
+         * @param {string} postId - The ID of the post to delete.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function deletePublicPost(postId, buttonElement) {
+            const confirmed = await showConfirmationModal(
+                "Delete Post",
+                "Are you sure you want to permanently delete this post? This action is irreversible."
+            );
+            if (!confirmed) return;
+
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox(`Deleting post ${postId}...`, 'loading', true);
+
+            const postDocRef = doc(db, "artifacts", appId, "public", "data", "posts", postId);
+
+            try {
+                await deleteDoc(postDocRef);
+                showMessageBox(`Post ${postId} deleted successfully!`, 'success');
+                playNotificationSound('success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error deleting post:", error);
+                showMessageBox(`Failed to delete post: ${error.message}`, 'error');
+                playNotificationSound('error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        // --- New Feature: Global User Search & Filter ---
+        /**
+         * Fetches and displays all users based on filters.
+         */
+        async function fetchAndFilterAllUsers() {
+            if (!globalUsersTableBody) return;
+
+            showMessageBox('Fetching and filtering users...', 'loading', true);
+
+            try {
+                const usersCollectionRef = collection(db, "artifacts", appId, "public", "data", "users");
+                const allUsersSnapshot = await getDocs(usersCollectionRef);
+                let users = [];
+
+                allUsersSnapshot.forEach(docSnap => {
+                    users.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                const searchTerm = globalUserSearchInput.value.trim().toLowerCase();
+                const banStatusFilter = globalUserBanStatusFilter.value;
+                const walletStatusFilter = globalUserWalletStatusFilter.value;
+
+                const filteredUsers = users.filter(user => {
+                    const matchesSearch = (!searchTerm ||
+                        (user.username && user.username.toLowerCase().includes(searchTerm)) ||
+                        user.id.toLowerCase().includes(searchTerm));
+
+                    const matchesBanStatus = (banStatusFilter === 'all' ||
+                        (banStatusFilter === 'banned' && user.banned) ||
+                        (banStatusFilter === 'not_banned' && !user.banned));
+
+                    const matchesWalletStatus = (walletStatusFilter === 'all' ||
+                        (walletStatusFilter === 'locked' && !user.walletUnlocked) ||
+                        (walletStatusFilter === 'unlocked' && user.walletUnlocked));
+
+                    return matchesSearch && matchesBanStatus && matchesWalletStatus;
+                });
+
+                globalUsersTableBody.innerHTML = '';
+                if (filteredUsers.length === 0) {
+                    noUsersMessage.style.display = 'block';
+                } else {
+                    noUsersMessage.style.display = 'none';
+                    filteredUsers.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${user.username || 'N/A'}</td>
+                            <td>${user.id.substring(0, 8)}...</td>
+                            <td>${user.level ?? 1}</td>
+                            <td>${(user.jCoins ?? 0).toLocaleString()}</td>
+                            <td>${(user.gas ?? 0).toLocaleString()}</td>
+                            <td>${user.walletUnlocked ? 'Unlocked' : 'Locked'}</td>
+                            <td>${user.banned ? 'Banned' : 'Not Banned'}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="admin-button secondary" data-user-id="${user.id}" data-action="lookup-user">
+                                        <span class="button-text"><i class="fas fa-search"></i> Lookup</span>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        globalUsersTableBody.appendChild(row);
+                    });
+                }
+                showMessageBox('Users filtered successfully.', 'success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error filtering global users:", error);
+                showMessageBox(`Failed to filter users: ${error.message}`, 'error');
+            }
+        }
+
+
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
+            console.log("JCHAT_DEBUG: onAuthStateChanged triggered. User:", user ? user.uid : "null");
             if (user) {
                 currentUser = user;
-                console.log("JCHAT_DEBUG: User authenticated in Admin Page:", user.uid);
+                isAuthReady = true;
 
                 // Check if the user is the ADMIN_UID
                 if (currentUser.uid === ADMIN_UID) {
                     await fetchAndDisplayHeaderProfile(user);
                     fetchNotificationCount(user.uid);
-                    fetchPendingJCoinRequests(); // Start listening for pending requests
+                    fetchPendingJCoinRequests(); // Start listening for pending JCoin requests
+                    fetchAndDisplayPendingRewards(); // Start listening for pending Activity Rewards
+                    fetchAndDisplayReportedContent(); // New: Start listening for reported content
+                    fetchAndDisplayPublicPosts(); // New: Start listening for public posts
+                    fetchAndFilterAllUsers(); // New: Initial load of global users
+                    await fetchSystemSettings(); // Fetch system settings and apply.
+
+                    // Listen to system settings in real-time for admin
+                    if (unsubscribeSystemSettingsListener) unsubscribeSystemSettingsListener(); // Clear previous listener
+                    unsubscribeSystemSettingsListener = onSnapshot(SYSTEM_SETTINGS_DOC_REF, (docSnap) => {
+                        if (docSnap.exists()) {
+                            currentSystemSettings = docSnap.data();
+                            console.log("JCHAT_DEBUG: Real-time system settings update for admin:", currentSystemSettings);
+                            populateSystemSettingsUI(currentSystemSettings); // Update UI elements
+                            applySystemSettings(currentSystemSettings); // Apply maintenance mode etc.
+                        } else {
+                            console.warn("JCHAT_WARNING: System settings document not found during snapshot. Re-fetching.");
+                            fetchSystemSettings();
+                        }
+                    }, (error) => {
+                        console.error("JCHAT_ERROR: Error listening to system settings:", error);
+                        showMessageBox("Failed to get real-time settings updates.", 'error', true);
+                    });
+                    unsubscribeListeners.push(unsubscribeSystemSettingsListener); // Add to global unsubscribe list
+
                     showMessageBox("Welcome, Admin!", 'success', false, 2000);
+
                 } else {
+                    // Non-admin user: Check if they are banned
+                    const userProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                    const userProfileSnap = await getDoc(userProfileDocRef);
+                    if (userProfileSnap.exists() && userProfileSnap.data().banned) {
+                        console.log("JCHAT_DEBUG: Banned user detected. Redirecting to login page.");
+                        showMessageBox("Your account has been banned. Please contact support.", 'error', true);
+                        playNotificationSound('error');
+                        setTimeout(async () => {
+                            await signOut(auth); // Sign out banned user
+                            window.location.href = '/login.html';
+                        }, 2000);
+                        return; // Stop further execution for banned users
+                    }
+
+                    console.log("JCHAT_DEBUG: Non-admin user detected. Redirecting to home page.");
                     showMessageBox("Access Denied. You are not authorized to view this page.", 'error', true);
-                    console.warn("JCHAT_WARN: Non-admin user attempted to access Admin page. Redirecting.");
+                    playNotificationSound('error');
                     setTimeout(() => {
-                        window.location.href = '/login.html'; // Redirect non-admins
-                    }, 3000);
+                        window.location.href = '/home.html'; // Redirect non-admins
+                    }, 2000);
                 }
             } else {
-                console.log("JCHAT_DEBUG: No user signed in.");
+                console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
                 try {
                     if (initialAuthToken) {
                         await signInWithCustomToken(auth, initialAuthToken);
@@ -2543,19 +4254,36 @@
                     console.error("JCHAT_ERROR: Error during anonymous sign-in or custom token sign-in:", error);
                     if (!auth.currentUser) {
                         window.location.href = '/login.html';
+                        return;
                     }
                 }
-                showMessageBox("Please log in to access the Admin Dashboard.", 'info', true);
-                if (headerDisplayName) headerDisplayName.textContent = "Guest";
-                if (headerProfilePic) headerProfilePic.style.display = 'none';
-                if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
-                if (adminIconLink) adminIconLink.style.display = 'none';
-                if (logoutButton) logoutButton.disabled = true;
+                // Re-check currentUser after potential anonymous sign-in.
+                currentUser = auth.currentUser;
+                if (currentUser && currentUser.uid === ADMIN_UID) {
+                    // If anonymous sign-in resulted in admin, proceed.
+                    isAuthReady = true;
+                    await fetchAndDisplayHeaderProfile(currentUser);
+                    fetchPendingJCoinRequests();
+                    fetchAndDisplayPendingRewards();
+                    fetchAndDisplayReportedContent(); // New: Fetch reports after auth
+                    fetchAndDisplayPublicPosts(); // New: Fetch posts after auth
+                    fetchAndFilterAllUsers(); // New: Fetch global users after auth
+                    await fetchSystemSettings();
+                } else {
+                    // If still no user or not admin after anonymous attempt, redirect.
+                    console.log("JCHAT_DEBUG: Anonymous/Custom Token Auth successful but not admin. Redirecting.");
+                    showMessageBox("Access Denied: Please log in as an administrator.", 'error', true);
+                    playNotificationSound('error');
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                }
             }
         });
 
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
+            console.log("JCHAT_DEBUG: DOMContentLoaded fired.");
             // Apply theme on load
             const savedTheme = localStorage.getItem('jchat-theme');
             const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
@@ -2570,8 +4298,31 @@
             // Header Logout Button
             if (logoutButton) logoutButton.addEventListener('click', handleLogout);
 
+            // System Settings
+            if (saveSystemSettingsButton) saveSystemSettingsButton.addEventListener('click', saveSystemSettings);
+
             // User Lookup
             if (lookupUserButton) lookupUserButton.addEventListener('click', () => lookupUser());
+            if (searchTypeSelect) {
+                searchTypeSelect.addEventListener('change', () => {
+                    const selectedType = searchTypeSelect.value;
+                    if (lookupUserInput) {
+                        if (selectedType === 'uid') {
+                            lookupUserInput.placeholder = 'Enter User ID';
+                            lookupUserInput.type = 'text';
+                        } else if (selectedType === 'username') {
+                            lookupUserInput.placeholder = 'Enter Username (exact match)';
+                            lookupUserInput.type = 'text';
+                        } else if (selectedType === 'email') {
+                            lookupUserInput.placeholder = 'Enter Email (exact match)';
+                            lookupUserInput.type = 'email';
+                        }
+                    }
+                });
+                // Trigger change to set initial placeholder
+                searchTypeSelect.dispatchEvent(new Event('change'));
+            }
+
 
             // User Management Actions
             if (updateLevelButton) updateLevelButton.addEventListener('click', updateUserLevel);
@@ -2580,17 +4331,144 @@
             if (creditGasButton) creditGasButton.addEventListener('click', creditGas);
             if (deductGasButton) deductGasButton.addEventListener('click', deductGas);
             if (toggleWalletLockButton) toggleWalletLockButton.addEventListener('click', toggleWalletLock);
-            if (walletLockToggle) walletLockToggle.addEventListener('change', toggleWalletLock); // Also trigger on toggle switch change
+            if (walletLockToggle) walletLockToggle.addEventListener('change', toggleWalletLock);
+            if (toggleBanButton) toggleBanButton.addEventListener('click', toggleBanStatus);
+            if (banUserToggle) banUserToggle.addEventListener('change', toggleBanStatus);
+            if (grantDailyBonusButton) grantDailyBonusButton.addEventListener('click', grantDailyBonusToUser); // New
+            if (sendAdminMessageButton) sendAdminMessageButton.addEventListener('click', sendAdminMessageToUser); // New
+            if (deleteUserAccountButton) deleteUserAccountButton.addEventListener('click', deleteUserAccount); // New
 
-            // Initialize bottom nav bar state
-            if (bottomNavBar) bottomNavBar.classList.add('nav-bar-hidden-full');
-            if (navToggleBtn && navToggleBtn.querySelector('i')) {
-                navToggleBtn.querySelector('i').classList.remove('fa-chevron-down');
-                navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
+            // Activity Rewards Event Listeners
+            if (pendingRewardsTableBody) {
+                pendingRewardsTableBody.addEventListener('click', (event) => {
+                    const approveBtn = event.target.closest('.approve-btn');
+                    const rejectBtn = event.target.closest('.reject-btn');
+                    const checkbox = event.target.closest('.reward-select-checkbox');
+
+                    if (approveBtn) {
+                        const rewardId = approveBtn.dataset.rewardId;
+                        handleApproveReward(rewardId, approveBtn);
+                    } else if (rejectBtn) {
+                        const rewardId = rejectBtn.dataset.rewardId;
+                        handleRejectReward(rewardId, rejectBtn);
+                    } else if (checkbox) {
+                        // Update selectedRewardIds set when individual checkbox is clicked.
+                        const rewardId = checkbox.dataset.rewardId;
+                        if (checkbox.checked) {
+                            selectedRewardIds.add(rewardId);
+                        } else {
+                            selectedRewardIds.delete(rewardId);
+                        }
+                        updateSelectedRewardsState(); // Update the "Select All" and "Approve Selected" button state.
+                    }
+                });
             }
-            if (navToggleBtn) navToggleBtn.addEventListener('click', toggleNavBarVisibility);
+
+            // Event listener for "Select All" checkbox
+            if (selectAllRewardsCheckbox) {
+                selectAllRewardsCheckbox.addEventListener('change', (event) => {
+                    const isChecked = event.target.checked;
+                    document.querySelectorAll('.reward-select-checkbox').forEach(checkbox => {
+                        checkbox.checked = isChecked;
+                        const rewardId = checkbox.dataset.rewardId;
+                        if (isChecked) {
+                            selectedRewardIds.add(rewardId);
+                        } else {
+                            selectedRewardIds.delete(rewardId);
+                        }
+                    });
+                    updateSelectedRewardsState(); // Update "Approve Selected" button state.
+                });
+            }
+
+            // Event listener for "Approve Selected" button
+            if (approveSelectedBtn) {
+                approveSelectedBtn.addEventListener('click', handleApproveSelectedRewards);
+            }
+
+            // New: Reported Content Event Listeners
+            if (reportedContentTableBody) {
+                reportedContentTableBody.addEventListener('click', (event) => {
+                    const resolveBtn = event.target.closest('[data-action="resolve"]');
+                    const warnBtn = event.target.closest('[data-action="warn"]');
+                    const deleteContentBtn = event.target.closest('[data-action="delete_content"]');
+
+                    if (resolveBtn || warnBtn || deleteContentBtn) {
+                        const reportId = (resolveBtn || warnBtn || deleteContentBtn).dataset.reportId;
+                        const actionType = (resolveBtn?.dataset.action || warnBtn?.dataset.action || deleteContentBtn?.dataset.action);
+                        const reportData = (reportedContentTableBody.querySelector(`[data-report-id="${reportId}"]`)); // Need actual data from fetched list
+                        // A more robust solution would store report data in a map like pendingRewardsData.
+                        // For this example, we'll try to reconstruct basic data or rely on UI to trigger.
+                        // In a real app, you'd fetch the specific report's data here if not cached.
+                        handleReportAction(reportId, actionType, reportData, (resolveBtn || warnBtn || deleteContentBtn));
+                    }
+                });
+            }
+
+            // New: Public Posts Event Listeners
+            if (publicPostsTableBody) {
+                publicPostsTableBody.addEventListener('click', (event) => {
+                    const deleteBtn = event.target.closest('.delete-btn');
+                    if (deleteBtn) {
+                        const postId = deleteBtn.dataset.postId;
+                        deletePublicPost(postId, deleteBtn);
+                    }
+                });
+            }
+
+            // New: Global User Search & Filter Event Listeners
+            if (filterGlobalUsersButton) {
+                filterGlobalUsersButton.addEventListener('click', fetchAndFilterAllUsers);
+            }
+            if (globalUsersTableBody) {
+                globalUsersTableBody.addEventListener('click', (event) => {
+                    const lookupBtn = event.target.closest('[data-action="lookup-user"]');
+                    if (lookupBtn) {
+                        const userId = lookupBtn.dataset.userId;
+                        lookupUserInput.value = userId; // Set the ID in the single lookup field
+                        searchTypeSelect.value = 'uid'; // Ensure search type is UID
+                        lookupUser(userId, 'uid'); // Perform the lookup
+                    }
+                });
+            }
+
         });
 
+        // Cleanup resources before the page unloads.
+        window.addEventListener('beforeunload', () => {
+            unsubscribeListeners.forEach(unsubscribe => {
+                if (typeof unsubscribe === 'function') {
+                    unsubscribe();
+                }
+            });
+            // Also explicitly clean up the looked-up user and pending requests listeners
+            if (unsubscribeLookedUpUserListener) {
+                unsubscribeLookedUpUserListener();
+            }
+            if (unsubscribePendingRequestsListener) {
+                unsubscribePendingRequestsListener();
+            }
+            if (unsubscribeSystemSettingsListener) {
+                unsubscribeSystemSettingsListener();
+            }
+            if (unsubscribeReportedContentListener) { // New: Clear reports listener
+                unsubscribeReportedContentListener();
+            }
+            if (unsubscribePublicPostsListener) { // New: Clear posts listener
+                unsubscribePublicPostsListener();
+            }
+
+            unsubscribeListeners = []; // Clear the array
+            unsubscribeLookedUpUserListener = null;
+            unsubscribePendingRequestsListener = null;
+            unsubscribeSystemSettingsListener = null;
+            unsubscribeReportedContentListener = null; // New: Clear reports listener
+            unsubscribePublicPostsListener = null; // New: Clear posts listener
+
+            console.log("JCHAT_DEBUG: All Firestore listeners detached on Admin page unload.");
+        });
+
+        // Listen for changes in local storage (e.g., theme changes from other tabs).
         window.addEventListener('storage', (event) => {
             if (event.key === 'jchat-theme') {
                 const newTheme = event.newValue || 'theme-dark-mode';
@@ -2599,18 +4477,6 @@
                     document.body.classList.remove(...themes);
                     document.body.classList.add(newTheme);
                 }
-            }
-        });
-
-        window.addEventListener('beforeunload', () => {
-            // Detach Firestore listeners on page unload
-            if (unsubscribeLookedUpUserListener) {
-                unsubscribeLookedUpUserListener();
-                console.log("JCHAT_DEBUG: Unsubscribed from looked-up user's profile listener.");
-            }
-            if (unsubscribePendingRequestsListener) {
-                unsubscribePendingRequestsListener();
-                console.log("JCHAT_DEBUG: Unsubscribed from pending requests listener.");
             }
         });
     </script>
