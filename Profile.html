@@ -17,6 +17,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Tone.js for audio notifications (if used) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -221,7 +223,7 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden; /* Prevent horizontal scroll */
-            padding-bottom: 120px; /* Space for nav bar (60px) + toggle button (60px) */
+            padding-bottom: 0px; /* Adjusted: Removed nav bar and toggle button */
             background-color: var(--background-main);
             background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
                               radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
@@ -820,9 +822,25 @@
             background: rgba(255, 255, 255, 0.2);
             transform: translateY(-1px);
         }
+        .profile-action-button.danger {
+            background-color: var(--delete-button-color); /* Red for danger actions */
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .profile-action-button.danger:hover {
+            background-color: #c82333;
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6);
+        }
 
         /* Specific button styles for dynamic states */
-        /* Removed .profile-action-button.sent, .profile-action-button.friends, .profile-action-button.accept, .profile-action-button.unfriend as these buttons are removed */
+        .profile-action-button.sent { background: #6c757d; cursor: default; box-shadow: none; }
+        .profile-action-button.sent:hover { transform: none; box-shadow: none; }
+        .profile-action-button.friends { background: #28a745; cursor: default; box-shadow: none; }
+        .profile-action-button.friends:hover { transform: none; box-shadow: none; }
+        .profile-action-button.accept { background: linear-gradient(90deg, #28a745, #218838); }
+        .profile-action-button.accept:hover { background: linear-gradient(90deg, #218838, #28a745); }
+        .profile-action-button.unfriend { background: #dc3545; }
+        .profile-action-button.unfriend:hover { background: #c82333; }
 
 
         /* Icons within action buttons */
@@ -833,6 +851,10 @@
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+        .profile-action-button.secondary i,
+        .profile-action-button.danger i {
+            -webkit-text-fill-color: var(--white); /* Ensure icons are white for secondary/danger */
         }
 
 
@@ -857,7 +879,8 @@
 
         .profile-details-section input[type="text"],
         .profile-details-section input[type="url"], /* Added for website */
-        .profile-details-section textarea {
+        .profile-details-section textarea,
+        .profile-details-section select { /* NEW: for customization options */
             width: 100%;
             padding: 0.8rem 1rem;
             margin-bottom: 15px; /* Keep original margin for spacing between fields */
@@ -872,7 +895,8 @@
 
         .profile-details-section input[type="text"]:focus,
         .profile-details-section input[type="url"]:focus,
-        .profile-details-section textarea:focus {
+        .profile-details-section textarea:focus,
+        .profile-details-section select:focus {
             border-color: var(--blue);
             box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
         }
@@ -880,6 +904,187 @@
         .profile-details-section textarea {
             resize: vertical;
             min-height: 80px;
+        }
+
+        /* NEW: Toggle switch for privacy settings */
+        .privacy-toggle-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+        }
+        .privacy-toggle-group:last-child {
+            border-bottom: none;
+        }
+        .privacy-toggle-group label {
+            margin-bottom: 0;
+        }
+        /* Toggle button styles (reused from Admin.html) */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-switch .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--input-background);
+            transition: .4s;
+            border-radius: 34px;
+            border: 1px solid var(--border-light);
+        }
+
+        .toggle-switch .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--text-light);
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .slider {
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            border-color: var(--blue);
+        }
+
+        .toggle-switch input:checked + .slider:before {
+            transform: translateX(26px);
+            background-color: var(--white);
+        }
+
+        /* NEW: Unlocked Rewards Section */
+        .unlocked-rewards-section, .friends-snippet-section, .recent-activity-section, .customization-section {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 1.5rem;
+            width: 100%;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .unlocked-rewards-section h3, .friends-snippet-section h3, .recent-activity-section h3, .customization-section h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-top: 0;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .rewards-grid, .friends-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            justify-content: center;
+        }
+        .reward-item, .friend-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            cursor: default;
+        }
+        .reward-icon {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .friend-pic-wrapper {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid var(--accent-color);
+            margin-bottom: 5px;
+        }
+        .friend-pic {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .friend-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        /* Recent Activity Section */
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .activity-item {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            color: var(--text-color-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border-light);
+        }
+        .activity-item i {
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .activity-timestamp {
+            font-size: 0.8em;
+            color: var(--text-light);
+            margin-left: auto;
+        }
+        .no-activity-message, .no-friends-message, .no-rewards-message {
+            text-align: center;
+            color: var(--text-light);
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+
+        /* Customization Section */
+        .customization-option {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .customization-option label {
+            margin-bottom: 0;
         }
 
         /* Account Settings Sub-section (from original Profile.html snippet) */
@@ -1131,113 +1336,6 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* --- Bottom Navigation Bar (reused from Home.html) --- */
-        #bottomNavBar {
-            position: fixed;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: var(--header-background);
-            border-top: 1px solid var(--border-light);
-            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 0 10px;
-            z-index: 50;
-            bottom: 60px; /* Positioned above the toggle button */
-            transition: bottom 0.3s ease-out; /* Smooth slide transition */
-        }
-
-        #bottomNavBar.nav-bar-hidden-full {
-            bottom: -60px; /* Move it completely off-screen below */
-        }
-
-        .nav-icon-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-light);
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: color 0.2s ease, transform 0.2s ease;
-            flex: 1;
-            max-width: 80px;
-        }
-
-        .nav-icon-item:hover {
-            color: var(--white);
-        }
-
-        .nav-icon-circle {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--blue), var(--pink));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .nav-icon-item:hover .nav-icon-circle {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px var(--blue), 0 4px 12px var(--pink);
-        }
-
-        .nav-icon-circle i {
-            color: var(--white);
-            font-size: 1.3rem;
-            transition: transform 0.2s ease;
-        }
-
-        .nav-icon-item.active .nav-icon-circle {
-            background: linear-gradient(45deg, var(--pink), var(--blue));
-            box-shadow: 0 4px 12px var(--pink), 0 44px 12px var(--blue);
-        }
-        .nav-icon-item.active {
-            color: var(--white);
-        }
-
-        /* New Toggle Button (reused from Home.html) */
-        #navToggleBtn {
-            position: fixed;
-            bottom: 0px; /* Position at the very bottom */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px; /* Slightly larger button */
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--pink), var(--blue)); /* Pink to blue gradient */
-            color: var(--white);
-            border: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem; /* Larger icon */
-            cursor: pointer;
-            z-index: 60; /* Higher than nav bar */
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-        }
-
-        #navToggleBtn:hover {
-            transform: translateX(-50%) scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(45deg, var(--blue), var(--pink)); /* Reverse gradient on hover */
-        }
-
-        #navToggleBtn i {
-            transition: transform 0.3s ease; /* Smooth icon rotation */
-        }
-
-        #navToggleBtn.rotated i {
-            transform: rotate(180deg); /* Rotate icon when nav is hidden */
-        }
-
         /* NEW: JCoin Request Modal Styles */
         #jcoinRequestModal.modal-overlay { /* Specificity for this modal */
             background-color: rgba(0, 0, 0, 0.6);
@@ -1372,6 +1470,54 @@
             margin-top: 1.5rem;
         }
 
+        /* NEW: Report User Modal Styles */
+        #reportUserModal.modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        #reportUserModal .modal-content {
+            max-width: 500px;
+            text-align: left;
+        }
+        #reportUserModal .modal-content h3 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        #reportUserModal .modal-content h3 i {
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 10px;
+        }
+        #reportUserModal .modal-content label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        #reportUserModal .modal-content textarea,
+        #reportUserModal .modal-content select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            background: var(--input-background);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        #reportUserModal .modal-content textarea:focus,
+        #reportUserModal .modal-content select:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+        #reportUserModal .modal-content .button-group {
+            justify-content: center; /* Center buttons in modal */
+        }
+
 
         /* Responsive Adjustments (from Home.html / privacy_settings.html) */
         @media (max-width: 600px) {
@@ -1442,9 +1588,44 @@
             }
             .profile-details-section input[type="text"],
             .profile-details-section input[type="url"],
-            .profile-details-section textarea {
+            .profile-details-section textarea,
+            .profile-details-section select { /* NEW */
                 padding: 0.7rem 0.9rem;
                 font-size: 0.9rem;
+            }
+            .privacy-toggle-group label {
+                font-size: 0.9rem;
+            }
+            .toggle-switch {
+                transform: scale(0.8); /* Scale down for mobile */
+                transform-origin: right center;
+            }
+            .unlocked-rewards-section h3, .friends-snippet-section h3, .recent-activity-section h3, .customization-section h3 {
+                font-size: 1.2rem;
+            }
+            .rewards-grid, .friends-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 10px;
+            }
+            .reward-item, .friend-item {
+                font-size: 0.8rem;
+            }
+            .reward-icon {
+                font-size: 2rem;
+            }
+            .friend-pic-wrapper {
+                width: 50px;
+                height: 50px;
+            }
+            .activity-item {
+                font-size: 0.85rem;
+                padding: 10px;
+            }
+            .activity-item i {
+                font-size: 1rem;
+            }
+            .customization-option label {
+                font-size: 0.85rem;
             }
             .sub-section h2 {
                 font-size: 1.3rem;
@@ -1464,31 +1645,8 @@
             .sub-section p {
                 font-size: 0.8rem;
             }
-            #bottomNavBar {
-                height: 55px;
-                padding: 0 5px;
-                bottom: 55px; /* Adjust for smaller button height on mobile */
-            }
-            #bottomNavBar.nav-bar-hidden-full {
-                bottom: -55px; /* Adjust for smaller button height on mobile */
-            }
-            #navToggleBtn {
-                width: 55px;
-                height: 55px;
-                font-size: 1.5rem;
-            }
-            .nav-icon-circle {
-                width: 40px;
-                height: 40px;
-            }
-            .nav-icon-circle i {
-                font-size: 1.2rem;
-            }
-            .nav-icon-item {
-                font-size: 0.7rem;
-            }
             body {
-                padding-bottom: 110px; /* 55px (nav) + 55px (toggle) */
+                padding-bottom: 0px; /* Adjusted for no nav/toggle */
             }
         }
     </style>
@@ -1609,6 +1767,18 @@
                     <button id="requestJCoinsButton" class="profile-action-button">
                         <i class="fas fa-coins"></i> Request JCoins
                     </button>
+                    <!-- NEW: Claim Daily Bonus Button -->
+                    <button id="claimDailyBonusButton" class="profile-action-button" style="display: none;">
+                        <span class="button-text"><i class="fas fa-gift"></i> Claim Daily Bonus</span>
+                        <div class="button-loader"></div>
+                    </button>
+                    <p id="dailyBonusCountdown" style="display: none; color: var(--text-light); font-size: 0.9em; margin-top: 10px;"></p>
+
+                    <!-- NEW: Report User Button (only visible for other users) -->
+                    <button id="reportUserButton" class="profile-action-button danger" style="display: none;">
+                        <i class="fas fa-flag"></i> Report User
+                    </button>
+
                     <!-- Removed Add Friend and Message buttons as requested -->
                 </div>
 
@@ -1642,6 +1812,118 @@
                         <span class="button-text">Save Profile</span>
                         <div class="button-loader"></div>
                     </button>
+
+                    <!-- NEW: Privacy Settings Toggles -->
+                    <h3 style="text-align: center; margin-top: 2rem;">Privacy Settings</h3>
+                    <div class="privacy-toggle-group">
+                        <label for="toggleEmailVisibility">Show Email Publicly</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleEmailVisibility">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="privacy-toggle-group">
+                        <label for="toggleLocationVisibility">Show Location Publicly</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleLocationVisibility">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="privacy-toggle-group">
+                        <label for="toggleOnlineStatusVisibility">Show Online Status</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleOnlineStatusVisibility">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                     <div class="privacy-toggle-group">
+                        <label for="toggleFriendRequests">Allow Friend Requests</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleFriendRequests">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="privacy-toggle-group">
+                        <label for="toggleMessages">Allow Direct Messages</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleMessages">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="privacy-toggle-group">
+                        <label for="toggleSchoolVisibility">Show School Publicly</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleSchoolVisibility">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="privacy-toggle-group">
+                        <label for="toggleWorkVisibility">Show Work Publicly</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleWorkVisibility">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="privacy-toggle-group">
+                        <label for="toggleInterestsVisibility">Show Interests Publicly</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleInterestsVisibility">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="privacy-toggle-group">
+                        <label for="toggleWebsiteVisibility">Show Website Publicly</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleWebsiteVisibility">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="privacy-toggle-group">
+                        <label for="toggleSocialLinksVisibility">Show Social Links Publicly</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleSocialLinksVisibility">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <button id="savePrivacySettingsButton" class="profile-action-button secondary">
+                        <span class="button-text">Save Privacy Settings</span>
+                        <div class="button-loader"></div>
+                    </button>
+
+                    <!-- NEW: Profile Customization Section -->
+                    <h3 style="text-align: center; margin-top: 2rem;">Profile Customization</h3>
+                    <div class="customization-option">
+                        <label for="profileFrameSelect">Profile Picture Frame:</label>
+                        <select id="profileFrameSelect">
+                            <option value="default">Default</option>
+                            <option value="gradient">Gradient Frame (Unlocked at Level 25)</option>
+                            <option value="diamond">Diamond Frame (Unlocked at Level 200)</option>
+                            <!-- Add more options as you define them based on unlockedBenefits -->
+                        </select>
+                    </div>
+                    <div class="customization-option">
+                        <label for="chatBubbleStyleSelect">Chat Bubble Style:</label>
+                        <select id="chatBubbleStyleSelect">
+                            <option value="default">Default</option>
+                            <option value="basic">Basic Style (Unlocked at Level 15)</option>
+                            <option value="rounded">Rounded Style (Unlocked at Level 40)</option>
+                            <!-- Add more options -->
+                        </select>
+                    </div>
+                    <div class="customization-option">
+                        <label for="profileThemeSelect">Profile Theme:</label>
+                        <select id="profileThemeSelect">
+                            <option value="default">Default</option>
+                            <option value="solid">Solid Color (Unlocked at Level 65)</option>
+                            <option value="animated1">Animated 1 (Unlocked at Level 150)</option>
+                            <!-- Add more options -->
+                        </select>
+                    </div>
+                    <button id="saveCustomizationButton" class="profile-action-button">
+                        <span class="button-text">Save Customization</span>
+                        <div class="button-loader"></div>
+                    </button>
+
 
                     <!-- Toggle for Account Settings (Email/Password) -->
                     <button id="toggleAccountSettingsButton" class="profile-action-button secondary" style="margin-top: 2rem;">
@@ -1699,7 +1981,31 @@
                     </div>
                 </div>
             </div>
-            <!-- User's posts could be displayed here if desired -->
+            <!-- NEW: Unlocked Rewards Section -->
+            <div class="unlocked-rewards-section" id="unlockedRewardsSection" style="display: none;">
+                <h3>Your Unlocked Rewards</h3>
+                <div class="rewards-grid" id="unlockedRewardsGrid">
+                    <p class="no-rewards-message">No rewards unlocked yet.</p>
+                </div>
+            </div>
+
+            <!-- NEW: Friends Snippet Section -->
+            <div class="friends-snippet-section" id="friendsSnippetSection" style="display: none;">
+                <h3>Friends You Might Know</h3>
+                <div class="friends-grid" id="friendsSnippetGrid">
+                    <p class="no-friends-message">Loading friends...</p>
+                </div>
+            </div>
+
+            <!-- NEW: Recent Activity Section -->
+            <div class="recent-activity-section" id="recentActivitySection" style="display: none;">
+                <h3>Recent Activity</h3>
+                <ul class="activity-list" id="recentActivityList">
+                    <p class="no-activity-message">No recent activity.</p>
+                </ul>
+            </div>
+
+            <!-- User's posts feed -->
             <div class="posts-feed-section" id="userPostsFeed" style="display: none;">
                 <h3>Posts by <span id="postsFeedUsername"></span></h3>
                 <p style="text-align: center; color: var(--text-light);" id="loadingUserPostsMessage">Loading posts...</p>
@@ -1744,39 +2050,39 @@
         </div>
     </div>
 
-
-    <!-- Bottom Navigation Bar (reused from Home.html) -->
-    <nav id="bottomNavBar" class="nav-bar-hidden-full">
-        <a href="/home.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-home"></i></div>
-            <span>Home</span>
-        </a>
-        <a href="/chat.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-comment-dots"></i></div>
-            <span>Chat</span>
-        </a>
-        <a href="/find_friends.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-users"></i></div>
-            <span>Users</span>
-        </a>
-        <a href="/friends.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-user-friends"></i></div>
-            <span>Friends</span>
-        </a>
-        <a href="/jcoin_shop.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-store"></i></div>
-            <span>Shop</span>
-        </a>
-        <a href="/settings.html" class="nav-icon-item active">
-            <div class="nav-icon-circle"><i class="fas fa-cog"></i></div>
-            <span>Settings</span>
-        </a>
-    </nav>
-
-    <!-- Navigation Toggle Button (reused from Home.html) -->
-    <button id="navToggleBtn" aria-label="Toggle Navigation">
-        <i class="fas fa-chevron-up"></i>
-    </button>
+    <!-- NEW: Report User Modal -->
+    <div id="reportUserModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3><i class="fas fa-flag"></i> Report User</h3>
+            <p style="color: var(--text-light); font-size: 0.9rem; text-align: center;">
+                You are reporting <strong id="reportedUsernameDisplay" class="gradient-text"></strong>.
+                Please select a reason and provide details.
+            </p>
+            <div class="input-group">
+                <label for="reportReasonSelect">Reason:</label>
+                <select id="reportReasonSelect">
+                    <option value="">Select a reason</option>
+                    <option value="harassment">Harassment / Bullying</option>
+                    <option value="spam">Spam / Advertising</option>
+                    <option value="inappropriate_content">Inappropriate Content</option>
+                    <option value="impersonation">Impersonation</option>
+                    <option value="scam">Scam / Fraud</option>
+                    <option value="other">Other (please specify)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="reportDetailsTextarea">Details (optional):</label>
+                <textarea id="reportDetailsTextarea" rows="4" placeholder="Provide more details about the report..."></textarea>
+            </div>
+            <div class="button-group">
+                <button id="cancelReportButton" class="modal-button cancel-button">Cancel</button>
+                <button id="submitReportButton" class="modal-button save-button">
+                    <span class="button-text">Submit Report</span>
+                    <div class="button-loader"></div>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         // Import Firebase modules
@@ -1784,6 +2090,9 @@
         import { getAuth, onAuthStateChanged, updateProfile, updateEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, runTransaction, writeBatch, serverTimestamp, orderBy, addDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        // Import Timestamp for scheduled announcements
+        import { Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1813,7 +2122,6 @@
         const headerProfilePic = document.getElementById('headerProfilePic');
         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
         const headerDisplayName = document.getElementById('headerDisplayName');
-        // const logoutButton = document.getElementById('logoutButton'); // Header logout - REMOVED
         const notificationCountElement = document.getElementById('notificationCount');
         const messageBox = document.getElementById('messageBox');
         const headerNavLinkProfile = document.getElementById('profileLink'); // Corrected ID to match HTML
@@ -1859,12 +2167,13 @@
         const xpProgressBarFill = document.getElementById('xpProgressBarFill');
 
         const profileActions = document.getElementById('profileActions');
-        // const editProfileButton = document.getElementById('editProfileButton'); // Removed
-        // const privacySettingsButton = document.getElementById('privacySettingsButton'); // Removed as it's now an <a> tag
         const walletLink = document.getElementById('walletLink'); // Wallet link
         const walletLockedMessage = document.getElementById('walletLockedMessage'); // Wallet locked message
         const requestJCoinsButton = document.getElementById('requestJCoinsButton'); // NEW: Request JCoins Button
-        // Removed addFriendButton and messageButton as requested
+        const claimDailyBonusButton = document.getElementById('claimDailyBonusButton'); // NEW
+        const dailyBonusCountdown = document.getElementById('dailyBonusCountdown'); // NEW
+        const reportUserButton = document.getElementById('reportUserButton'); // NEW
+
 
         // Inline Edit Fields
         const displayNameInput = document.getElementById('displayName'); // Input for display name
@@ -1878,6 +2187,26 @@
         const socialLinksInput = document.getElementById('socialLinksInput');
 
         const saveProfileChanges = document.getElementById('saveProfileChanges'); // Renamed from saveProfileChangesButton
+
+        // NEW: Privacy Settings Toggles
+        const toggleEmailVisibility = document.getElementById('toggleEmailVisibility');
+        const toggleLocationVisibility = document.getElementById('toggleLocationVisibility');
+        const toggleOnlineStatusVisibility = document.getElementById('toggleOnlineStatusVisibility');
+        const toggleFriendRequests = document.getElementById('toggleFriendRequests');
+        const toggleMessages = document.getElementById('toggleMessages');
+        const toggleSchoolVisibility = document.getElementById('toggleSchoolVisibility');
+        const toggleWorkVisibility = document.getElementById('toggleWorkVisibility');
+        const toggleInterestsVisibility = document.getElementById('toggleInterestsVisibility');
+        const toggleWebsiteVisibility = document.getElementById('toggleWebsiteVisibility');
+        const toggleSocialLinksVisibility = document.getElementById('toggleSocialLinksVisibility');
+        const savePrivacySettingsButton = document.getElementById('savePrivacySettingsButton');
+
+        // NEW: Customization Selects
+        const profileFrameSelect = document.getElementById('profileFrameSelect');
+        const chatBubbleStyleSelect = document.getElementById('chatBubbleStyleSelect');
+        const profileThemeSelect = document.getElementById('profileThemeSelect');
+        const saveCustomizationButton = document.getElementById('saveCustomizationButton');
+
 
         // Account Settings Fields
         const profileEmailInput = document.getElementById('profileEmailInput'); // Disabled email display
@@ -1909,14 +2238,30 @@
         const cancelJCoinRequestButton = document.getElementById('cancelJCoinRequest');
         const submitJCoinRequestButton = document.getElementById('submitJCoinRequestButton');
 
-        // Friend Requests Section (kept for structure, but not actively used for display on this page anymore)
-        const friendRequestsSection = document.getElementById('friendRequestsSection');
-        const incomingRequestsList = document.getElementById('incomingRequestsList');
-        const noRequestsMessage = document.getElementById('noRequestsMessage');
+        // NEW: Report User Modal Elements
+        const reportUserModal = document.getElementById('reportUserModal');
+        const reportedUsernameDisplay = document.getElementById('reportedUsernameDisplay');
+        const reportReasonSelect = document.getElementById('reportReasonSelect');
+        const reportDetailsTextarea = document.getElementById('reportDetailsTextarea');
+        const cancelReportButton = document.getElementById('cancelReportButton');
+        const submitReportButton = document.getElementById('submitReportButton');
 
-        // Removed: Pending Rewards Section Elements
-        // const pendingRewardsSection = document.getElementById('pendingRewardsSection');
-        // const pendingRewardsList = document.getElementById('pendingRewardsList');
+
+        // NEW: Unlocked Rewards Section
+        const unlockedRewardsSection = document.getElementById('unlockedRewardsSection');
+        const unlockedRewardsGrid = document.getElementById('unlockedRewardsGrid');
+        const noRewardsMessage = document.getElementById('noRewardsMessage');
+
+        // NEW: Friends Snippet Section
+        const friendsSnippetSection = document.getElementById('friendsSnippetSection');
+        const friendsSnippetGrid = document.getElementById('friendsSnippetGrid');
+        const noFriendsMessage = document.getElementById('noFriendsMessage');
+
+        // NEW: Recent Activity Section
+        const recentActivitySection = document.getElementById('recentActivitySection');
+        const recentActivityList = document.getElementById('recentActivityList');
+        const noActivityMessage = document.getElementById('noActivityMessage');
+
 
         // --- Global State ---
         let currentUser = null; // The currently authenticated user (Firebase Auth object)
@@ -1925,24 +2270,51 @@
         let displayedUserProfileData = null; // The profile data of the user currently being displayed (could be current user or another user)
         let isAuthReady = false; // Flag to indicate if auth state has been checked
         const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID
-        const JCOIN_EXCHANGE_RATE_PER_NAIRA = 1 / 7.5; // 1 Naira = 1/7.5 JCoins (e.g., 75 Naira = 10 JCoins)
+        let currentSystemSettings = {}; // To store system settings (like exchange rates)
+
         const JCOIN_BONUS_THRESHOLD_NAIRA = 1000; // Naira amount from which JCoin bonus applies
         const JCOIN_BONUS_PERCENTAGE = 0.10; // 10% bonus
+
+        let dailyBonusInterval = null; // For daily bonus countdown timer
+
 
         // --- Utility Functions ---
 
         /**
          * Plays a short notification sound.
-         * Note: For a real application, you'd integrate Tone.js or similar for more robust audio.
+         * Uses Tone.js for more robust audio feedback.
          */
-        function playNotificationSound() {
-            // Placeholder for sound. In a real app, you'd use Tone.js or a simple Audio object.
-            // if (typeof Tone !== 'undefined') {
-            //     const synth = new Tone.Synth().toDestination();
-            //     synth.triggerAttackRelease("C4", "8n");
-            // } else {
-            //     console.warn("Tone.js not loaded. Cannot play notification sound.");
-            // }
+        const successSynth = new Tone.Synth().toDestination();
+        const errorSynth = new Tone.Synth().toDestination();
+        const infoSynth = new Tone.Synth().toDestination();
+
+        successSynth.oscillator.type = "sine";
+        successSynth.envelope.attack = 0.01;
+        successSynth.envelope.decay = 0.2;
+        successSynth.envelope.sustain = 0.0;
+        successSynth.envelope.release = 0.5;
+
+        errorSynth.oscillator.type = "sawtooth";
+        errorSynth.envelope.attack = 0.01;
+        errorSynth.envelope.decay = 0.3;
+        errorSynth.envelope.sustain = 0.0;
+        errorSynth.envelope.release = 0.5;
+
+        infoSynth.oscillator.type = "triangle";
+        infoSynth.envelope.attack = 0.01;
+        infoSynth.envelope.decay = 0.1;
+        infoSynth.envelope.sustain = 0.0;
+        infoSynth.envelope.release = 0.3;
+
+        function playNotificationSound(type) {
+            Tone.start();
+            if (type === 'success') {
+                successSynth.triggerAttackRelease("C5", "8n");
+            } else if (type === 'error') {
+                errorSynth.triggerAttackRelease("C3", "8n");
+            } else if (type === 'info') {
+                infoSynth.triggerAttackRelease("E4", "16n");
+            }
         }
 
         /**
@@ -1953,6 +2325,7 @@
          * @param {number} [durationMs=3000] - Duration in milliseconds for the message to display if not persistent.
          */
         function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
+            if (!messageBox) { console.error("JCHAT_ERROR: messageBox element not found."); return; }
             if (messageBox.timeoutId) {
                 clearTimeout(messageBox.timeoutId);
             }
@@ -2030,20 +2403,10 @@
          */
         function showCustomConfirm(message) {
             return new Promise((resolve) => {
-                // Assuming you have a modal structure with IDs:
-                // <div id="customConfirmModal" class="modal-overlay">
-                //   <div class="modal-content">
-                //     <h3 id="confirmModalMessage"></h3>
-                //     <div class="modal-buttons">
-                //       <button id="confirmYesBtn" class="confirm-btn">Yes</button>
-                //       <button id="confirmNoBtn" class="cancel-btn">No</button>
-                //     </div>
-                //   </div>
-                // </div>
-                const customConfirmModal = document.getElementById('customConfirmModal');
-                const confirmModalMessage = document.getElementById('confirmModalMessage');
-                const confirmYesBtn = document.getElementById('confirmYesBtn');
-                const confirmNoBtn = document.getElementById('confirmNoBtn');
+                const customConfirmModal = document.getElementById('customConfirmModal'); // Assuming this exists or is created
+                const confirmModalMessage = document.getElementById('confirmModalMessage'); // Assuming this exists
+                const confirmYesBtn = document.getElementById('confirmYesBtn');     // Assuming this exists
+                const confirmNoBtn = document.getElementById('confirmNoBtn');       // Assuming this exists
 
                 if (!customConfirmModal || !confirmModalMessage || !confirmYesBtn || !confirmNoBtn) {
                     console.error("JCHAT_ERROR: Custom confirmation modal elements not found.");
@@ -2450,6 +2813,129 @@
         }
 
         /**
+         * Handles saving privacy settings.
+         */
+        async function handleSavePrivacySettings() {
+            if (!currentUser || !isAuthReady || displayedUserId !== currentUser.uid) {
+                showMessageBox("You can only edit your own privacy settings.", 'warning');
+                return;
+            }
+
+            toggleButtonLoading(savePrivacySettingsButton, true);
+            showMessageBox("Saving privacy settings...", 'loading', true);
+
+            try {
+                const newVisibility = {
+                    displayName: true, // Display name is always public
+                    profilePic: true,  // Profile pic is always public
+                    emailPublic: toggleEmailVisibility.checked,
+                    location: toggleLocationVisibility.checked,
+                    lastOnline: toggleOnlineStatusVisibility.checked, // Assuming this is handled by backend logic
+                    allowFriendRequests: toggleFriendRequests.checked,
+                    allowMessages: toggleMessages.checked,
+                    school: toggleSchoolVisibility.checked,
+                    work: toggleWorkVisibility.checked,
+                    interests: toggleInterestsVisibility.checked,
+                    website: toggleWebsiteVisibility.checked,
+                    socialLinks: toggleSocialLinksVisibility.checked
+                };
+
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+                await updateDoc(privateProfileDocRef, {
+                    visibility: newVisibility,
+                    updatedAt: serverTimestamp()
+                });
+
+                const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                await updateDoc(publicProfileDocRef, {
+                    visibility: newVisibility, // Update public record for visibility settings
+                    updatedAt: serverTimestamp()
+                });
+
+                showMessageBox("Privacy settings saved successfully!", 'success');
+
+                // Refresh currentUserProfileData and re-render profile for immediate effect
+                const updatedProfileSnap = await getDoc(privateProfileDocRef);
+                if (updatedProfileSnap.exists()) {
+                    currentUserProfileData = updatedProfileSnap.data();
+                    displayedUserProfileData = currentUserProfileData; // Ensure consistency
+                    // Re-call fetchAndDisplayUserProfile to apply new visibility locally
+                    await fetchAndDisplayUserProfile(currentUser.uid);
+                }
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error saving privacy settings:", error);
+                showMessageBox(`Failed to save privacy settings: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(savePrivacySettingsButton, false);
+            }
+        }
+
+        /**
+         * Handles saving customization settings.
+         */
+        async function handleSaveCustomization() {
+            if (!currentUser || !isAuthReady || displayedUserId !== currentUser.uid) {
+                showMessageBox("You can only customize your own profile.", 'warning');
+                return;
+            }
+
+            toggleButtonLoading(saveCustomizationButton, true);
+            showMessageBox("Saving customization...", 'loading', true);
+
+            try {
+                const newProfileFrame = profileFrameSelect.value;
+                const newChatBubbleStyle = chatBubbleStyleSelect.value;
+                const newProfileTheme = profileThemeSelect.value;
+
+                // Basic validation: Check if user has unlocked these
+                const hasFrame = currentUserProfileData.unlockedBenefits.includes(`Unlock: ${newProfileFrame === 'gradient' ? 'Gradient Profile Picture Frame' : (newProfileFrame === 'diamond' ? 'Exclusive \'Diamond\' Profile Picture Frame' : '')}`);
+                const hasBubble = currentUserProfileData.unlockedBenefits.includes(`Unlock: ${newChatBubbleStyle === 'basic' ? 'Basic Chat Bubble Style' : (newChatBubbleStyle === 'rounded' ? 'New Chat Bubble Style (Set 2)' : '')}`);
+                const hasTheme = currentUserProfileData.unlockedBenefits.includes(`Unlock: ${newProfileTheme === 'solid' ? 'Basic Profile Theme (Solid Color)' : (newProfileTheme === 'animated1' ? 'Premium Profile Theme (Animated 1)' : '')}`);
+
+                if (newProfileFrame !== 'default' && !hasFrame) {
+                    showMessageBox(`You haven't unlocked the '${newProfileFrame}' frame yet!`, 'warning');
+                    toggleButtonLoading(saveCustomizationButton, false);
+                    return;
+                }
+                if (newChatBubbleStyle !== 'default' && !hasBubble) {
+                    showMessageBox(`You haven't unlocked the '${newChatBubbleStyle}' chat bubble style yet!`, 'warning');
+                    toggleButtonLoading(saveCustomizationButton, false);
+                    return;
+                }
+                if (newProfileTheme !== 'default' && !hasTheme) {
+                    showMessageBox(`You haven't unlocked the '${newProfileTheme}' profile theme yet!`, 'warning');
+                    toggleButtonLoading(saveCustomizationButton, false);
+                    return;
+                }
+
+
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+                await updateDoc(privateProfileDocRef, {
+                    profileFrame: newProfileFrame,
+                    chatBubbleStyle: newChatBubbleStyle,
+                    profileTheme: newProfileTheme,
+                    updatedAt: serverTimestamp()
+                });
+
+                showMessageBox("Customization saved successfully!", 'success');
+                // Re-fetch current user profile data
+                const updatedProfileSnap = await getDoc(privateProfileDocRef);
+                if (updatedProfileSnap.exists()) {
+                    currentUserProfileData = updatedProfileSnap.data();
+                    displayedUserProfileData = currentUserProfileData; // Ensure consistency
+                }
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error saving customization:", error);
+                showMessageBox(`Failed to save customization: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(saveCustomizationButton, false);
+            }
+        }
+
+
+        /**
          * Handles changing user's email address.
          */
         async function handleChangeEmail(event) {
@@ -2730,7 +3216,7 @@
                 const tierNames = ["The Unrivaled", "Cosmic Creator", "JCHAT Deity", "Apex Being"];
                 const tierIcons = ["fas fa-infinity", "fas fa-solar-system", "fas fa-hand-holding-heart", "fas fa-star-and-crescent"];
                 const tierIndex = Math.floor((level - 401) / 25); // Cycle every 25 levels for 4 names
-                name = `${tierNames[tierIndex % tierNames.length]} Lv. ${level}`;
+                name = `${tierNames[tierIndex % tierIcons.length]} Lv. ${level}`;
                 icon = tierIcons[tierIndex % tierIcons.length];
 
                 // Specific other rewards for Tier 5
@@ -2915,12 +3401,20 @@
                         await updateDoc(privateProfileDocRef, { unlockedBenefits: [] });
                         profileData.unlockedBenefits = [];
                     }
+                    if (profileData.lastDailyBonusClaimDate === undefined) { // NEW: Initialize lastDailyBonusClaimDate
+                        console.log("JCHAT_DEBUG: 'lastDailyBonusClaimDate' missing, initializing to null.");
+                        await updateDoc(privateProfileDocRef, { lastDailyBonusClaimDate: null });
+                        profileData.lastDailyBonusClaimDate = null;
+                    }
                     // NEW: Initialize additional profile fields
                     if (profileData.school === undefined) { await updateDoc(privateProfileDocRef, { school: "" }); profileData.school = ""; }
                     if (profileData.work === undefined) { await updateDoc(privateProfileDocRef, { work: "" }); profileData.work = ""; }
                     if (profileData.interests === undefined) { await updateDoc(privateProfileDocRef, { interests: "" }); profileData.interests = ""; }
                     if (profileData.website === undefined) { await updateDoc(privateProfileDocRef, { website: "" }); profileData.website = ""; }
                     if (profileData.socialLinks === undefined) { await updateDoc(privateProfileDocRef, { socialLinks: "" }); profileData.socialLinks = ""; }
+                    if (profileData.profileFrame === undefined) { await updateDoc(privateProfileDocRef, { profileFrame: "default" }); profileData.profileFrame = "default"; } // NEW
+                    if (profileData.chatBubbleStyle === undefined) { await updateDoc(privateProfileDocRef, { chatBubbleStyle: "default" }); profileData.chatBubbleStyle = "default"; } // NEW
+                    if (profileData.profileTheme === undefined) { await updateDoc(privateProfileDocRef, { profileTheme: "default" }); profileData.profileTheme = "default"; } // NEW
 
 
                     console.log("JCHAT_DEBUG: Fetched existing profile data for header:", profileData);
@@ -2954,7 +3448,11 @@
                         totalGasEarned: 0, // Initialize totalGasEarned
                         level: 1, // Initialize level
                         walletUnlocked: false, // NEW: Default to locked wallet
-                        unlockedBenefits: [] // NEW: Initialize unlockedBenefits
+                        unlockedBenefits: [], // NEW: Initialize unlockedBenefits
+                        lastDailyBonusClaimDate: null, // NEW: Initialize daily bonus claim date
+                        profileFrame: "default", // NEW
+                        chatBubbleStyle: "default", // NEW
+                        profileTheme: "default", // NEW
                     };
                     await setDoc(privateProfileDocRef, profileData);
                     console.log("JCHAT_DEBUG: Created new profile data for header:", profileData);
@@ -2975,7 +3473,10 @@
                         visibility: profileData.visibility,
                         totalPosts: profileData.totalPosts,
                         level: profileData.level, // Include level in public profile
-                        totalGasEarned: profileData.totalGasEarned // Include totalGasEarned in public profile
+                        totalGasEarned: profileData.totalGasEarned, // Include totalGasEarned in public profile
+                        profileFrame: profileData.profileFrame, // NEW: Public profile also needs customization info
+                        chatBubbleStyle: profileData.chatBubbleStyle, // NEW
+                        profileTheme: profileData.profileTheme, // NEW
                     }, { merge: true });
                 }
 
@@ -2987,9 +3488,6 @@
                 displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
                 headerDisplayName.textContent = profileData.username || "JCHAT User";
                 if (headerNavLinkProfile) headerNavLinkProfile.href = `/profile.html?userId=${user.uid}`; // Ensure header nav link is correct, null check
-                if (document.getElementById('profileLink')) document.getElementById('profileLink').href = `/profile.html?userId=${user.uid}`; // Ensure header profile link is correct, null check
-
-                // if (logoutButton) logoutButton.disabled = false; // Null check - REMOVED
 
                 // Show Admin Icon if current user is admin
                 if (adminIconLink) { // Null check
@@ -3006,7 +3504,6 @@
                 displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
                 if (headerDisplayName) headerDisplayName.textContent = user.displayName || "JCHAT User"; // Null check
                 showMessageBox(`Error loading header profile: ${error.message}`, 'error');
-                // if (logoutButton) logoutButton.disabled = false; // Null check - REMOVED
             }
         }
 
@@ -3040,6 +3537,30 @@
         // --- Profile Page Specific Functions ---
 
         /**
+         * Fetches system settings to get exchange rates for JCoins.
+         */
+        async function fetchSystemSettings() {
+            const systemSettingsDocRef = doc(db, "artifacts", appId, "public", "data", "settings", "system_settings");
+            try {
+                const docSnap = await getDoc(systemSettingsDocRef);
+                if (docSnap.exists()) {
+                    currentSystemSettings = docSnap.data();
+                    console.log("JCHAT_DEBUG: System settings fetched:", currentSystemSettings);
+                } else {
+                    console.warn("JCHAT_WARNING: System settings document not found. Using default values.");
+                    currentSystemSettings = {
+                        jcoinNairaRate: 7.5, // Default if not found
+                        dailyBonusAmount: 50 // Default if not found
+                    };
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching system settings:", error);
+                showMessageBox("Failed to load system settings.", 'error');
+            }
+        }
+
+
+        /**
          * Shows the JCoin request modal.
          */
         function showJCoinRequestModal() {
@@ -3071,7 +3592,8 @@
          * @returns {number} The calculated JCoins.
          */
         function calculateJCoins(nairaAmount) {
-            let baseJCoins = Math.floor(nairaAmount * JCOIN_EXCHANGE_RATE_PER_NAIRA);
+            const jcoinNairaRate = currentSystemSettings.jcoinNairaRate || 7.5; // Use fetched rate or default
+            let baseJCoins = Math.floor(nairaAmount / jcoinNairaRate);
             let bonusJCoins = 0;
             if (nairaAmount >= JCOIN_BONUS_THRESHOLD_NAIRA) {
                 bonusJCoins = Math.floor(baseJCoins * JCOIN_BONUS_PERCENTAGE);
@@ -3143,130 +3665,437 @@
         }
 
         /**
-         * Fetches and displays posts by a specific user.
-         * This is a simplified version for the profile page.
-         * @param {string} userId - The ID of the user whose posts to fetch.
-         * @param {string} username - The username to display in the section title.
+         * Handles claiming the daily JCoin bonus.
          */
-        async function fetchAndDisplayUserPosts(userId, username) {
-            if (userPostsFeed) userPostsFeed.style.display = 'block'; // Show the posts section, null check
-            if (postsFeedUsername) postsFeedUsername.textContent = username; // Null check
-            if (loadingUserPostsMessage) loadingUserPostsMessage.style.display = 'block'; // Null check
-            if (userPostsFeed) userPostsFeed.innerHTML = `<h3>Posts by <span id="postsFeedUsername">${username}</span></h3><p style="text-align: center; color: var(--text-light);" id="loadingUserPostsMessage">Loading posts...</p>`; // Clear and reset, null check
+        async function claimDailyBonus() {
+            if (!currentUser || !currentUserProfileData) {
+                showMessageBox("You must be logged in to claim the daily bonus.", 'warning');
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize to start of day
+
+            const lastClaimDate = currentUserProfileData.lastDailyBonusClaimDate ?
+                new Date(currentUserProfileData.lastDailyBonusClaimDate.toDate()) : null;
+
+            if (lastClaimDate && lastClaimDate.toDateString() === today.toDateString()) {
+                showMessageBox("You have already claimed your daily bonus today.", 'info');
+                return;
+            }
+            const dailyBonusAmount = currentSystemSettings.dailyBonusAmount || 50; // Use fetched amount or default
+
+            // In a real application, consider adding a custom confirmation modal here instead of alert/confirm.
+            // For now, assume a simple confirmation or proceed directly.
+            const confirmed = true; // Replace with actual custom confirm if implemented
+
+            // If a custom confirm dialog is available and used:
+            // const confirmed = await showCustomConfirm(`Claim your daily bonus of ${dailyBonusAmount} JCoins?`);
+            // if (!confirmed) {
+            //     return;
+            // }
+
+            toggleButtonLoading(claimDailyBonusButton, true);
+            showMessageBox("Claiming daily bonus...", 'loading', true);
 
             try {
-                const postsCollectionRef = collection(db, "artifacts", appId, "public", "data", "posts");
-                const q = query(postsCollectionRef, where("authorId", "==", userId), orderBy("timestamp", "desc"));
-                const querySnapshot = await getDocs(q);
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
 
-                if (querySnapshot.empty) {
-                    if (userPostsFeed) userPostsFeed.innerHTML += '<p style="text-align: center; color: var(--text-light);">No posts from this user yet.</p>'; // Null check
-                } else {
-                    querySnapshot.docs.forEach(docSnap => {
-                        const post = docSnap.data();
-                        const postId = docSnap.id;
-                        const authorInitial = (post.username || 'J').charAt(0).toUpperCase();
+                await runTransaction(db, async (transaction) => {
+                    const userProfileSnap = await transaction.get(userProfileDocRef);
+                    if (!userProfileSnap.exists()) {
+                        throw new Error("User profile not found for daily bonus.");
+                    }
+                    const currentProfileData = userProfileSnap.data();
 
-                        const postElement = document.createElement('div');
-                        postElement.classList.add('post-card'); // Reuse post-card style from Home.html
-                        postElement.setAttribute('data-post-id', postId);
-                        postElement.style.marginBottom = '20px'; // Add some spacing between posts
+                    const currentLastClaimDate = currentProfileData.lastDailyBonusClaimDate ?
+                        new Date(currentProfileData.lastDailyBonusClaimDate.toDate()) : null;
 
-                        postElement.innerHTML = `
-                            <div class="post-header">
-                                <div class="author-pic-wrapper">
-                                    ${post.profilePhoto ?
-                                        `<img src="${getCloudinaryImageUrl(post.profilePhoto, 'w_80,h_80,c_fill,g_face,r_max')}" alt="Author Pic" onerror="this.onerror=null; this.src='https://placehold.co/80x80/CCCCCC/000000?text=${authorInitial}';">` :
-                                        `<i class="fas fa-user-circle author-pic-placeholder"></i>`
-                                    }
-                                </div>
-                                <div class="author-info">
-                                    <span class="author-name">${post.username || 'Anonymous'}</span>
-                                    <p class="post-timestamp">${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}</p>
-                                </div>
-                            </div>
-                            <div class="post-content-text">
-                                <p>${post.content}</p>
-                            </div>
-                            <div class="post-reactions-summary">
-                                <span>
-                                    <i class="fas fa-thumbs-up" style="color:var(--blue);"></i> <span>${post.reactions?.like || 0}</span>
-                                    <i class="fas fa-heart" style="color:var(--pink);"></i> <span>${post.reactions?.love || 0}</span>
-                                    <i class="fas fa-face-laugh" style="color:#ffd700;"></i> <span>${post.reactions?.haha || 0}</span>
-                                </span>
-                                <span>${post.commentsCount || 0} Comments</span>
-                            </div>
-                        `;
-                        if (userPostsFeed) userPostsFeed.appendChild(postElement); // Null check
+                    // Double-check race condition: ensure it hasn't been claimed since this function started
+                    if (currentLastClaimDate && currentLastClaimDate.toDateString() === today.toDateString()) {
+                        throw new Error("Daily bonus already claimed.");
+                    }
+
+                    const updatedJCoins = (currentProfileData.jCoins || 0) + dailyBonusAmount;
+                    transaction.update(userProfileDocRef, {
+                        jCoins: updatedJCoins,
+                        lastDailyBonusClaimDate: serverTimestamp(),
+                        updatedAt: serverTimestamp()
                     });
-                }
+
+                    // Log activity
+                    const activityLogRef = collection(db, "artifacts", appId, "users", currentUser.uid, "activity_logs");
+                    transaction.add(activityLogRef, {
+                        type: "daily_bonus_claimed",
+                        timestamp: serverTimestamp(),
+                        jCoinsEarned: dailyBonusAmount
+                    });
+                });
+
+                showMessageBox(`Successfully claimed ${dailyBonusAmount} JCoins!`, 'success');
+                playNotificationSound('success');
+                // Update UI immediately (onSnapshot will also trigger, but this is faster)
+                currentUserProfileData.jCoins += dailyBonusAmount;
+                currentUserProfileData.lastDailyBonusClaimDate = Timestamp.fromDate(new Date()); // Update local data
+                if (jCoinsSpan) jCoinsSpan.textContent = currentUserProfileData.jCoins.toLocaleString();
+                updateDailyBonusUI(); // Update button and countdown
             } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching user posts:", error);
-                if (userPostsFeed) userPostsFeed.innerHTML += '<p style="text-align: center; color: var(--text-light);">Failed to load posts.</p>'; // Null check
+                console.error("JCHAT_ERROR: Error claiming daily bonus:", error);
+                showMessageBox(`Failed to claim bonus: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
-                if (loadingUserPostsMessage) loadingUserPostsMessage.style.display = 'none'; // Null check
+                toggleButtonLoading(claimDailyBonusButton, false);
+            }
+        }
+
+        /**
+         * Updates the daily bonus claim button and countdown timer.
+         */
+        function updateDailyBonusUI() {
+            if (!currentUserProfileData || displayedUserId !== currentUser.uid) {
+                if (claimDailyBonusButton) claimDailyBonusButton.style.display = 'none';
+                if (dailyBonusCountdown) dailyBonusCountdown.style.display = 'none';
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const lastClaimDate = currentUserProfileData.lastDailyBonusClaimDate ?
+                new Date(currentUserProfileData.lastDailyBonusClaimDate.toDate()) : null;
+
+            if (lastClaimDate && lastClaimDate.toDateString() === today.toDateString()) {
+                // Already claimed today
+                if (claimDailyBonusButton) claimDailyBonusButton.style.display = 'none';
+                if (dailyBonusCountdown) dailyBonusCountdown.style.display = 'block';
+
+                // Calculate time until next midnight
+                const nextMidnight = new Date(today);
+                nextMidnight.setDate(today.getDate() + 1);
+                const timeLeft = nextMidnight.getTime() - new Date().getTime();
+
+                if (dailyBonusInterval) clearInterval(dailyBonusInterval);
+                dailyBonusInterval = setInterval(() => {
+                    const remainingTime = nextMidnight.getTime() - new Date().getTime();
+                    if (remainingTime <= 0) {
+                        clearInterval(dailyBonusInterval);
+                        if (dailyBonusCountdown) dailyBonusCountdown.style.display = 'none';
+                        if (claimDailyBonusButton) {
+                            claimDailyBonusButton.style.display = 'inline-flex';
+                            toggleButtonLoading(claimDailyBonusButton, false);
+                        }
+                        if (dailyBonusCountdown) dailyBonusCountdown.textContent = '';
+                        return;
+                    }
+                    const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+                    if (dailyBonusCountdown) dailyBonusCountdown.textContent = `Next bonus in: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+
+            } else {
+                // Can claim today
+                if (claimDailyBonusButton) {
+                    claimDailyBonusButton.style.display = 'inline-flex';
+                    toggleButtonLoading(claimDailyBonusButton, false);
+                }
+                if (dailyBonusCountdown) dailyBonusCountdown.style.display = 'none';
+                if (dailyBonusInterval) clearInterval(dailyBonusInterval);
             }
         }
 
 
         /**
-         * Fetches and displays incoming friend requests for the current user.
+         * Shows the report user modal for the displayed user.
          */
-        async function fetchAndDisplayIncomingFriendRequests() {
-            // This function is no longer needed on the Profile page after removing friend request buttons.
-            // Keeping it as a placeholder for potential future use or if friend requests are moved elsewhere.
-            if (incomingRequestsList) incomingRequestsList.innerHTML = ''; // Null check
-            if (noRequestsMessage) incomingRequestsList.appendChild(noRequestsMessage); // Null check
-            if (noRequestsMessage) noRequestsMessage.style.display = 'block'; // Null check
-            return;
+        function showReportUserModal() {
+            if (!currentUser || displayedUserId === currentUser.uid) {
+                showMessageBox("You cannot report yourself.", 'warning');
+                return;
+            }
+            if (!displayedUserProfileData) {
+                showMessageBox("Could not load user data to report.", 'error');
+                return;
+            }
+            if (reportUserModal) reportUserModal.classList.add('active');
+            if (reportedUsernameDisplay) reportedUsernameDisplay.textContent = displayedUserProfileData.username || 'Unknown User';
+            if (reportReasonSelect) reportReasonSelect.value = ''; // Reset select
+            if (reportDetailsTextarea) reportDetailsTextarea.value = ''; // Reset textarea
         }
 
         /**
-         * Creates an HTML list item for an incoming friend request.
-         * @param {string} senderId - The UID of the sender.
-         * @param {Object} requestData - The request data from Firestore.
-         * @returns {HTMLElement} The created list item div element.
+         * Hides the report user modal.
          */
-        function createFriendRequestItem(senderId, requestData) {
-            // This function is no longer directly triggered from Profile.html after removing the button.
-            return document.createElement('div'); // Return dummy element
+        function hideReportUserModal() {
+            if (reportUserModal) reportUserModal.classList.remove('active');
         }
 
         /**
-         * Accepts a friend request from a given sender.
-         * @param {string} senderId - The UID of the user who sent the friend request.
-         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         * Submits a user report to Firestore.
          */
-        async function acceptFriendRequest(senderId, buttonElement) {
-            // This function is no longer directly triggered from Profile.html after removing the button.
-            // It's kept here if other pages might call it.
-            showMessageBox("Friend request acceptance is handled on the Friends page.", 'info');
-            if (buttonElement) toggleButtonLoading(buttonElement, false);
+        async function submitReport() {
+            if (!currentUser || !displayedUserProfileData) {
+                showMessageBox("Cannot submit report without user data.", 'error');
+                return;
+            }
+            if (displayedUserId === currentUser.uid) {
+                showMessageBox("You cannot report yourself.", 'warning');
+                return;
+            }
+
+            const reason = reportReasonSelect.value;
+            const details = reportDetailsTextarea.value.trim();
+
+            if (!reason) {
+                showMessageBox("Please select a reason for the report.", 'error');
+                return;
+            }
+
+            toggleButtonLoading(submitReportButton, true);
+            showMessageBox("Submitting report...", 'loading', true);
+
+            try {
+                const reportsCollectionRef = collection(db, "artifacts", appId, "public", "data", "reports");
+                await addDoc(reportsCollectionRef, {
+                    reporterId: currentUser.uid,
+                    reporterUsername: currentUserProfileData?.username || `User_${currentUser.uid.substring(0, 8)}`,
+                    reportedId: displayedUserId,
+                    reportedUsername: displayedUserProfileData.username || `User_${displayedUserId.substring(0, 8)}`,
+                    contentType: "user", // Reporting the user themselves
+                    contentId: displayedUserId, // The ID of the reported user
+                    reason: reason,
+                    details: details,
+                    status: "pending", // Pending admin review
+                    timestamp: serverTimestamp()
+                });
+
+                showMessageBox("Report submitted successfully! Thank you for helping us maintain a safe community.", 'success');
+                hideReportUserModal();
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error submitting report:", error);
+                showMessageBox(`Failed to submit report: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(submitReportButton, false);
+            }
+        }
+
+
+        /**
+         * Fetches and displays unlocked rewards/benefits for the current user.
+         */
+        async function fetchAndDisplayUnlockedRewards() {
+            if (!unlockedRewardsSection || !unlockedRewardsGrid || !noRewardsMessage) return;
+
+            if (displayedUserId !== currentUser.uid) { // Only show for the owner of the profile
+                unlockedRewardsSection.style.display = 'none';
+                return;
+            }
+            unlockedRewardsSection.style.display = 'block';
+
+            if (!currentUserProfileData || !currentUserProfileData.unlockedBenefits) {
+                unlockedRewardsGrid.innerHTML = '';
+                noRewardsMessage.style.display = 'block';
+                return;
+            }
+
+            const unlockedBenefits = currentUserProfileData.unlockedBenefits;
+            unlockedRewardsGrid.innerHTML = ''; // Clear previous
+            if (unlockedBenefits.length === 0) {
+                noRewardsMessage.style.display = 'block';
+            } else {
+                noRewardsMessage.style.display = 'none';
+                unlockedBenefits.forEach(benefit => {
+                    const rewardItem = document.createElement('div');
+                    rewardItem.classList.add('reward-item');
+
+                    let iconClass = 'fas fa-gem'; // Default icon
+                    let name = benefit;
+
+                    // Attempt to parse icon and name from benefit string
+                    if (benefit.startsWith("Badge:")) {
+                        iconClass = 'fas fa-certificate';
+                        name = benefit.replace('Badge: \'', '').replace('\'', '');
+                    } else if (benefit.startsWith("Unlock:")) {
+                        if (benefit.includes("XP Boost")) iconClass = 'fas fa-rocket';
+                        else if (benefit.includes("Profile Picture Frame")) iconClass = 'fas fa-image'; // Using a more general image icon
+                        else if (benefit.includes("Emote Pack")) iconClass = 'fas fa-smile';
+                        else if (benefit.includes("Chat Bubble Style")) iconClass = 'fas fa-comment-alt';
+                        else if (benefit.includes("Profile Theme")) iconClass = 'fas fa-palette';
+                        else if (benefit.includes("Custom Chat Font")) iconClass = 'fas fa-font';
+                        else if (benefit.includes("Personalized Emote Slot")) iconClass = 'fas fa-paint-brush'; // Or fas fa-upload
+                        else if (benefit.includes("Profile Aura")) iconClass = 'fas fa-crown';
+                        else if (benefit.includes("Exclusive VIP Chat Room Access")) iconClass = 'fas fa-lock-open';
+                        else if (benefit.includes("Lifetime Premium Status")) iconClass = 'fas fa-star';
+                        else if (benefit.includes("Early Access")) iconClass = 'fas fa-flask';
+                        else if (benefit.includes("Priority Support")) iconClass = 'fas fa-headset';
+                        else if (benefit.includes("Ad-Free Experience")) iconClass = 'fas fa-ad'; // New Ad-Free icon
+
+                        name = benefit.replace('Unlock: ', '');
+                        if (name.includes('(') && name.includes(')')) { // Remove parenthesized info for cleaner display
+                            name = name.substring(0, name.indexOf('(')).trim();
+                        }
+                    } else if (benefit.startsWith("Title:")) {
+                        iconClass = 'fas fa-award';
+                        name = benefit.replace('Title: \'', '').replace('\'', '');
+                    } else if (benefit.includes("Discount")) {
+                        iconClass = 'fas fa-tags';
+                    } else if (benefit.includes("Voucher")) {
+                        iconClass = 'fas fa-ticket-alt'; // Icon for vouchers
+                    }
+
+
+                    rewardItem.innerHTML = `
+                        <i class="${iconClass} reward-icon"></i>
+                        <span>${name}</span>
+                    `;
+                    unlockedRewardsGrid.appendChild(rewardItem);
+                });
+            }
         }
 
         /**
-         * Rejects a friend request from a given sender.
-         * @param {string} senderId - The UID of the user who sent the friend request.
-         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         * Fetches and displays a snippet of friends/followers.
+         * For simplicity, this will show a few *random* public profiles from the 'users' collection
+         * if the user has a decent number of "friends" or "followers" count (mock data).
+         * In a real app, you would query the actual friends list.
          */
-        async function rejectFriendRequest(senderId, buttonElement) {
-            // This function is no longer directly triggered from Profile.html after removing the button.
-            // It's kept here if other pages might call it.
-            showMessageBox("Friend request rejection is handled on the Friends page.", 'info');
-            if (buttonElement) toggleButtonLoading(buttonElement, false);
+        async function fetchAndDisplayFriendsSnippet() {
+            if (!friendsSnippetSection || !friendsSnippetGrid || !noFriendsMessage) return;
+
+            // Only show if it's the owner's profile and they have friends, or if another user has public friend count
+            if (displayedUserId !== currentUser.uid && !(displayedUserProfileData.friendsCount > 0)) {
+                 friendsSnippetSection.style.display = 'none';
+                 return;
+            }
+            friendsSnippetSection.style.display = 'block';
+
+            friendsSnippetGrid.innerHTML = '';
+            noFriendsMessage.style.display = 'block'; // Assume no friends initially
+
+            try {
+                // Simulate fetching a few friends/followers
+                // In a real app, you'd have a 'friends' subcollection for each user.
+                // For example: collection(db, "artifacts", appId, "users", displayedUserId, "friends")
+                const publicUsersRef = collection(db, "artifacts", appId, "public", "data", "users");
+                const q = query(publicUsersRef, where(document.id, '!=', displayedUserId)); // Exclude current user
+                const querySnapshot = await getDocs(q);
+
+                let availableUsers = [];
+                querySnapshot.forEach(docSnap => {
+                    const userData = docSnap.data();
+                    // Include users with public profiles and at least a username
+                    if (userData.visibility?.profilePic && userData.username && userData.profilePicId) {
+                        availableUsers.push({ id: docSnap.id, ...userData });
+                    }
+                });
+
+                if (availableUsers.length > 0) {
+                    noFriendsMessage.style.display = 'none';
+                    // Shuffle and pick a few random ones (max 5)
+                    const shuffled = availableUsers.sort(() => 0.5 - Math.random());
+                    const friendsToShow = shuffled.slice(0, 5);
+
+                    friendsToShow.forEach(friend => {
+                        const friendItem = document.createElement('a'); // Make it a link to their profile
+                        friendItem.href = `/profile.html?userId=${friend.id}`;
+                        friendItem.classList.add('friend-item');
+                        friendItem.innerHTML = `
+                            <div class="friend-pic-wrapper">
+                                <img src="${getCloudinaryImageUrl(friend.profilePicId, 'w_120,h_120,c_fill,g_face,r_max')}" alt="${friend.username} Pic" class="friend-pic" onerror="this.onerror=null; this.src='https://placehold.co/60x60/CCCCCC/000000?text=${friend.username.charAt(0).toUpperCase()}';">
+                            </div>
+                            <span class="friend-name">${friend.username}</span>
+                        `;
+                        friendsSnippetGrid.appendChild(friendItem);
+                    });
+                } else {
+                    noFriendsMessage.textContent = "No friends to display or no public profiles.";
+                }
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching friends snippet:", error);
+                noFriendsMessage.textContent = "Failed to load friends.";
+            }
         }
 
         /**
-         * Removes a user from the current user's friends list.
-         * @param {string} targetUserId - The UID of the user to unfriend.
-         * @param {string} targetUsername - The username of the user to unfriend.
-         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         * Fetches and displays recent activity logs for the current user.
+         * For non-owners, it would only show public activity if logged.
          */
-        async function unfriendUser(targetUserId, targetUsername, buttonElement) {
-            // This function is no longer directly triggered from Profile.html after removing the button.
-            // It's kept here if other pages might call it.
-            showMessageBox("Unfriending is handled on the Friends page.", 'info');
-            if (buttonElement) toggleButtonLoading(buttonElement, false);
+        async function fetchAndDisplayRecentActivity() {
+            if (!recentActivitySection || !recentActivityList || !noActivityMessage) return;
+
+            if (displayedUserId !== currentUser.uid) { // Only show for the owner of the profile
+                recentActivitySection.style.display = 'none';
+                return;
+            }
+            recentActivitySection.style.display = 'block';
+
+            recentActivityList.innerHTML = ''; // Clear previous
+            noActivityMessage.style.display = 'block'; // Assume no activity initially
+
+            try {
+                const activityLogsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "activity_logs");
+                // Fetch latest 5 activities
+                const q = query(activityLogsRef, orderBy("timestamp", "desc")); // Order by timestamp
+                const querySnapshot = await getDocs(q); // Use getDocs for one-time fetch
+
+                if (querySnapshot.empty) {
+                    noActivityMessage.style.display = 'block';
+                } else {
+                    noActivityMessage.style.display = 'none';
+                    let activities = [];
+                    querySnapshot.forEach(docSnap => {
+                        activities.push(docSnap.data());
+                    });
+                    
+                    // Limit to latest 5 activities
+                    activities = activities.slice(0, 5);
+
+                    activities.forEach(activity => {
+                        const activityItem = document.createElement('li');
+                        activityItem.classList.add('activity-item');
+
+                        let icon = 'fas fa-info-circle';
+                        let text = 'Performed an action.';
+
+                        if (activity.type === 'post_created') {
+                            icon = 'fas fa-pencil-alt';
+                            text = `Posted a new message: "${activity.contentSnippet || 'No content snippet'}"`;
+                        } else if (activity.type === 'level_up') {
+                            icon = 'fas fa-star';
+                            text = `Reached Level ${activity.newLevel || '?'}: ${activity.levelName || 'New Level'}!`;
+                        } else if (activity.type === 'jcoins_earned') {
+                            icon = 'fas fa-coins';
+                            text = `Earned ${activity.amount} JCoins for ${activity.reason || 'activity'}.`;
+                        } else if (activity.type === 'daily_bonus_claimed') {
+                            icon = 'fas fa-gift';
+                            text = `Claimed daily bonus of ${activity.jCoinsEarned} JCoins.`;
+                        } else if (activity.type === 'profile_updated') {
+                            icon = 'fas fa-user-edit';
+                            text = `Updated profile information.`;
+                        } else if (activity.type === 'friend_added') {
+                            icon = 'fas fa-user-plus';
+                            text = `Became friends with ${activity.friendUsername || 'someone'}.`;
+                        } else if (activity.type === 'chat_message_sent') {
+                            icon = 'fas fa-comment-dots';
+                            text = `Sent a chat message.`;
+                        }
+
+                        const timestamp = activity.timestamp ? new Date(activity.timestamp.toDate()).toLocaleString() : 'N/A';
+
+                        activityItem.innerHTML = `
+                            <i class="${icon}"></i>
+                            <span>${text}</span>
+                            <span class="activity-timestamp">${timestamp}</span>
+                        `;
+                        recentActivityList.appendChild(activityItem);
+                    });
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching recent activity:", error);
+                noActivityMessage.textContent = "Failed to load recent activity.";
+            }
         }
 
 
@@ -3304,19 +4133,39 @@
             if (profilePageAvatarIcon) profilePageAvatarIcon.style.display = 'block';
             
             // Hide all action buttons initially
-            // if (editProfileButton) editProfileButton.style.display = 'none'; // Removed
             if (walletLink) walletLink.style.display = 'none'; // Hide wallet link
             if (walletLockedMessage) walletLockedMessage.style.display = 'none'; // Hide wallet locked message
             if (requestJCoinsButton) requestJCoinsButton.style.display = 'none'; // Hide request JCoins button
-            // Removed addFriendButton and messageButton hiding here
+            if (claimDailyBonusButton) claimDailyBonusButton.style.display = 'none'; // NEW: Hide claim daily bonus button
+            if (dailyBonusCountdown) dailyBonusCountdown.style.display = 'none'; // NEW: Hide daily bonus countdown
+            if (reportUserButton) reportUserButton.style.display = 'none'; // NEW: Hide report user button
             // Hide inline edit fields and account settings by default
             const profileDetailsSection = displayNameInput ? displayNameInput.closest('.profile-details-section') : null; // Null check for displayNameInput
             if (profileDetailsSection) {
                 profileDetailsSection.style.display = 'none';
             }
-            // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards by default
             if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings by default
             if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button by default
+
+            // NEW: Hide new sections by default
+            if (unlockedRewardsSection) unlockedRewardsSection.style.display = 'none';
+            if (friendsSnippetSection) friendsSnippetSection.style.display = 'none';
+            if (recentActivitySection) recentActivitySection.style.display = 'none';
+            if (profileFrameSelect) profileFrameSelect.closest('.customization-option').style.display = 'none'; // Hide parent div
+            if (chatBubbleStyleSelect) chatBubbleStyleSelect.closest('.customization-option').style.display = 'none';
+            if (profileThemeSelect) profileThemeSelect.closest('.customization-option').style.display = 'none';
+            if (saveCustomizationButton) saveCustomizationButton.style.display = 'none';
+            if (savePrivacySettingsButton) savePrivacySettingsButton.style.display = 'none';
+            if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'none'; // Hide parent div
+            if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'none';
+            if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'none';
+            if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'none';
+            if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'none';
+            if (toggleSchoolVisibility) toggleSchoolVisibility.closest('.privacy-toggle-group').style.display = 'none';
+            if (toggleWorkVisibility) toggleWorkVisibility.closest('.privacy-toggle-group').style.display = 'none';
+            if (toggleInterestsVisibility) toggleInterestsVisibility.closest('.privacy-toggle-group').style.display = 'none';
+            if (toggleWebsiteVisibility) toggleWebsiteVisibility.closest('.privacy-toggle-group').style.display = 'none';
+            if (toggleSocialLinksVisibility) toggleSocialLinksVisibility.closest('.privacy-toggle-group').style.display = 'none';
 
 
             let profileDocRef;
@@ -3444,7 +4293,7 @@
                     if (jCoinsSpan && jcoinExchangeRate && jcoinUSDValue) { // Null check
                         if (isCurrentUserProfile) {
                             jCoinsSpan.textContent = (displayedUserProfileData.jCoins ?? 0).toLocaleString();
-                            const usdValue = (displayedUserProfileData.jCoins ?? 0) * JCOIN_EXCHANGE_RATE_PER_NAIRA * 0.005; // Assuming 1 JCoin = $0.005
+                            const usdValue = (displayedUserProfileData.jCoins ?? 0) / (currentSystemSettings.jcoinNairaRate || 7.5) * 0.001; // Assuming 1 Naira = $0.001, update as needed
                             jcoinUSDValue.textContent = `$${usdValue.toFixed(2)}`;
                             jcoinExchangeRate.style.display = 'flex'; // Use flex to align icon and text
                             if (jCoinsSpan.closest('.stat-item')) jCoinsSpan.closest('.stat-item').style.display = 'block'; // Ensure the entire stat item is visible
@@ -3461,8 +4310,8 @@
                     // Determine current level based on totalGasEarned
                     let currentLevel = 1; // Start from Level 1
                     for (let i = 1; i <= 500; i++) { // Check up to max level 500 (or higher if you extend getLevelInfo)
-                        const gasNeededForLevelI = getTotalGasRequiredToReachLevel(i);
-                        if (totalGasEarned >= gasNeededForLevelI) {
+                        const gasNeededToReachLevelI = getTotalGasRequiredToReachLevel(i);
+                        if (totalGasEarned >= gasNeededToReachLevelI) {
                             currentLevel = i;
                         } else {
                             break; // Stop when totalGasEarned is less than what's needed for the current 'i' level
@@ -3509,9 +4358,10 @@
 
                     // Action Buttons and Inline Edit Fields
                     if (isCurrentUserProfile) {
-                        // Removed editProfileButton
                         if (walletLink) walletLink.style.display = 'inline-flex'; // Null check
                         if (requestJCoinsButton) requestJCoinsButton.style.display = 'inline-flex'; // Show Request JCoins button for owner, null check
+                        if (claimDailyBonusButton) claimDailyBonusButton.style.display = 'inline-flex'; // NEW: Show daily bonus button
+                        updateDailyBonusUI(); // NEW: Update daily bonus UI
 
                         // Wallet Link Logic (only for owner)
                         if (walletLink && walletLockedMessage) { // Null check
@@ -3548,28 +4398,62 @@
                         if (websiteInput) websiteInput.value = displayedUserProfileData.website || ""; // NEW
                         if (socialLinksInput) socialLinksInput.value = displayedUserProfileData.socialLinks || ""; // NEW
 
+                        // Populate privacy toggles
+                        if (toggleEmailVisibility) toggleEmailVisibility.checked = visibility.emailPublic ?? false;
+                        if (toggleLocationVisibility) toggleLocationVisibility.checked = visibility.location ?? false;
+                        if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.checked = visibility.lastOnline ?? false;
+                        if (toggleFriendRequests) toggleFriendRequests.checked = visibility.allowFriendRequests ?? true;
+                        if (toggleMessages) toggleMessages.checked = visibility.allowMessages ?? true;
+                        if (toggleSchoolVisibility) toggleSchoolVisibility.checked = visibility.school ?? false;
+                        if (toggleWorkVisibility) toggleWorkVisibility.checked = visibility.work ?? false;
+                        if (toggleInterestsVisibility) toggleInterestsVisibility.checked = visibility.interests ?? false;
+                        if (toggleWebsiteVisibility) toggleWebsiteVisibility.checked = visibility.website ?? false;
+                        if (toggleSocialLinksVisibility) toggleSocialLinksVisibility.checked = visibility.socialLinks ?? false;
+                        // Show privacy toggles and save button
+                        if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (toggleSchoolVisibility) toggleSchoolVisibility.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (toggleWorkVisibility) toggleWorkVisibility.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (toggleInterestsVisibility) toggleInterestsVisibility.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (toggleWebsiteVisibility) toggleWebsiteVisibility.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (toggleSocialLinksVisibility) toggleSocialLinksVisibility.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (savePrivacySettingsButton) savePrivacySettingsButton.style.display = 'inline-flex';
+
+
+                        // Populate customization selects
+                        if (profileFrameSelect) profileFrameSelect.value = displayedUserProfileData.profileFrame || 'default';
+                        if (chatBubbleStyleSelect) chatBubbleStyleSelect.value = displayedUserProfileData.chatBubbleStyle || 'default';
+                        if (profileThemeSelect) profileThemeSelect.value = displayedUserProfileData.profileTheme || 'default';
+                        // Show customization options and save button
+                        if (profileFrameSelect) profileFrameSelect.closest('.customization-option').style.display = 'flex';
+                        if (chatBubbleStyleSelect) chatBubbleStyleSelect.closest('.customization-option').style.display = 'flex';
+                        if (profileThemeSelect) profileThemeSelect.closest('.customization-option').style.display = 'flex';
+                        if (saveCustomizationButton) saveCustomizationButton.style.display = 'inline-flex';
+
+
                         if (profileEmailInput) profileEmailInput.value = displayedUserProfileData.email || ""; // Populate disabled email field, null check
 
                         // Show toggle button for account settings
                         if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'inline-flex';
 
-
-                        // Friend requests section is no longer directly on Profile.html
-                        if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide for other users, null check
-
-                        // Removed: Fetch and display pending rewards for the owner
-                        // if (pendingRewardsSection) { // Null check
-                        //     pendingRewardsSection.style.display = 'flex'; // Use flex for column layout
-                        //     await fetchAndDisplayPendingRewards(currentUser.uid);
-                        // }
-
+                        // NEW: Show unlocked rewards and recent activity for owner
+                        await fetchAndDisplayUnlockedRewards();
+                        await fetchAndDisplayRecentActivity();
 
                     } else if (currentUser) { // If logged in and viewing another user
                         // Hide all owner-specific buttons and editing sections
-                        // if (editProfileButton) editProfileButton.style.display = 'none'; // Removed
                         if (walletLink) walletLink.style.display = 'none'; // Hide wallet link for others, null check
                         if (walletLockedMessage) walletLockedMessage.style.display = 'none'; // Hide message for others, null check
                         if (requestJCoinsButton) requestJCoinsButton.style.display = 'none'; // Hide request JCoins button for others, null check
+                        if (claimDailyBonusButton) claimDailyBonusButton.style.display = 'none'; // Hide daily bonus button for others
+                        if (dailyBonusCountdown) dailyBonusCountdown.style.display = 'none'; // Hide daily bonus countdown for others
+                        
+                        // Show Report User Button
+                        if (reportUserButton) reportUserButton.style.display = 'inline-flex';
+
                         // Hide inline edit fields and account settings
                         const profileDetailsSection = displayNameInput ? displayNameInput.closest('.profile-details-section') : null; // Null check
                         if (profileDetailsSection) {
@@ -3578,14 +4462,33 @@
                         if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button for others
                         if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings for others
 
-                        if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide for other users, null check
-                        // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide for other users, null check
+                        // Hide owner-specific sections
+                        if (unlockedRewardsSection) unlockedRewardsSection.style.display = 'none';
+                        if (recentActivitySection) recentActivitySection.style.display = 'none';
+                        if (profileFrameSelect) profileFrameSelect.closest('.customization-option').style.display = 'none'; // Hide parent div
+                        if (chatBubbleStyleSelect) chatBubbleStyleSelect.closest('.customization-option').style.display = 'none';
+                        if (profileThemeSelect) profileThemeSelect.closest('.customization-option').style.display = 'none';
+                        if (saveCustomizationButton) saveCustomizationButton.style.display = 'none';
+                        if (savePrivacySettingsButton) savePrivacySettingsButton.style.display = 'none';
+                        if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleSchoolVisibility) toggleSchoolVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleWorkVisibility) toggleWorkVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleInterestsVisibility) toggleInterestsVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleWebsiteVisibility) toggleWebsiteVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleSocialLinksVisibility) toggleSocialLinksVisibility.closest('.privacy-toggle-group').style.display = 'none';
+
 
                     } else { // Not logged in, viewing any profile
-                        // if (editProfileButton) editProfileButton.style.display = 'none'; // Removed
                         if (walletLink) walletLink.style.display = 'none'; // Hide wallet link, null check
                         if (walletLockedMessage) walletLockedMessage.style.display = 'none'; // Hide message, null check
                         if (requestJCoinsButton) requestJCoinsButton.style.display = 'none'; // Hide request JCoins button, null check
+                        if (claimDailyBonusButton) claimDailyBonusButton.style.display = 'none'; // Hide daily bonus button
+                        if (dailyBonusCountdown) dailyBonusCountdown.style.display = 'none'; // Hide daily bonus countdown
+                        if (reportUserButton) reportUserButton.style.display = 'none'; // Hide report user button
                         // Hide inline edit fields and account settings
                         const profileDetailsSection = displayNameInput ? displayNameInput.closest('.profile-details-section') : null; // Null check
                         if (profileDetailsSection) {
@@ -3593,9 +4496,28 @@
                         }
                         if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
                         if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
-                        if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide friend requests section, null check
-                        // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards section, null check
-                        // Ensure loader is dismissed in this case too
+                        // Hide all new sections as well
+                        if (unlockedRewardsSection) unlockedRewardsSection.style.display = 'none';
+                        if (friendsSnippetSection) friendsSnippetSection.style.display = 'none';
+                        if (recentActivitySection) recentActivitySection.style.display = 'none';
+                        if (profileFrameSelect) profileFrameSelect.closest('.customization-option').style.display = 'none';
+                        if (chatBubbleStyleSelect) chatBubbleStyleSelect.closest('.customization-option').style.display = 'none';
+                        if (profileThemeSelect) profileThemeSelect.closest('.customization-option').style.display = 'none';
+                        if (saveCustomizationButton) saveCustomizationButton.style.display = 'none';
+                        if (savePrivacySettingsButton) savePrivacySettingsButton.style.display = 'none';
+                        if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleSchoolVisibility) toggleSchoolVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleWorkVisibility) toggleWorkVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleInterestsVisibility) toggleInterestsVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleWebsiteVisibility) toggleWebsiteVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleSocialLinksVisibility) toggleSocialLinksVisibility.closest('.privacy-toggle-group').style.display = 'none';
+
+
+                        // Ensure loader is dismissed in this case too, as profile display might not proceed.
                         if (messageBox && messageBox.classList.contains('loading-pulse')) { // Null check
                             messageBox.style.opacity = '0';
                             messageBox.addEventListener('transitionend', function handler() {
@@ -3610,9 +4532,13 @@
                     // await fetchAndDisplayUserPosts(userIdToDisplay, displayedUserProfileData.username || "User");
                     if (userPostsFeed) userPostsFeed.style.display = 'none'; // Keep posts section hidden for now as it's not fully styled for this page., null check
 
+                    // NEW: Fetch and display friends snippet for any displayed profile
+                    await fetchAndDisplayFriendsSnippet();
+
+
                     showMessageBox("Profile loaded!", 'success');
 
-                    // After displaying profile, check for level ups
+                    // After displaying profile, check for level ups (only for owner)
                     if (isCurrentUserProfile && currentUserProfileData) {
                         await checkAndApplyLevelUps(currentUser.uid, currentUserProfileData.level, currentUserProfileData.totalGasEarned);
                     }
@@ -3628,8 +4554,26 @@
                     }
                     if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
                     if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
-                    if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide if profile not found, null check
-                    // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide if profile not found, null check
+                    // Hide all new sections as well if profile not found
+                    if (unlockedRewardsSection) unlockedRewardsSection.style.display = 'none';
+                    if (friendsSnippetSection) friendsSnippetSection.style.display = 'none';
+                    if (recentActivitySection) recentActivitySection.style.display = 'none';
+                    if (profileFrameSelect) profileFrameSelect.closest('.customization-option').style.display = 'none';
+                    if (chatBubbleStyleSelect) chatBubbleStyleSelect.closest('.customization-option').style.display = 'none';
+                    if (profileThemeSelect) profileThemeSelect.closest('.customization-option').style.display = 'none';
+                    if (saveCustomizationButton) saveCustomizationButton.style.display = 'none';
+                    if (savePrivacySettingsButton) savePrivacySettingsButton.style.display = 'none';
+                    if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                    if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                    if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                    if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'none';
+                    if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'none';
+                    if (toggleSchoolVisibility) toggleSchoolVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                    if (toggleWorkVisibility) toggleWorkVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                    if (toggleInterestsVisibility) toggleInterestsVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                    if (toggleWebsiteVisibility) toggleWebsiteVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                    if (toggleSocialLinksVisibility) toggleSocialLinksVisibility.closest('.privacy-toggle-group').style.display = 'none';
+
                 }
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching user profile:", error);
@@ -3643,8 +4587,27 @@
                 }
                 if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
                 if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
-                if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide on error, null check
-                // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide on error, null check
+                // Hide all new sections on error as well
+                if (unlockedRewardsSection) unlockedRewardsSection.style.display = 'none';
+                if (friendsSnippetSection) friendsSnippetSection.style.display = 'none';
+                if (recentActivitySection) recentActivitySection.style.display = 'none';
+                if (profileFrameSelect) profileFrameSelect.closest('.customization-option').style.display = 'none';
+                if (chatBubbleStyleSelect) chatBubbleStyleSelect.closest('.customization-option').style.display = 'none';
+                if (profileThemeSelect) profileThemeSelect.closest('.customization-option').style.display = 'none';
+                if (saveCustomizationButton) saveCustomizationButton.style.display = 'none';
+                if (savePrivacySettingsButton) savePrivacySettingsButton.style.display = 'none';
+                if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleSchoolVisibility) toggleSchoolVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleWorkVisibility) toggleWorkVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleInterestsVisibility) toggleInterestsVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleWebsiteVisibility) toggleWebsiteVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleSocialLinksVisibility) toggleSocialLinksVisibility.closest('.privacy-toggle-group').style.display = 'none';
+
+
             } finally {
                 // Ensure the message box clears if it was persistent loading type
                 // This ensures the loader is always dismissed.
@@ -3659,11 +4622,6 @@
             }
         }
 
-        // Removed: fetchAndDisplayPendingRewards function
-        // Removed: createRewardItem function
-        // Removed: claimReward function
-
-
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -3671,7 +4629,9 @@
                 isAuthReady = true; // Set auth ready flag
                 console.log("JCHAT_DEBUG: User authenticated in Profile Page:", user.uid);
                 
-                // Fetch header profile first, as it sets currentUserProfileData
+                // Fetch system settings first as they are needed by profile display functions
+                await fetchSystemSettings();
+                // Fetch header profile next, as it sets currentUserProfileData
                 await fetchAndDisplayHeaderProfile(user); 
 
                 // Determine which user's profile to display
@@ -3714,7 +4674,6 @@
                     }
                 }
                 isAuthReady = false;
-                // if (logoutButton) logoutButton.disabled = true; // Header logout button, null check - REMOVED
                 if (logoutButtonAccount) logoutButtonAccount.disabled = true; // Account settings logout button, null check
                 if (headerDisplayName) headerDisplayName.textContent = "Guest"; // Null check
                 if (headerProfilePic) headerProfilePic.style.display = 'none'; // Null check
@@ -3731,10 +4690,29 @@
                     profileDetailsSection.style.display = 'none';
                 }
                 if (userPostsFeed) userPostsFeed.style.display = 'none'; // Hide user posts, null check
-                if (friendRequestsSection) friendRequestsSection.style.display = 'none'; // Hide friend requests section, null check
-                // Removed: if (pendingRewardsSection) pendingRewardsSection.style.display = 'none'; // Hide pending rewards section, null check
                 if (toggleAccountSettingsButton) toggleAccountSettingsButton.style.display = 'none'; // NEW: Hide toggle button
                 if (accountSettingsSection) accountSettingsSection.style.display = 'none'; // NEW: Hide account settings
+                // Hide all new sections as well
+                if (unlockedRewardsSection) unlockedRewardsSection.style.display = 'none';
+                if (friendsSnippetSection) friendsSnippetSection.style.display = 'none';
+                if (recentActivitySection) recentActivitySection.style.display = 'none';
+                if (profileFrameSelect) profileFrameSelect.closest('.customization-option').style.display = 'none';
+                if (chatBubbleStyleSelect) chatBubbleStyleSelect.closest('.customization-option').style.display = 'none';
+                if (profileThemeSelect) profileThemeSelect.closest('.customization-option').style.display = 'none';
+                if (saveCustomizationButton) saveCustomizationButton.style.display = 'none';
+                if (savePrivacySettingsButton) savePrivacySettingsButton.style.display = 'none';
+                if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleSchoolVisibility) toggleSchoolVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleWorkVisibility) toggleWorkVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleInterestsVisibility) toggleInterestsVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleWebsiteVisibility) toggleWebsiteVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                if (toggleSocialLinksVisibility) toggleSocialLinksVisibility.closest('.privacy-toggle-group').style.display = 'none';
+
+
                 // Ensure loader is dismissed in this case too
                 if (messageBox && messageBox.classList.contains('loading-pulse')) { // Null check
                     messageBox.style.opacity = '0';
@@ -3746,32 +4724,6 @@
                 }
             }
         });
-
-        // --- Bottom Navigation Bar Toggle Logic (reused from Home.html) ---
-        const bottomNavBar = document.getElementById('bottomNavBar');
-        const navToggleBtn = document.getElementById('navToggleBtn');
-
-        function toggleNavBarVisibility() {
-            const toggleIcon = navToggleBtn.querySelector('i');
-            const isHidden = bottomNavBar.classList.toggle('nav-bar-hidden-full');
-
-            if (isHidden) {
-                if (toggleIcon) toggleIcon.classList.remove('fa-chevron-down'); // Null check
-                if (toggleIcon) toggleIcon.classList.add('fa-chevron-up'); // Null check
-            } else {
-                if (toggleIcon) toggleIcon.classList.remove('fa-chevron-up'); // Null check
-                if (toggleIcon) toggleIcon.classList.add('fa-chevron-down'); // Null check
-            }
-        }
-
-        if (bottomNavBar) bottomNavBar.classList.add('nav-bar-hidden-full'); // Null check
-        if (navToggleBtn && navToggleBtn.querySelector('i')) { // Null check
-            navToggleBtn.querySelector('i').classList.remove('fa-chevron-down');
-            navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
-        }
-        if (navToggleBtn) navToggleBtn.classList.remove('rotated'); // Null check
-
-        if (navToggleBtn) navToggleBtn.addEventListener('click', toggleNavBarVisibility); // Null check
 
         // --- Event Listeners (moved to DOMContentLoaded for safety) ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -3791,6 +4743,13 @@
 
             // Profile Edit
             if (saveProfileChanges) saveProfileChanges.addEventListener('click', handleSaveProfileChanges); // Null check
+
+            // Privacy Settings
+            if (savePrivacySettingsButton) savePrivacySettingsButton.addEventListener('click', handleSavePrivacySettings);
+
+            // Customization Settings
+            if (saveCustomizationButton) saveCustomizationButton.addEventListener('click', handleSaveCustomization);
+
 
             // Account Settings Toggle
             if (toggleAccountSettingsButton) {
@@ -3869,6 +4828,14 @@
                 });
             }
 
+            // NEW: Daily Bonus button listener
+            if (claimDailyBonusButton) claimDailyBonusButton.addEventListener('click', claimDailyBonus);
+
+            // NEW: Report User button and modal listeners
+            if (reportUserButton) reportUserButton.addEventListener('click', showReportUserModal);
+            if (cancelReportButton) cancelReportButton.addEventListener('click', hideReportUserModal);
+            if (submitReportButton) submitReportButton.addEventListener('click', submitReport);
+
         });
 
         window.addEventListener('storage', (event) => {
@@ -3883,11 +4850,14 @@
         });
 
         window.addEventListener('beforeunload', () => {
+            // Clear daily bonus interval on page unload
+            if (dailyBonusInterval) {
+                clearInterval(dailyBonusInterval);
+                dailyBonusInterval = null;
+            }
             // No specific Firestore listeners to unsubscribe from on this page currently
         });
 
-        // Ensure header logout button is initialized outside DOMContentLoaded for immediate availability
-        // if (logoutButton) logoutButton.addEventListener('click', handleLogout); // Null check - REMOVED
     </script>
 </body>
 </html>
