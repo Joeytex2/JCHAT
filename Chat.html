@@ -303,20 +303,20 @@
 
         .sidebar-utility-header .notification-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
+            top: -8px; /* Adjusted slightly higher */
+            right: -8px; /* Adjusted slightly more to the right */
             background-color: var(--notification-badge-color);
             color: var(--white);
             border-radius: 50%;
-            padding: 3px 7px;
-            font-size: 0.7rem;
+            padding: 3px 6px; /* Slightly adjusted padding */
+            font-size: 0.75rem; /* Slightly larger font */
             font-weight: 700;
             min-width: 20px;
-            text-align: center;
+            height: 20px; /* Ensure it's a perfect circle/oval */
+            display: flex; /* Ensure content is centered */
+            align-items: center; /* Ensure content is centered */
+            justify-content: center; /* Ensure content is centered */
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-            display: none;
-            align-items: center;
-            justify-content: center;
         }
 
         .sidebar-utility-header #logoutButton {
@@ -370,15 +370,15 @@
             background-color: var(--notification-badge-color);
             color: var(--white);
             border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 0.6rem;
+            padding: 2px 5px; /* Adjusted padding */
+            font-size: 0.65rem; /* Slightly larger font */
             font-weight: 700;
             min-width: 18px;
-            text-align: center;
+            height: 18px; /* Ensure it's a perfect circle/oval */
+            display: flex; /* Ensure content is centered */
+            align-items: center; /* Ensure content is centered */
+            justify-content: center; /* Ensure content is centered */
             box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         #leftPanelContent {
@@ -423,12 +423,13 @@
         }
 
         .status-indicator {
-            width: 10px;
-            height: 10px;
+            width: 12px; /* Slightly larger */
+            height: 12px; /* Slightly larger */
             border-radius: 50%;
             display: inline-block;
             margin-left: 8px;
             flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.2); /* Add a subtle border for definition */
         }
         .status-online { background-color: var(--status-online); }
         .status-offline { background-color: var(--status-offline); }
@@ -477,11 +478,11 @@
             font-size: 0.7rem;
             font-weight: 700;
             min-width: 24px;
-            text-align: center;
+            height: 24px; /* Ensure it's a perfect circle/oval */
+            display: flex; /* Ensure content is centered */
+            align-items: center; /* Ensure content is centered */
+            justify-content: center; /* Ensure content is centered */
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .no-results-message {
@@ -2242,6 +2243,14 @@
                         await updateDoc(privateProfileDocRef, updates);
                         const updatedSnap = await getDoc(privateProfileDocRef);
                         profileData = updatedSnap.data();
+                    } else {
+                        // If no updates were needed, ensure status and lastOnline are current
+                        await updateDoc(privateProfileDocRef, {
+                            status: 'online',
+                            lastOnline: serverTimestamp()
+                        });
+                        const updatedSnap = await getDoc(privateProfileDocRef);
+                        profileData = updatedSnap.data();
                     }
                     console.log("JCHAT_DEBUG: Fetched existing profile data for current user:", profileData);
                 } else {
@@ -2301,9 +2310,7 @@
                     createdAt: profileData.createdAt,
                     updatedAt: serverTimestamp(),
                     lastOnline: serverTimestamp(),
-                    status: 'online',
-                    visibility: profileData.visibility,
-                    totalPosts: profileData.totalPosts,
+                    status: 'online', // Ensure public profile also reflects online
                     level: profileData.level,
                     totalGasEarned: profileData.totalGasEarned,
                     isTyping: profileData.isTyping,
