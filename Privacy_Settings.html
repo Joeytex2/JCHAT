@@ -17,6 +17,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Tone.js for audio notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -186,7 +188,7 @@
             --input-background: rgba(255, 255, 255, 0.1);
             --border-light: rgba(255, 255, 255, 0.3);
             --button-background: linear-gradient(90deg, #fd746c, #ff9068); /* Sunset gradient */
-            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 4px 15px rgba(255, 144, 104, 0.4);
+            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 44px 15px rgba(255, 144, 104, 0.4);
 
             /* New variables override for sunset mode */
             --background-color-primary: #ff7e5f;
@@ -220,7 +222,7 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden; /* Prevent horizontal scroll */
-            padding-bottom: 120px; /* Space for nav bar (60px) + toggle button (60px) */
+            padding-bottom: 20px; /* Reduced padding as no bottom nav */
             background-color: var(--background-main);
             background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
                               radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
@@ -228,32 +230,24 @@
             transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
         }
 
-        /* Header Styling (from Home.html) */
+        /* Header Styling (from Home.html) - MODIFIED */
         header {
             background: var(--header-background);
             border-bottom: 1px solid var(--border-light);
-            padding: 10px 0;
+            padding: 10px 30px; /* Adjusted padding */
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            position: fixed;
+            position: sticky; /* Changed to sticky for simpler layout */
             top: 0;
             left: 0;
             width: 100%;
             height: 55px;
             z-index: 10;
             display: flex;
-            justify-content: center;
-        }
-
-        header .header-content-wrapper {
-            display: flex;
-            justify-content: space-between;
+            justify-content: space-between; /* Space out logo and profile */
             align-items: center;
-            width: 100%;
-            max-width: 1200px;
-            padding: 0 30px;
         }
 
-        .logo {
+        header .logo {
             font-family: 'Poppins', sans-serif;
             font-size: 1.8rem;
             font-weight: 800;
@@ -264,45 +258,6 @@
             text-decoration: none;
         }
 
-        /* Header Navigation (from Home.html) */
-        header nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            gap: 25px;
-        }
-
-        header nav ul li a {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            padding: 5px 0;
-            position: relative;
-            transition: color var(--transition);
-        }
-
-        header nav ul li a::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 0;
-            height: 3px;
-            background: var(--blue);
-            border-radius: 2px;
-            transition: width var(--transition);
-        }
-
-        header nav ul li a:hover {
-            color: var(--blue);
-        }
-
-        header nav ul li a:hover::after {
-            width: 100%;
-        }
-
         /* User Profile Header Styling (from Home.html) */
         .user-profile-header {
             display: flex;
@@ -310,50 +265,8 @@
             gap: 10px;
         }
 
-        /* Notification Icon Styling (from Home.html) */
-        .notification-icon-wrapper {
-            position: relative;
-            margin-right: 15px; /* Space between notification and profile */
-        }
-
-        .notification-icon-wrapper a {
-            text-decoration: none; /* Remove underline from link */
-            color: inherit; /* Inherit color from parent */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .notification-icon-wrapper i {
-            font-size: 1.5rem; /* Adjust size as needed */
-            color: var(--text-light);
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .notification-icon-wrapper i:hover {
-            color: var(--white);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--notification-badge-color); /* Use pink for notifications */
-            color: var(--white);
-            border-radius: 50%;
-            padding: 3px 7px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            min-width: 20px;
-            text-align: center;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* Hide if no notifications */
-            display: none;
-        }
+        /* Removed Notification Icon Styling from header */
+        /* Removed Admin Icon Styling from header */
 
         .user-profile-header #profileLink {
             display: flex;
@@ -395,21 +308,6 @@
             max-width: 120px;
         }
 
-        /* NEW: Admin Icon Styling */
-        #adminIconLink {
-            display: none; /* Hidden by default */
-            margin-right: 15px; /* Space it out from other icons */
-            color: var(--pink); /* Admin icon color */
-            font-size: 1.5rem;
-            transition: transform 0.2s ease, color 0.2s ease;
-        }
-
-        #adminIconLink:hover {
-            transform: scale(1.1);
-            color: var(--blue);
-        }
-
-
         /* Logout Button Styling (from Home.html) */
         #logoutButton {
             background: linear-gradient(90deg, var(--pink), var(--blue));
@@ -441,8 +339,7 @@
         /* Main Content Area (from Home.html) */
         main {
             flex-grow: 1;
-            padding: 40px 0;
-            padding-top: 55px; /* Adjust for fixed header */
+            padding: 20px 0; /* Adjusted padding */
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -631,6 +528,10 @@
             cursor: pointer;
             font-size: 0.8rem;
             transition: background-color 0.2s ease;
+            display: flex; /* For loader */
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
 
         .blocked-user-item button:hover {
@@ -700,15 +601,24 @@
         #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
         #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
         #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.loading { /* No border-left for loading */ background-color: var(--card-background-color); color: var(--text-color-primary); }
+
 
         #messageBox i {
             font-size: 2.5rem; /* Larger icon for prominence */
             margin-bottom: 5px; /* Space between icon and text */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
         }
         #messageBox.success i { color: var(--white); } /* White icon for success */
         #messageBox.error i { color: var(--delete-button-color); }
         #messageBox.info i { color: var(--accent-color); }
         #messageBox.warning i { color: var(--warning-color); }
+        #messageBox.loading i { background-image: linear-gradient(90deg, var(--accent-color), var(--pink)); }
+
 
         #messageBox span {
             font-size: 1.1rem; /* Slightly larger text */
@@ -741,126 +651,83 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- Bottom Navigation Bar (reused from Home.html) --- */
-        #bottomNavBar {
+        /* Custom Confirmation Modal */
+        .modal-overlay {
             position: fixed;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 60px;
-            background: var(--header-background);
-            border-top: 1px solid var(--border-light);
-            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 0 10px;
-            z-index: 50;
-            bottom: 60px; /* Positioned above the toggle button */
-            transition: bottom 0.3s ease-out; /* Smooth slide transition */
-        }
-
-        #bottomNavBar.nav-bar-hidden-full {
-            bottom: -60px; /* Move it completely off-screen below */
-        }
-
-        .nav-icon-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-light);
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: color 0.2s ease;
-            flex: 1;
-            max-width: 80px;
-        }
-
-        .nav-icon-item:hover {
-            color: var(--white);
-        }
-
-        .nav-icon-circle {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--blue), var(--pink));
-            display: flex;
-            align-items: center;
             justify-content: center;
-            margin-bottom: 5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            align-items: center;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: var(--card-background);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); opacity: 1; }
+        .modal-content h3 {
+            color: var(--white);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .modal-buttons button {
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-
-        .nav-icon-item:hover .nav-icon-circle {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px var(--blue), 0 4px 12px var(--pink);
-        }
-
-        .nav-icon-circle i {
+        .modal-buttons button.confirm-btn {
+            background: linear-gradient(90deg, var(--pink), var(--blue));
             color: var(--white);
-            font-size: 1.3rem;
-            transition: transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+        }
+        .modal-buttons button.confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+        .modal-buttons button.cancel-btn {
+            background: var(--input-background);
+            color: var(--text-light);
+            border: 1px solid var(--border-light);
+        }
+        .modal-buttons button.cancel-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .nav-icon-item.active .nav-icon-circle {
-            background: linear-gradient(45deg, var(--pink), var(--blue));
-            box-shadow: 0 4px 12px var(--pink), 0 44px 12px var(--blue);
-        }
-        .nav-icon-item.active {
-            color: var(--white);
-        }
 
-        /* New Toggle Button (from Home.html) */
-        #navToggleBtn {
-            position: fixed;
-            bottom: 0px; /* Position at the very bottom */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px; /* Slightly larger button */
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--pink), var(--blue)); /* Pink to blue gradient */
-            color: var(--white);
-            border: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem; /* Larger icon */
-            cursor: pointer;
-            z-index: 60; /* Higher than nav bar */
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-        }
-
-        #navToggleBtn:hover {
-            transform: translateX(-50%) scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(45deg, var(--blue), var(--pink)); /* Reverse gradient on hover */
-        }
-
-        #navToggleBtn i {
-            transition: transform 0.3s ease; /* Smooth icon rotation */
-        }
-
-        #navToggleBtn.rotated i {
-            transform: rotate(180deg); /* Rotate icon when nav is hidden */
-        }
-
-        /* Responsive Adjustments (from Home.html / Profile.html) */
+        /* Responsive Adjustments */
         @media (max-width: 600px) {
-            header .header-content-wrapper {
-                padding: 0 20px;
+            header {
+                padding: 10px 20px;
             }
             .logo {
                 font-size: 1.6rem;
-            }
-            header nav ul {
-                gap: 15px;
-            }
-            header nav ul li a {
-                font-size: 1.1rem;
             }
             .user-profile-header #profileLink {
                 padding: 5px;
@@ -923,31 +790,8 @@
                 padding: 0.7rem 1.2rem;
                 font-size: 0.9rem;
             }
-            #bottomNavBar {
-                height: 55px;
-                padding: 0 5px;
-                bottom: 55px; /* Adjust for smaller button height on mobile */
-            }
-            #bottomNavBar.nav-bar-hidden-full {
-                bottom: -55px; /* Adjust for smaller button height on mobile */
-            }
-            #navToggleBtn {
-                width: 55px;
-                height: 55px;
-                font-size: 1.5rem;
-            }
-            .nav-icon-circle {
-                width: 40px;
-                height: 40px;
-            }
-            .nav-icon-circle i {
-                font-size: 1.2rem;
-            }
-            .nav-icon-item {
-                font-size: 0.7rem;
-            }
             body {
-                padding-bottom: 110px; /* 55px (nav) + 55px (toggle) */
+                padding-bottom: 20px; /* Still some padding at bottom */
             }
         }
     </style>
@@ -955,37 +799,17 @@
 <body class="theme-dark-mode">
 
     <header>
-        <div class="header-content-wrapper">
-            <a href="/home.html" class="logo">JCHAT</a>
-            <nav>
-                <ul>
-                    <li><a href="/home.html">Home</a></li>
-                    <li><a href="/profile.html">Profile</a></li>
-                    <li><a href="/find_friends.html">Discover</a></li>
-                </ul>
-            </nav>
-            <div class="user-profile-header">
-                <!-- Admin Icon Link (hidden by default) -->
-                <a href="/admin.html" id="adminIconLink" aria-label="Admin Dashboard">
-                    <i class="fas fa-user-cog"></i>
-                </a>
-                <!-- Notification Icon with Badge -->
-                <div class="notification-icon-wrapper">
-                    <a href="/notifications.html" aria-label="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
-                    </a>
-                </div>
-                <!-- Logout Button -->
-                <button id="logoutButton" aria-label="Logout" disabled>
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-                <a href="/profile.html" id="profileLink">
-                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
-                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
-                    <span id="headerDisplayName">Loading...</span>
-                </a>
-            </div>
+        <a href="/home.html" class="logo">JCHAT</a>
+        <div class="user-profile-header">
+            <a href="/profile.html" id="profileLink">
+                <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
+                <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                <span id="headerDisplayName">Loading...</span>
+            </a>
+            <!-- Logout Button -->
+            <button id="logoutButton" aria-label="Logout" disabled>
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
         </div>
     </header>
 
@@ -1039,7 +863,6 @@
                         <input type="checkbox" id="allowMessagesFromStrangers">
                         <label for="allowMessagesFromStrangers">Allow Messages from Strangers</label>
                     </div>
-                    <!-- NEW: School, Work, Hobby, Favorite Place, Relationship Status visibility -->
                     <div class="checkbox-group">
                         <input type="checkbox" id="showSchool">
                         <label for="showSchool">Show School</label>
@@ -1064,7 +887,7 @@
 
                 <div class="form-group">
                     <label for="storyPrivacy">Story Privacy</label>
-                    <select id="storyPrivacy">
+                    <select id="storyPrivacy" aria-label="Story Privacy Setting">
                         <option value="public">Public (Everyone)</option>
                         <option value="friends-only">Friends Only</option>
                         <option value="private">Private (Only Me)</option>
@@ -1073,15 +896,18 @@
 
                 <h2>Blocked Users</h2>
                 <div class="block-user-input-group" style="display: flex; align-items: center;">
-                    <input type="text" id="blockUserInput" placeholder="Enter User ID to Block">
-                    <button id="addBlockUserButton">Add</button>
+                    <input type="text" id="blockUserInput" placeholder="Enter User ID to Block" aria-label="User ID to block">
+                    <button id="addBlockUserButton" aria-label="Add user to block list">
+                        <span class="button-text">Add</span>
+                        <div class="button-loader"></div>
+                    </button>
                 </div>
-                <ul id="blockedUsersList">
+                <ul id="blockedUsersList" role="list">
                     <li style="color: var(--text-light); text-align: center;">No users blocked.</li>
                     <!-- Blocked users will be dynamically loaded here -->
                 </ul>
 
-                <button id="savePrivacySettingsButton">
+                <button id="savePrivacySettingsButton" aria-label="Save privacy settings">
                     <span class="button-text">Save Settings</span>
                     <div class="button-loader"></div>
                 </button>
@@ -1090,46 +916,24 @@
     </main>
 
     <!-- Custom Message Box -->
-    <div id="messageBox"></div>
+    <div id="messageBox" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
-    <!-- Bottom Navigation Bar -->
-    <nav id="bottomNavBar" class="nav-bar-hidden-full">
-        <a href="/home.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-home"></i></div>
-            <span>Home</span>
-        </a>
-        <a href="/chat.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-comment-dots"></i></div>
-            <span>Chat</span>
-        </a>
-        <a href="/find_friends.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-users"></i></div>
-            <span>Users</span>
-        </a>
-        <a href="/friends.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-user-friends"></i></div>
-            <span>Friends</span>
-        </a>
-        <a href="/jcoin_shop.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-store"></i></div>
-            <span>Shop</span>
-        </a>
-        <a href="/settings.html" class="nav-icon-item active">
-            <div class="nav-icon-circle"><i class="fas fa-cog"></i></div>
-            <span>Settings</span>
-        </a>
-    </nav>
-
-    <!-- Navigation Toggle Button -->
-    <button id="navToggleBtn" aria-label="Toggle Navigation">
-        <i class="fas fa-chevron-up"></i>
-    </button>
+    <!-- Custom Confirmation Modal -->
+    <div id="customConfirmModal" class="modal-overlay" aria-modal="true" role="dialog" aria-labelledby="confirmModalMessage">
+        <div class="modal-content">
+            <h3 id="confirmModalMessage"></h3>
+            <div class="modal-buttons">
+                <button id="confirmYesBtn" class="confirm-btn" aria-label="Confirm Yes">Yes</button>
+                <button id="confirmNoBtn" class="cancel-btn" aria-label="Confirm No">No</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // Import Firebase modules (Updated to v11.6.1)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1155,14 +959,24 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // --- Tone.js Synths for Notification Sounds ---
+        const successSynth = new Tone.Synth().toDestination();
+        const errorSynth = new Tone.Synth().toDestination();
+        const infoSynth = new Tone.Synth().toDestination();
+
+        // Set up basic sounds
+        successSynth.oscillator.type = "sine"; successSynth.envelope.attack = 0.01; successSynth.envelope.decay = 0.2; successSynth.envelope.sustain = 0.0; successSynth.envelope.release = 0.5;
+        errorSynth.oscillator.type = "sawtooth"; errorSynth.envelope.attack = 0.01; errorSynth.envelope.decay = 0.3; errorSynth.envelope.sustain = 0.0; errorSynth.envelope.release = 0.5;
+        infoSynth.oscillator.type = "triangle"; infoSynth.envelope.attack = 0.01; infoSynth.envelope.decay = 0.1; infoSynth.envelope.sustain = 0.0; infoSynth.envelope.release = 0.3;
+
+
         // --- DOM Elements ---
         const headerProfilePic = document.getElementById('headerProfilePic');
         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
         const headerDisplayName = document.getElementById('headerDisplayName');
         const logoutButton = document.getElementById('logoutButton');
-        const notificationCountElement = document.getElementById('notificationCount');
+        // Removed notificationCountElement and adminIconLink as they are no longer in the header
         const messageBox = document.getElementById('messageBox');
-        const adminIconLink = document.getElementById('adminIconLink');
 
         // Privacy Settings Form Elements
         const showDisplayNameCheckbox = document.getElementById('showDisplayName');
@@ -1174,12 +988,12 @@
         const showPhoneCheckbox = document.getElementById('showPhone');
         const allowFriendRequestsCheckbox = document.getElementById('allowFriendRequests');
         const allowMessagesCheckbox = document.getElementById('allowMessages');
-        const allowMessagesFromStrangersCheckbox = document.getElementById('allowMessagesFromStrangers'); // NEW
-        const showSchoolCheckbox = document.getElementById('showSchool'); // NEW
-        const showWorkCheckbox = document.getElementById('showWork'); // NEW
-        const showHobbyCheckbox = document.getElementById('showHobby'); // NEW
-        const showFavoritePlaceCheckbox = document.getElementById('showFavoritePlace'); // NEW
-        const showRelationshipStatusCheckbox = document.getElementById('showRelationshipStatus'); // NEW
+        const allowMessagesFromStrangersCheckbox = document.getElementById('allowMessagesFromStrangers');
+        const showSchoolCheckbox = document.getElementById('showSchool');
+        const showWorkCheckbox = document.getElementById('showWork');
+        const showHobbyCheckbox = document.getElementById('showHobby');
+        const showFavoritePlaceCheckbox = document.getElementById('showFavoritePlace');
+        const showRelationshipStatusCheckbox = document.getElementById('showRelationshipStatus');
         const storyPrivacySelect = document.getElementById('storyPrivacy');
 
         const blockUserInput = document.getElementById('blockUserInput');
@@ -1187,6 +1001,12 @@
         const blockedUsersList = document.getElementById('blockedUsersList');
 
         const savePrivacySettingsButton = document.getElementById('savePrivacySettingsButton');
+
+        // Custom Confirmation Modal elements
+        const customConfirmModal = document.getElementById('customConfirmModal');
+        const confirmModalMessage = document.getElementById('confirmModalMessage');
+        const confirmYesBtn = document.getElementById('confirmYesBtn');
+        const confirmNoBtn = document.getElementById('confirmNo');
 
         // --- Global State ---
         let currentUser = null;
@@ -1197,24 +1017,26 @@
         // --- Utility Functions ---
 
         /**
-         * Plays a short notification sound.
+         * Plays a notification sound based on type.
+         * @param {string} type - 'success', 'error', 'info'.
          */
-        function playNotificationSound() {
-            const audio = new Audio('/assets/sounds/success_notification.mp3'); // Ensure this path is correct
-            audio.play().catch(e => console.error("Error playing sound:", e));
+        function playNotificationSound(type) {
+            Tone.start(); // Ensure audio context is started
+            if (type === 'success') { successSynth.triggerAttackRelease("C5", "8n"); }
+            else if (type === 'error') { errorSynth.triggerAttackRelease("C3", "8n"); }
+            else if (type === 'info' || type === 'warning' || type === 'loading') { infoSynth.triggerAttackRelease("E4", "16n"); }
         }
 
         /**
          * Displays a temporary message box with a given message and type.
          * @param {string} message - The message to display.
          * @param {string} type - The type of message ('success', 'error', 'info', 'loading', 'warning').
-         * @param {number} [durationMs=3000] - Duration in milliseconds for the message to display.
          * @param {boolean} [isPersistent=false] - If true, message stays until explicitly cleared or replaced.
+         * @param {number} [durationMs=3000] - Duration in milliseconds for the message to display if not persistent.
          */
-        function showMessageBox(message, type, durationMs = 3000, isPersistent = false) {
+        function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
             if (messageBox.timeoutId) {
                 clearTimeout(messageBox.timeoutId);
-                messageBox.timeoutId = null;
             }
 
             messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
@@ -1224,27 +1046,22 @@
             messageBoxText.textContent = message;
             messageBox.className = 'message-box show ' + type;
 
-            if (type === 'success') {
-                messageBoxIcon.classList.add('fas', 'fa-check-circle');
-                playNotificationSound();
-            } else if (type === 'error') {
-                messageBoxIcon.classList.add('fas', 'fa-times-circle');
-            } else if (type === 'info') {
-                messageBoxIcon.classList.add('fas', 'fa-info-circle');
-            } else if (type === 'warning') {
-                messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
-            } else {
-                messageBoxIcon.className = '';
+            if (messageBoxIcon) {
+                messageBoxIcon.className = ''; /* Reset classes */
+                if (type === 'success') { messageBoxIcon.classList.add('fas', 'fa-check-circle'); }
+                else if (type === 'error') { messageBoxIcon.classList.add('fas', 'fa-times-circle'); }
+                else if (type === 'info') { messageBoxIcon.classList.add('fas', 'fa-info-circle'); }
+                else if (type === 'warning') { messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle'); }
+                else if (type === 'loading') { messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); }
             }
 
-            if (type === 'loading') {
-                messageBox.classList.add('loading-pulse');
-            } else {
-                messageBox.classList.remove('loading-pulse');
-            }
+            if (type === 'loading') { messageBox.classList.add('loading-pulse'); }
+            else { messageBox.classList.remove('loading-pulse'); }
 
             messageBox.style.display = 'flex';
             messageBox.style.opacity = '1';
+
+            playNotificationSound(type); // Play sound based on type
 
             if (!isPersistent) {
                 messageBox.timeoutId = setTimeout(() => {
@@ -1257,6 +1074,45 @@
                 }, durationMs);
             }
         }
+
+        /**
+         * Displays a custom confirmation modal.
+         * @param {string} message - The message to display in the modal.
+         * @returns {Promise<boolean>} Resolves with true if 'Yes' is clicked, false if 'No'.
+         */
+        function showCustomConfirm(message) {
+            return new Promise((resolve) => {
+                if (!customConfirmModal || !confirmModalMessage || !confirmYesBtn || !confirmNoBtn) {
+                    console.error("JCHAT_ERROR: Custom confirmation modal elements not found.");
+                    resolve(false);
+                    return;
+                }
+
+                confirmModalMessage.textContent = message;
+                customConfirmModal.classList.add('active');
+                customConfirmModal.setAttribute('aria-hidden', 'false');
+
+                const handleYes = () => {
+                    customConfirmModal.classList.remove('active');
+                    customConfirmModal.setAttribute('aria-hidden', 'true');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(true);
+                };
+
+                const handleNo = () => {
+                    customConfirmModal.classList.remove('active');
+                    customConfirmModal.setAttribute('aria-hidden', 'true');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(false);
+                };
+
+                confirmYesBtn.addEventListener('click', handleYes);
+                confirmNoBtn.addEventListener('click', handleNo);
+            });
+        }
+
 
         /**
          * Toggles loading state for a button.
@@ -1342,11 +1198,11 @@
                         profilePicId: user.photoURL || null,
                         bio: "",
                         location: "",
-                        school: "", // NEW
-                        work: "", // NEW
-                        hobby: "", // NEW
-                        favoritePlace: "", // NEW
-                        relationshipStatus: "", // NEW
+                        school: "",
+                        work: "",
+                        hobby: "",
+                        favoritePlace: "",
+                        relationshipStatus: "",
                         friendsCount: 0,
                         followersCount: 0,
                         followingCount: 0,
@@ -1356,8 +1212,8 @@
                         visibility: {
                             displayName: true, profilePic: true, bio: false, location: false,
                             emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
-                            allowMessagesFromStrangers: false, // NEW
-                            showSchool: false, showWork: false, showHobby: false, showFavoritePlace: false, showRelationshipStatus: false // NEW
+                            allowMessagesFromStrangers: false,
+                            showSchool: false, showWork: false, showHobby: false, showFavoritePlace: false, showRelationshipStatus: false
                         },
                         totalPosts: 0,
                         jCoins: 0,
@@ -1395,12 +1251,7 @@
 
                 logoutButton.disabled = false;
 
-                // Show Admin Icon if current user is admin
-                if (user.uid === ADMIN_UID) {
-                    adminIconLink.style.display = 'block';
-                } else {
-                    adminIconLink.style.display = 'none';
-                }
+                // Admin icon is removed from header, so no need to manage its display here.
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching or creating profile for header:", error);
@@ -1410,14 +1261,6 @@
                 showMessageBox(`Error loading header profile: ${error.message}`, 'error');
                 logoutButton.disabled = false;
             }
-        }
-
-        /**
-         * Fetches and displays the notification count for the current user.
-         * @param {string} userId - The UID of the current user.
-         */
-        async function fetchNotificationCount(userId) {
-            notificationCountElement.style.display = 'none'; // Placeholder for now
         }
 
         // --- Privacy Settings Specific Functions ---
@@ -1453,10 +1296,11 @@
                             location: false,
                             emailPublic: false,
                             lastOnline: false,
+                            showPhone: false,
                             allowFriendRequests: true,
                             allowMessages: true,
-                            allowMessagesFromStrangers: false, // NEW default
-                            showSchool: false, showWork: false, showHobby: false, showFavoritePlace: false, showRelationshipStatus: false // NEW defaults
+                            allowMessagesFromStrangers: false,
+                            showSchool: false, showWork: false, showHobby: false, showFavoritePlace: false, showRelationshipStatus: false
                         },
                         storyPrivacy: "public",
                         blockList: [],
@@ -1478,12 +1322,13 @@
                 showPhoneCheckbox.checked = visibility.showPhone ?? false;
                 allowFriendRequestsCheckbox.checked = visibility.allowFriendRequests ?? true;
                 allowMessagesCheckbox.checked = visibility.allowMessages ?? true;
-                allowMessagesFromStrangersCheckbox.checked = visibility.allowMessagesFromStrangers ?? false; // NEW
-                showSchoolCheckbox.checked = visibility.showSchool ?? false; // NEW
-                showWorkCheckbox.checked = visibility.showWork ?? false; // NEW
-                showHobbyCheckbox.checked = visibility.showHobby ?? false; // NEW
-                showFavoritePlaceCheckbox.checked = visibility.showFavoritePlace ?? false; // NEW
-                showRelationshipStatusCheckbox.checked = visibility.showRelationshipStatus ?? false; // NEW
+                allowMessagesFromStrangersCheckbox.checked = visibility.allowMessagesFromStrangers ?? false;
+                showSchoolCheckbox.checked = visibility.showSchool ?? false;
+                showWorkCheckbox.checked = visibility.showWork ?? false;
+                showHobbyCheckbox.checked = visibility.showHobby ?? false;
+                showFavoritePlaceCheckbox.checked = visibility.showFavoritePlace ?? false;
+                showRelationshipStatusCheckbox.checked = visibility.showRelationshipStatus ?? false;
+
 
                 // Populate select dropdown
                 storyPrivacySelect.value = currentPrivacySettings.storyPrivacy || "public";
@@ -1528,7 +1373,10 @@
                 listItem.classList.add('blocked-user-item');
                 listItem.innerHTML = `
                     <span>${blockedUid}</span>
-                    <button data-uid="${blockedUid}">Unblock</button>
+                    <button data-uid="${blockedUid}" aria-label="Unblock user ${blockedUid}">
+                        <span class="button-text">Unblock</span>
+                        <div class="button-loader"></div>
+                    </button>
                 `;
                 blockedUsersList.appendChild(listItem);
             });
@@ -1537,7 +1385,7 @@
             blockedUsersList.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', async (event) => {
                     const uidToUnblock = event.target.dataset.uid;
-                    await removeUserFromBlockList(uidToUnblock);
+                    await removeUserFromBlockList(uidToUnblock, event.target);
                 });
             });
         }
@@ -1551,29 +1399,30 @@
                 showMessageBox("Please log in to manage your block list.", 'error');
                 return;
             }
-            if (!uidToBlock || uidToBlock.trim() === '') {
+            const trimmedUid = uidToBlock.trim();
+            if (!trimmedUid) {
                 showMessageBox("Please enter a User ID to block.", 'warning');
                 return;
             }
-            if (uidToBlock === currentUser.uid) {
+            if (trimmedUid === currentUser.uid) {
                 showMessageBox("You cannot block yourself.", 'warning');
                 return;
             }
-            if (currentPrivacySettings.blockList && currentPrivacySettings.blockList.includes(uidToBlock)) {
+            if (currentPrivacySettings.blockList && currentPrivacySettings.blockList.includes(trimmedUid)) {
                 showMessageBox("This user is already in your block list.", 'info');
                 return;
             }
 
             toggleButtonLoading(addBlockUserButton, true);
-            showMessageBox(`Blocking user ${uidToBlock}...`, 'loading', true);
+            showMessageBox(`Blocking user ${trimmedUid}...`, 'loading', true);
 
             try {
                 const privacyDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "privacy_settings");
                 await updateDoc(privacyDocRef, {
-                    blockList: arrayUnion(uidToBlock),
+                    blockList: arrayUnion(trimmedUid),
                     lastUpdated: serverTimestamp()
                 });
-                showMessageBox(`User ${uidToBlock} blocked successfully!`, 'success');
+                showMessageBox(`User ${trimmedUid} blocked successfully!`, 'success');
                 blockUserInput.value = ''; // Clear input
                 // Re-fetch settings to update UI
                 await fetchPrivacySettings();
@@ -1588,13 +1437,20 @@
         /**
          * Removes a user from the block list.
          * @param {string} uidToUnblock - The UID of the user to unblock.
+         * @param {HTMLElement} buttonElement - The button that triggered the unblock action.
          */
-        async function removeUserFromBlockList(uidToUnblock) {
+        async function removeUserFromBlockList(uidToUnblock, buttonElement) {
             if (!currentUser) {
                 showMessageBox("Please log in to manage your block list.", 'error');
                 return;
             }
 
+            const confirmUnblock = await showCustomConfirm(`Are you sure you want to unblock user ${uidToUnblock}?`);
+            if (!confirmUnblock) {
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
             showMessageBox(`Unblocking user ${uidToUnblock}...`, 'loading', true);
 
             try {
@@ -1609,6 +1465,8 @@
             } catch (error) {
                 console.error("JCHAT_ERROR: Error removing user from block list:", error);
                 showMessageBox(`Failed to unblock user: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
             }
         }
 
@@ -1639,12 +1497,12 @@
                         showPhone: showPhoneCheckbox.checked,
                         allowFriendRequests: allowFriendRequestsCheckbox.checked,
                         allowMessages: allowMessagesCheckbox.checked,
-                        allowMessagesFromStrangers: allowMessagesFromStrangersCheckbox.checked, // NEW
-                        showSchool: showSchoolCheckbox.checked, // NEW
-                        showWork: showWorkCheckbox.checked, // NEW
-                        showHobby: showHobbyCheckbox.checked, // NEW
-                        showFavoritePlace: showFavoritePlaceCheckbox.checked, // NEW
-                        showRelationshipStatus: showRelationshipStatusCheckbox.checked // NEW
+                        allowMessagesFromStrangers: allowMessagesFromStrangersCheckbox.checked,
+                        showSchool: showSchoolCheckbox.checked,
+                        showWork: showWorkCheckbox.checked,
+                        showHobby: showHobbyCheckbox.checked,
+                        showFavoritePlace: showFavoritePlaceCheckbox.checked,
+                        showRelationshipStatus: showRelationshipStatusCheckbox.checked
                     },
                     storyPrivacy: storyPrivacySelect.value,
                     // blockList is managed separately via arrayUnion/arrayRemove
@@ -1734,12 +1592,7 @@
                 await fetchAndDisplayHeaderProfile(user); // Update header
                 await fetchPrivacySettings(); // Fetch and populate privacy settings
 
-                // Show Admin Icon if current user is admin
-                if (user.uid === ADMIN_UID) {
-                    adminIconLink.style.display = 'block';
-                } else {
-                    adminIconLink.style.display = 'none';
-                }
+                // Admin icon is removed from header, no need to manage its display here.
 
             } else {
                 console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
@@ -1763,7 +1616,7 @@
                 headerDisplayName.textContent = "Guest";
                 headerProfilePic.style.display = 'none';
                 headerAvatarIcon.style.display = 'block';
-                adminIconLink.style.display = 'none'; // Ensure admin icon is hidden
+                // Admin icon is removed from header, no need to manage its display here.
                 showMessageBox("Please log in to manage privacy settings.", 'info', true);
                 // Disable form elements
                 showDisplayNameCheckbox.disabled = true;
@@ -1775,12 +1628,12 @@
                 showPhoneCheckbox.disabled = true;
                 allowFriendRequestsCheckbox.disabled = true;
                 allowMessagesCheckbox.disabled = true;
-                allowMessagesFromStrangersCheckbox.disabled = true; // NEW
-                showSchoolCheckbox.disabled = true; // NEW
-                showWorkCheckbox.disabled = true; // NEW
-                showHobbyCheckbox.disabled = true; // NEW
-                showFavoritePlaceCheckbox.disabled = true; // NEW
-                showRelationshipStatusCheckbox.disabled = true; // NEW
+                allowMessagesFromStrangersCheckbox.disabled = true;
+                showSchoolCheckbox.disabled = true;
+                showWorkCheckbox.disabled = true;
+                showHobbyCheckbox.disabled = true;
+                showFavoritePlaceCheckbox.disabled = true;
+                showRelationshipStatusCheckbox.disabled = true;
                 storyPrivacySelect.disabled = true;
                 blockUserInput.disabled = true;
                 addBlockUserButton.disabled = true;
@@ -1789,27 +1642,14 @@
             }
         });
 
-        // --- Bottom Navigation Bar Toggle Logic (reused from Home.html) ---
-        const bottomNavBar = document.getElementById('bottomNavBar');
-        const navToggleBtn = document.getElementById('navToggleBtn');
-
-        function toggleNavBarVisibility() {
-            const toggleIcon = navToggleBtn.querySelector('i');
-            const isHidden = bottomNavBar.classList.toggle('nav-bar-hidden-full');
-
-            if (isHidden) {
-                toggleIcon.classList.remove('fa-chevron-down');
-                toggleIcon.classList.add('fa-chevron-up');
-            } else {
-                toggleIcon.classList.remove('fa-chevron-up');
-                toggleIcon.classList.add('fa-chevron-down');
-            }
-        }
-
-        bottomNavBar.classList.add('nav-bar-hidden-full');
-        navToggleBtn.querySelector('i').classList.remove('fa-chevron-down');
-        navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
-        navToggleBtn.addEventListener('click', toggleNavBarVisibility);
+        // Removed Bottom Navigation Bar Toggle Logic and related elements
+        // const bottomNavBar = document.getElementById('bottomNavBar');
+        // const navToggleBtn = document.getElementById('navToggleBtn');
+        // function toggleNavBarVisibility() { ... }
+        // bottomNavBar.classList.add('nav-bar-hidden-full');
+        // navToggleBtn.querySelector('i').classList.remove('fa-chevron-down');
+        // navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
+        // navToggleBtn.addEventListener('click', toggleNavBarVisibility);
     </script>
 </body>
 </html>

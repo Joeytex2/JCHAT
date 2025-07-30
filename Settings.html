@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JCHAT - Privacy Settings</title>
+    <title>JCHAT - Settings</title>
 
     <!-- Google Fonts: Poppins for headings, Inter for body text -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +17,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Tone.js for audio notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -24,7 +26,7 @@
             box-sizing: border-box;
         }
 
-        /* Global CSS Variables for easy theme switching (from Home.html / Profile.html) */
+        /* Global CSS Variables for easy theme switching */
         :root {
             --pink: #ff2e92;
             --blue: #00d5ff;
@@ -64,6 +66,7 @@
             --accent-color: #00d5ff; /* A bright cyan */
             --accent-color-dark: #00aaff;
             --border-color: #3a3a5a;
+            --user-defined-accent-color: var(--blue); /* New variable for user-defined accent */
         }
 
         /* --- Theme Definitions (Light and Dark Mode) --- */
@@ -94,7 +97,7 @@
             --accent-color: #007bff;
             --accent-color-dark: #0056b3;
             --border-color: #e0e0e0;
-            --input-background-color: #f0f0f0;
+            --input-background: #f0f0f0;
             --button-background: #e9ecef;
             --button-hover-background: #dee2e6;
             --active-item-background: rgba(0, 123, 255, 0.1);
@@ -116,7 +119,7 @@
             --card-background: rgba(25, 25, 40, 0.7); /* Darker, less transparent cards */
             --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75)); /* Original dark header */
             --border-light: rgba(255, 255, 255, 0.08); /* Subtle white borders */
-            --input-background: rgba(255, 255, 255, 0.08);
+            --input-background: rgba(255, 255, 255, 0.08); /* Dark input background */
             --button-background: linear-gradient(90deg, #e94560, #ba2f49); /* Reddish gradient */
             --button-shadow: 0 4px 15px rgba(233, 69, 96, 0.4), 0 4px 15px rgba(186, 47, 73, 0.4);
 
@@ -132,7 +135,7 @@
             --accent-color: #bb86fc;
             --accent-color-dark: #9a67ea;
             --border-color: #444444;
-            --input-background-color: #383838;
+            --input-background: #383838;
             --button-background: #383838;
             --button-hover-background: #505050;
             --active-item-background: rgba(187, 134, 252, 0.2);
@@ -141,7 +144,7 @@
             --warning-color: #ffeb3b;
         }
 
-        /* Glass Mode specific variables (from original Profile.html snippet, adapted) */
+        /* Glass Mode specific variables */
         body.theme-glass-mode {
             --background-main: rgba(10, 10, 10, 0.75);
             background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important;
@@ -170,13 +173,13 @@
             --accent-color: #00d5ff;
             --accent-color-dark: #00aaff;
             --border-color: rgba(255, 255, 255, 0.1);
-            --input-background-color: rgba(255, 255, 255, 0.05);
+            --input-background: rgba(255, 255, 255, 0.05);
             --button-background: rgba(0, 213, 255, 0.15); /* Glassy button */
             --button-hover-background: rgba(0, 213, 255, 0.25);
             --active-item-background: rgba(0, 213, 255, 0.1);
         }
 
-        /* NEW: Sunset Theme (from Home.html / Profile.html) */
+        /* Sunset Theme */
         body.theme-sunset-mode {
             background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
             --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
@@ -186,7 +189,7 @@
             --input-background: rgba(255, 255, 255, 0.1);
             --border-light: rgba(255, 255, 255, 0.3);
             --button-background: linear-gradient(90deg, #fd746c, #ff9068); /* Sunset gradient */
-            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 4px 15px rgba(255, 144, 104, 0.4);
+            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 44px 15px rgba(255, 144, 104, 0.4);
 
             /* New variables override for sunset mode */
             --background-color-primary: #ff7e5f;
@@ -200,7 +203,7 @@
             --accent-color: #ffd700;
             --accent-color-dark: #ccaa00;
             --border-color: rgba(255, 255, 255, 0.3);
-            --input-background-color: rgba(255, 255, 255, 0.1);
+            --input-background: rgba(255, 255, 255, 0.1);
             --button-background: rgba(255, 255, 255, 0.2);
             --button-hover-background: rgba(255, 255, 255, 0.3);
             --active-item-background: rgba(255, 215, 0, 0.1);
@@ -220,7 +223,7 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden; /* Prevent horizontal scroll */
-            padding-bottom: 120px; /* Space for nav bar (60px) + toggle button (60px) */
+            padding-bottom: 20px; /* Reduced padding as no bottom nav */
             background-color: var(--background-main);
             background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
                               radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
@@ -228,32 +231,24 @@
             transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
         }
 
-        /* Header Styling (from Home.html) */
+        /* Header Styling (from Home.html) - MODIFIED */
         header {
             background: var(--header-background);
             border-bottom: 1px solid var(--border-light);
-            padding: 10px 0;
+            padding: 10px 30px; /* Adjusted padding */
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            position: fixed;
+            position: sticky; /* Changed to sticky for simpler layout */
             top: 0;
             left: 0;
             width: 100%;
             height: 55px;
             z-index: 10;
             display: flex;
-            justify-content: center;
-        }
-
-        header .header-content-wrapper {
-            display: flex;
-            justify-content: space-between;
+            justify-content: flex-start; /* Align logo to left */
             align-items: center;
-            width: 100%;
-            max-width: 1200px;
-            padding: 0 30px;
         }
 
-        .logo {
+        header .logo {
             font-family: 'Poppins', sans-serif;
             font-size: 1.8rem;
             font-weight: 800;
@@ -262,183 +257,10 @@
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
             letter-spacing: -0.03em;
             text-decoration: none;
+            margin-right: auto; /* Push logo to left, push content to right */
         }
 
-        /* Header Navigation (from Home.html) */
-        header nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            gap: 25px;
-        }
-
-        header nav ul li a {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            padding: 5px 0;
-            position: relative;
-            transition: color var(--transition);
-        }
-
-        header nav ul li a::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 0;
-            height: 3px;
-            background: var(--blue);
-            border-radius: 2px;
-            transition: width var(--transition);
-        }
-
-        header nav ul li a:hover {
-            color: var(--blue);
-        }
-
-        header nav ul li a:hover::after {
-            width: 100%;
-        }
-
-        /* User Profile Header Styling (from Home.html) */
-        .user-profile-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Notification Icon Styling (from Home.html) */
-        .notification-icon-wrapper {
-            position: relative;
-            margin-right: 15px; /* Space between notification and profile */
-        }
-
-        .notification-icon-wrapper a {
-            text-decoration: none; /* Remove underline from link */
-            color: inherit; /* Inherit color from parent */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .notification-icon-wrapper i {
-            font-size: 1.5rem; /* Adjust size as needed */
-            color: var(--text-light);
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .notification-icon-wrapper i:hover {
-            color: var(--white);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--notification-badge-color); /* Use pink for notifications */
-            color: var(--white);
-            border-radius: 50%;
-            padding: 3px 7px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            min-width: 20px;
-            text-align: center;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* Hide if no notifications */
-            display: none;
-        }
-
-        .user-profile-header #profileLink {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: var(--white);
-            transition: opacity 0.3s ease, background-color 0.3s ease;
-            padding: 5px 10px;
-            border-radius: var(--radius);
-        }
-
-        .user-profile-header #profileLink:hover {
-            opacity: 0.8;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .user-profile-header img {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--accent-color); /* Used accent-color for consistency */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: opacity 0.3s ease;
-        }
-
-        .user-profile-header i {
-            font-size: 30px;
-            color: var(--text-light);
-        }
-
-        .user-profile-header span {
-            font-weight: 600;
-            font-size: 1rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 120px;
-        }
-
-        /* NEW: Admin Icon Styling */
-        #adminIconLink {
-            display: none; /* Hidden by default */
-            margin-right: 15px; /* Space it out from other icons */
-            color: var(--pink); /* Admin icon color */
-            font-size: 1.5rem;
-            transition: transform 0.2s ease, color 0.2s ease;
-        }
-
-        #adminIconLink:hover {
-            transform: scale(1.1);
-            color: var(--blue);
-        }
-
-
-        /* Logout Button Styling (from Home.html) */
-        #logoutButton {
-            background: linear-gradient(90deg, var(--pink), var(--blue));
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
-            opacity: 0.8;
-            margin-left: 10px;
-        }
-
-        #logoutButton:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px var(--pink), 0 4px 15px var(--blue);
-            opacity: 1;
-        }
-
-        #logoutButton i {
-            color: var(--white);
-            font-size: 0.9rem;
-        }
-
-        /* Main Content Area (from Home.html) */
+        /* Main Content Area */
         main {
             flex-grow: 1;
             padding: 40px 0;
@@ -528,6 +350,11 @@
             cursor: pointer;
         }
 
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="tel"],
+        .form-group input[type="color"], /* Added for accent color */
+        .form-group input[type="range"], /* Added for volume */
         .form-group select {
             width: 100%;
             padding: 0.8rem 1rem;
@@ -538,15 +365,70 @@
             font-size: 1rem;
             outline: none;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            -webkit-appearance: none; /* Remove default arrow */
+            -webkit-appearance: none; /* Remove default arrow for select */
             -moz-appearance: none;
             appearance: none;
+        }
+        .form-group select {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0e0e0'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* Custom arrow */
             background-repeat: no-repeat;
             background-position: right 1rem center;
             background-size: 1.2em;
         }
 
+        /* Specific styles for color input */
+        .form-group input[type="color"] {
+            height: 45px; /* Make it visually appealing */
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        /* Specific styles for range input */
+        .form-group input[type="range"] {
+            padding: 0; /* Remove padding for range input */
+            height: 20px;
+            margin-top: 10px;
+            background: transparent; /* Hide default track */
+        }
+        /* Style for Webkit (Chrome, Safari) */
+        .form-group input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background: var(--input-background);
+            border-radius: 5px;
+            border: 1px solid var(--border-light);
+        }
+        .form-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            border: 1px solid var(--user-defined-accent-color);
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--user-defined-accent-color);
+            cursor: pointer;
+            margin-top: -7px; /* Center thumb vertically */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        /* Style for Mozilla Firefox */
+        .form-group input[type="range"]::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            background: var(--input-background);
+            border-radius: 5px;
+            border: 1px solid var(--border-light);
+        }
+        .form-group input[type="range"]::-moz-range-thumb {
+            border: 1px solid var(--user-defined-accent-color);
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--user-defined-accent-color);
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+
+        .form-group input:focus,
         .form-group select:focus {
             border-color: var(--blue);
             box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
@@ -631,14 +513,58 @@
             cursor: pointer;
             font-size: 0.8rem;
             transition: background-color 0.2s ease;
+            display: flex; /* For loader */
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
 
         .blocked-user-item button:hover {
             background-color: #c82333;
         }
 
+        /* Action Buttons (e.g., Change Password, Delete Account) */
+        .action-button {
+            background: var(--button-background);
+            color: var(--white);
+            border: none;
+            border-radius: 15px;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--button-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 1rem; /* Space between buttons */
+        }
+        .action-button.danger {
+            background: var(--delete-button-color);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+        .action-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
+        }
+        .action-button.danger:hover:not(:disabled) {
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6);
+        }
+        .action-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--text-light);
+            box-shadow: none;
+        }
+
+
         /* Save Button */
-        #savePrivacySettingsButton {
+        #saveSettingsButton {
             background: var(--button-background);
             color: var(--white);
             border: none;
@@ -659,7 +585,7 @@
             margin-top: 2rem;
         }
 
-        #savePrivacySettingsButton:hover {
+        #saveSettingsButton:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
         }
@@ -700,15 +626,24 @@
         #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
         #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
         #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.loading { /* No border-left for loading */ background-color: var(--card-background-color); color: var(--text-color-primary); }
+
 
         #messageBox i {
             font-size: 2.5rem; /* Larger icon for prominence */
             margin-bottom: 5px; /* Space between icon and text */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
         }
         #messageBox.success i { color: var(--white); } /* White icon for success */
         #messageBox.error i { color: var(--delete-button-color); }
         #messageBox.info i { color: var(--accent-color); }
         #messageBox.warning i { color: var(--warning-color); }
+        #messageBox.loading i { background-image: linear-gradient(90deg, var(--accent-color), var(--pink)); }
+
 
         #messageBox span {
             font-size: 1.1rem; /* Slightly larger text */
@@ -741,148 +676,82 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- Bottom Navigation Bar (reused from Home.html) --- */
-        #bottomNavBar {
+        /* Custom Confirmation Modal */
+        .modal-overlay {
             position: fixed;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 60px;
-            background: var(--header-background);
-            border-top: 1px solid var(--border-light);
-            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 0 10px;
-            z-index: 50;
-            bottom: 60px; /* Positioned above the toggle button */
-            transition: bottom 0.3s ease-out; /* Smooth slide transition */
-        }
-
-        #bottomNavBar.nav-bar-hidden-full {
-            bottom: -60px; /* Move it completely off-screen below */
-        }
-
-        .nav-icon-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-light);
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: color 0.2s ease;
-            flex: 1;
-            max-width: 80px;
-        }
-
-        .nav-icon-item:hover {
-            color: var(--white);
-        }
-
-        .nav-icon-circle {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--blue), var(--pink));
-            display: flex;
-            align-items: center;
             justify-content: center;
-            margin-bottom: 5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            align-items: center;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: var(--card-background);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); opacity: 1; }
+        .modal-content h3 {
+            color: var(--white);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .modal-buttons button {
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-
-        .nav-icon-item:hover .nav-icon-circle {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px var(--blue), 0 4px 12px var(--pink);
-        }
-
-        .nav-icon-circle i {
+        .modal-buttons button.confirm-btn {
+            background: linear-gradient(90deg, var(--pink), var(--blue));
             color: var(--white);
-            font-size: 1.3rem;
-            transition: transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+        }
+        .modal-buttons button.confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+        .modal-buttons button.cancel-btn {
+            background: var(--input-background);
+            color: var(--text-light);
+            border: 1px solid var(--border-light);
+        }
+        .modal-buttons button.cancel-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .nav-icon-item.active .nav-icon-circle {
-            background: linear-gradient(45deg, var(--pink), var(--blue));
-            box-shadow: 0 4px 12px var(--pink), 0 44px 12px var(--blue);
-        }
-        .nav-icon-item.active {
-            color: var(--white);
-        }
-
-        /* New Toggle Button (from Home.html) */
-        #navToggleBtn {
-            position: fixed;
-            bottom: 0px; /* Position at the very bottom */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px; /* Slightly larger button */
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--pink), var(--blue)); /* Pink to blue gradient */
-            color: var(--white);
-            border: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem; /* Larger icon */
-            cursor: pointer;
-            z-index: 60; /* Higher than nav bar */
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-        }
-
-        #navToggleBtn:hover {
-            transform: translateX(-50%) scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(45deg, var(--blue), var(--pink)); /* Reverse gradient on hover */
-        }
-
-        #navToggleBtn i {
-            transition: transform 0.3s ease; /* Smooth icon rotation */
-        }
-
-        #navToggleBtn.rotated i {
-            transform: rotate(180deg); /* Rotate icon when nav is hidden */
-        }
-
-        /* Responsive Adjustments (from Home.html / Profile.html) */
+        /* Responsive Adjustments */
         @media (max-width: 600px) {
-            header .header-content-wrapper {
-                padding: 0 20px;
+            header {
+                padding: 10px 20px;
             }
             .logo {
                 font-size: 1.6rem;
-            }
-            header nav ul {
-                gap: 15px;
-            }
-            header nav ul li a {
-                font-size: 1.1rem;
-            }
-            .user-profile-header #profileLink {
-                padding: 5px;
-            }
-            .user-profile-header span {
-                max-width: 90px;
-            }
-            .user-profile-header img {
-                width: 30px;
-                height: 30px;
-            }
-            .user-profile-header i {
-                font-size: 25px;
-            }
-            #logoutButton {
-                width: 25px;
-                height: 25px;
-                font-size: 0.8rem;
-                margin-left: 8px;
-            }
-            #logoutButton i {
-                font-size: 0.8rem;
             }
             .section-card {
                 padding: 1.5rem;
@@ -899,6 +768,11 @@
             .form-group .checkbox-group label {
                 font-size: 0.9rem;
             }
+            .form-group input[type="text"],
+            .form-group input[type="email"],
+            .form-group input[type="tel"],
+            .form-group input[type="color"],
+            .form-group input[type="range"],
             .form-group select {
                 padding: 0.7rem 0.9rem;
                 font-size: 0.9rem;
@@ -919,35 +793,12 @@
             .blocked-user-item button {
                 font-size: 0.7rem;
             }
-            #savePrivacySettingsButton {
+            #saveSettingsButton, .action-button {
                 padding: 0.7rem 1.2rem;
                 font-size: 0.9rem;
             }
-            #bottomNavBar {
-                height: 55px;
-                padding: 0 5px;
-                bottom: 55px; /* Adjust for smaller button height on mobile */
-            }
-            #bottomNavBar.nav-bar-hidden-full {
-                bottom: -55px; /* Adjust for smaller button height on mobile */
-            }
-            #navToggleBtn {
-                width: 55px;
-                height: 55px;
-                font-size: 1.5rem;
-            }
-            .nav-icon-circle {
-                width: 40px;
-                height: 40px;
-            }
-            .nav-icon-circle i {
-                font-size: 1.2rem;
-            }
-            .nav-icon-item {
-                font-size: 0.7rem;
-            }
             body {
-                padding-bottom: 110px; /* 55px (nav) + 55px (toggle) */
+                padding-bottom: 20px; /* Still some padding at bottom */
             }
         }
     </style>
@@ -955,134 +806,205 @@
 <body class="theme-dark-mode">
 
     <header>
-        <div class="header-content-wrapper">
-            <a href="/home.html" class="logo">JCHAT</a>
-            <nav>
-                <ul>
-                    <li><a href="/home.html">Home</a></li>
-                    <li><a href="/profile.html">Profile</a></li>
-                    <li><a href="/find_friends.html">Discover</a></li>
-                </ul>
-            </nav>
-            <div class="user-profile-header">
-                <!-- Admin Icon Link (hidden by default) -->
-                <a href="/admin.html" id="adminIconLink" aria-label="Admin Dashboard">
-                    <i class="fas fa-user-cog"></i>
-                </a>
-                <!-- Notification Icon with Badge -->
-                <div class="notification-icon-wrapper">
-                    <a href="/notifications.html" aria-label="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
-                    </a>
-                </div>
-                <!-- Logout Button -->
-                <button id="logoutButton" aria-label="Logout" disabled>
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-                <a href="/profile.html" id="profileLink">
-                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
-                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
-                    <span id="headerDisplayName">Loading...</span>
-                </a>
-            </div>
-        </div>
+        <a href="/home.html" class="logo">JCHAT</a>
     </header>
 
     <main>
         <div class="content-wrapper">
             <div class="section-card">
-                <h1>Privacy Settings</h1>
+                <h1>Settings</h1>
                 <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem;">
-                    Control what information is visible to others and manage your blocked users.
+                    Customize your JCHAT experience and manage your account.
                 </p>
 
+                <h2>Account Management</h2>
                 <div class="form-group">
-                    <label>Profile Visibility</label>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showDisplayName">
-                        <label for="showDisplayName">Show Display Name</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showProfilePic">
-                        <label for="showProfilePic">Show Profile Picture</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showBio">
-                        <label for="showBio">Show Bio</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showLocation">
-                        <label for="showLocation">Show Location</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showEmail">
-                        <label for="showEmail">Show Email Address</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showLastSeen">
-                        <label for="showLastSeen">Show Last Online Status</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showPhone">
-                        <label for="showPhone">Show Phone Number</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="allowFriendRequests">
-                        <label for="allowFriendRequests">Allow Friend Requests</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="allowMessages">
-                        <label for="allowMessages">Allow Messages from Friends</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="allowMessagesFromStrangers">
-                        <label for="allowMessagesFromStrangers">Allow Messages from Strangers</label>
-                    </div>
-                    <!-- NEW: School, Work, Hobby, Favorite Place, Relationship Status visibility -->
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showSchool">
-                        <label for="showSchool">Show School</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showWork">
-                        <label for="showWork">Show Work</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showHobby">
-                        <label for="showHobby">Show Hobby</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showFavoritePlace">
-                        <label for="showFavoritePlace">Show Favorite Place</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showRelationshipStatus">
-                        <label for="showRelationshipStatus">Show Relationship Status</label>
-                    </div>
+                    <label for="usernameInput">Username</label>
+                    <input type="text" id="usernameInput" placeholder="Your display name" aria-label="Username">
                 </div>
-
                 <div class="form-group">
-                    <label for="storyPrivacy">Story Privacy</label>
-                    <select id="storyPrivacy">
-                        <option value="public">Public (Everyone)</option>
-                        <option value="friends-only">Friends Only</option>
-                        <option value="private">Private (Only Me)</option>
+                    <label for="emailInput">Email Address</label>
+                    <input type="email" id="emailInput" placeholder="Your email address" aria-label="Email Address">
+                </div>
+                <div class="form-group">
+                    <label for="phoneInput">Phone Number</label>
+                    <input type="tel" id="phoneInput" placeholder="Your phone number (optional)" aria-label="Phone Number">
+                </div>
+                <button id="logoutButton" class="action-button" aria-label="Logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+
+                <h2>Chat Customization</h2>
+                <div class="form-group">
+                    <label for="accentColorPicker">Accent Color</label>
+                    <input type="color" id="accentColorPicker" value="#00d5ff" aria-label="Accent Color">
+                </div>
+                <div class="form-group">
+                    <label for="customStatusMessage">Custom Status Message</label>
+                    <input type="text" id="customStatusMessage" placeholder="e.g., Away, Busy, Chilling" maxlength="50" aria-label="Custom Status Message">
+                </div>
+                <div class="form-group">
+                    <label for="chatBackground">Chat Background</label>
+                    <select id="chatBackground" aria-label="Chat Background">
+                        <option value="default">Default</option>
+                        <option value="abstract">Abstract Patterns</option>
+                        <option value="nature">Nature Scene</option>
+                        <option value="city">Cityscape</option>
                     </select>
                 </div>
-
-                <h2>Blocked Users</h2>
-                <div class="block-user-input-group" style="display: flex; align-items: center;">
-                    <input type="text" id="blockUserInput" placeholder="Enter User ID to Block">
-                    <button id="addBlockUserButton">Add</button>
+                <div class="form-group">
+                    <label for="bubbleStyle">Message Bubble Style</label>
+                    <select id="bubbleStyle" aria-label="Message Bubble Style">
+                        <option value="rounded">Rounded</option>
+                        <option value="square">Square</option>
+                        <option value="minimal">Minimal</option>
+                    </select>
                 </div>
-                <ul id="blockedUsersList">
+                <div class="form-group">
+                    <label for="fontSize">Chat Font Size</label>
+                    <select id="fontSize" aria-label="Chat Font Size">
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
+                        <option value="xlarge">Extra Large</option>
+                    </select>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="readReceipts">
+                    <label for="readReceipts">Enable Read Receipts</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="typingIndicators">
+                    <label for="typingIndicators">Show Typing Indicators</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="messageReactions">
+                    <label for="messageReactions">Enable Message Reactions</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="giphyIntegration">
+                    <label for="giphyIntegration">Enable Giphy Integration</label>
+                </div>
+
+                <h2>Privacy Settings</h2>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="appearOffline">
+                        <label for="appearOffline">Appear Offline</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="blockUnknownCalls">
+                        <label for="blockUnknownCalls">Block Unknown Call Requests</label>
+                    </div>
+                </div>
+                <h3>Blocked Users</h3>
+                <div class="block-user-input-group" style="display: flex; align-items: center;">
+                    <input type="text" id="blockUserInput" placeholder="Enter User ID to Block" aria-label="User ID to block">
+                    <button id="addBlockUserButton" aria-label="Add user to block list">
+                        <span class="button-text">Add</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </div>
+                <ul id="blockedUsersList" role="list">
                     <li style="color: var(--text-light); text-align: center;">No users blocked.</li>
                     <!-- Blocked users will be dynamically loaded here -->
                 </ul>
 
-                <button id="savePrivacySettingsButton">
-                    <span class="button-text">Save Settings</span>
+
+                <h2>Notification Settings</h2>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableMessageSounds">
+                        <label for="enableMessageSounds">Play sound for new messages</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableCallSounds">
+                        <label for="enableCallSounds">Play sound for incoming calls</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableVibrations">
+                        <label for="enableVibrations">Enable vibrations</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="muteAllNotifications">
+                        <label for="muteAllNotifications">Mute All Notifications</label>
+                    </div>
+                    <label for="notificationVolume">Notification Sound Volume</label>
+                    <input type="range" id="notificationVolume" min="0" max="1" step="0.1" value="1" aria-label="Notification Sound Volume">
+                </div>
+
+                <h2>Data & Storage</h2>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="autoDownloadMedia">
+                        <label for="autoDownloadMedia">Auto-download media in chats</label>
+                    </div>
+                    <button id="viewStorageUsageButton" class="action-button" aria-label="View Storage Usage">
+                        <i class="fas fa-database"></i> View Storage Usage
+                    </button>
+                    <div class="form-group">
+                        <label for="autoDeleteMessages">Auto-delete Messages After</label>
+                        <select id="autoDeleteMessages" aria-label="Auto-delete messages after">
+                            <option value="never">Never</option>
+                            <option value="7days">7 Days</option>
+                            <option value="30days">30 Days</option>
+                            <option value="90days">90 Days</option>
+                            <option value="365days">1 Year</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h2>Advanced Settings</h2>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="developerMode">
+                        <label for="developerMode">Enable Developer Mode</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="languageSelect">Language</label>
+                        <select id="languageSelect" aria-label="Language Setting">
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                            <option value="de">Deutsch</option>
+                            <option value="zh">中文</option>
+                        </select>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="hapticFeedback">
+                        <label for="hapticFeedback">Enable Haptic Feedback on Tap</label>
+                    </div>
+                </div>
+
+                <h2>Help & Support</h2>
+                <div class="form-group">
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 15px;">
+                        For support, please contact us via:
+                    </p>
+                    <p style="color: var(--white); font-weight: 600; margin-bottom: 5px;">
+                        Email: <a href="mailto:jchatguide@gmail.com" style="color: var(--blue); text-decoration: none;">jchatguide@gmail.com</a>
+                    </p>
+                    <p style="color: var(--white); font-weight: 600; margin-bottom: 20px;">
+                        WhatsApp: <a href="https://wa.me/2349013790707" target="_blank" style="color: var(--blue); text-decoration: none;">+2349013790707</a>
+                    </p>
+                    <button id="faqButton" class="action-button" aria-label="Frequently Asked Questions">
+                        <i class="fas fa-question-circle"></i> FAQ
+                    </button>
+                    <button id="reportBugButton" class="action-button" aria-label="Report a Bug">
+                        <i class="fas fa-bug"></i> Report a Bug
+                    </button>
+                </div>
+
+                <h2>Account Actions (Requires Web Portal)</h2>
+                <button id="changePasswordButton" class="action-button" aria-label="Change Password">
+                    <i class="fas fa-key"></i> Change Password
+                </button>
+                <button id="deleteAccountButton" class="action-button danger" aria-label="Delete Account">
+                    <i class="fas fa-trash-alt"></i> Delete Account
+                </button>
+
+                <button id="saveSettingsButton" aria-label="Save Settings">
+                    <span class="button-text">Save All Settings</span>
                     <div class="button-loader"></div>
                 </button>
             </div>
@@ -1090,46 +1012,24 @@
     </main>
 
     <!-- Custom Message Box -->
-    <div id="messageBox"></div>
+    <div id="messageBox" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
-    <!-- Bottom Navigation Bar -->
-    <nav id="bottomNavBar" class="nav-bar-hidden-full">
-        <a href="/home.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-home"></i></div>
-            <span>Home</span>
-        </a>
-        <a href="/chat.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-comment-dots"></i></div>
-            <span>Chat</span>
-        </a>
-        <a href="/find_friends.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-users"></i></div>
-            <span>Users</span>
-        </a>
-        <a href="/friends.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-user-friends"></i></div>
-            <span>Friends</span>
-        </a>
-        <a href="/jcoin_shop.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-store"></i></div>
-            <span>Shop</span>
-        </a>
-        <a href="/settings.html" class="nav-icon-item active">
-            <div class="nav-icon-circle"><i class="fas fa-cog"></i></div>
-            <span>Settings</span>
-        </a>
-    </nav>
-
-    <!-- Navigation Toggle Button -->
-    <button id="navToggleBtn" aria-label="Toggle Navigation">
-        <i class="fas fa-chevron-up"></i>
-    </button>
+    <!-- Custom Confirmation Modal -->
+    <div id="customConfirmModal" class="modal-overlay" aria-modal="true" role="dialog" aria-labelledby="confirmModalMessage">
+        <div class="modal-content">
+            <h3 id="confirmModalMessage"></h3>
+            <div class="modal-buttons">
+                <button id="confirmYesBtn" class="confirm-btn" aria-label="Confirm Yes">Yes</button>
+                <button id="confirmNoBtn" class="cancel-btn" aria-label="Confirm No">No</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // Import Firebase modules (Updated to v11.6.1)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1144,77 +1044,179 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Cloudinary Configuration (needed for header profile pic)
-        const cloudinaryConfig = {
-            cloudName: "dxld01rcp", // Your Cloudinary Cloud Name
-            uploadPreset: "Storage_preset" // Your Cloudinary Upload Preset
-        };
-
         // Initialize Firebase services
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // --- Tone.js Synths for Notification Sounds ---
+        const successSynth = new Tone.Synth().toDestination();
+        const errorSynth = new Tone.Synth().toDestination();
+        const infoSynth = new Tone.Synth().toDestination();
+
+        // Set up basic sounds
+        successSynth.oscillator.type = "sine"; successSynth.envelope.attack = 0.01; successSynth.envelope.decay = 0.2; successSynth.envelope.sustain = 0.0; successSynth.envelope.release = 0.5;
+        errorSynth.oscillator.type = "sawtooth"; errorSynth.envelope.attack = 0.01; errorSynth.envelope.decay = 0.3; errorSynth.envelope.sustain = 0.0; errorSynth.envelope.release = 0.5;
+        infoSynth.oscillator.type = "triangle"; infoSynth.envelope.attack = 0.01; infoSynth.envelope.decay = 0.1; infoSynth.envelope.sustain = 0.0; infoSynth.envelope.release = 0.3;
+
+        // Specific synths for notification sounds
+        const messageSoundSynth = new Tone.Synth().toDestination();
+        messageSoundSynth.oscillator.type = "sine";
+        messageSoundSynth.envelope.attack = 0.01; messageSoundSynth.envelope.decay = 0.1; messageSoundSynth.envelope.sustain = 0.0; messageSoundSynth.envelope.release = 0.2;
+
+        const callSoundSynth = new Tone.Synth().toDestination();
+        callSoundSynth.oscillator.type = "square";
+        callSoundSynth.envelope.attack = 0.01; callSoundSynth.envelope.decay = 0.6; callSoundSynth.envelope.sustain = 0.0; callSoundSynth.envelope.release = 0.8;
+        const callRingingPattern = new Tone.Pattern(function(time, note){
+            callSoundSynth.triggerAttackRelease(note, "8n", time);
+        }, ["C5", "C5", "C5", "C5"]).start(0);
+        callRingingPattern.interval = "1s";
+        callRingingPattern.humanize = true;
+        callRingingPattern.playbackRate = 1;
+        callRingingPattern.loop = true;
+        callRingingPattern.autostart = false;
+
+
         // --- DOM Elements ---
-        const headerProfilePic = document.getElementById('headerProfilePic');
-        const headerAvatarIcon = document.getElementById('headerAvatarIcon');
-        const headerDisplayName = document.getElementById('headerDisplayName');
-        const logoutButton = document.getElementById('logoutButton');
-        const notificationCountElement = document.getElementById('notificationCount');
         const messageBox = document.getElementById('messageBox');
-        const adminIconLink = document.getElementById('adminIconLink');
 
-        // Privacy Settings Form Elements
-        const showDisplayNameCheckbox = document.getElementById('showDisplayName');
-        const showProfilePicCheckbox = document.getElementById('showProfilePic');
-        const showBioCheckbox = document.getElementById('showBio');
-        const showLocationCheckbox = document.getElementById('showLocation');
-        const showEmailCheckbox = document.getElementById('showEmail');
-        const showLastSeenCheckbox = document.getElementById('showLastSeen');
-        const showPhoneCheckbox = document.getElementById('showPhone');
-        const allowFriendRequestsCheckbox = document.getElementById('allowFriendRequests');
-        const allowMessagesCheckbox = document.getElementById('allowMessages');
-        const allowMessagesFromStrangersCheckbox = document.getElementById('allowMessagesFromStrangers'); // NEW
-        const showSchoolCheckbox = document.getElementById('showSchool'); // NEW
-        const showWorkCheckbox = document.getElementById('showWork'); // NEW
-        const showHobbyCheckbox = document.getElementById('showHobby'); // NEW
-        const showFavoritePlaceCheckbox = document.getElementById('showFavoritePlace'); // NEW
-        const showRelationshipStatusCheckbox = document.getElementById('showRelationshipStatus'); // NEW
-        const storyPrivacySelect = document.getElementById('storyPrivacy');
+        // Account Management
+        const usernameInput = document.getElementById('usernameInput');
+        const emailInput = document.getElementById('emailInput');
+        const phoneInput = document.getElementById('phoneInput');
+        const logoutButton = document.getElementById('logoutButton');
 
+        // Chat Customization
+        const accentColorPicker = document.getElementById('accentColorPicker');
+        const customStatusMessageInput = document.getElementById('customStatusMessage');
+        const chatBackgroundSelect = document.getElementById('chatBackground');
+        const bubbleStyleSelect = document.getElementById('bubbleStyle');
+        const fontSizeSelect = document.getElementById('fontSize');
+        const readReceiptsCheckbox = document.getElementById('readReceipts');
+        const typingIndicatorsCheckbox = document.getElementById('typingIndicators');
+        const messageReactionsCheckbox = document.getElementById('messageReactions');
+        const giphyIntegrationCheckbox = document.getElementById('giphyIntegration');
+
+
+        // Privacy Settings
+        const appearOfflineCheckbox = document.getElementById('appearOffline');
+        const blockUnknownCallsCheckbox = document.getElementById('blockUnknownCalls');
+
+        // Blocked Users
         const blockUserInput = document.getElementById('blockUserInput');
         const addBlockUserButton = document.getElementById('addBlockUserButton');
         const blockedUsersList = document.getElementById('blockedUsersList');
 
-        const savePrivacySettingsButton = document.getElementById('savePrivacySettingsButton');
+        // Notification Settings
+        const enableMessageSoundsCheckbox = document.getElementById('enableMessageSounds');
+        const enableCallSoundsCheckbox = document.getElementById('enableCallSounds');
+        const enableVibrationsCheckbox = document.getElementById('enableVibrations');
+        const muteAllNotificationsCheckbox = document.getElementById('muteAllNotifications');
+        const notificationVolumeSlider = document.getElementById('notificationVolume');
+
+        // Data & Storage
+        const autoDownloadMediaCheckbox = document.getElementById('autoDownloadMedia');
+        const viewStorageUsageButton = document.getElementById('viewStorageUsageButton');
+        const autoDeleteMessagesSelect = document.getElementById('autoDeleteMessages');
+
+        // Advanced Settings
+        const developerModeCheckbox = document.getElementById('developerMode');
+        const languageSelect = document.getElementById('languageSelect');
+        const hapticFeedbackCheckbox = document.getElementById('hapticFeedback');
+
+        // Help & Support
+        const faqButton = document.getElementById('faqButton');
+        const contactSupportButton = document.getElementById('contactSupportButton');
+        const reportBugButton = document.getElementById('reportBugButton');
+
+        // Account Actions (Requires Web Portal)
+        const changePasswordButton = document.getElementById('changePasswordButton');
+        const deleteAccountButton = document.getElementById('deleteAccountButton');
+
+        const saveSettingsButton = document.getElementById('saveSettingsButton');
+
+        // Custom Confirmation Modal elements
+        const customConfirmModal = document.getElementById('customConfirmModal');
+        const confirmModalMessage = document.getElementById('confirmModalMessage');
+        const confirmYesBtn = document.getElementById('confirmYesBtn');
+        const confirmNoBtn = document.getElementById('confirmNoBtn');
 
         // --- Global State ---
         let currentUser = null;
         let isAuthReady = false;
-        let currentPrivacySettings = {}; // To store the fetched settings
-        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Admin's User ID
+        let currentSettings = {}; // To store all fetched settings
+
+        // --- Theme Management Variables ---
+        const THEMES = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+        let currentThemeIndex = 0;
+
 
         // --- Utility Functions ---
 
         /**
-         * Plays a short notification sound.
+         * Plays a notification sound based on type.
+         * Uses Tone.js and respects user's notification settings.
+         * @param {string} type - 'success', 'error', 'info', 'warning', 'loading', 'message', 'call'.
          */
-        function playNotificationSound() {
-            const audio = new Audio('/assets/sounds/success_notification.mp3'); // Ensure this path is correct
-            audio.play().catch(e => console.error("Error playing sound:", e));
+        function playNotificationSound(type) {
+            Tone.start(); // Ensure audio context is started
+
+            const messageSoundsEnabled = currentSettings.notificationSettings?.enableMessageSounds ?? true;
+            const callSoundsEnabled = currentSettings.notificationSettings?.enableCallSounds ?? true;
+            const vibrationsEnabled = currentSettings.advancedSettings?.hapticFeedback ?? false; // Use hapticFeedback for general vibrations
+            const muteAllNotifications = currentSettings.notificationSettings?.muteAllNotifications ?? false;
+            const volume = currentSettings.notificationSettings?.notificationVolume ?? 1;
+
+            Tone.Destination.volume.value = Tone.gainToDb(volume); // Apply global volume
+
+            if (muteAllNotifications) return; // If all notifications are muted, do not play any sound or vibrate
+
+            if (vibrationsEnabled && navigator.vibrate) {
+                if (type === 'success') navigator.vibrate(200);
+                else if (type === 'error') navigator.vibrate([100, 50, 100]);
+                else if (type === 'info' || type === 'warning' || type === 'loading') navigator.vibrate(100);
+                else if (type === 'message') navigator.vibrate(50);
+                // No vibration for 'call' as ringing pattern handles it.
+            }
+
+            if (type === 'success') { successSynth.triggerAttackRelease("C5", "8n"); }
+            else if (type === 'error') { errorSynth.triggerAttackRelease("C3", "8n"); }
+            else if (type === 'info' || type === 'warning' || type === 'loading') { infoSynth.triggerAttackRelease("E4", "16n"); }
+            else if (type === 'message' && messageSoundsEnabled) { messageSoundSynth.triggerAttackRelease("G4", "16n"); }
+            else if (type === 'call' && callSoundsEnabled) {
+                // Call sound is handled by callRingingPattern, this just ensures it's started if needed.
+                // The pattern itself will be started/stopped by call management functions.
+            }
         }
+
+        /**
+         * Starts the ringing sound for incoming calls.
+         */
+        function startRingingSound() {
+            Tone.start();
+            if ((currentSettings.notificationSettings?.enableCallSounds ?? true) && !(currentSettings.notificationSettings?.muteAllNotifications ?? false)) {
+                callRingingPattern.start();
+            }
+        }
+
+        /**
+         * Stops the ringing sound.
+         */
+        function stopRingingSound() {
+            callRingingPattern.stop();
+        }
+
 
         /**
          * Displays a temporary message box with a given message and type.
          * @param {string} message - The message to display.
          * @param {string} type - The type of message ('success', 'error', 'info', 'loading', 'warning').
-         * @param {number} [durationMs=3000] - Duration in milliseconds for the message to display.
          * @param {boolean} [isPersistent=false] - If true, message stays until explicitly cleared or replaced.
+         * @param {number} [durationMs=3000] - Duration in milliseconds for the message to display if not persistent.
          */
-        function showMessageBox(message, type, durationMs = 3000, isPersistent = false) {
+        function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
             if (messageBox.timeoutId) {
                 clearTimeout(messageBox.timeoutId);
-                messageBox.timeoutId = null;
             }
 
             messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
@@ -1224,27 +1226,22 @@
             messageBoxText.textContent = message;
             messageBox.className = 'message-box show ' + type;
 
-            if (type === 'success') {
-                messageBoxIcon.classList.add('fas', 'fa-check-circle');
-                playNotificationSound();
-            } else if (type === 'error') {
-                messageBoxIcon.classList.add('fas', 'fa-times-circle');
-            } else if (type === 'info') {
-                messageBoxIcon.classList.add('fas', 'fa-info-circle');
-            } else if (type === 'warning') {
-                messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
-            } else {
-                messageBoxIcon.className = '';
+            if (messageBoxIcon) {
+                messageBoxIcon.className = ''; /* Reset classes */
+                if (type === 'success') { messageBoxIcon.classList.add('fas', 'fa-check-circle'); }
+                else if (type === 'error') { messageBoxIcon.classList.add('fas', 'fa-times-circle'); }
+                else if (type === 'info') { messageBoxIcon.classList.add('fas', 'fa-info-circle'); }
+                else if (type === 'warning') { messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle'); }
+                else if (type === 'loading') { messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); }
             }
 
-            if (type === 'loading') {
-                messageBox.classList.add('loading-pulse');
-            } else {
-                messageBox.classList.remove('loading-pulse');
-            }
+            if (type === 'loading') { messageBox.classList.add('loading-pulse'); }
+            else { messageBox.classList.remove('loading-pulse'); }
 
             messageBox.style.display = 'flex';
             messageBox.style.opacity = '1';
+
+            playNotificationSound(type); // Play sound based on type
 
             if (!isPersistent) {
                 messageBox.timeoutId = setTimeout(() => {
@@ -1257,6 +1254,45 @@
                 }, durationMs);
             }
         }
+
+        /**
+         * Displays a custom confirmation modal.
+         * @param {string} message - The message to display in the modal.
+         * @returns {Promise<boolean>} Resolves with true if 'Yes' is clicked, false if 'No'.
+         */
+        function showCustomConfirm(message) {
+            return new Promise((resolve) => {
+                if (!customConfirmModal || !confirmModalMessage || !confirmYesBtn || !confirmNoBtn) {
+                    console.error("JCHAT_ERROR: Custom confirmation modal elements not found.");
+                    resolve(false);
+                    return;
+                }
+
+                confirmModalMessage.textContent = message;
+                customConfirmModal.classList.add('active');
+                customConfirmModal.setAttribute('aria-hidden', 'false');
+
+                const handleYes = () => {
+                    customConfirmModal.classList.remove('active');
+                    customConfirmModal.setAttribute('aria-hidden', 'true');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(true);
+                };
+
+                const handleNo = () => {
+                    customConfirmModal.classList.remove('active');
+                    customConfirmModal.setAttribute('aria-hidden', 'true');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(false);
+                };
+
+                confirmYesBtn.addEventListener('click', handleYes);
+                confirmNoBtn.addEventListener('click', handleNo);
+            });
+        }
+
 
         /**
          * Toggles loading state for a button.
@@ -1282,222 +1318,136 @@
         }
 
         /**
-         * Constructs a Cloudinary URL for an image/video.
-         * @param {string} urlOrPublicId - The full Cloudinary URL or the public ID of the image on Cloudinary.
-         * @param {string} transformations - Optional Cloudinary transformations.
-         * @returns {string|null} The full Cloudinary URL or null if urlOrPublicId is not provided.
+         * Applies the selected accent color to the CSS variables.
+         * @param {string} color - The hex color string.
          */
-        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
-            if (!urlOrPublicId) return null;
-            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
-                return urlOrPublicId;
-            }
-            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
+        function applyAccentColor(color) {
+            document.documentElement.style.setProperty('--user-defined-accent-color', color);
+            // Also update the main accent-color if needed for consistency with gradients etc.
+            document.documentElement.style.setProperty('--accent-color', color);
         }
 
         /**
-         * Displays the profile picture or a default icon.
-         * @param {HTMLElement} imgElement - The <img> element to update.
-         * @param {HTMLElement} iconElement - The <i> element to display if no image.
-         * @param {string|null} profilePicId - The Cloudinary public ID or URL, or null.
-         * @param {string} usernameInitial - Initial for placeholder.
-         * @param {string} transformations - Cloudinary transformations.
+         * Fetches and populates all settings forms.
          */
-        function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
-            if (profilePicId) {
-                const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
-                imgElement.src = imageUrl;
-                imgElement.style.display = 'block';
-                iconElement.style.display = 'none';
-                imgElement.onerror = () => {
-                    console.error(`Failed to load profile picture: ${profilePicId}. Using placeholder.`);
-                    imgElement.src = `https://placehold.co/120x120/CCCCCC/000000?text=${usernameInitial}`;
-                    imgElement.style.display = 'block';
-                    iconElement.style.display = 'none';
-                };
-            } else {
-                imgElement.src = '';
-                imgElement.style.display = 'none';
-                iconElement.style.display = 'block';
-            }
-        }
-
-        /**
-         * Fetches and displays the current user's profile data for the header.
-         * This function runs on every page to ensure header is consistent.
-         * @param {firebase.User} user - The authenticated Firebase user object.
-         */
-        async function fetchAndDisplayHeaderProfile(user) {
-            try {
-                const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
-                const privateDocSnap = await getDoc(privateProfileDocRef);
-
-                let profileData = null;
-                if (privateDocSnap.exists()) {
-                    profileData = privateDocSnap.data();
-                } else {
-                    profileData = {
-                        username: user.displayName || `User_${user.uid.substring(0, 8)}`,
-                        email: user.email || "",
-                        profilePicId: user.photoURL || null,
-                        bio: "",
-                        location: "",
-                        school: "", // NEW
-                        work: "", // NEW
-                        hobby: "", // NEW
-                        favoritePlace: "", // NEW
-                        relationshipStatus: "", // NEW
-                        friendsCount: 0,
-                        followersCount: 0,
-                        followingCount: 0,
-                        createdAt: serverTimestamp(),
-                        updatedAt: serverTimestamp(),
-                        inspirationType: "motivational",
-                        visibility: {
-                            displayName: true, profilePic: true, bio: false, location: false,
-                            emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
-                            allowMessagesFromStrangers: false, // NEW
-                            showSchool: false, showWork: false, showHobby: false, showFavoritePlace: false, showRelationshipStatus: false // NEW
-                        },
-                        totalPosts: 0,
-                        jCoins: 0,
-                        level: 1,
-                        currentXp: 0,
-                        xpToNextLevel: 100,
-                        walletUnlocked: false
-                    };
-                    await setDoc(privateProfileDocRef, profileData);
-
-                    // Also create/update public profile
-                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
-                    await setDoc(publicProfileDocRef, {
-                        username: profileData.username,
-                        profilePicId: profileData.profilePicId,
-                        bio: profileData.bio,
-                        location: profileData.location,
-                        school: profileData.school,
-                        work: profileData.work,
-                        hobby: profileData.hobby,
-                        favoritePlace: profileData.favoritePlace,
-                        relationshipStatus: profileData.relationshipStatus,
-                        createdAt: profileData.createdAt,
-                        updatedAt: profileData.updatedAt,
-                        visibility: profileData.visibility,
-                        totalPosts: profileData.totalPosts
-                    }, { merge: true });
-                }
-
-                // Update header UI
-                const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
-                displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
-                headerDisplayName.textContent = profileData.username || "JCHAT User";
-                document.getElementById('profileLink').href = `/profile.html?userId=${user.uid}`;
-
-                logoutButton.disabled = false;
-
-                // Show Admin Icon if current user is admin
-                if (user.uid === ADMIN_UID) {
-                    adminIconLink.style.display = 'block';
-                } else {
-                    adminIconLink.style.display = 'none';
-                }
-
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching or creating profile for header:", error);
-                const usernameInitial = (user.displayName || "J").charAt(0).toUpperCase();
-                displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
-                headerDisplayName.textContent = user.displayName || "JCHAT User";
-                showMessageBox(`Error loading header profile: ${error.message}`, 'error');
-                logoutButton.disabled = false;
-            }
-        }
-
-        /**
-         * Fetches and displays the notification count for the current user.
-         * @param {string} userId - The UID of the current user.
-         */
-        async function fetchNotificationCount(userId) {
-            notificationCountElement.style.display = 'none'; // Placeholder for now
-        }
-
-        // --- Privacy Settings Specific Functions ---
-
-        /**
-         * Fetches and populates the privacy settings form.
-         */
-        async function fetchPrivacySettings() {
+        async function fetchAllSettings() {
             if (!currentUser) {
-                showMessageBox("Please log in to view privacy settings.", 'info', true);
+                showMessageBox("Please log in to view settings.", 'info', true);
                 return;
             }
 
-            showMessageBox("Loading privacy settings...", 'loading', true);
-            toggleButtonLoading(savePrivacySettingsButton, true);
+            showMessageBox("Loading settings...", 'loading', true);
+            toggleButtonLoading(saveSettingsButton, true);
             addBlockUserButton.disabled = true;
             blockUserInput.disabled = true;
 
             try {
-                const privacyDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "privacy_settings");
-                const docSnap = await getDoc(privacyDocRef);
+                const settingsDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_settings");
+                const docSnap = await getDoc(settingsDocRef);
 
                 if (docSnap.exists()) {
-                    currentPrivacySettings = docSnap.data();
-                    console.log("JCHAT_DEBUG: Fetched privacy settings:", currentPrivacySettings);
+                    currentSettings = docSnap.data();
+                    console.log("JCHAT_DEBUG: Fetched settings:", currentSettings);
                 } else {
                     // Default settings if document doesn't exist
-                    currentPrivacySettings = {
-                        visibility: {
-                            displayName: true,
-                            profilePic: true,
-                            bio: false,
-                            location: false,
-                            emailPublic: false,
-                            lastOnline: false,
-                            allowFriendRequests: true,
-                            allowMessages: true,
-                            allowMessagesFromStrangers: false, // NEW default
-                            showSchool: false, showWork: false, showHobby: false, showFavoritePlace: false, showRelationshipStatus: false // NEW defaults
+                    currentSettings = {
+                        accountManagement: {
+                            username: currentUser.displayName || `User_${currentUser.uid.substring(0, 8)}`,
+                            email: currentUser.email || "",
+                            phone: "",
                         },
-                        storyPrivacy: "public",
-                        blockList: [],
+                        chatCustomization: {
+                            accentColor: "#00d5ff",
+                            customStatusMessage: "",
+                            chatBackground: "default",
+                            bubbleStyle: "rounded",
+                            fontSize: "medium",
+                            readReceipts: true,
+                            typingIndicators: true,
+                            messageReactions: true,
+                            giphyIntegration: true,
+                        },
+                        privacySettings: {
+                            appearOffline: false,
+                            blockUnknownCalls: false,
+                            blockList: [],
+                        },
+                        notificationSettings: {
+                            enableMessageSounds: true,
+                            enableCallSounds: true,
+                            enableVibrations: true,
+                            muteAllNotifications: false,
+                            notificationVolume: 1, // 0 to 1
+                        },
+                        dataStorageSettings: {
+                            autoDownloadMedia: false,
+                            autoDeleteMessages: "never",
+                        },
+                        advancedSettings: {
+                            developerMode: false,
+                            language: "en",
+                            hapticFeedback: true,
+                        },
                         lastUpdated: serverTimestamp()
                     };
                     // Create the document with default settings
-                    await setDoc(privacyDocRef, currentPrivacySettings);
-                    console.log("JCHAT_DEBUG: Created default privacy settings.");
+                    await setDoc(settingsDocRef, currentSettings);
+                    console.log("JCHAT_DEBUG: Created default settings.");
                 }
 
-                // Populate checkboxes
-                const visibility = currentPrivacySettings.visibility || {};
-                showDisplayNameCheckbox.checked = visibility.displayName ?? true;
-                showProfilePicCheckbox.checked = visibility.profilePic ?? true;
-                showBioCheckbox.checked = visibility.bio ?? false;
-                showLocationCheckbox.checked = visibility.location ?? false;
-                showEmailCheckbox.checked = visibility.emailPublic ?? false;
-                showLastSeenCheckbox.checked = visibility.lastOnline ?? false;
-                showPhoneCheckbox.checked = visibility.showPhone ?? false;
-                allowFriendRequestsCheckbox.checked = visibility.allowFriendRequests ?? true;
-                allowMessagesCheckbox.checked = visibility.allowMessages ?? true;
-                allowMessagesFromStrangersCheckbox.checked = visibility.allowMessagesFromStrangers ?? false; // NEW
-                showSchoolCheckbox.checked = visibility.showSchool ?? false; // NEW
-                showWorkCheckbox.checked = visibility.showWork ?? false; // NEW
-                showHobbyCheckbox.checked = visibility.showHobby ?? false; // NEW
-                showFavoritePlaceCheckbox.checked = visibility.showFavoritePlace ?? false; // NEW
-                showRelationshipStatusCheckbox.checked = visibility.showRelationshipStatus ?? false; // NEW
+                // Populate Account Management
+                const accountManagement = currentSettings.accountManagement || {};
+                usernameInput.value = accountManagement.username || "";
+                emailInput.value = accountManagement.email || "";
+                phoneInput.value = accountManagement.phone || "";
 
-                // Populate select dropdown
-                storyPrivacySelect.value = currentPrivacySettings.storyPrivacy || "public";
+                // Populate Chat Customization
+                const chatCustomization = currentSettings.chatCustomization || {};
+                accentColorPicker.value = chatCustomization.accentColor || "#00d5ff";
+                applyAccentColor(accentColorPicker.value); // Apply immediately
+                customStatusMessageInput.value = chatCustomization.customStatusMessage || "";
+                chatBackgroundSelect.value = chatCustomization.chatBackground || "default";
+                bubbleStyleSelect.value = chatCustomization.bubbleStyle || "rounded";
+                fontSizeSelect.value = chatCustomization.fontSize || "medium";
+                readReceiptsCheckbox.checked = chatCustomization.readReceipts ?? true;
+                typingIndicatorsCheckbox.checked = chatCustomization.typingIndicators ?? true;
+                messageReactionsCheckbox.checked = chatCustomization.messageReactions ?? true;
+                giphyIntegrationCheckbox.checked = chatCustomization.giphyIntegration ?? true;
 
-                // Populate block list
-                renderBlockedUsersList(currentPrivacySettings.blockList || []);
+                // Populate Privacy Settings
+                const privacySettings = currentSettings.privacySettings || {};
+                appearOfflineCheckbox.checked = privacySettings.appearOffline ?? false;
+                blockUnknownCallsCheckbox.checked = privacySettings.blockUnknownCalls ?? false;
+                renderBlockedUsersList(privacySettings.blockList || []);
 
-                showMessageBox("Privacy settings loaded!", 'success');
+                // Populate Notification Settings
+                const notifications = currentSettings.notificationSettings || {};
+                enableMessageSoundsCheckbox.checked = notifications.enableMessageSounds ?? true;
+                enableCallSoundsCheckbox.checked = notifications.enableCallSounds ?? true;
+                enableVibrationsCheckbox.checked = notifications.enableVibrations ?? true;
+                muteAllNotificationsCheckbox.checked = notifications.muteAllNotifications ?? false;
+                notificationVolumeSlider.value = notifications.notificationVolume ?? 1;
+                Tone.Destination.volume.value = Tone.gainToDb(notificationVolumeSlider.value); // Apply volume immediately
+
+                // Populate Data & Storage Settings
+                const dataStorage = currentSettings.dataStorageSettings || {};
+                autoDownloadMediaCheckbox.checked = dataStorage.autoDownloadMedia ?? false;
+                autoDeleteMessagesSelect.value = dataStorage.autoDeleteMessages || "never";
+
+                // Populate Advanced Settings
+                const advancedSettings = currentSettings.advancedSettings || {};
+                developerModeCheckbox.checked = advancedSettings.developerMode ?? false;
+                languageSelect.value = advancedSettings.language || "en";
+                hapticFeedbackCheckbox.checked = advancedSettings.hapticFeedback ?? true;
+
+
+                showMessageBox("Settings loaded!", 'success');
 
             } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching privacy settings:", error);
+                console.error("JCHAT_ERROR: Error fetching settings:", error);
                 showMessageBox(`Error loading settings: ${error.message}`, 'error');
             } finally {
-                toggleButtonLoading(savePrivacySettingsButton, false);
+                toggleButtonLoading(saveSettingsButton, false);
                 addBlockUserButton.disabled = false;
                 blockUserInput.disabled = false;
                 // Ensure the message box clears if it was persistent loading type
@@ -1528,7 +1478,10 @@
                 listItem.classList.add('blocked-user-item');
                 listItem.innerHTML = `
                     <span>${blockedUid}</span>
-                    <button data-uid="${blockedUid}">Unblock</button>
+                    <button data-uid="${blockedUid}" aria-label="Unblock user ${blockedUid}">
+                        <span class="button-text">Unblock</span>
+                        <div class="button-loader"></div>
+                    </button>
                 `;
                 blockedUsersList.appendChild(listItem);
             });
@@ -1537,7 +1490,7 @@
             blockedUsersList.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', async (event) => {
                     const uidToUnblock = event.target.dataset.uid;
-                    await removeUserFromBlockList(uidToUnblock);
+                    await removeUserFromBlockList(uidToUnblock, event.target);
                 });
             });
         }
@@ -1551,32 +1504,33 @@
                 showMessageBox("Please log in to manage your block list.", 'error');
                 return;
             }
-            if (!uidToBlock || uidToBlock.trim() === '') {
+            const trimmedUid = uidToBlock.trim();
+            if (!trimmedUid) {
                 showMessageBox("Please enter a User ID to block.", 'warning');
                 return;
             }
-            if (uidToBlock === currentUser.uid) {
+            if (trimmedUid === currentUser.uid) {
                 showMessageBox("You cannot block yourself.", 'warning');
                 return;
             }
-            if (currentPrivacySettings.blockList && currentPrivacySettings.blockList.includes(uidToBlock)) {
+            if (currentSettings.privacySettings?.blockList && currentSettings.privacySettings.blockList.includes(trimmedUid)) {
                 showMessageBox("This user is already in your block list.", 'info');
                 return;
             }
 
             toggleButtonLoading(addBlockUserButton, true);
-            showMessageBox(`Blocking user ${uidToBlock}...`, 'loading', true);
+            showMessageBox(`Blocking user ${trimmedUid}...`, 'loading', true);
 
             try {
-                const privacyDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "privacy_settings");
-                await updateDoc(privacyDocRef, {
-                    blockList: arrayUnion(uidToBlock),
+                const settingsDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_settings");
+                await updateDoc(settingsDocRef, {
+                    'privacySettings.blockList': arrayUnion(trimmedUid),
                     lastUpdated: serverTimestamp()
                 });
-                showMessageBox(`User ${uidToBlock} blocked successfully!`, 'success');
+                showMessageBox(`User ${trimmedUid} blocked successfully!`, 'success');
                 blockUserInput.value = ''; // Clear input
                 // Re-fetch settings to update UI
-                await fetchPrivacySettings();
+                await fetchAllSettings();
             } catch (error) {
                 console.error("JCHAT_ERROR: Error adding user to block list:", error);
                 showMessageBox(`Failed to block user: ${error.message}`, 'error');
@@ -1588,88 +1542,140 @@
         /**
          * Removes a user from the block list.
          * @param {string} uidToUnblock - The UID of the user to unblock.
+         * @param {HTMLElement} buttonElement - The button that triggered the unblock action.
          */
-        async function removeUserFromBlockList(uidToUnblock) {
+        async function removeUserFromBlockList(uidToUnblock, buttonElement) {
             if (!currentUser) {
                 showMessageBox("Please log in to manage your block list.", 'error');
                 return;
             }
 
+            const confirmUnblock = await showCustomConfirm(`Are you sure you want to unblock user ${uidToUnblock}?`);
+            if (!confirmUnblock) {
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
             showMessageBox(`Unblocking user ${uidToUnblock}...`, 'loading', true);
 
             try {
-                const privacyDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "privacy_settings");
-                await updateDoc(privacyDocRef, {
-                    blockList: arrayRemove(uidToUnblock),
+                const settingsDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_settings");
+                await updateDoc(settingsDocRef, {
+                    'privacySettings.blockList': arrayRemove(uidToUnblock),
                     lastUpdated: serverTimestamp()
                 });
                 showMessageBox(`User ${uidToUnblock} unblocked successfully!`, 'success');
                 // Re-fetch settings to update UI
-                await fetchPrivacySettings();
+                await fetchAllSettings();
             } catch (error) {
                 console.error("JCHAT_ERROR: Error removing user from block list:", error);
                 showMessageBox(`Failed to unblock user: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
             }
         }
 
         /**
-         * Saves the current privacy settings to Firestore.
+         * Saves all current settings to Firestore.
          */
-        async function savePrivacySettings() {
+        async function saveAllSettings() {
             if (!currentUser) {
-                showMessageBox("Please log in to save privacy settings.", 'error');
+                showMessageBox("Please log in to save settings.", 'error');
                 return;
             }
 
-            toggleButtonLoading(savePrivacySettingsButton, true);
+            toggleButtonLoading(saveSettingsButton, true);
             showMessageBox("Saving settings...", 'loading', true);
 
             try {
-                const privacyDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "privacy_settings");
+                const settingsDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_settings");
                 const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
 
                 const newSettings = {
-                    visibility: {
-                        displayName: showDisplayNameCheckbox.checked,
-                        profilePic: showProfilePicCheckbox.checked,
-                        bio: showBioCheckbox.checked,
-                        location: showLocationCheckbox.checked,
-                        emailPublic: showEmailCheckbox.checked,
-                        lastOnline: showLastSeenCheckbox.checked,
-                        showPhone: showPhoneCheckbox.checked,
-                        allowFriendRequests: allowFriendRequestsCheckbox.checked,
-                        allowMessages: allowMessagesCheckbox.checked,
-                        allowMessagesFromStrangers: allowMessagesFromStrangersCheckbox.checked, // NEW
-                        showSchool: showSchoolCheckbox.checked, // NEW
-                        showWork: showWorkCheckbox.checked, // NEW
-                        showHobby: showHobbyCheckbox.checked, // NEW
-                        showFavoritePlace: showFavoritePlaceCheckbox.checked, // NEW
-                        showRelationshipStatus: showRelationshipStatusCheckbox.checked // NEW
+                    accountManagement: {
+                        username: usernameInput.value.trim(),
+                        email: emailInput.value.trim(),
+                        phone: phoneInput.value.trim(),
                     },
-                    storyPrivacy: storyPrivacySelect.value,
-                    // blockList is managed separately via arrayUnion/arrayRemove
+                    chatCustomization: {
+                        accentColor: accentColorPicker.value,
+                        customStatusMessage: customStatusMessageInput.value.trim(),
+                        chatBackground: chatBackgroundSelect.value,
+                        bubbleStyle: bubbleStyleSelect.value,
+                        fontSize: fontSizeSelect.value,
+                        readReceipts: readReceiptsCheckbox.checked,
+                        typingIndicators: typingIndicatorsCheckbox.checked,
+                        messageReactions: messageReactionsCheckbox.checked,
+                        giphyIntegration: giphyIntegrationCheckbox.checked,
+                    },
+                    privacySettings: {
+                        appearOffline: appearOfflineCheckbox.checked,
+                        blockUnknownCalls: blockUnknownCallsCheckbox.checked,
+                        blockList: currentSettings.privacySettings?.blockList || [],
+                    },
+                    notificationSettings: {
+                        enableMessageSounds: enableMessageSoundsCheckbox.checked,
+                        enableCallSounds: enableCallSoundsCheckbox.checked,
+                        enableVibrations: enableVibrationsCheckbox.checked,
+                        muteAllNotifications: muteAllNotificationsCheckbox.checked,
+                        notificationVolume: parseFloat(notificationVolumeSlider.value),
+                    },
+                    dataStorageSettings: {
+                        autoDownloadMedia: autoDownloadMediaCheckbox.checked,
+                        autoDeleteMessages: autoDeleteMessagesSelect.value,
+                    },
+                    advancedSettings: {
+                        developerMode: developerModeCheckbox.checked,
+                        language: languageSelect.value,
+                        hapticFeedback: hapticFeedbackCheckbox.checked,
+                    },
                     lastUpdated: serverTimestamp()
                 };
 
-                // Use setDoc with merge: true to create the document if it doesn't exist, or update it
-                await setDoc(privacyDocRef, newSettings, { merge: true });
+                // Update user_settings document in Firestore
+                await setDoc(settingsDocRef, newSettings, { merge: true });
 
-                // Also update the public profile with relevant visibility settings
+                // Attempt to update Firebase Auth profile (username)
+                let authUpdateNeeded = false;
+                const authUpdateData = {};
+
+                if (currentUser.displayName !== newSettings.accountManagement.username) {
+                    authUpdateData.displayName = newSettings.accountManagement.username;
+                    authUpdateNeeded = true;
+                }
+
+                if (authUpdateNeeded) {
+                    try {
+                        await updateProfile(currentUser, authUpdateData);
+                        console.log("JCHAT_DEBUG: Firebase Auth profile updated.");
+                    } catch (authError) {
+                        console.error("JCHAT_ERROR: Error updating Firebase Auth profile:", authError);
+                        showMessageBox(`Warning: Could not update Firebase Auth profile (${authError.message}).`, 'warning');
+                    }
+                }
+
+                // Update public profile for username (assuming username is public)
                 await updateDoc(publicProfileDocRef, {
-                    visibility: newSettings.visibility,
+                    username: newSettings.accountManagement.username,
                     updatedAt: serverTimestamp()
                 });
 
-                // Update the local state
-                currentPrivacySettings = { ...currentPrivacySettings, ...newSettings };
+                // Apply dynamic CSS for accent color
+                applyAccentColor(newSettings.chatCustomization.accentColor);
 
-                showMessageBox("Privacy settings saved successfully!", 'success');
+                // Apply dynamic volume for Tone.js
+                Tone.Destination.volume.value = Tone.gainToDb(newSettings.notificationSettings.notificationVolume);
+
+                // Update the local state
+                currentSettings = { ...currentSettings, ...newSettings };
+
+                showMessageBox("Settings saved successfully!", 'success');
 
             } catch (error) {
-                console.error("JCHAT_ERROR: Error saving privacy settings:", error);
+                console.error("JCHAT_ERROR: Error saving settings:", error);
                 showMessageBox(`Failed to save settings: ${error.message}`, 'error');
             } finally {
-                toggleButtonLoading(savePrivacySettingsButton, false);
+                toggleButtonLoading(saveSettingsButton, false);
             }
         }
 
@@ -1677,26 +1683,37 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Apply theme on load
             const savedTheme = localStorage.getItem('jchat-theme');
-            const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
-            if (savedTheme && themes.includes(savedTheme)) {
-                document.body.classList.remove(...themes);
+            if (savedTheme && THEMES.includes(savedTheme)) {
+                document.body.classList.remove(...THEMES);
                 document.body.classList.add(savedTheme);
+                currentThemeIndex = THEMES.indexOf(savedTheme);
             } else {
-                document.body.classList.remove(...themes);
+                document.body.classList.remove(...THEMES);
                 document.body.classList.add('theme-dark-mode'); // Default
+                currentThemeIndex = THEMES.indexOf('theme-dark-mode');
             }
         });
 
         window.addEventListener('storage', (event) => {
             if (event.key === 'jchat-theme') {
                 const newTheme = event.newValue || 'theme-dark-mode';
-                const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
-                if (themes.includes(newTheme)) {
-                    document.body.classList.remove(...themes);
+                if (THEMES.includes(newTheme)) {
+                    document.body.classList.remove(...THEMES);
                     document.body.classList.add(newTheme);
+                    currentThemeIndex = THEMES.indexOf(newTheme);
                 }
             }
         });
+
+        // Add a general click listener to elements with `action-button` class for haptic feedback
+        document.body.addEventListener('click', (event) => {
+            if (event.target.classList.contains('action-button') || event.target.closest('.action-button')) {
+                if (currentSettings.advancedSettings?.hapticFeedback && navigator.vibrate) {
+                    navigator.vibrate(20); // Short vibration for button tap
+                }
+            }
+        });
+
 
         logoutButton.addEventListener('click', async () => {
             if (!isAuthReady) return;
@@ -1712,7 +1729,7 @@
             }
         });
 
-        savePrivacySettingsButton.addEventListener('click', savePrivacySettings);
+        saveSettingsButton.addEventListener('click', saveAllSettings);
 
         addBlockUserButton.addEventListener('click', () => {
             const uid = blockUserInput.value.trim();
@@ -1725,21 +1742,112 @@
             }
         });
 
+        // Help & Support buttons (fully activated)
+        if (faqButton) {
+            faqButton.addEventListener('click', () => {
+                showMessageBox("Opening FAQ page...", "info");
+                window.open('https://example.com/faq', '_blank'); // Placeholder FAQ page
+            });
+        }
+        if (contactSupportButton) {
+            contactSupportButton.addEventListener('click', () => {
+                // Open WhatsApp chat
+                const whatsappNumber = "2349013790707";
+                const message = "Hello JCHAT Support, I need assistance with my account.";
+                window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+                showMessageBox("Opening WhatsApp chat with support.", "info");
+            });
+        }
+        if (reportBugButton) {
+            reportBugButton.addEventListener('click', () => {
+                showMessageBox("Opening bug report form...", "info");
+                window.open('mailto:jchatguide@gmail.com?subject=Bug Report - JCHAT App&body=Please describe the bug you encountered:', '_blank');
+            });
+        }
+
+        // Reinstated Account Actions (with clarification)
+        if (changePasswordButton) {
+            changePasswordButton.addEventListener('click', async () => {
+                showMessageBox("To change your password, please visit the JCHAT web portal for a secure process.", "info");
+                // In a real app, this might link to a Firebase password reset page or a custom portal.
+                // window.open('https://jchat.example.com/reset-password', '_blank');
+            });
+        }
+        if (deleteAccountButton) {
+            deleteAccountButton.addEventListener('click', async () => {
+                const confirmed = await showCustomConfirm("Are you sure you want to delete your account? This action is irreversible and will delete all your data. This process must be completed securely via our web portal.");
+                if (confirmed) {
+                    showMessageBox("Account deletion requires a secure process. Please visit the JCHAT web portal to proceed.", "warning");
+                    // In a real app, this would link to a secure deletion page or prompt for re-authentication.
+                    // window.open('https://jchat.example.com/delete-account', '_blank');
+                } else {
+                    showMessageBox("Account deletion cancelled.", "info");
+                }
+            });
+        }
+
+        // New Feature Listeners
+        if (notificationVolumeSlider) {
+            notificationVolumeSlider.addEventListener('input', (event) => {
+                Tone.Destination.volume.value = Tone.gainToDb(parseFloat(event.target.value));
+            });
+        }
+        if (accentColorPicker) {
+            accentColorPicker.addEventListener('input', (event) => {
+                applyAccentColor(event.target.value);
+            });
+        }
+        if (viewStorageUsageButton) {
+            viewStorageUsageButton.addEventListener('click', () => {
+                showMessageBox("Your current storage usage: 150MB / 1GB (simulated).", "info");
+            });
+        }
+
+
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 isAuthReady = true;
-                console.log("JCHAT_DEBUG: User authenticated in Privacy Settings Page:", user.uid);
-                await fetchAndDisplayHeaderProfile(user); // Update header
-                await fetchPrivacySettings(); // Fetch and populate privacy settings
+                console.log("JCHAT_DEBUG: User authenticated in Settings Page:", user.uid);
+                await fetchAllSettings(); // Fetch and populate all settings
 
-                // Show Admin Icon if current user is admin
-                if (user.uid === ADMIN_UID) {
-                    adminIconLink.style.display = 'block';
-                } else {
-                    adminIconLink.style.display = 'none';
-                }
+                // Enable all form elements
+                usernameInput.disabled = false;
+                emailInput.disabled = false;
+                phoneInput.disabled = false;
+                logoutButton.disabled = false;
+                accentColorPicker.disabled = false;
+                customStatusMessageInput.disabled = false;
+                chatBackgroundSelect.disabled = false;
+                bubbleStyleSelect.disabled = false;
+                fontSizeSelect.disabled = false;
+                readReceiptsCheckbox.disabled = false;
+                typingIndicatorsCheckbox.disabled = false;
+                messageReactionsCheckbox.disabled = false;
+                giphyIntegrationCheckbox.disabled = false;
+                appearOfflineCheckbox.disabled = false;
+                blockUnknownCallsCheckbox.disabled = false;
+                blockUserInput.disabled = false;
+                addBlockUserButton.disabled = false;
+                enableMessageSoundsCheckbox.disabled = false;
+                enableCallSoundsCheckbox.disabled = false;
+                enableVibrationsCheckbox.disabled = false;
+                muteAllNotificationsCheckbox.disabled = false;
+                notificationVolumeSlider.disabled = false;
+                autoDownloadMediaCheckbox.disabled = false;
+                viewStorageUsageButton.disabled = false;
+                autoDeleteMessagesSelect.disabled = false;
+                developerModeCheckbox.disabled = false;
+                languageSelect.disabled = false;
+                hapticFeedbackCheckbox.disabled = false;
+                saveSettingsButton.disabled = false;
+                changePasswordButton.disabled = false; // Re-enabled for informative message
+                deleteAccountButton.disabled = false; // Re-enabled for informative message
+                faqButton.disabled = false;
+                contactSupportButton.disabled = false;
+                reportBugButton.disabled = false;
+
 
             } else {
                 console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
@@ -1759,57 +1867,46 @@
                     }
                 }
                 isAuthReady = false;
+                // Disable all form elements when not logged in
+                usernameInput.disabled = true;
+                emailInput.disabled = true;
+                phoneInput.disabled = true;
                 logoutButton.disabled = true;
-                headerDisplayName.textContent = "Guest";
-                headerProfilePic.style.display = 'none';
-                headerAvatarIcon.style.display = 'block';
-                adminIconLink.style.display = 'none'; // Ensure admin icon is hidden
-                showMessageBox("Please log in to manage privacy settings.", 'info', true);
-                // Disable form elements
-                showDisplayNameCheckbox.disabled = true;
-                showProfilePicCheckbox.disabled = true;
-                showBioCheckbox.disabled = true;
-                showLocationCheckbox.disabled = true;
-                showEmailCheckbox.disabled = true;
-                showLastSeenCheckbox.disabled = true;
-                showPhoneCheckbox.disabled = true;
-                allowFriendRequestsCheckbox.disabled = true;
-                allowMessagesCheckbox.disabled = true;
-                allowMessagesFromStrangersCheckbox.disabled = true; // NEW
-                showSchoolCheckbox.disabled = true; // NEW
-                showWorkCheckbox.disabled = true; // NEW
-                showHobbyCheckbox.disabled = true; // NEW
-                showFavoritePlaceCheckbox.disabled = true; // NEW
-                showRelationshipStatusCheckbox.disabled = true; // NEW
-                storyPrivacySelect.disabled = true;
+                accentColorPicker.disabled = true;
+                customStatusMessageInput.disabled = true;
+                chatBackgroundSelect.disabled = true;
+                bubbleStyleSelect.disabled = true;
+                fontSizeSelect.disabled = true;
+                readReceiptsCheckbox.disabled = true;
+                typingIndicatorsCheckbox.disabled = true;
+                messageReactionsCheckbox.disabled = true;
+                giphyIntegrationCheckbox.disabled = true;
+                appearOfflineCheckbox.disabled = true;
+                blockUnknownCallsCheckbox.disabled = true;
                 blockUserInput.disabled = true;
                 addBlockUserButton.disabled = true;
-                savePrivacySettingsButton.disabled = true;
+                enableMessageSoundsCheckbox.disabled = true;
+                enableCallSoundsCheckbox.disabled = true;
+                enableVibrationsCheckbox.disabled = true;
+                muteAllNotificationsCheckbox.disabled = true;
+                notificationVolumeSlider.disabled = true;
+                autoDownloadMediaCheckbox.disabled = true;
+                viewStorageUsageButton.disabled = true;
+                autoDeleteMessagesSelect.disabled = true;
+                developerModeCheckbox.disabled = true;
+                languageSelect.disabled = true;
+                hapticFeedbackCheckbox.disabled = true;
+                saveSettingsButton.disabled = true;
+                changePasswordButton.disabled = true;
+                deleteAccountButton.disabled = true;
                 blockedUsersList.innerHTML = '<li style="color: var(--text-light); text-align: center;">Log in to view and manage your blocked users.</li>';
+                showMessageBox("Please log in to manage settings.", 'info', true);
+                // Help & Support buttons are still enabled
+                faqButton.disabled = false;
+                contactSupportButton.disabled = false;
+                reportBugButton.disabled = false;
             }
         });
-
-        // --- Bottom Navigation Bar Toggle Logic (reused from Home.html) ---
-        const bottomNavBar = document.getElementById('bottomNavBar');
-        const navToggleBtn = document.getElementById('navToggleBtn');
-
-        function toggleNavBarVisibility() {
-            const toggleIcon = navToggleBtn.querySelector('i');
-            const isHidden = bottomNavBar.classList.toggle('nav-bar-hidden-full');
-
-            if (isHidden) {
-                toggleIcon.classList.remove('fa-chevron-down');
-                toggleIcon.classList.add('fa-chevron-up');
-            } else {
-                toggleIcon.classList.remove('fa-chevron-up');
-                toggleIcon.classList.add('fa-chevron-down');
-            }
-        }
-
-        bottomNavBar.classList.add('nav-bar-hidden-full');
-        navToggleBtn.querySelector('i').classList.remove('fa-chevron-down');
-        navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
-        navToggleBtn.addEventListener('click', toggleNavBarVisibility);
     </script>
 </body>
 </html>
