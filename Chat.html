@@ -396,7 +396,28 @@
         #leftPanelContent::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, var(--blue), var(--pink)); border-radius: 10px; }
         #leftPanelContent::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, var(--pink), var(--blue)); }
 
-        .chat-list-item {
+        .search-input-container {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-light);
+            background: var(--header-background);
+            flex-shrink: 0;
+        }
+        .search-input-container input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            background: var(--input-background);
+            color: var(--white);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .search-input-container input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .chat-list-item, .friend-list-item { /* Combined styles for consistency */
             display: flex;
             align-items: center;
             padding: 10px 15px;
@@ -406,14 +427,14 @@
             position: relative;
         }
 
-        .chat-list-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .chat-list-item:hover, .friend-list-item:hover { background: rgba(255, 255, 255, 0.1); }
         .chat-list-item.active {
             background: var(--active-item-background);
             border-left: 3px solid var(--accent-color);
             padding-left: 12px;
         }
 
-        .chat-list-item .avatar {
+        .chat-list-item .avatar, .friend-list-item .avatar {
             width: 45px;
             height: 45px;
             border-radius: 50%;
@@ -435,7 +456,7 @@
         .status-offline { background-color: var(--status-offline); }
         .status-away { background-color: var(--status-away); }
 
-        .chat-list-item .chat-info {
+        .chat-list-item .chat-info, .friend-list-item .friend-info {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
@@ -443,12 +464,12 @@
             position: relative;
         }
 
-        .chat-list-item .chat-name-and-status {
+        .chat-list-item .chat-name-and-status, .friend-list-item .friend-name-and-status {
             display: flex;
             align-items: center;
             gap: 5px;
         }
-        .chat-list-item .chat-name {
+        .chat-list-item .chat-name, .friend-list-item .friend-name {
             font-weight: 700;
             color: var(--white);
             font-size: 1rem;
@@ -1595,13 +1616,23 @@
 
                 <div class="sidebar-tabs" role="tablist">
                     <button id="chatsTab" class="active" role="tab" aria-selected="true" aria-controls="recentChatsList">Chats</button>
+                    <button id="friendsTab" role="tab" aria-selected="false" aria-controls="friendsList">Friends</button>
                 </div>
 
                 <div id="leftPanelContent">
                     <!-- Recent Chats List (initially visible) -->
                     <div id="recentChatsList" role="tabpanel" aria-labelledby="chatsTab">
-                        <p class="no-messages-yet" id="noRecentChatsMessage">No recent chats. Start a conversation!</p>
+                        <p class="no-results-message" id="noRecentChatsMessage">No recent chats. Start a conversation!</p>
                         <!-- Recent chat items will be loaded here dynamically -->
+                    </div>
+
+                    <!-- Friends List (initially hidden) -->
+                    <div id="friendsList" role="tabpanel" aria-labelledby="friendsTab" style="display: none;">
+                        <div class="search-input-container">
+                            <input type="text" id="friendSearchInput" placeholder="Search friends..." aria-label="Search friends">
+                        </div>
+                        <p class="no-results-message" id="noFriendsMessage">No friends found. Add some!</p>
+                        <!-- Friend items will be loaded here dynamically -->
                     </div>
                 </div>
             </div>
@@ -1785,9 +1816,13 @@
 
         const chatSidebar = document.getElementById('chatSidebar');
         const chatsTab = document.getElementById('chatsTab');
+        const friendsTab = document.getElementById('friendsTab'); // NEW
         const leftPanelContent = document.getElementById('leftPanelContent');
         const recentChatsList = document.getElementById('recentChatsList');
         const noRecentChatsMessage = document.getElementById('noRecentChatsMessage');
+        const friendsList = document.getElementById('friendsList'); // NEW
+        const noFriendsMessage = document.getElementById('noFriendsMessage'); // NEW
+        const friendSearchInput = document.getElementById('friendSearchInput'); // NEW
 
         const chatContentArea = document.getElementById('chatContentArea');
         const recipientAvatar = document.getElementById('recipientAvatar');
@@ -1871,11 +1906,12 @@
         let unsubscribeRecipientStatusListener = null;
         let unsubscribeCallListener = null;
         let unsubscribeRecentChatStatusListeners = {};
+        let unsubscribeFriendStatusListeners = {}; // NEW: For friends list status updates
         let typingTimeout = null;
         let isEditingMessage = false;
         let messageToEditId = null;
         let selectedMessageData = null;
-        let currentLeftPanelMode = 'chats';
+        let currentLeftPanelMode = 'chats'; // 'chats' or 'friends'
 
         // Voice Note Recording State
         let mediaRecorder;
@@ -1909,7 +1945,7 @@
         let currentMediaIndex = 0;
 
         // --- Constants ---
-        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2';
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Replace with your actual admin UID
         const THEMES = ['theme-dark-mode', 'theme-light-mode', 'theme-glass-mode', 'theme-sunset-mode'];
         let currentThemeIndex = 0;
 
@@ -2014,7 +2050,7 @@
                 if (type === 'success') { messageBoxIcon.classList.add('fas', 'fa-check-circle'); }
                 else if (type === 'error') { messageBoxIcon.classList.add('fas', 'fa-times-circle'); }
                 else if (type === 'info') { messageBoxIcon.classList.add('fas', 'fa-info-circle'); }
-                else if (type === 'warning') { messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle'); }
+                else if (type === 'warning') { messageBoxBoxIcon.classList.add('fas', 'fa-exclamation-triangle'); }
                 else if (type === 'loading') { messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); }
             }
 
@@ -2327,6 +2363,7 @@
                 //     else { adminIconLink.style.display = 'none'; }
                 // }
                 if (chatsTab) chatsTab.disabled = false;
+                if (friendsTab) friendsTab.disabled = false; // NEW: Enable friends tab
 
                 // Apply level restrictions after fetching user profile data
                 applyLevelRestrictions();
@@ -2394,6 +2431,13 @@
                     }
                 }
                 unsubscribeRecentChatStatusListeners = {};
+                // NEW: Unsubscribe friend status listeners
+                for (const userId in unsubscribeFriendStatusListeners) {
+                    if (unsubscribeFriendStatusListeners[userId]) {
+                        unsubscribeFriendStatusListeners[userId]();
+                    }
+                }
+                unsubscribeFriendStatusListeners = {};
 
                 if (unsubscribeCallListener) unsubscribeCallListener();
 
@@ -2865,10 +2909,6 @@
             currentChatId = newChatId;
             recipientUserId = newRecipientUserId;
 
-            // setChatInputState(true); // This will be handled by applyLevelRestrictions
-            // voiceCallBtn.disabled = false; // This will be handled by applyLevelRestrictions
-            // videoCallBtn.disabled = false; // This will be handled by applyLevelRestrictions
-
             try {
                 const recipientProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", recipientUserId);
                 const recipientProfileSnap = await getDoc(recipientProfileDocRef);
@@ -2898,15 +2938,22 @@
                     listenForRecipientStatus(recipientUserId);
                     listenForIncomingCalls();
 
+                    // Update active tab styling
                     document.querySelectorAll('.chat-list-item').forEach(item => {
                         item.classList.remove('active');
                     });
-                    const activeItem = document.querySelector(`.chat-list-item[data-chat-id="${newChatId}"]`);
-                    if (activeItem) {
-                        activeItem.classList.add('active');
-                        const badge = activeItem.querySelector('.unread-badge');
+                    const activeChatItem = document.querySelector(`.chat-list-item[data-chat-id="${newChatId}"]`);
+                    if (activeChatItem) {
+                        activeChatItem.classList.add('active');
+                        const badge = activeChatItem.querySelector('.unread-badge');
                         if (badge) badge.style.display = 'none';
                     }
+
+                    // NEW: Ensure friends list items are not active
+                    document.querySelectorAll('.friend-list-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+
 
                     if (window.innerWidth <= 768) {
                         chatSidebar.classList.add('hidden');
@@ -2914,9 +2961,9 @@
                         chatContentArea.style.display = 'flex';
                     }
 
-                    currentLeftPanelMode = 'chats';
-                    displayLeftPanelContent();
-                    chatsTab.classList.add('active');
+                    // currentLeftPanelMode = 'chats'; // Keep the current panel mode
+                    // displayLeftPanelContent(); // Re-render the current panel content
+                    // chatsTab.classList.add('active'); // Keep chats tab active
 
                     // Re-apply level restrictions after chat switch to ensure buttons are correctly enabled/disabled
                     applyLevelRestrictions();
@@ -3002,10 +3049,10 @@
          * Fetches and displays the list of recent chats in the sidebar.
          */
         async function fetchRecentChats() {
-            if (!currentUser) {
-                console.log("JCHAT_DEBUG: No current user, cannot fetch recent chats.");
+            if (!currentUser || currentLeftPanelMode !== 'chats') {
+                console.log("JCHAT_DEBUG: Not in chats mode or no current user, skipping recent chat fetch.");
+                recentChatsList.innerHTML = `<p class="no-results-message" id="noRecentChatsMessage">No recent chats. Start a conversation!</p>`;
                 noRecentChatsMessage.style.display = 'block';
-                recentChatsList.innerHTML = '';
                 return;
             }
 
@@ -3026,17 +3073,13 @@
                     noRecentChatsMessage.style.display = 'block';
                     if (!currentChatId) {
                         noChatSelectedOverlay.style.display = 'flex';
-                        setChatInputState(false); // Disable input if no chat selected
-                        // voiceCallBtn.disabled = true; // Handled by applyLevelRestrictions
-                        // videoCallBtn.disabled = true; // Handled by applyLevelRestrictions
+                        setChatInputState(false);
                     }
                     return;
                 } else {
                     noRecentChatsMessage.style.display = 'none';
                     noChatSelectedOverlay.style.display = 'none';
-                    setChatInputState(true); // Enable input if chats exist
-                    // voiceCallBtn.disabled = false; // Handled by applyLevelRestrictions
-                    // videoCallBtn.disabled = false; // Handled by applyLevelRestrictions
+                    setChatInputState(true);
                 }
 
                 const chatPromises = snapshot.docs.map(async (chatDoc) => {
@@ -3073,9 +3116,7 @@
                         recipientName.textContent = "No Chat Selected";
                         messagesDisplay.innerHTML = '';
                         noMessagesMessage.style.display = 'none';
-                        setChatInputState(false); // Disable input if no chat selected
-                        // voiceCallBtn.disabled = true; // Handled by applyLevelRestrictions
-                        // videoCallBtn.disabled = true; // Handled by applyLevelRestrictions
+                        setChatInputState(false);
                     }
                 } else {
                     document.querySelectorAll('.chat-list-item').forEach(item => {
@@ -3096,20 +3137,208 @@
                 noRecentChatsMessage.textContent = "Failed to load recent chats. Please try again.";
                 noRecentChatsMessage.style.display = 'block';
                 noChatSelectedOverlay.style.display = 'flex';
-                setChatInputState(false); // Disable input on error
-                // voiceCallBtn.disabled = true; // Handled by applyLevelRestrictions
-                // videoCallBtn.disabled = true; // Handled by applyLevelRestrictions
+                setChatInputState(false);
             });
+        }
+
+        /**
+         * Renders a single friend item in the sidebar.
+         * @param {object} friendProfile - The public profile data of the friend.
+         */
+        function renderFriendItem(friendProfile) {
+            const friendListItem = document.createElement('div');
+            friendListItem.classList.add('friend-list-item');
+            friendListItem.dataset.friendId = friendProfile.userId;
+
+            const usernameInitial = (friendProfile.username || "U").charAt(0).toUpperCase();
+
+            friendListItem.innerHTML = `
+                <img src="" alt="Avatar" class="avatar" id="friend-list-avatar-${friendProfile.userId}" style="display: none;">
+                <i class="fas fa-user-circle avatar" id="friend-list-avatar-icon-${friendProfile.userId}" aria-hidden="true"></i>
+                <div class="friend-info">
+                    <div class="friend-name-and-status">
+                        <p class="friend-name">${friendProfile.username || 'Unknown User'}</p>
+                        <span class="status-indicator" id="friend-status-indicator-${friendProfile.userId}" role="status"></span>
+                    </div>
+                </div>
+            `;
+            friendsList.appendChild(friendListItem);
+
+            const avatarImg = friendListItem.querySelector(`#friend-list-avatar-${friendProfile.userId}`);
+            const avatarIcon = friendListItem.querySelector(`#friend-list-avatar-icon-${friendProfile.userId}`);
+            displayProfilePicture(avatarImg, friendProfile.profilePicId, usernameInitial, "w_90,h_90,c_fill,g_face,r_max", avatarIcon);
+
+            const statusIndicator = friendListItem.querySelector(`#friend-status-indicator-${friendProfile.userId}`);
+            updateStatusIndicator(statusIndicator, friendProfile.status, friendProfile.lastOnline);
+
+            // Listen for real-time status updates for this friend
+            if (unsubscribeFriendStatusListeners[friendProfile.userId]) {
+                unsubscribeFriendStatusListeners[friendProfile.userId]();
+            }
+            const friendPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", friendProfile.userId);
+            unsubscribeFriendStatusListeners[friendProfile.userId] = onSnapshot(friendPublicProfileRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const updatedProfile = docSnap.data();
+                    updateStatusIndicator(statusIndicator, updatedProfile.status, updatedProfile.lastOnline);
+                }
+            }, (error) => {
+                console.error(`JCHAT_ERROR: Error listening to friend status for ${friendProfile.userId}:`, error);
+            });
+
+            friendListItem.addEventListener('click', () => handleFriendSelection(friendProfile.userId));
+        }
+
+        /**
+         * Fetches and displays the list of friends in the sidebar.
+         */
+        async function fetchFriends() {
+            if (!currentUser || currentLeftPanelMode !== 'friends') {
+                console.log("JCHAT_DEBUG: Not in friends mode or no current user, skipping friend fetch.");
+                friendsList.innerHTML = `<div class="search-input-container"><input type="text" id="friendSearchInput" placeholder="Search friends..." aria-label="Search friends"></div><p class="no-results-message" id="noFriendsMessage">No friends found. Add some!</p>`;
+                noFriendsMessage.style.display = 'block';
+                return;
+            }
+
+            // Unsubscribe existing friend status listeners
+            for (const userId in unsubscribeFriendStatusListeners) {
+                if (unsubscribeFriendStatusListeners[userId]) {
+                    unsubscribeFriendStatusListeners[userId]();
+                }
+            }
+            unsubscribeFriendStatusListeners = {};
+            friendsList.innerHTML = `<div class="search-input-container"><input type="text" id="friendSearchInput" placeholder="Search friends..." aria-label="Search friends"></div>`; // Clear and re-add search input
+
+            try {
+                const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
+                const friendsSnapshot = await getDocs(friendsCollectionRef);
+
+                if (friendsSnapshot.empty) {
+                    noFriendsMessage.style.display = 'block';
+                    return;
+                } else {
+                    noFriendsMessage.style.display = 'none';
+                }
+
+                const friendPromises = friendsSnapshot.docs.map(async (friendDoc) => {
+                    const friendId = friendDoc.id;
+                    const friendPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
+                    const friendPublicProfileSnap = await getDoc(friendPublicProfileRef);
+                    if (friendPublicProfileSnap.exists()) {
+                        return { userId: friendId, ...friendPublicProfileSnap.data() };
+                    }
+                    return null;
+                });
+
+                const friendsToDisplay = (await Promise.all(friendPromises)).filter(item => item !== null);
+
+                friendsToDisplay.forEach(friend => {
+                    renderFriendItem(friend);
+                });
+
+                // Re-attach listener for friend search input if it was recreated
+                const currentFriendSearchInput = document.getElementById('friendSearchInput');
+                if (currentFriendSearchInput) {
+                    currentFriendSearchInput.removeEventListener('input', filterFriends); // Prevent duplicate listeners
+                    currentFriendSearchInput.addEventListener('input', filterFriends);
+                }
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching friends:", error);
+                showMessageBox(`Error loading friends: ${error.message}`, 'error');
+                playNotificationSound('error');
+                noFriendsMessage.textContent = "Failed to load friends. Please try again.";
+                noFriendsMessage.style.display = 'block';
+            }
+        }
+
+        /**
+         * Handles the selection of a friend from the friends list.
+         * Initiates or switches to a direct chat with that friend.
+         * @param {string} friendId - The UID of the selected friend.
+         */
+        async function handleFriendSelection(friendId) {
+            if (!currentUser) return;
+
+            // Determine chat ID (alphabetical order of UIDs)
+            const chatMembers = [currentUser.uid, friendId].sort();
+            const newChatId = chatMembers.join('_');
+
+            try {
+                const chatDocRef = doc(db, "artifacts", appId, "public", "data", "chats", newChatId);
+                const chatDocSnap = await getDoc(chatDocRef);
+
+                if (!chatDocSnap.exists()) {
+                    // Create new chat document if it doesn't exist
+                    await setDoc(chatDocRef, {
+                        members: chatMembers,
+                        createdAt: serverTimestamp(),
+                        lastMessage: "Conversation started.",
+                        lastMessageTimestamp: serverTimestamp(),
+                        [`unreadCount_${currentUser.uid}`]: 0,
+                        [`unreadCount_${friendId}`]: 0,
+                        [`lastReadMessageTimestamp_${currentUser.uid}`]: serverTimestamp(),
+                        [`lastReadMessageTimestamp_${friendId}`]: null // Recipient hasn't read yet
+                    });
+                    showMessageBox("New chat created!", "success");
+                    playNotificationSound('success');
+                }
+                // Switch to the chat
+                await switchChat(newChatId, friendId);
+
+                // Ensure the chats tab is active and visible after selecting a friend
+                chatsTab.classList.add('active');
+                friendsTab.classList.remove('active');
+                currentLeftPanelMode = 'chats';
+                displayLeftPanelContent(); // This will re-fetch recent chats and make sure the new chat appears
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error handling friend selection or creating chat:", error);
+                showMessageBox(`Failed to start chat with friend: ${error.message}`, "error");
+                playNotificationSound('error');
+            }
+        }
+
+        /**
+         * Filters the list of friends in the sidebar based on search input.
+         */
+        function filterFriends() {
+            const searchTerm = friendSearchInput.value.toLowerCase().trim();
+            const friendListItems = friendsList.querySelectorAll('.friend-list-item');
+            let foundResults = false;
+
+            friendListItems.forEach(item => {
+                const friendName = item.querySelector('.friend-name')?.textContent.toLowerCase() || '';
+                if (friendName.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                    foundResults = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (noFriendsMessage) {
+                noFriendsMessage.style.display = foundResults || searchTerm === '' ? 'none' : 'block';
+                if (searchTerm !== '' && !foundResults) {
+                    noFriendsMessage.textContent = "No friends match your search.";
+                } else if (searchTerm === '' && !foundResults) {
+                    noFriendsMessage.textContent = "No friends found. Add some!";
+                }
+            }
         }
 
 
         /**
          * Controls which content is displayed in the left panel (sidebar).
-         * Only 'chats' mode is supported now.
          */
         function displayLeftPanelContent() {
-            recentChatsList.style.display = 'flex';
-            fetchRecentChats();
+            if (currentLeftPanelMode === 'chats') {
+                recentChatsList.style.display = 'flex';
+                friendsList.style.display = 'none';
+                fetchRecentChats();
+            } else if (currentLeftPanelMode === 'friends') {
+                friendsList.style.display = 'flex';
+                recentChatsList.style.display = 'none';
+                fetchFriends();
+            }
         }
 
         /**
@@ -3130,8 +3359,6 @@
                     showMessageBox("Invalid chat ID in URL.", "error", true);
                     noChatSelectedOverlay.style.display = 'flex';
                     setChatInputState(false);
-                    // voiceCallBtn.disabled = true; // Handled by applyLevelRestrictions
-                    // videoCallBtn.disabled = true; // Handled by applyLevelRestrictions
                 }
             } else {
                 noChatSelectedOverlay.style.display = 'flex';
@@ -3140,9 +3367,12 @@
                 messagesDisplay.innerHTML = '';
                 noMessagesMessage.style.display = 'none';
                 setChatInputState(false);
-                // voiceCallBtn.disabled = true; // Handled by applyLevelRestrictions
-                // videoCallBtn.disabled = true; // Handled by applyLevelRestrictions
             }
+
+            // Ensure correct tab is active on initial load
+            chatsTab.classList.add('active');
+            friendsTab.classList.remove('active');
+            currentLeftPanelMode = 'chats'; // Default to chats tab on load
 
             displayLeftPanelContent();
 
@@ -4407,16 +4637,12 @@
                 recipientName.textContent = "Please Log In";
                 updateStatusIndicator(recipientStatusIndicator, 'offline', null);
                 setChatInputState(false);
-                // The following are now handled by applyLevelRestrictions
-                // voiceCallBtn.disabled = true;
-                // videoCallBtn.disabled = true;
-                // attachMediaBtn.disabled = true; // No longer level restricted
-                // toggleVoiceNoteBtn.disabled = true;
                 noChatSelectedOverlay.style.display = 'flex';
                 recentChatsList.innerHTML = '';
                 noRecentChatsMessage.textContent = "Please log in to see your recent chats.";
                 noRecentChatsMessage.style.display = 'block';
                 chatsTab.disabled = true;
+                friendsTab.disabled = true; // NEW: Disable friends tab if not authenticated
 
                 // Apply level restrictions even if not logged in to disable all features
                 currentUserProfileData = { level: 0 }; // Set a temporary level 0 for unauthenticated state
@@ -4438,10 +4664,20 @@
                 currentThemeIndex = THEMES.indexOf('theme-dark-mode');
             }
 
+            // Sidebar Tab Switching
             if (chatsTab) {
                 chatsTab.addEventListener('click', () => {
                     chatsTab.classList.add('active');
+                    friendsTab.classList.remove('active');
                     currentLeftPanelMode = 'chats';
+                    displayLeftPanelContent();
+                });
+            }
+            if (friendsTab) { // NEW: Friends Tab Listener
+                friendsTab.addEventListener('click', () => {
+                    friendsTab.classList.add('active');
+                    chatsTab.classList.remove('active');
+                    currentLeftPanelMode = 'friends';
                     displayLeftPanelContent();
                 });
             }
@@ -4516,6 +4752,10 @@
                 });
             }
             if (messageSearchInput) { messageSearchInput.addEventListener('input', filterMessages); }
+
+            // NEW: Friend Search Input
+            if (friendSearchInput) { friendSearchInput.addEventListener('input', filterFriends); }
+
 
             // New Feature Event Listeners (placeholders for now)
             if (customizeChatBtn) {
@@ -4607,6 +4847,7 @@
             cancelRecordBtn.disabled = true;
             if (logoutButton) logoutButton.disabled = true;
             if (chatsTab) chatsTab.disabled = true;
+            if (friendsTab) friendsTab.disabled = true; // NEW: Disable friends tab initially
 
         });
 
@@ -4652,6 +4893,13 @@
                 }
             }
             unsubscribeRecentChatStatusListeners = {};
+            // NEW: Unsubscribe friend status listeners
+            for (const userId in unsubscribeFriendStatusListeners) {
+                if (unsubscribeFriendStatusListeners[userId]) {
+                    unsubscribeFriendStatusListeners[userId]();
+                }
+            }
+            unsubscribeFriendStatusListeners = {};
 
             if (unsubscribeCallListener) unsubscribeCallListener();
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
