@@ -923,7 +923,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp, onSnapshot, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // --- Firebase & Canvas Environment Configuration ---
@@ -1159,6 +1159,7 @@
          * Fetches current user's private profile data.
          */
         async function fetchCurrentUserProfile(user) {
+            console.log("JCHAT_DEBUG: fetchCurrentUserProfile started.");
             try {
                 const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
                 const privateDocSnap = await getDoc(privateProfileDocRef);
@@ -1208,8 +1209,10 @@
          * Fetches all public user profiles and sets up real-time listeners for friend statuses and online statuses.
          */
         async function fetchUsersAndFriendStatuses() {
+            console.log("JCHAT_DEBUG: fetchUsersAndFriendStatuses started.");
             if (!currentUser) {
                 if (usersListContainer) usersListContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see users.</p>';
+                console.log("JCHAT_DEBUG: Not logged in, cannot fetch users.");
                 return;
             }
 
@@ -1221,21 +1224,28 @@
                 allUsers = usersSnapshot.docs
                     .map(doc => ({ id: doc.id, ...doc.data() }))
                     .filter(user => user.id !== currentUser.uid); // Exclude current user
+                console.log(`JCHAT_DEBUG: All public users fetched: ${allUsers.length} users.`);
 
                 // Clear previous status listeners
                 Object.values(unsubscribeUserStatusListeners).forEach(unsubscribe => unsubscribe());
                 unsubscribeUserStatusListeners = {};
                 userOnlineStatuses = {};
+                console.log("JCHAT_DEBUG: Previous user status listeners cleared.");
 
                 // Set up real-time listener for current user's friend relationships
                 const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
-                if (unsubscribeFriendStatuses) unsubscribeFriendStatuses(); // Unsubscribe previous listener
+                if (unsubscribeFriendStatuses) {
+                    unsubscribeFriendStatuses(); // Unsubscribe previous listener
+                    console.log("JCHAT_DEBUG: Unsubscribed from previous friend statuses listener.");
+                }
 
                 unsubscribeFriendStatuses = onSnapshot(friendsCollectionRef, (snapshot) => {
+                    console.log("JCHAT_DEBUG: friendStatuses onSnapshot triggered.");
                     userFriendStatuses = {};
                     snapshot.forEach(doc => {
                         userFriendStatuses[doc.id] = doc.data().status;
                     });
+                    console.log("JCHAT_DEBUG: Updated userFriendStatuses:", userFriendStatuses);
                     // After friend statuses are updated, re-render users
                     filterAndRenderUsers();
                 }, (error) => {
@@ -1260,18 +1270,20 @@
                         } else {
                             userOnlineStatuses[user.id] = 'offline'; // Default if no status doc
                         }
+                        // console.log(`JCHAT_DEBUG: Status for ${user.id}: ${userOnlineStatuses[user.id]}`);
                         filterAndRenderUsers(); // Re-render the list whenever any user's status changes
-                        showMessageBox("Users loaded.", 'success'); // Dismiss loading message after initial load and updates
+                        // showMessageBox("Users loaded.", 'success'); // Dismiss loading message after initial load and updates
                     }, (error) => {
                         console.error(`JCHAT_ERROR: Error listening to user status (${user.id}):`, error);
                         userOnlineStatuses[user.id] = 'offline'; // Fallback on error
                         filterAndRenderUsers();
                     });
                 });
+                console.log("JCHAT_DEBUG: User status listeners set up for all users.");
 
                 // Initial render in case there are no status updates immediately
                 filterAndRenderUsers();
-                showMessageBox("Users loaded.", 'success');
+                showMessageBox("Users loaded.", 'success'); // Dismiss loading message after initial load and updates
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching users or setting up friend status listener:", error);
@@ -1284,7 +1296,11 @@
          * Filters and renders the user list based on search input, current filter, and sort option.
          */
         function filterAndRenderUsers() {
-            if (!usersListContainer) return;
+            console.log("JCHAT_DEBUG: filterAndRenderUsers called.");
+            if (!usersListContainer) {
+                console.error("JCHAT_ERROR: usersListContainer not found in filterAndRenderUsers.");
+                return;
+            }
 
             const searchTerm = userSearchInput.value.toLowerCase();
             let processedUsers = allUsers.map(user => ({
@@ -1292,12 +1308,16 @@
                 friendStatus: userFriendStatuses[user.id] || 'none',
                 onlineStatus: userOnlineStatuses[user.id] || 'offline'
             }));
+            console.log(`JCHAT_DEBUG: Initial processedUsers count: ${processedUsers.length}`);
+
 
             // 1. Apply Search Filter
             processedUsers = processedUsers.filter(user =>
                 (user.username && user.username.toLowerCase().includes(searchTerm)) ||
                 (user.userId && user.userId.toLowerCase().includes(searchTerm))
             );
+            console.log(`JCHAT_DEBUG: Users after search filter (${searchTerm}): ${processedUsers.length}`);
+
 
             // 2. Apply Relationship Filter
             if (currentFilter === 'friends') {
@@ -1307,6 +1327,8 @@
             } else if (currentFilter === 'pending_received') {
                 processedUsers = processedUsers.filter(user => user.friendStatus === 'received');
             }
+            console.log(`JCHAT_DEBUG: Users after relationship filter (${currentFilter}): ${processedUsers.length}`);
+
 
             // 3. Apply Sorting
             if (currentSort === 'name_asc') {
@@ -1322,6 +1344,7 @@
                     return (a.username || '').localeCompare(b.username || ''); // Secondary sort by name
                 });
             }
+            console.log(`JCHAT_DEBUG: Users sorted by: ${currentSort}`);
 
 
             usersListContainer.innerHTML = ''; // Clear existing list
@@ -1334,6 +1357,7 @@
                 if (currentFilter === 'pending_received') message = 'No pending requests received by you matching your search.';
 
                 usersListContainer.innerHTML = `<p style="text-align: center; color: var(--text-light);">${message}</p>`;
+                console.log("JCHAT_DEBUG: No users to display after filtering.");
                 return;
             }
 
@@ -1421,7 +1445,7 @@
                     acceptButton.classList.add('accept-request');
                     acceptButton.addEventListener('click', (event) => {
                         event.stopPropagation(); // Prevent item click from triggering
-                        acceptFriendRequest(user.id, acceptButton);
+                        acceptFriendRequest(user.id, user.username, acceptButton); // Pass username for confirmation
                     });
                     userActions.appendChild(acceptButton);
 
@@ -1441,7 +1465,7 @@
                     actionButton.classList.add('add-friend');
                     actionButton.addEventListener('click', (event) => {
                         event.stopPropagation(); // Prevent item click from triggering
-                        sendFriendRequest(user.id, actionButton);
+                        sendFriendRequest(user.id, user.username, actionButton); // Pass username for confirmation
                     });
                     userActions.appendChild(actionButton);
                 }
@@ -1451,21 +1475,25 @@
                 userItem.appendChild(userActions);
                 usersListContainer.appendChild(userItem);
             });
+            console.log("JCHAT_DEBUG: All user items rendered.");
         }
 
         /**
          * Sends a friend request to the target user.
          * @param {string} targetUserId - The UID of the user to send a request to.
+         * @param {string} targetUsername - The username of the user to send a request to.
          * @param {HTMLElement} buttonElement - The button element that triggered the action.
          */
-        async function sendFriendRequest(targetUserId, buttonElement) {
+        async function sendFriendRequest(targetUserId, targetUsername, buttonElement) {
+            console.log(`JCHAT_DEBUG: sendFriendRequest called for ${targetUsername} (${targetUserId}).`);
             if (!currentUser || !currentUserProfileData) {
                 showMessageBox("You must be logged in to send friend requests.", 'warning');
+                console.log("JCHAT_ERROR: sendFriendRequest aborted: currentUser or currentUserProfileData missing.");
                 return;
             }
 
             toggleButtonLoading(buttonElement, true, 'Add Friend');
-            showMessageBox("Sending friend request...", 'loading', true); // Show loading immediately
+            showMessageBox(`Sending friend request to ${targetUsername}...`, 'loading', true);
 
             try {
                 // Perform both Firestore writes concurrently
@@ -1491,11 +1519,11 @@
                         relatedUserId: targetUserId
                     })
                 ]);
-
-                showMessageBox("Friend request sent!", 'success'); // Show success ONLY if all succeeded
+                console.log(`JCHAT_DEBUG: Friend request operations to ${targetUsername} completed successfully.`);
+                showMessageBox(`Friend request sent to ${targetUsername}!`, 'success');
             } catch (error) {
-                console.error("JCHAT_ERROR: Error sending friend request:", error);
-                showMessageBox(`Failed to send request: ${error.message}`, 'error'); // Show error if any failed
+                console.error("JCHAT_ERROR: Error sending friend request:", error.code, error.message, error);
+                showMessageBox(`Failed to send request: ${error.message}`, 'error');
             } finally {
                 toggleButtonLoading(buttonElement, false, 'Add Friend');
             }
@@ -1504,16 +1532,25 @@
         /**
          * Accepts a friend request from the target user.
          * @param {string} targetUserId - The UID of the user whose request is being accepted.
+         * @param {string} targetUsername - The username of the user whose request is being accepted.
          * @param {HTMLElement} buttonElement - The button element that triggered the action.
          */
-        async function acceptFriendRequest(targetUserId, buttonElement) {
+        async function acceptFriendRequest(targetUserId, targetUsername, buttonElement) {
+            console.log(`JCHAT_DEBUG: acceptFriendRequest called for ${targetUsername} (${targetUserId}).`);
             if (!currentUser || !currentUserProfileData) {
                 showMessageBox("You must be logged in to accept friend requests.", 'warning');
+                console.log("JCHAT_ERROR: acceptFriendRequest aborted: currentUser or currentUserProfileData missing.");
+                return;
+            }
+
+            const confirmAccept = await showConfirmationDialog(`Are you sure you want to accept the friend request from ${targetUsername}?`);
+            if (!confirmAccept) {
+                showMessageBox("Accept action cancelled.", 'info');
                 return;
             }
 
             toggleButtonLoading(buttonElement, true, 'Accept Request');
-            showMessageBox("Accepting friend request...", 'loading', true); // Show loading immediately
+            showMessageBox(`Accepting friend request from ${targetUsername}...`, 'loading', true);
 
             try {
                 // Perform both Firestore updates concurrently
@@ -1537,11 +1574,11 @@
                         relatedUserId: currentUser.uid
                     })
                 ]);
-
-                showMessageBox("Friend request accepted! You are now friends.", 'success'); // Show success ONLY if all succeeded
+                console.log(`JCHAT_DEBUG: Friend request acceptance operations for ${targetUsername} completed successfully.`);
+                showMessageBox(`Friend request accepted! You are now friends with ${targetUsername}.`, 'success');
             } catch (error) {
-                console.error("JCHAT_ERROR: Error accepting friend request:", error);
-                showMessageBox(`Failed to accept request: ${error.message}`, 'error'); // Show error if any failed
+                console.error("JCHAT_ERROR: Error accepting friend request:", error.code, error.message, error);
+                showMessageBox(`Failed to accept request: ${error.message}`, 'error');
             } finally {
                 toggleButtonLoading(buttonElement, false, 'Accept Request');
             }
@@ -1554,42 +1591,45 @@
          * @param {HTMLElement} buttonElement - The button element that triggered the action.
          */
         async function cancelFriendRequest(targetUserId, targetUsername, buttonElement) {
+            console.log(`JCHAT_DEBUG: cancelFriendRequest called for ${targetUsername} (${targetUserId}).`);
             if (!currentUser || !currentUserProfileData) {
                 showMessageBox("You must be logged in to cancel friend requests.", 'warning');
+                console.log("JCHAT_ERROR: cancelFriendRequest aborted: currentUser or currentUserProfileData missing.");
                 return;
             }
 
             const confirmCancel = await showConfirmationDialog(`Are you sure you want to cancel the friend request to ${targetUsername}?`);
 
-            if (confirmCancel) {
-                toggleButtonLoading(buttonElement, true, 'Cancel Request');
-                showMessageBox(`Cancelling request to ${targetUsername}...`, 'loading', true); // Show loading immediately
-                try {
-                    // Perform both Firestore deletes concurrently
-                    await Promise.all([
-                        deleteDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId)),
-                        deleteDoc(doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid)),
-                        addDoc(collection(db, "artifacts", appId, "users", targetUserId, "notifications"), {
-                            type: 'friend_request_cancelled',
-                            senderId: currentUser.uid,
-                            senderUsername: currentUserProfileData.username,
-                            senderProfilePicId: currentUserProfileData.profilePicId,
-                            message: `${currentUserProfileData.username} cancelled their friend request.`,
-                            read: false,
-                            timestamp: serverTimestamp(),
-                            relatedUserId: currentUser.uid
-                        })
-                    ]);
-
-                    showMessageBox(`Friend request to ${targetUsername} cancelled.`, 'success'); // Show success ONLY if all succeeded
-                } catch (error) {
-                    console.error("JCHAT_ERROR: Error cancelling friend request:", error);
-                    showMessageBox(`Failed to cancel request: ${error.message}`, 'error'); // Show error if any failed
-                } finally {
-                    toggleButtonLoading(buttonElement, false, 'Cancel Request');
-                }
-            } else {
+            if (!confirmCancel) {
                 showMessageBox("Cancellation action cancelled.", 'info');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true, 'Cancel Request');
+            showMessageBox(`Cancelling request to ${targetUsername}...`, 'loading', true);
+            try {
+                // Perform both Firestore deletes concurrently
+                await Promise.all([
+                    deleteDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId)),
+                    deleteDoc(doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid)),
+                    addDoc(collection(db, "artifacts", appId, "users", targetUserId, "notifications"), {
+                        type: 'friend_request_cancelled',
+                        senderId: currentUser.uid,
+                        senderUsername: currentUserProfileData.username,
+                        senderProfilePicId: currentUserProfileData.profilePicId,
+                        message: `${currentUserProfileData.username} cancelled their friend request.`,
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        relatedUserId: currentUser.uid
+                    })
+                ]);
+                console.log(`JCHAT_DEBUG: Friend request cancellation operations for ${targetUsername} completed successfully.`);
+                showMessageBox(`Friend request to ${targetUsername} cancelled.`, 'success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error cancelling friend request:", error.code, error.message, error);
+                showMessageBox(`Failed to cancel request: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false, 'Cancel Request');
             }
         }
 
@@ -1601,49 +1641,54 @@
          * @param {HTMLElement} buttonElement - The button element that triggered the action.
          */
         async function unfriendUser(targetUserId, targetUsername, buttonElement) {
+            console.log(`JCHAT_DEBUG: unfriendUser called for ${targetUsername} (${targetUserId}).`);
             if (!currentUser || !currentUserProfileData) {
                 showMessageBox("You must be logged in to unfriend.", 'warning');
+                console.log("JCHAT_ERROR: unfriendUser aborted: currentUser or currentUserProfileData missing.");
                 return;
             }
 
             const confirmUnfriend = await showConfirmationDialog(`Are you sure you want to unfriend ${targetUsername}? This action cannot be undone.`);
 
-            if (confirmUnfriend) {
-                toggleButtonLoading(buttonElement, true, 'Unfriend');
-                showMessageBox(`Unfriending ${targetUsername}...`, 'loading', true); // Show loading immediately
-                try {
-                    // Perform both Firestore deletes concurrently
-                    await Promise.all([
-                        deleteDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId)),
-                        deleteDoc(doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid)),
-                        addDoc(collection(db, "artifacts", appId, "users", targetUserId, "notifications"), {
-                            type: 'unfriended',
-                            senderId: currentUser.uid,
-                            senderUsername: currentUserProfileData.username,
-                            senderProfilePicId: currentUserProfileData.profilePicId,
-                            message: `${currentUserProfileData.username} has unfriended you.`,
-                            read: false,
-                            timestamp: serverTimestamp(),
-                            relatedUserId: currentUser.uid
-                        })
-                    ]);
-
-                    showMessageBox(`${targetUsername} has been unfriended.`, 'success'); // Show success ONLY if all succeeded
-                } catch (error) {
-                    console.error("JCHAT_ERROR: Error unfriending user:", error);
-                    showMessageBox(`Failed to unfriend: ${error.message}`, 'error'); // Show error if any failed
-                } finally {
-                    toggleButtonLoading(buttonElement, false, 'Unfriend');
-                }
-            } else {
+            if (!confirmUnfriend) {
                 showMessageBox("Unfriend action cancelled.", 'info');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true, 'Unfriend');
+            showMessageBox(`Unfriending ${targetUsername}...`, 'loading', true);
+            try {
+                // Perform both Firestore deletes concurrently
+                await Promise.all([
+                    deleteDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId)),
+                    deleteDoc(doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid)),
+                    addDoc(collection(db, "artifacts", appId, "users", targetUserId, "notifications"), {
+                        type: 'unfriended',
+                        senderId: currentUser.uid,
+                        senderUsername: currentUserProfileData.username,
+                        senderProfilePicId: currentUserProfileData.profilePicId,
+                        message: `${currentUserProfileData.username} has unfriended you.`,
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        relatedUserId: currentUser.uid
+                    })
+                ]);
+                console.log(`JCHAT_DEBUG: Unfriend operations for ${targetUsername} completed successfully.`);
+                showMessageBox(`${targetUsername} has been unfriended.`, 'success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error unfriending user:", error.code, error.message, error);
+                showMessageBox(`Failed to unfriend: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false, 'Unfriend');
             }
         }
+
 
         /**
          * Fetches global system settings from Firestore and applies them.
          */
         async function fetchSystemSettings() {
+            console.log("JCHAT_DEBUG: fetchSystemSettings started.");
             const SYSTEM_SETTINGS_DOC_REF = doc(db, "artifacts", appId, "public", "data", "settings", "system_settings");
             if (unsubscribeSystemSettings) unsubscribeSystemSettings(); // Clear previous listener
 
@@ -1721,6 +1766,7 @@
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
+            console.log("JCHAT_DEBUG: onAuthStateChanged triggered. User:", user ? user.uid : "null");
             if (user) {
                 currentUser = user;
                 // Check for banned status first
@@ -1737,6 +1783,7 @@
                 }
 
                 // If not banned, proceed
+                currentUser = user; // Ensure currentUser is set
                 await fetchCurrentUserProfile(user);
                 await fetchSystemSettings(); // Check maintenance mode
                 await fetchUsersAndFriendStatuses(); // Load users and their statuses
@@ -1769,6 +1816,7 @@
 
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
+            console.log("JCHAT_DEBUG: DOMContentLoaded triggered.");
             // Apply theme on load
             const savedTheme = localStorage.getItem('jchat-theme');
             const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
@@ -1808,7 +1856,7 @@
                         else if (currentFilter === 'friends') currentFilter = 'friends';
                         else if (currentFilter === 'pendingsent') currentFilter = 'pending_sent';
                         else if (currentFilter === 'pendingreceived') currentFilter = 'pending_received';
-
+                        console.log(`JCHAT_DEBUG: Filter changed to: ${currentFilter}`);
                         filterAndRenderUsers();
                     }
                 });
@@ -1818,6 +1866,7 @@
             if (sortOptionsSelect) {
                 sortOptionsSelect.addEventListener('change', (event) => {
                     currentSort = event.target.value;
+                    console.log(`JCHAT_DEBUG: Sort changed to: ${currentSort}`);
                     filterAndRenderUsers();
                 });
             }
@@ -1825,6 +1874,7 @@
 
         // Cleanup resources before the page unloads.
         window.addEventListener('beforeunload', () => {
+            console.log("JCHAT_DEBUG: beforeunload triggered.");
             if (unsubscribeSystemSettings) unsubscribeSystemSettings();
             if (unsubscribeFriendStatuses) unsubscribeFriendStatuses();
             Object.values(unsubscribeUserStatusListeners).forEach(unsubscribe => unsubscribe()); // Unsubscribe all user status listeners
@@ -1839,6 +1889,7 @@
                 if (themes.includes(newTheme)) {
                     document.body.classList.remove(...themes);
                     document.body.classList.add(newTheme);
+                    console.log(`JCHAT_DEBUG: Theme changed via storage event to: ${newTheme}`);
                 }
             }
         });
