@@ -553,6 +553,19 @@
         .chat-header-info .status.online .status-dot { background-color: var(--status-online); }
         .chat-header-info .status.away .status-dot { background-color: var(--status-away); }
 
+        /* Typing indicator */
+        .chat-header-info .typing-indicator {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .chat-header-info .typing-indicator.active {
+            opacity: 1;
+        }
+
+
         .chat-header-actions {
             display: flex;
             gap: 15px;
@@ -661,6 +674,17 @@
         .message-bubble-wrapper.other-message .message-timestamp {
             text-align: left;
         }
+
+        /* Read receipt */
+        .read-receipt {
+            font-size: 0.7em;
+            color: var(--text-light); /* Lighter color for read receipt */
+            margin-left: 5px; /* Space from timestamp */
+        }
+        .read-receipt i {
+            color: var(--accent-color); /* Accent color for checkmark */
+        }
+
 
         /* Media Message Styles */
         .message-content-box img,
@@ -837,6 +861,14 @@
         }
         .call-controls #hangUpBtn:hover {
             background: #e63946; /* Darker red on hover */
+        }
+
+        /* Call status text */
+        #callStatusText {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 20px;
         }
 
         /* Custom Message Box (reused) */
@@ -1222,6 +1254,7 @@
                     <div>
                         <p class="name" id="otherUsername">Select a Friend</p>
                         <p class="status" id="otherUserStatus"><span class="status-dot"></span> Offline</p>
+                        <p class="typing-indicator" id="typingIndicator">Typing...</p>
                     </div>
                 </div>
                 <div class="chat-header-actions">
@@ -1239,8 +1272,11 @@
 
             <!-- Chat Messages Container -->
             <div class="chat-messages-container" id="chatMessagesContainer" style="display: none;">
+                <div class="load-more-messages" id="loadMoreMessagesBtn" style="text-align: center; padding: 10px; cursor: pointer; color: var(--accent-color); display: none;">
+                    Load More Messages
+                </div>
+                <p id="loadingMessagesText" style="text-align: center; color: var(--text-light); display: none;">Loading messages...</p>
                 <!-- Chat messages will be dynamically loaded here -->
-                <p style="text-align: center; color: var(--text-light);">Loading messages...</p>
             </div>
 
             <!-- Chat Input Area -->
@@ -1256,6 +1292,7 @@
 
     <!-- Call Overlay -->
     <div id="callOverlay">
+        <p id="callStatusText">Ringing...</p> <!-- Added call status text -->
         <div class="video-container">
             <video id="remoteVideo" autoplay playsinline></video>
             <video id="localVideo" autoplay muted playsinline></video>
@@ -1342,10 +1379,13 @@
         const otherUserAvatarIcon = document.getElementById('otherUserAvatarIcon');
         const otherUsernameDisplay = document.getElementById('otherUsername');
         const otherUserStatusDisplay = document.getElementById('otherUserStatus');
+        const typingIndicator = document.getElementById('typingIndicator'); // New typing indicator
         const voiceCallBtn = document.getElementById('voiceCallBtn');
         const videoCallBtn = document.getElementById('videoCallBtn');
         const unfriendBtn = document.getElementById('unfriendBtn');
         const chatMessagesContainer = document.getElementById('chatMessagesContainer');
+        const loadMoreMessagesBtn = document.getElementById('loadMoreMessagesBtn'); // New load more button
+        const loadingMessagesText = document.getElementById('loadingMessagesText'); // New loading messages text
         const messageInput = document.getElementById('messageInput');
         const sendMessageBtn = document.getElementById('sendMessageBtn');
         const attachMediaBtn = document.getElementById('attachMediaBtn');
@@ -1354,6 +1394,7 @@
 
         // Call Overlay Specific
         const callOverlay = document.getElementById('callOverlay');
+        const callStatusText = document.getElementById('callStatusText'); // New call status text
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
         const toggleAudioBtn = document.getElementById('toggleAudioBtn');
@@ -1395,6 +1436,13 @@
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
+        let isTypingTimeout; // For typing indicator
+
+        // Message pagination
+        const MESSAGES_PER_LOAD = 20; // Reduced for testing, can be 50 or more
+        let lastVisibleMessage = null; // For pagination
+        let allLoadedMessages = []; // To store messages in order for pagination
+        let hasMoreMessages = true; // Flag for pagination
 
         // WebRTC related globals
         let peerConnection;
@@ -1418,16 +1466,19 @@
         const successSynth = new Tone.Synth().toDestination();
         const errorSynth = new Tone.Synth().toDestination();
         const infoSynth = new Tone.Synth().toDestination();
+        const incomingMessageSynth = new Tone.Synth().toDestination(); // New synth for messages
 
         successSynth.oscillator.type = "sine"; successSynth.envelope.attack = 0.01; successSynth.envelope.decay = 0.2; successSynth.envelope.sustain = 0.0; successSynth.envelope.release = 0.5;
         errorSynth.oscillator.type = "sawtooth"; errorSynth.envelope.attack = 0.01; errorSynth.envelope.decay = 0.3; errorSynth.envelope.sustain = 0.0; errorSynth.envelope.release = 0.5;
         infoSynth.oscillator.type = "triangle"; infoSynth.envelope.attack = 0.01; infoSynth.envelope.decay = 0.1; infoSynth.envelope.sustain = 0.0; infoSynth.envelope.release = 0.3;
+        incomingMessageSynth.oscillator.type = "sine"; incomingMessageSynth.envelope.attack = 0.01; incomingMessageSynth.envelope.decay = 0.1; incomingMessageSynth.envelope.sustain = 0.0; incomingMessageSynth.envelope.release = 0.2;
 
         function playNotificationSound(type) {
             Tone.start();
             if (type === 'success') { successSynth.triggerAttackRelease("C5", "8n"); }
             else if (type === 'error') { errorSynth.triggerAttackRelease("C3", "8n"); }
             else if (type === 'info') { infoSynth.triggerAttackRelease("E4", "16n"); }
+            else if (type === 'message') { incomingMessageSynth.triggerAttackRelease("G4", "32n"); } // Subtle sound for messages
         }
 
         // --- Utility Functions (reused and adapted) ---
@@ -1565,6 +1616,36 @@
         }
 
         /**
+         * Formats a Firestore Timestamp into a human-readable string.
+         * @param {Timestamp} firestoreTimestamp - The Firestore Timestamp object.
+         * @returns {string} - Formatted date string.
+         */
+        function formatTimestamp(firestoreTimestamp) {
+            if (!firestoreTimestamp || !firestoreTimestamp.toDate) return 'N/A';
+            const date = firestoreTimestamp.toDate();
+            const now = new Date();
+            const diffSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+            if (diffSeconds < 60) return 'Just now';
+            if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)} min ago`;
+            if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)} hour${Math.floor(diffSeconds / 3600) === 1 ? '' : 's'} ago`;
+
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+            const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+            if (messageDate.getTime() === today.getTime()) {
+                return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            }
+            if (messageDate.getTime() === yesterday.getTime()) {
+                return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            }
+
+            return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+
+        /**
          * Fetches current user's private profile data.
          */
         async function fetchCurrentUserProfile(user) {
@@ -1607,8 +1688,8 @@
                 await setDoc(publicProfileDocRef, {
                     username: currentUserProfileData.username,
                     profilePicId: currentUserProfileData.profilePicId,
-                    level: currentUserProfileData.level,
-                    totalGasEarned: currentUserProfileData.totalGasEarned,
+                    level: currentUserProfileData.level || 1,
+                    totalGasEarned: currentUserProfileData.totalGasEarned || 0,
                     banned: currentUserProfileData.banned,
                     userId: user.uid,
                     lastOnline: serverTimestamp() // Update last online status
@@ -1623,12 +1704,11 @@
         }
 
         /**
-         * Fetches the other user's profile and sets up a real-time listener for their status.
+         * Fetches the other user's profile and sets up a real-time listener for their status and typing indicator.
          */
         async function fetchOtherUserProfileAndStatus() {
             if (!otherUserId) {
                 console.error("JCHAT_ERROR: otherUserId is not set.");
-                // This state is now handled by chatInitialState
                 return;
             }
 
@@ -1660,11 +1740,12 @@
                 showMessageBox(`Error loading chat partner info: ${error.message}`, 'error');
             });
 
-            // Listen to other user's online status
+            // Listen to other user's online status and typing status
             unsubscribeOtherUserStatus = onSnapshot(userStatusDocRef, (docSnap) => {
                 if (otherUserStatusDisplay) {
                     if (docSnap.exists()) {
                         const statusData = docSnap.data();
+                        // Update online status
                         if (statusData.isOnline) {
                             otherUserStatusDisplay.classList.remove('offline', 'away');
                             otherUserStatusDisplay.classList.add('online');
@@ -1678,11 +1759,21 @@
                             otherUserStatusDisplay.classList.add('offline');
                             otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Offline`;
                         }
+
+                        // Update typing indicator
+                        if (typingIndicator) {
+                            if (statusData.isTyping && statusData.isTypingForChatId === chatRoomId) {
+                                typingIndicator.classList.add('active');
+                            } else {
+                                typingIndicator.classList.remove('active');
+                            }
+                        }
                     } else {
                         // Default to offline if status document doesn't exist
                         otherUserStatusDisplay.classList.remove('online', 'away');
                         otherUserStatusDisplay.classList.add('offline');
                         otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Offline`;
+                        if (typingIndicator) typingIndicator.classList.remove('active');
                     }
                 }
             }, (error) => {
@@ -1692,6 +1783,7 @@
                     otherUserStatusDisplay.classList.add('offline');
                     otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Offline (Error)`;
                 }
+                if (typingIndicator) typingIndicator.classList.remove('active');
             });
         }
 
@@ -1701,7 +1793,6 @@
         async function setupChatRoom() {
             if (!currentUser || !otherUserId) {
                 console.error("JCHAT_ERROR: Current user or other user not set for chat room setup.");
-                // This state is now handled by chatInitialState
                 return;
             }
 
@@ -1730,97 +1821,234 @@
                     });
                 }
 
-                // Set up real-time listener for messages
-                if (unsubscribeMessages) unsubscribeMessages(); // Unsubscribe previous
-                const q = query(messagesCollectionRef, orderBy("timestamp", "asc"), limit(50)); // Load last 50 messages
+                // Reset pagination state
+                lastVisibleMessage = null;
+                allLoadedMessages = [];
+                hasMoreMessages = true;
+                if (loadMoreMessagesBtn) loadMoreMessagesBtn.style.display = 'none';
+                if (loadingMessagesText) loadingMessagesText.style.display = 'block'; // Show loading text initially
 
-                unsubscribeMessages = onSnapshot(q, (querySnapshot) => {
-                    if (chatMessagesContainer) chatMessagesContainer.innerHTML = ''; // Clear existing messages
-                    if (querySnapshot.empty) {
-                        if (chatMessagesContainer) chatMessagesContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">No messages yet. Say hello!</p>';
-                    } else {
-                        querySnapshot.forEach(docSnap => {
-                            const message = docSnap.data();
-                            renderMessage(message);
-                        });
+                // Load initial messages
+                await loadMessages(true); // Load initial set and scroll to bottom
+
+                // Set up real-time listener for new messages (after initial load)
+                if (unsubscribeMessages) unsubscribeMessages(); // Unsubscribe previous
+
+                // Query for new messages (after the last loaded message, or from start if no messages yet)
+                const initialQuery = query(messagesCollectionRef, orderBy("timestamp", "desc"), limit(MESSAGES_PER_LOAD));
+
+                unsubscribeMessages = onSnapshot(initialQuery, async (querySnapshot) => {
+                    const newMessages = [];
+                    let hasNewUnreadMessage = false;
+                    querySnapshot.docChanges().forEach(change => {
+                        if (change.type === "added") {
+                            const newMessage = { id: change.doc.id, ...change.doc.data() };
+                            // Only add if it's truly a new message not already in allLoadedMessages
+                            if (!allLoadedMessages.some(msg => msg.id === newMessage.id)) {
+                                newMessages.push(newMessage);
+                                if (newMessage.senderId !== currentUser.uid) {
+                                    hasNewUnreadMessage = true;
+                                }
+                            }
+                        } else if (change.type === "modified") {
+                            // Update existing message in allLoadedMessages if modified (e.g., read receipt)
+                            const modifiedMessage = { id: change.doc.id, ...change.doc.data() };
+                            const index = allLoadedMessages.findIndex(msg => msg.id === modifiedMessage.id);
+                            if (index !== -1) {
+                                allLoadedMessages[index] = modifiedMessage;
+                                // Re-render only the modified message if possible, or trigger a full re-render
+                                // For simplicity, we'll re-render all visible messages after sorting
+                            }
+                        } else if (change.type === "removed") {
+                            // Remove message from allLoadedMessages
+                            allLoadedMessages = allLoadedMessages.filter(msg => msg.id !== change.doc.id);
+                        }
+                    });
+
+                    if (newMessages.length > 0) {
+                        allLoadedMessages = allLoadedMessages.concat(newMessages).sort((a, b) => a.timestamp.toMillis() - b.timestamp.toMillis());
+                        renderAllMessages(); // Re-render all messages to ensure order and new messages are shown
                         scrollToBottom(); // Auto-scroll to latest message
+
+                        if (hasNewUnreadMessage) {
+                            playNotificationSound('message');
+                            // Mark as read immediately if user is in the chat
+                            await updateDoc(chatRoomRef, {
+                                [`readBy.${currentUser.uid}`]: serverTimestamp()
+                            });
+                        }
+                    } else if (querySnapshot.docChanges().some(change => change.type === "modified" || change.type === "removed")) {
+                        // If messages were modified or removed, re-render to reflect changes
+                        renderAllMessages();
                     }
+
+                    if (loadingMessagesText) loadingMessagesText.style.display = 'none'; // Hide loading text once messages are loaded
                 }, (error) => {
                     console.error("JCHAT_ERROR: Error listening to messages:", error);
                     showMessageBox(`Error loading messages: ${error.message}`, 'error');
+                    if (loadingMessagesText) loadingMessagesText.textContent = 'Error loading messages.';
                 });
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error setting up chat room:", error);
                 showMessageBox(`Failed to setup chat: ${error.message}`, 'error');
+                if (loadingMessagesText) loadingMessagesText.textContent = 'Error setting up chat.';
             }
         }
 
         /**
-         * Renders a single message bubble in the chat container.
-         * @param {object} message - The message object from Firestore.
+         * Loads messages for the current chat room with pagination.
+         * @param {boolean} initialLoad - True if this is the initial load, false for "Load More".
          */
-        function renderMessage(message) {
+        async function loadMessages(initialLoad = false) {
+            if (!messagesCollectionRef || !hasMoreMessages) return;
+
+            if (loadingMessagesText) loadingMessagesText.style.display = 'block';
+            if (loadMoreMessagesBtn) loadMoreMessagesBtn.style.display = 'none';
+
+            let q = query(messagesCollectionRef, orderBy("timestamp", "desc"), limit(MESSAGES_PER_LOAD));
+            if (lastVisibleMessage) {
+                q = query(messagesCollectionRef, orderBy("timestamp", "desc"), startAfter(lastVisibleMessage), limit(MESSAGES_PER_LOAD));
+            }
+
+            try {
+                const querySnapshot = await getDocs(q);
+                if (querySnapshot.empty) {
+                    hasMoreMessages = false;
+                    if (loadMoreMessagesBtn) loadMoreMessagesBtn.style.display = 'none'; // Hide if no more messages
+                    if (loadingMessagesText) loadingMessagesText.style.display = 'none';
+                    return;
+                }
+
+                const newMessages = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                lastVisibleMessage = querySnapshot.docs[querySnapshot.docs.length - 1];
+                hasMoreMessages = querySnapshot.docs.length === MESSAGES_PER_LOAD;
+
+                // Prepend new messages for "Load More" scenario, or set for initial load
+                if (initialLoad) {
+                    allLoadedMessages = newMessages.reverse(); // Reverse to chronological order
+                } else {
+                    allLoadedMessages = newMessages.reverse().concat(allLoadedMessages);
+                }
+
+                renderAllMessages();
+
+                if (hasMoreMessages) {
+                    if (loadMoreMessagesBtn) loadMoreMessagesBtn.style.display = 'block';
+                } else {
+                    if (loadMoreMessagesBtn) loadMoreMessagesBtn.style.display = 'none';
+                }
+                if (loadingMessagesText) loadingMessagesText.style.display = 'none';
+
+                if (initialLoad) {
+                    scrollToBottom();
+                } else {
+                    // Maintain scroll position when loading older messages
+                    const firstNewMessageElement = chatMessagesContainer.querySelector(`[data-message-id="${newMessages[0].id}"]`);
+                    if (firstNewMessageElement) {
+                        chatMessagesContainer.scrollTop = firstNewMessageElement.offsetTop - chatMessagesContainer.clientHeight + firstNewMessageElement.clientHeight;
+                    }
+                }
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error loading messages:", error);
+                showMessageBox(`Failed to load messages: ${error.message}`, 'error');
+                if (loadingMessagesText) loadingMessagesText.textContent = 'Error loading messages.';
+            }
+        }
+
+        /**
+         * Renders all currently loaded messages.
+         */
+        function renderAllMessages() {
             if (!chatMessagesContainer) return;
+            chatMessagesContainer.innerHTML = ''; // Clear all messages before re-rendering
 
-            const messageWrapper = document.createElement('div');
-            messageWrapper.classList.add('message-bubble-wrapper');
-            messageWrapper.classList.add(message.senderId === currentUser.uid ? 'my-message' : 'other-message');
-
-            const messageContentBox = document.createElement('div');
-            messageContentBox.classList.add('message-content-box');
-
-            const timestamp = message.timestamp ? new Date(message.timestamp.toDate()).toLocaleString() : 'N/A';
-
-            let mediaHtml = '';
-            if (message.type === 'image' && message.mediaUrl) {
-                mediaHtml = `<img src="${message.mediaUrl}" alt="Image" loading="lazy">`;
-            } else if (message.type === 'video' && message.mediaUrl) {
-                mediaHtml = `<video controls src="${message.mediaUrl}" loading="lazy"></video>`;
-            } else if (message.type === 'audio' && message.mediaUrl) {
-                mediaHtml = `<audio controls src="${message.mediaUrl}"></audio>`;
-            } else if (message.type === 'call_start') {
-                messageContentBox.style.backgroundColor = 'rgba(0, 255, 0, 0.2)'; // Greenish for call start
-                messageContentBox.style.textAlign = 'center';
-                messageContentBox.style.color = 'var(--white)';
-                messageContentBox.innerHTML = `<i class="fas fa-phone-volume" style="margin-right: 5px;"></i> Call Started: ${message.content}`;
-            } else if (message.type === 'call_end') {
-                messageContentBox.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; // Reddish for call end
-                messageContentBox.style.textAlign = 'center';
-                messageContentBox.style.color = 'var(--white)';
-                messageContentBox.innerHTML = `<i class="fas fa-phone-slash" style="margin-right: 5px;"></i> Call Ended: ${message.content}`;
-            } else if (message.type === 'text') {
-                messageContentBox.textContent = message.content;
+            // Add the "Load More" button at the top if there are more messages to load
+            if (hasMoreMessages && loadMoreMessagesBtn) {
+                chatMessagesContainer.prepend(loadMoreMessagesBtn);
+                loadMoreMessagesBtn.style.display = 'block';
+            } else if (loadMoreMessagesBtn) {
+                loadMoreMessagesBtn.style.display = 'none';
             }
 
-            if (message.type !== 'call_start' && message.type !== 'call_end') {
-                messageContentBox.innerHTML = `${mediaHtml}<p>${message.content}</p>`;
+            // Add loading text if visible
+            if (loadingMessagesText && loadingMessagesText.style.display === 'block') {
+                chatMessagesContainer.prepend(loadingMessagesText);
             }
 
+            // Get the last read timestamp for the other user
+            const otherUserLastRead = chatRoomRef ? (chatRoomRef.data()?.readBy?.[otherUserId]?.toDate() || new Date(0)) : new Date(0);
 
-            const messageTimestamp = document.createElement('span');
-            messageTimestamp.classList.add('message-timestamp');
-            messageTimestamp.textContent = timestamp;
+            allLoadedMessages.forEach(message => {
+                const messageWrapper = document.createElement('div');
+                messageWrapper.classList.add('message-bubble-wrapper');
+                messageWrapper.classList.add(message.senderId === currentUser.uid ? 'my-message' : 'other-message');
+                messageWrapper.dataset.messageId = message.id; // Add data attribute for easier lookup
 
-            // Avatar for other user's messages
-            if (message.senderId !== currentUser.uid) {
-                const avatarImg = document.createElement('img');
-                avatarImg.classList.add('message-avatar');
-                const usernameInitial = (message.senderUsername || 'U').charAt(0).toUpperCase();
-                displayProfilePicture(avatarImg, null, message.senderProfilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
-                messageWrapper.appendChild(avatarImg);
-            }
+                const messageContentBox = document.createElement('div');
+                messageContentBox.classList.add('message-content-box');
 
-            const contentAndTimestamp = document.createElement('div');
-            contentAndTimestamp.style.display = 'flex';
-            contentAndTimestamp.style.flexDirection = 'column';
-            contentAndTimestamp.style.alignItems = message.senderId === currentUser.uid ? 'flex-end' : 'flex-start';
-            contentAndTimestamp.appendChild(messageContentBox);
-            contentAndTimestamp.appendChild(messageTimestamp);
+                const timestampText = formatTimestamp(message.timestamp);
 
-            messageWrapper.appendChild(contentAndTimestamp);
+                let mediaHtml = '';
+                if (message.type === 'image' && message.mediaUrl) {
+                    mediaHtml = `<img src="${message.mediaUrl}" alt="Image" loading="lazy">`;
+                } else if (message.type === 'video' && message.mediaUrl) {
+                    mediaHtml = `<video controls src="${message.mediaUrl}" loading="lazy"></video>`;
+                } else if (message.type === 'audio' && message.mediaUrl) {
+                    mediaHtml = `<audio controls src="${message.mediaUrl}"></audio>`;
+                } else if (message.type === 'call_start') {
+                    messageContentBox.style.backgroundColor = 'rgba(0, 255, 0, 0.2)'; // Greenish for call start
+                    messageContentBox.style.textAlign = 'center';
+                    messageContentBox.style.color = 'var(--white)';
+                    messageContentBox.innerHTML = `<i class="fas fa-phone-volume" style="margin-right: 5px;"></i> Call Started: ${message.content}`;
+                } else if (message.type === 'call_end') {
+                    messageContentBox.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; // Reddish for call end
+                    messageContentBox.style.textAlign = 'center';
+                    messageContentBox.style.color = 'var(--white)';
+                    messageContentBox.innerHTML = `<i class="fas fa-phone-slash" style="margin-right: 5px;"></i> Call Ended: ${message.content}`;
+                } else if (message.type === 'text') {
+                    messageContentBox.textContent = message.content;
+                }
 
-            chatMessagesContainer.appendChild(messageWrapper);
+                if (message.type !== 'call_start' && message.type !== 'call_end') {
+                    messageContentBox.innerHTML = `${mediaHtml}<p>${message.content}</p>`;
+                }
+
+                const messageTimestamp = document.createElement('span');
+                messageTimestamp.classList.add('message-timestamp');
+                messageTimestamp.textContent = timestampText;
+
+                // Add read receipt for messages sent by current user
+                if (message.senderId === currentUser.uid && message.timestamp && message.timestamp.toDate() <= otherUserLastRead) {
+                    const readReceipt = document.createElement('span');
+                    readReceipt.classList.add('read-receipt');
+                    readReceipt.innerHTML = '<i class="fas fa-check-double"></i>'; // Double checkmark icon
+                    messageTimestamp.appendChild(readReceipt);
+                }
+
+
+                // Avatar for other user's messages
+                if (message.senderId !== currentUser.uid) {
+                    const avatarImg = document.createElement('img');
+                    avatarImg.classList.add('message-avatar');
+                    const usernameInitial = (message.senderUsername || 'U').charAt(0).toUpperCase();
+                    displayProfilePicture(avatarImg, null, message.senderProfilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                    messageWrapper.appendChild(avatarImg);
+                }
+
+                const contentAndTimestamp = document.createElement('div');
+                contentAndTimestamp.style.display = 'flex';
+                contentAndTimestamp.style.flexDirection = 'column';
+                contentAndTimestamp.style.alignItems = message.senderId === currentUser.uid ? 'flex-end' : 'flex-start';
+                contentAndTimestamp.appendChild(messageContentBox);
+                contentAndTimestamp.appendChild(messageTimestamp);
+
+                messageWrapper.appendChild(contentAndTimestamp);
+
+                chatMessagesContainer.appendChild(messageWrapper);
+            });
         }
 
         /**
@@ -1841,6 +2069,7 @@
 
             toggleButtonLoading(sendMessageBtn, true);
             if (messageInput) messageInput.value = ''; // Clear input immediately
+            updateTypingStatus(false); // Clear typing status immediately after sending
 
             try {
                 const newMessage = {
@@ -1914,39 +2143,51 @@
                     (error) => {
                         console.error("JCHAT_ERROR: Media upload failed:", error);
                         showMessageBox(`Media upload failed: ${error.message}`, 'error');
+                        toggleButtonLoading(sendMessageBtn, false);
+                        toggleButtonLoading(attachMediaBtn, false);
+                        toggleButtonLoading(voiceNoteBtn, false);
                     },
                     async () => {
-                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                        const newMessage = {
-                            senderId: currentUser.uid,
-                            senderUsername: currentUserProfileData?.username || 'Anonymous',
-                            senderProfilePicId: currentUserProfileData?.profilePicId || null,
-                            content: `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} shared.`, // Default content
-                            timestamp: serverTimestamp(),
-                            type: fileType,
-                            mediaUrl: downloadURL
-                        };
-
-                        await addDoc(messagesCollectionRef, newMessage);
-
-                        // Update lastMessage and updatedAt in chat_room
-                        await updateDoc(chatRoomRef, {
-                            lastMessage: {
-                                content: newMessage.content,
+                        try {
+                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                            const newMessage = {
+                                senderId: currentUser.uid,
+                                senderUsername: currentUserProfileData?.username || 'Anonymous',
+                                senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                                content: `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} shared.`, // Default content
                                 timestamp: serverTimestamp(),
-                                type: fileType
-                            },
-                            updatedAt: serverTimestamp(),
-                            [`readBy.${currentUser.uid}`]: serverTimestamp()
-                        });
+                                type: fileType,
+                                mediaUrl: downloadURL
+                            };
 
-                        showMessageBox(`${fileType.charAt(0).toUpperCase() + fileType.slice(1)} sent!`, 'success');
+                            await addDoc(messagesCollectionRef, newMessage);
+
+                            // Update lastMessage and updatedAt in chat_room
+                            await updateDoc(chatRoomRef, {
+                                lastMessage: {
+                                    content: newMessage.content,
+                                    timestamp: serverTimestamp(),
+                                    type: fileType
+                                },
+                                updatedAt: serverTimestamp(),
+                                [`readBy.${currentUser.uid}`]: serverTimestamp()
+                            });
+
+                            showMessageBox(`${fileType.charAt(0).toUpperCase() + fileType.slice(1)} sent!`, 'success');
+                        } catch (innerError) {
+                            console.error("JCHAT_ERROR: Error sending media message after upload:", innerError);
+                            showMessageBox(`Failed to send media message: ${innerError.message}`, 'error');
+                        } finally {
+                            toggleButtonLoading(sendMessageBtn, false);
+                            toggleButtonLoading(attachMediaBtn, false);
+                            toggleButtonLoading(voiceNoteBtn, false);
+                            if (mediaInput) mediaInput.value = ''; // Clear selected file
+                        }
                     }
                 );
             } catch (error) {
                 console.error("JCHAT_ERROR: Error initiating media upload:", error);
                 showMessageBox(`Failed to initiate media upload: ${error.message}`, 'error');
-            } finally {
                 toggleButtonLoading(sendMessageBtn, false);
                 toggleButtonLoading(attachMediaBtn, false);
                 toggleButtonLoading(voiceNoteBtn, false);
@@ -1998,38 +2239,49 @@
                                 (error) => {
                                     console.error("JCHAT_ERROR: Voice note upload failed:", error);
                                     showMessageBox(`Voice note upload failed: ${error.message}`, 'error');
+                                    toggleButtonLoading(sendMessageBtn, false);
+                                    toggleButtonLoading(attachMediaBtn, false);
+                                    toggleButtonLoading(voiceNoteBtn, false);
                                 },
                                 async () => {
-                                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                                    const newMessage = {
-                                        senderId: currentUser.uid,
-                                        senderUsername: currentUserProfileData?.username || 'Anonymous',
-                                        senderProfilePicId: currentUserProfileData?.profilePicId || null,
-                                        content: "Voice note",
-                                        timestamp: serverTimestamp(),
-                                        type: "audio",
-                                        mediaUrl: downloadURL
-                                    };
-                                    await addDoc(messagesCollectionRef, newMessage);
-
-                                    // Update lastMessage and updatedAt in chat_room
-                                    await updateDoc(chatRoomRef, {
-                                        lastMessage: {
+                                    try {
+                                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                                        const newMessage = {
+                                            senderId: currentUser.uid,
+                                            senderUsername: currentUserProfileData?.username || 'Anonymous',
+                                            senderProfilePicId: currentUserProfileData?.profilePicId || null,
                                             content: "Voice note",
                                             timestamp: serverTimestamp(),
-                                            type: "audio"
-                                        },
-                                        updatedAt: serverTimestamp(),
-                                        [`readBy.${currentUser.uid}`]: serverTimestamp()
-                                    });
+                                            type: "audio",
+                                            mediaUrl: downloadURL
+                                        };
+                                        await addDoc(messagesCollectionRef, newMessage);
 
-                                    showMessageBox("Voice note sent!", 'success');
+                                        // Update lastMessage and updatedAt in chat_room
+                                        await updateDoc(chatRoomRef, {
+                                            lastMessage: {
+                                                content: "Voice note",
+                                                timestamp: serverTimestamp(),
+                                                type: "audio"
+                                            },
+                                            updatedAt: serverTimestamp(),
+                                            [`readBy.${currentUser.uid}`]: serverTimestamp()
+                                        });
+
+                                        showMessageBox("Voice note sent!", 'success');
+                                    } catch (innerError) {
+                                        console.error("JCHAT_ERROR: Error sending voice note message after upload:", innerError);
+                                        showMessageBox(`Failed to send voice note message: ${innerError.message}`, 'error');
+                                    } finally {
+                                        toggleButtonLoading(sendMessageBtn, false);
+                                        toggleButtonLoading(attachMediaBtn, false);
+                                        toggleButtonLoading(voiceNoteBtn, false);
+                                    }
                                 }
                             );
                         } catch (error) {
                             console.error("JCHAT_ERROR: Error uploading voice note:", error);
                             showMessageBox(`Failed to upload voice note: ${error.message}`, 'error');
-                        } finally {
                             toggleButtonLoading(sendMessageBtn, false);
                             toggleButtonLoading(attachMediaBtn, false);
                             toggleButtonLoading(voiceNoteBtn, false);
@@ -2051,6 +2303,38 @@
                 if (voiceNoteBtn) voiceNoteBtn.classList.remove('recording');
                 showMessageBox("Processing voice note...", 'loading', true);
             }
+        }
+
+        /**
+         * Updates the current user's typing status in Firestore.
+         * @param {boolean} isTyping - True if typing, false otherwise.
+         */
+        async function updateTypingStatus(typingState) {
+            if (!currentUser || !chatRoomId) return;
+
+            const userStatusRef = doc(db, "artifacts", appId, "public", "data", "user_statuses", currentUser.uid);
+            try {
+                await updateDoc(userStatusRef, {
+                    isTyping: typingState,
+                    isTypingForChatId: typingState ? chatRoomId : null,
+                    lastTypingUpdate: serverTimestamp()
+                });
+            } catch (error) {
+                console.error("JCHAT_ERROR: Failed to update typing status:", error);
+            }
+        }
+
+        /**
+         * Handles input in the message box to trigger typing indicator.
+         */
+        function handleMessageInput() {
+            if (!currentUser || !chatRoomId) return;
+
+            updateTypingStatus(true);
+            clearTimeout(isTypingTimeout);
+            isTypingTimeout = setTimeout(() => {
+                updateTypingStatus(false);
+            }, 3000); // Clear typing status after 3 seconds of inactivity
         }
 
         /**
@@ -2160,6 +2444,8 @@
             if (messageInput) {
                 messageInput.removeEventListener('keypress', handleMessageInputEnter); // Remove old listener
                 messageInput.addEventListener('keypress', handleMessageInputEnter); // Add new listener
+                messageInput.removeEventListener('input', handleMessageInput); // Remove old typing listener
+                messageInput.addEventListener('input', handleMessageInput); // Add new typing listener
             }
         }
 
@@ -2430,7 +2716,9 @@
             peerConnection.ontrack = (event) => {
                 if (remoteVideo && remoteVideo.srcObject !== event.streams[0]) {
                     remoteVideo.srcObject = event.streams[0];
+                    remoteStream = event.streams[0]; // Store remote stream
                     console.log('JCHAT_WEBRTC: Remote stream received.');
+                    if (callStatusText) callStatusText.textContent = 'Call Active';
                 }
             };
 
@@ -2471,6 +2759,7 @@
             callType = isVideoCall ? 'video' : 'audio';
             showMessageBox(`Starting ${callType} call...`, 'loading', true);
             if (callOverlay) callOverlay.classList.add('active');
+            if (callStatusText) callStatusText.textContent = 'Ringing...';
 
             try {
                 // Get local media stream
@@ -2529,6 +2818,7 @@
         async function handleIncomingCall(callData) {
             if (peerConnection && peerConnection.connectionState !== 'closed') {
                 showMessageBox("Already on a call. Ignoring new incoming call.", 'info');
+                // Optionally, send a 'busy' signal back
                 return;
             }
 
@@ -2540,6 +2830,19 @@
             callType = callData.type;
             showMessageBox(`Incoming ${callType} call from ${otherUserProfile?.username || 'user'}!`, 'info', true);
             if (callOverlay) callOverlay.classList.add('active');
+            if (callStatusText) callStatusText.textContent = `Incoming ${callType} call...`;
+
+            const acceptCall = await showConfirmationDialog(`Accept incoming ${callData.type} call from ${otherUserProfile?.username || 'user'}?`);
+
+            if (!acceptCall) {
+                // User declined the call
+                if (currentCallRoomRef) {
+                    await updateDoc(currentCallRoomRef, { status: 'declined' });
+                }
+                showMessageBox("Call declined.", 'info');
+                hangUpCall();
+                return;
+            }
 
             try {
                 // Get local media stream
@@ -2567,7 +2870,6 @@
                     });
                 }
 
-
                 // Add message to chat history
                 if (messagesCollectionRef) {
                     await addDoc(messagesCollectionRef, {
@@ -2579,7 +2881,7 @@
                         type: "call_start"
                     });
                 }
-
+                if (callStatusText) callStatusText.textContent = 'Call Active';
                 showMessageBox(`${otherUserProfile?.username || 'User'} is connected!`, 'success', true);
             } catch (error) {
                 console.error('JCHAT_WEBRTC: Error handling incoming call:', error);
@@ -2609,8 +2911,26 @@
                         if (!peerConnection.remoteDescription || peerConnection.remoteDescription.type !== 'answer') {
                             await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.answer));
                             console.log('JCHAT_WEBRTC: Received and set remote answer.');
+                            if (callStatusText) callStatusText.textContent = 'Call Active';
                             showMessageBox(`${otherUserProfile?.username || 'User'} connected!`, 'success');
                         }
+                    }
+                    // Handle call termination by other party
+                    else if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'busy') {
+                        if (callData.status === 'declined') {
+                            showMessageBox(`${otherUserProfile?.username || 'User'} declined the call.`, 'info');
+                        } else if (callData.status === 'busy') {
+                            showMessageBox(`${otherUserProfile?.username || 'User'} is busy.`, 'info');
+                        } else {
+                            showMessageBox("Call ended by other party.", 'info');
+                        }
+                        hangUpCall();
+                    }
+                } else {
+                    // Call document was deleted, meaning call ended by other party
+                    if (peerConnection && peerConnection.connectionState !== 'closed') {
+                        showMessageBox("Call ended by other party.", 'info');
+                        hangUpCall();
                     }
                 }
             }, (error) => {
@@ -2657,7 +2977,7 @@
             }
 
             if (callOverlay) callOverlay.classList.remove('active');
-            showMessageBox("Call ended.", 'info');
+            if (callStatusText) callStatusText.textContent = ''; // Clear status text
 
             // Send call_end message to chat history
             if (messagesCollectionRef && currentUser && currentUserProfileData) {
@@ -2674,6 +2994,11 @@
             // Clean up call signaling data in Firestore
             if (currentCallRoomRef) {
                 try {
+                    // Update status to 'ended' before deleting, to notify other party
+                    await updateDoc(currentCallRoomRef, { status: 'ended' });
+                    // Give a brief moment for the update to propagate before deleting
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
                     // Delete the call signaling document and its subcollections
                     const iceCandidatesSnapshot = await getDocs(collection(currentCallRoomRef, 'ice_candidates'));
                     iceCandidatesSnapshot.forEach(doc => deleteDoc(doc.ref));
@@ -2862,6 +3187,21 @@
                 hangUpBtn.addEventListener('click', hangUpCall);
             } else {
                 console.error("JCHAT_ERROR: hangUpBtn element not found.");
+            }
+
+            if (loadMoreMessagesBtn) {
+                loadMoreMessagesBtn.addEventListener('click', () => loadMessages(false));
+            } else {
+                console.error("JCHAT_ERROR: loadMoreMessagesBtn element not found.");
+            }
+
+            // Optional: Load more messages when scrolling to the top
+            if (chatMessagesContainer) {
+                chatMessagesContainer.addEventListener('scroll', () => {
+                    if (chatMessagesContainer.scrollTop === 0 && hasMoreMessages) {
+                        loadMessages(false);
+                    }
+                });
             }
         });
 
