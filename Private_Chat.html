@@ -1,0 +1,2797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHAT - Private Chat</title>
+
+    <!-- Google Fonts: Poppins for headings, Inter for body text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Tone.js for audio notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* Universal box-sizing for consistent layout */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Global CSS Variables for easy theme switching */
+        :root {
+            --pink: #ff2e92;
+            --blue: #00d5ff;
+            --radius: 20px;
+            --transition: .3s ease;
+
+            /* Default Dark Mode variables */
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, .7);
+            --background-main: rgba(10, 10, 10, .75);
+            --background-gradient-1: #00d5ff;
+            --background-gradient-2: #ff2e92;
+            --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            --header-background: linear-gradient(135deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .75));
+            --border-light: rgba(255, 255, 255, .05);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --button-background-gradient: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+
+            /* Semantic Colors (for consistency across themes) */
+            --background-color-primary: #1a1a2e;
+            --background-color-secondary: #0f0f1f;
+            --header-background-color: #2a2a4a;
+            --footer-background-color: #2a2a4a;
+            --content-background-color: #20203a;
+            --card-background-color: #2a2a4a;
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --notification-badge-color: #ff2e92;
+            --status-online: #4CAF50;
+            --status-offline: #6c757d;
+            --status-away: #FFC107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+            --accent-color: #00d5ff;
+            --accent-color-dark: #00aaff;
+            --border-color: #3a3a5a;
+
+            /* Chat specific colors */
+            --my-message-bubble-bg: linear-gradient(135deg, var(--blue), var(--pink));
+            --my-message-bubble-text: var(--white);
+            --other-message-bubble-bg: var(--card-background-color);
+            --other-message-bubble-text: var(--text-color-primary);
+            --chat-input-bg: var(--input-background);
+            --chat-input-border: var(--border-light);
+            --chat-timestamp-color: var(--text-light);
+        }
+
+        /* Light Mode */
+        body.theme-light-mode {
+            --background-main: #f0f2f5;
+            background-image: none !important;
+            --white: #333;
+            --text-light: #666;
+            --card-background: rgba(255, 255, 255, 0.95);
+            --header-background: rgba(255, 255, 255, 0.98);
+            --border-light: rgba(0, 0, 0, 0.1);
+            --input-background: rgba(0, 0, 0, 0.05);
+            --button-background-gradient: linear-gradient(90deg, #6dd5ed, #2193b0);
+            --button-shadow: 0 4px 15px rgba(109, 213, 237, 0.4), 0 4px 15px rgba(33, 147, 176, 0.4);
+
+            --background-color-primary: #f0f2f5;
+            --background-color-secondary: #e0e2e5;
+            --header-background-color: #ffffff;
+            --footer-background-color: #ffffff;
+            --content-background-color: #f7f9fb;
+            --card-background-color: #ffffff;
+            --text-color-primary: #333333;
+            --text-color-secondary: #666666;
+            --accent-color: #007bff;
+            --accent-color-dark: #0056b3;
+            --border-color: #e0e0e0;
+            --input-background-color: #f0f0f0;
+            --button-background: #e9ecef;
+            --button-hover-background: #dee2e6;
+            --active-item-background: rgba(0, 123, 255, 0.1);
+            --notification-badge-color: #dc3545;
+            --status-online: #28a745;
+            --status-offline: #6c757d;
+            --status-away: #ffc107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+
+            /* Chat specific colors for light mode */
+            --my-message-bubble-bg: linear-gradient(135deg, #007bff, #0056b3);
+            --my-message-bubble-text: #ffffff;
+            --other-message-bubble-bg: #e0e0e0;
+            --other-message-bubble-text: #333333;
+            --chat-input-bg: #ffffff;
+            --chat-input-border: #cccccc;
+            --chat-timestamp-color: #999999;
+        }
+
+        /* Dark Mode */
+        body.theme-dark-mode {
+            --background-main: #1a1a2e;
+            background-image: radial-gradient(circle at top left, #16213e, transparent 100px),
+                              radial-gradient(circle at bottom right, #0f3460, transparent 150px) !important;
+            --white: #e0e0e0;
+            --text-light: #a0a0a0;
+            --card-background: rgba(25, 25, 40, 0.7);
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75));
+            --border-light: rgba(255, 255, 255, 0.08);
+            --input-background: rgba(255, 255, 255, 0.08);
+            --button-background-gradient: linear-gradient(90deg, #e94560, #ba2f49);
+            --button-shadow: 0 4px 15px rgba(233, 69, 96, 0.4), 0 4px 15px rgba(186, 47, 73, 0.4);
+
+            --background-color-primary: #121212;
+            --background-color-secondary: #1e1e1e;
+            --header-background-color: #2c2c2c;
+            --footer-background-color: #2c2c2c;
+            --content-background-color: #242424;
+            --card-background-color: #2c2c2c;
+            --text-color-primary: #ffffff;
+            --text-color-secondary: #bbbbbb;
+            --accent-color: #bb86fc;
+            --accent-color-dark: #9a67ea;
+            --border-color: #444444;
+            --input-background-color: #383838;
+            --button-background: #383838;
+            --button-hover-background: #505050;
+            --active-item-background: rgba(187, 134, 252, 0.2);
+            --notification-badge-color: #cf6679;
+            --delete-button-color: #f44336;
+            --warning-color: #ffeb3b;
+
+            /* Chat specific colors for dark mode */
+            --my-message-bubble-bg: linear-gradient(135deg, var(--blue), var(--pink));
+            --my-message-bubble-text: var(--white);
+            --other-message-bubble-bg: var(--card-background-color);
+            --other-message-bubble-text: var(--text-color-primary);
+            --chat-input-bg: var(--input-background);
+            --chat-input-border: var(--border-light);
+            --chat-timestamp-color: var(--text-light);
+        }
+
+        /* Glass Mode specific variables */
+        body.theme-glass-mode {
+            --background-main: rgba(10, 10, 10, 0.75);
+            background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important;
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            backdrop-filter: blur(10px);
+            --card-background: rgba(25, 25, 40, 0.7);
+            --white: #e0e0e0;
+            --text-light: rgba(255, 255, 255, 0.7);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.1);
+            --button-background-gradient: linear-gradient(90deg, var(--pink), var(--blue));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
+
+            --background-color-primary: rgba(10, 10, 10, 0.75);
+            --background-color-secondary: rgba(10, 10, 10, 0.6);
+            --header-background-color: rgba(10, 10, 10, 0.85);
+            --footer-background-color: rgba(10, 10, 10, 0.85);
+            --content-background-color: rgba(10, 10, 10, 0.75);
+            --card-background-color: rgba(25, 25, 40, 0.7);
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --accent-color: #00d5ff;
+            --accent-color-dark: #00aaff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-background-color: rgba(255, 255, 255, 0.05);
+            --button-background: rgba(0, 213, 255, 0.15);
+            --button-hover-background: rgba(0, 213, 255, 0.25);
+            --active-item-background: rgba(0, 213, 255, 0.1);
+
+            /* Chat specific colors for glass mode */
+            --my-message-bubble-bg: linear-gradient(135deg, var(--blue), var(--pink));
+            --my-message-bubble-text: var(--white);
+            --other-message-bubble-bg: rgba(255, 255, 255, 0.1);
+            --other-message-bubble-text: var(--text-color-primary);
+            --chat-input-bg: rgba(255, 255, 255, 0.05);
+            --chat-input-border: rgba(255, 255, 255, 0.1);
+            --chat-timestamp-color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Sunset Theme */
+        body.theme-sunset-mode {
+            background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
+            --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
+            --card-background: rgba(255, 255, 255, 0.15);
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, 0.8);
+            --input-background: rgba(255, 255, 255, 0.1);
+            --border-light: rgba(255, 255, 255, 0.3);
+            --button-background-gradient: linear-gradient(90deg, #fd746c, #ff9068);
+            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 4px 15px rgba(255, 144, 104, 0.4);
+
+            --background-color-primary: #ff7e5f;
+            --background-color-secondary: #feb47b;
+            --header-background-color: rgba(255, 126, 95, 0.9);
+            --footer-background-color: rgba(255, 126, 95, 0.9);
+            --content-background-color: rgba(255, 126, 95, 0.85);
+            --card-background-color: rgba(255, 255, 255, 0.15);
+            --text-color-primary: #fff;
+            --text-color-secondary: rgba(255, 255, 255, 0.8);
+            --accent-color: #ffd700;
+            --accent-color-dark: #ccaa00;
+            --border-color: rgba(255, 255, 255, 0.3);
+            --input-background-color: rgba(255, 255, 255, 0.1);
+            --button-background: rgba(255, 255, 255, 0.2);
+            --button-hover-background: rgba(255, 255, 255, 0.3);
+            --active-item-background: rgba(255, 215, 0, 0.1);
+
+            /* Chat specific colors for sunset mode */
+            --my-message-bubble-bg: linear-gradient(135deg, #fd746c, #ff9068);
+            --my-message-bubble-text: #ffffff;
+            --other-message-bubble-bg: rgba(255, 255, 255, 0.2);
+            --other-message-bubble-text: var(--text-color-primary);
+            --chat-input-bg: rgba(255, 255, 255, 0.1);
+            --chat-input-border: rgba(255, 255, 255, 0.3);
+            --chat-timestamp-color: rgba(255, 255, 255, 0.7);
+        }
+
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding-bottom: 80px; /* Space for fixed input area */
+            background-color: var(--background-main);
+            background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
+                              radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
+            color: var(--white);
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* Header Styling (reused) */
+        header {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        header .header-content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
+            text-decoration: none;
+        }
+
+        /* Chat Header Specifics */
+        .chat-header-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-header-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+        }
+
+        .chat-header-info .name {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--white);
+            margin: 0;
+        }
+
+        .chat-header-info .status {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .chat-header-info .status .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--status-offline);
+        }
+        .chat-header-info .status.online .status-dot { background-color: var(--status-online); }
+        .chat-header-info .status.away .status-dot { background-color: var(--status-away); }
+
+
+        .chat-header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .chat-header-actions button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .chat-header-actions button:hover {
+            color: var(--white);
+            transform: scale(1.1);
+        }
+
+        /* Main Content Area - Flexible for Friends List or Chat */
+        main {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-top: 60px; /* Space for fixed header */
+            padding-bottom: 80px; /* Space for fixed input area */
+            position: relative;
+        }
+
+        /* Friends List View */
+        #friendsListView {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            background-color: var(--background-color-secondary);
+        }
+
+        #friendsListView h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin-bottom: 1rem;
+        }
+
+        #friendsListView p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: var(--card-background);
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .toggle-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color-primary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--status-offline);
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 34px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--white);
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background: var(--button-background-gradient);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--blue);
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        .friends-list {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .friend-item {
+            background: var(--input-background);
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .friend-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .friend-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid var(--accent-color);
+        }
+
+        .friend-info {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .friend-info .username {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color-primary);
+            margin: 0;
+        }
+
+        .friend-info .status {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 3px;
+        }
+
+        .friend-info .status .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--status-offline);
+        }
+        .friend-info .status.online .status-dot { background-color: var(--status-online); }
+        .friend-info .status.away .status-dot { background-color: var(--status-away); }
+
+        /* Chat View */
+        #chatView {
+            flex-grow: 1;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            padding-bottom: 80px; /* Space for fixed input area */
+        }
+
+        .chat-messages-container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: var(--background-color-secondary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Message Bubble Styles */
+        .message-bubble-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            max-width: 80%;
+        }
+
+        .message-bubble-wrapper.my-message {
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+
+        .message-bubble-wrapper.other-message {
+            justify-content: flex-start;
+            margin-right: auto;
+        }
+
+        .message-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--accent-color);
+        }
+
+        .message-content-box {
+            background: var(--other-message-bubble-bg);
+            color: var(--other-message-bubble-text);
+            padding: 12px 18px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-bubble-wrapper.my-message .message-content-box {
+            background: var(--my-message-bubble-bg);
+            color: var(--my-message-bubble-text);
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-bubble-wrapper.other-message .message-content-box {
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-timestamp {
+            font-size: 0.75rem;
+            color: var(--chat-timestamp-color);
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .message-bubble-wrapper.other-message .message-timestamp {
+            text-align: left;
+        }
+
+        /* Media Message Styles */
+        .message-content-box img,
+        .message-content-box video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .message-content-box audio {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        /* Chat Input Area */
+        .chat-input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--header-background);
+            border-top: 1px solid var(--border-light);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .chat-input-area input[type="text"] {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--chat-input-border);
+            border-radius: 25px;
+            background: var(--chat-input-bg);
+            color: var(--text-color-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .chat-input-area input[type="text"]:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+        .chat-input-area button {
+            background: var(--button-background-gradient);
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .chat-input-area button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: var(--button-shadow);
+        }
+        .chat-input-area button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Hidden file input */
+        #mediaInput {
+            display: none;
+        }
+
+        /* Voice Note Button Specifics */
+        .voice-note-button.recording {
+            background: linear-gradient(90deg, var(--delete-button-color), #ff6b81);
+            animation: pulse-record 1s infinite alternate;
+        }
+
+        @keyframes pulse-record {
+            from { transform: scale(1); box-shadow: 0 0 0 rgba(255, 0, 0, 0.7); }
+            to { transform: scale(1.1); box-shadow: 0 0 15px rgba(255, 0, 0, 0.9); }
+        }
+
+        /* Call Overlay */
+        #callOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 100;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            color: var(--white);
+            backdrop-filter: blur(10px);
+        }
+
+        #callOverlay.active {
+            display: flex;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #remoteVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Ensure video fits without cropping */
+            background-color: black;
+        }
+
+        #localVideo {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 120px;
+            height: 90px;
+            background-color: black;
+            border: 2px solid var(--accent-color);
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .call-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .call-controls button {
+            background: var(--button-background-gradient);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .call-controls button:hover {
+            transform: scale(1.1);
+            box-shadow: var(--button-shadow);
+        }
+
+        .call-controls #hangUpBtn {
+            background: var(--delete-button-color);
+        }
+        .call-controls #hangUpBtn:hover {
+            background: #e63946; /* Darker red on hover */
+        }
+
+        /* Custom Message Box (reused) */
+        #messageBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--card-background-color);
+            color: var(--text-color-primary);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            min-width: 280px;
+            max-width: 90%;
+            text-align: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        #messageBox.show {
+            opacity: 1;
+            display: flex;
+        }
+        #messageBox.success {
+            background-image: linear-gradient(45deg, var(--pink), var(--blue));
+            color: var(--white);
+            border: none;
+            box-shadow: 0 8px 30px rgba(0, 213, 255, 0.5), 0 8px 30px rgba(255, 46, 146, 0.5);
+        }
+        #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.loading {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.9), rgba(46, 204, 113, 0.9));
+            box-shadow: 0 8px 30px rgba(52, 152, 219, 0.5), 0 8px 30px rgba(46, 204, 113, 0.5);
+            color: var(--white);
+        }
+
+        #messageBox i {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        #messageBox.success i { color: var(--white); }
+        #messageBox.error i { color: var(--delete-button-color); }
+        #messageBox.info i { color: var(--accent-color); }
+        #messageBox.warning i { color: var(--warning-color); }
+        #messageBox.loading i { color: var(--white); }
+
+        @keyframes pulse-bg {
+            0% { background-color: var(--accent-color); }
+            50% { background-color: rgba(0, 213, 255, 0.7); }
+            100% { background-color: var(--accent-color); }
+        }
+        #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
+
+        /* Maintenance Mode Overlay (reused) */
+        #maintenanceOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: var(--white);
+            text-align: center;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #maintenanceOverlay.active { opacity: 1; visibility: visible; }
+        #maintenanceOverlay i {
+            font-size: 5rem;
+            color: var(--warning-color);
+            margin-bottom: 20px;
+        }
+        #maintenanceOverlay h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--warning-color);
+            margin-bottom: 10px;
+        }
+        #maintenanceOverlay p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            max-width: 600px;
+            color: var(--text-light);
+        }
+
+        /* Custom Confirmation Dialog */
+        #confirmationDialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--card-background-color);
+            color: var(--text-color-primary);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            z-index: 1001; /* Higher than messageBox */
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            min-width: 300px;
+            max-width: 90%;
+            text-align: center;
+            border: 1px solid var(--border-light);
+        }
+        #confirmationDialog.show {
+            display: flex;
+        }
+        #confirmationDialog h3 {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.4rem;
+            color: var(--text-color-primary);
+        }
+        #confirmationDialog p {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+        .dialog-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+        .dialog-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            flex-grow: 1;
+            max-width: 120px;
+        }
+        .dialog-buttons button.confirm-btn {
+            background: var(--delete-button-color);
+            color: var(--white);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .dialog-buttons button.confirm-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+        .dialog-buttons button.cancel-btn {
+            background: var(--input-background);
+            color: var(--text-color-primary);
+            border: 1px solid var(--border-light);
+        }
+        .dialog-buttons button.cancel-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .chat-messages-container {
+                padding: 15px;
+            }
+            .message-bubble-wrapper {
+                max-width: 90%;
+            }
+            .chat-input-area {
+                padding: 10px 15px;
+                gap: 8px;
+            }
+            .chat-input-area input[type="text"] {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+            .chat-input-area button {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            .chat-header-info img {
+                width: 35px;
+                height: 35px;
+            }
+            .chat-header-info .name {
+                font-size: 1.1rem;
+            }
+            .chat-header-actions button {
+                font-size: 1.2rem;
+            }
+            #friendsListView h1 {
+                font-size: 2.2rem;
+            }
+            .toggle-container {
+                padding: 10px 15px;
+                gap: 10px;
+            }
+            .toggle-label {
+                font-size: 1rem;
+            }
+            .toggle-switch {
+                width: 50px;
+                height: 28px;
+            }
+            .slider:before {
+                height: 22px;
+                width: 22px;
+                left: 3px;
+                bottom: 3px;
+            }
+            input:checked + .slider:before {
+                -webkit-transform: translateX(22px);
+                -ms-transform: translateX(22px);
+                transform: translateX(22px);
+            }
+            .friends-list {
+                gap: 10px;
+            }
+            .friend-item {
+                padding: 12px 15px;
+                gap: 10px;
+            }
+            .friend-avatar {
+                width: 40px;
+                height: 40px;
+            }
+            .friend-info .username {
+                font-size: 1rem;
+            }
+            .friend-info .status {
+                font-size: 0.8rem;
+            }
+            #localVideo {
+                width: 100px;
+                height: 75px;
+                bottom: 10px;
+                right: 10px;
+            }
+            .call-controls button {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+            #confirmationDialog {
+                padding: 20px;
+                min-width: unset;
+            }
+            .dialog-buttons button {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header .header-content-wrapper {
+                padding: 0 10px;
+            }
+            .logo {
+                font-size: 1.5rem;
+            }
+            .chat-header-info img {
+                width: 30px;
+                height: 30px;
+            }
+            .chat-header-info .name {
+                font-size: 1rem;
+            }
+            .chat-header-actions button {
+                font-size: 1rem;
+                padding: 5px;
+            }
+            .message-avatar {
+                width: 30px;
+                height: 30px;
+            }
+            .message-content-box {
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+            .message-timestamp {
+                font-size: 0.7rem;
+            }
+            .chat-input-area {
+                padding: 8px 10px;
+                gap: 5px;
+            }
+            .chat-input-area input[type="text"] {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+            }
+            .chat-input-area button {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
+            }
+            #friendsListView h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body class="theme-dark-mode">
+
+    <header>
+        <div class="header-content-wrapper">
+            <a href="/home.html" class="logo">JCHAT</a>
+            <!-- Chat Header Info (dynamic based on selected friend) -->
+            <div class="chat-header-info" id="chatHeaderInfo" style="display: none;">
+                <img id="otherUserPic" src="" alt="User Profile Picture" style="display: none;">
+                <i id="otherUserAvatarIcon" class="fas fa-user-circle" style="font-size: 40px; color: var(--text-light);"></i>
+                <div>
+                    <p class="name" id="otherUsername">Loading...</p>
+                    <p class="status" id="otherUserStatus"><span class="status-dot"></span> Offline</p>
+                </div>
+            </div>
+            <!-- Header for Friends List View -->
+            <h1 id="friendsListHeaderTitle" style="display: block; font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 800; background-clip: text; color: transparent; background-image: linear-gradient(90deg, var(--blue), var(--pink));">Your Chats</h1>
+
+            <div class="chat-header-actions">
+                <button id="voiceCallBtn" title="Voice Call" style="display: none;"><i class="fas fa-phone"></i></button>
+                <button id="videoCallBtn" title="Video Call" style="display: none;"><i class="fas fa-video"></i></button>
+                <button id="unfriendBtn" title="Unfriend" style="display: none;"><i class="fas fa-user-slash"></i></button>
+                <button id="backToFriendsBtn" title="Back to Friends" style="display: none;"><i class="fas fa-arrow-left"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Friends List View -->
+        <div id="friendsListView">
+            <p style="color: var(--text-light); font-size: 0.9rem;">
+                Connect with your friends or start a new group conversation.
+            </p>
+
+            <!-- Beautiful Pink and Blue Toggle -->
+            <div class="toggle-container">
+                <span class="toggle-label">Show Online Friends</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="onlineFriendsToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <h2 style="font-family: 'Poppins', sans-serif; font-size: 2rem; font-weight: 800; background-clip: text; color: transparent; background-image: linear-gradient(90deg, var(--blue), var(--pink)); margin-bottom: 1.2rem;">Friends to Chat With</h2>
+            <ul class="friends-list" id="friendsList">
+                <p style="text-align: center; color: var(--text-light);">Loading friends...</p>
+                <!-- Friends will be dynamically loaded here -->
+            </ul>
+        </div>
+
+        <!-- Chat View -->
+        <div id="chatView" style="display: none;">
+            <div class="chat-messages-container" id="chatMessagesContainer">
+                <!-- Chat messages will be dynamically loaded here -->
+                <p style="text-align: center; color: var(--text-light);">Loading messages...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Chat Input Area (for chat view) -->
+    <div class="chat-input-area" id="chatInputArea" style="display: none;">
+        <input type="file" id="mediaInput" accept="image/*,video/*,audio/*">
+        <button id="attachMediaBtn" title="Attach Media"><i class="fas fa-paperclip"></i></button>
+        <button id="voiceNoteBtn" title="Record Voice Note"><i class="fas fa-microphone"></i></button>
+        <input type="text" id="messageInput" placeholder="Type a message...">
+        <button id="sendMessageBtn" title="Send Message" disabled><i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <!-- Call Overlay -->
+    <div id="callOverlay">
+        <div class="video-container">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay muted playsinline></video>
+        </div>
+        <div class="call-controls">
+            <button id="toggleAudioBtn"><i class="fas fa-microphone"></i></button>
+            <button id="toggleVideoBtn"><i class="fas fa-video"></i></button>
+            <button id="hangUpBtn"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
+
+
+    <!-- Custom Message Box -->
+    <div id="messageBox" role="alert" aria-live="polite"></div>
+
+    <!-- Custom Confirmation Dialog -->
+    <div id="confirmationDialog">
+        <h3>Confirm Action</h3>
+        <p id="confirmationMessage">Are you sure you want to proceed?</p>
+        <div class="dialog-buttons">
+            <button id="confirmYesBtn" class="confirm-btn">Yes</button>
+            <button id="confirmNoBtn" class="cancel-btn">No</button>
+        </div>
+    </div>
+
+    <!-- Maintenance Mode Overlay -->
+    <div id="maintenanceOverlay" role="dialog" aria-modal="true" aria-labelledby="maintenanceOverlayTitle">
+        <i class="fas fa-tools" role="img" aria-label="Maintenance Icon"></i>
+        <h2 id="maintenanceOverlayTitle">Maintenance Mode</h2>
+        <p id="maintenanceAnnouncementText">JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!</p>
+    </div>
+
+    <script type="module">
+        console.log("JCHAT_DEBUG: private_chat_combined.html script started.");
+
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp, Timestamp, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        // --- Firebase & Canvas Environment Configuration ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+            authDomain: "jchat-1.firebaseapp.com",
+            projectId: "jchat-1",
+            storageBucket: "jchat-1.firebasestorage.app",
+            messagingSenderId: "328479683167",
+            appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+            measurementId: "G-S6Z9GG0R9P"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Cloudinary Configuration (for profile pictures)
+        const cloudinaryConfig = {
+            cloudName: "dxld01rcp",
+            uploadPreset: "Storage_preset"
+        };
+
+        // Initialize Firebase services
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // --- ADMIN UID (for bypass) ---
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2';
+
+        // --- DOM Elements ---
+        // Header elements (shared across views)
+        // const headerProfilePic = document.getElementById('headerProfilePic'); // Not used in this specific page's header
+        // const headerAvatarIcon = document.getElementById('headerAvatarIcon'); // Not used in this specific page's header
+        // const headerDisplayName = document.getElementById('headerDisplayName'); // Not used in this specific page's header
+        // const logoutButton = document.getElementById('logoutButton'); // Not used in this specific page's header
+        // const notificationCountElement = document.getElementById('notificationCount'); // Not used in this specific page's header
+        // const headerProfileNavLink = document.getElementById('headerProfileNavLink'); // Not used in this specific page's header
+        // const adminIconLink = document.getElementById('adminIconLink'); // Not used in this specific page's header
+
+        // Combined Chat/Friends UI elements
+        const friendsListView = document.getElementById('friendsListView');
+        const chatView = document.getElementById('chatView');
+        const chatInputArea = document.getElementById('chatInputArea');
+        const chatHeaderInfo = document.getElementById('chatHeaderInfo');
+        const friendsListHeaderTitle = document.getElementById('friendsListHeaderTitle');
+
+        // Friends List Specific
+        const onlineFriendsToggle = document.getElementById('onlineFriendsToggle');
+        const friendsListContainer = document.getElementById('friendsList');
+
+        // Chat Specific
+        const otherUserPic = document.getElementById('otherUserPic');
+        const otherUserAvatarIcon = document.getElementById('otherUserAvatarIcon');
+        const otherUsernameDisplay = document.getElementById('otherUsername');
+        const otherUserStatusDisplay = document.getElementById('otherUserStatus');
+        const voiceCallBtn = document.getElementById('voiceCallBtn');
+        const videoCallBtn = document.getElementById('videoCallBtn');
+        const unfriendBtn = document.getElementById('unfriendBtn'); // New unfriend button
+        const backToFriendsBtn = document.getElementById('backToFriendsBtn');
+        const chatMessagesContainer = document.getElementById('chatMessagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const attachMediaBtn = document.getElementById('attachMediaBtn');
+        const mediaInput = document.getElementById('mediaInput');
+        const voiceNoteBtn = document.getElementById('voiceNoteBtn');
+
+        // Call Overlay Specific
+        const callOverlay = document.getElementById('callOverlay');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+        const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+        const hangUpBtn = document.getElementById('hangUpBtn');
+
+        // Global Message/Maintenance Overlays
+        const messageBox = document.getElementById('messageBox');
+        const maintenanceOverlay = document.getElementById('maintenanceOverlay');
+        const maintenanceAnnouncementText = document.getElementById('maintenanceAnnouncementText');
+
+        // Confirmation Dialog
+        const confirmationDialog = document.getElementById('confirmationDialog');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const confirmYesBtn = document.getElementById('confirmYesBtn');
+        const confirmNoBtn = document.getElementById('confirmNoBtn');
+
+
+        // --- Global State Variables ---
+        let currentUser = null;
+        let currentUserProfileData = null; // Renamed from currentUserProfile for consistency
+        let isAuthReady = false;
+        let currentSystemSettings = {};
+        let friendsData = {}; // Stores friend profiles and their status listeners
+        let unsubscribeFriendStatusListeners = {}; // To manage individual friend status listeners
+        let unsubscribeFriendsList = null; // Listener for the main friends list
+
+        let otherUserId = null;
+        let otherUserProfile = null;
+        let chatRoomId = null;
+        let chatRoomRef = null;
+        let messagesCollectionRef = null;
+        let unsubscribeMessages = null;
+        let unsubscribeOtherUserProfile = null;
+        let unsubscribeOtherUserStatus = null;
+        let unsubscribeSystemSettings = null;
+        let unsubscribeCallSignals = null; // New: for WebRTC signaling
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        // WebRTC related globals
+        let peerConnection;
+        let localStream;
+        let remoteStream;
+        let currentCallRoomRef; // Firestore doc ref for the current call signaling
+        let callType; // 'audio' or 'video'
+
+        // Public STUN servers (for NAT traversal)
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                // Add more STUN/TURN servers for robustness in production
+                // For TURN, you'd need a server like coturn and credentials
+                // { urls: 'turn:your-turn-server.com:3478', username: 'user', credential: 'password' }
+            ]
+        };
+
+        // --- Tone.js Synths for Notification Sounds (reused) ---
+        const successSynth = new Tone.Synth().toDestination();
+        const errorSynth = new Tone.Synth().toDestination();
+        const infoSynth = new Tone.Synth().toDestination();
+
+        successSynth.oscillator.type = "sine"; successSynth.envelope.attack = 0.01; successSynth.envelope.decay = 0.2; successSynth.envelope.sustain = 0.0; successSynth.envelope.release = 0.5;
+        errorSynth.oscillator.type = "sawtooth"; errorSynth.envelope.attack = 0.01; errorSynth.envelope.decay = 0.3; errorSynth.envelope.sustain = 0.0; errorSynth.envelope.release = 0.5;
+        infoSynth.oscillator.type = "triangle"; infoSynth.envelope.attack = 0.01; infoSynth.envelope.decay = 0.1; infoSynth.envelope.sustain = 0.0; infoSynth.envelope.release = 0.3;
+
+        function playNotificationSound(type) {
+            Tone.start();
+            if (type === 'success') { successSynth.triggerAttackRelease("C5", "8n"); }
+            else if (type === 'error') { errorSynth.triggerAttackRelease("C3", "8n"); }
+            else if (type === 'info') { infoSynth.triggerAttackRelease("E4", "16n"); }
+        }
+
+        // --- Utility Functions (reused and adapted) ---
+        function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
+            if (!messageBox) { console.error("JCHAT_ERROR: messageBox element not found."); return; }
+            if (messageBox.timeoutId) { clearTimeout(messageBox.timeoutId); }
+
+            messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
+            const messageBoxIcon = document.getElementById('messageBoxIcon');
+            const messageBoxText = document.getElementById('messageBoxText');
+
+            messageBoxText.textContent = message;
+            messageBox.className = 'message-box show ' + type;
+
+            if (messageBoxIcon) {
+                messageBoxIcon.className = '';
+                if (type === 'success') { messageBoxIcon.classList.add('fas', 'fa-check-circle'); playNotificationSound('success'); }
+                else if (type === 'error') { messageBoxIcon.classList.add('fas', 'fa-times-circle'); playNotificationSound('error'); }
+                else if (type === 'info') { messageBoxIcon.classList.add('fas', 'fa-info-circle'); playNotificationSound('info'); }
+                else if (type === 'warning') { messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle'); playNotificationSound('info'); }
+                else if (type === 'loading') { messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); }
+            }
+            if (type === 'loading') { messageBox.classList.add('loading-pulse'); } else { messageBox.classList.remove('loading-pulse'); }
+
+            messageBox.style.display = 'flex';
+            messageBox.style.opacity = '1';
+
+            if (!isPersistent) {
+                messageBox.timeoutId = setTimeout(() => {
+                    messageBox.style.opacity = '0';
+                    messageBox.addEventListener('transitionend', function handler() {
+                        messageBox.style.display = 'none';
+                        messageBox.removeEventListener('transitionend', handler);
+                        messageBox.classList.remove('loading-pulse');
+                    }, { once: true });
+                }, durationMs);
+            }
+        }
+
+        /**
+         * Shows a custom confirmation dialog.
+         * @param {string} message - The message to display in the dialog.
+         * @returns {Promise<boolean>} - Resolves to true if 'Yes' is clicked, false if 'No'.
+         */
+        function showConfirmationDialog(message) {
+            return new Promise((resolve) => {
+                if (!confirmationDialog || !confirmationMessage || !confirmYesBtn || !confirmNoBtn) {
+                    console.error("JCHAT_ERROR: Confirmation dialog elements not found.");
+                    resolve(false); // Default to no if dialog elements are missing
+                    return;
+                }
+
+                confirmationMessage.textContent = message;
+                confirmationDialog.classList.add('show');
+
+                const handleYes = () => {
+                    confirmationDialog.classList.remove('show');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(true);
+                };
+
+                const handleNo = () => {
+                    confirmationDialog.classList.remove('show');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(false);
+                };
+
+                confirmYesBtn.addEventListener('click', handleYes);
+                confirmNoBtn.addEventListener('click', handleNo);
+            });
+        }
+
+        function toggleButtonLoading(buttonElement, isLoading) {
+            if (!buttonElement) return;
+            buttonElement.disabled = isLoading;
+        }
+
+        function applyTheme(themeName) {
+            const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+            document.body.classList.remove(...themes);
+            document.body.classList.add(themeName);
+            localStorage.setItem('jchat-theme', themeName);
+        }
+
+        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
+            if (!urlOrPublicId) return null;
+            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
+                if (urlOrPublicId.includes('res.cloudinary.com')) {
+                    const parts = urlOrPublicId.split('/upload/');
+                    if (parts.length === 2) {
+                        return `${parts[0]}/upload/${transformations}/${parts[1]}`;
+                    }
+                }
+                return urlOrPublicId;
+            }
+            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
+        }
+
+        function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
+            if (imgElement) {
+                if (profilePicId) {
+                    const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
+                    imgElement.src = imageUrl;
+                    imgElement.style.display = 'block';
+                    if (iconElement) iconElement.style.display = 'none';
+                    imgElement.onerror = () => {
+                        console.error(`JCHAT_ERROR: Failed to load profile picture: ${profilePicId}. Using placeholder.`);
+                        const bgColor = getComputedStyle(document.body).getPropertyValue('--card-background-color').trim();
+                        const textColor = getComputedStyle(document.body).getPropertyValue('--text-color-primary').trim();
+                        imgElement.src = `https://placehold.co/120x120/${bgColor.replace('#', '')}/${textColor.replace('#', '')}?text=${usernameInitial}`;
+                        imgElement.style.display = 'block';
+                        if (iconElement) iconElement.style.display = 'none';
+                    };
+                } else {
+                    imgElement.src = '';
+                    imgElement.style.display = 'none';
+                    if (iconElement) iconElement.style.display = 'block';
+                }
+            }
+        }
+
+        /**
+         * Fetches user profile data (private and public) and updates header.
+         * For chat, it also sets up the current user's profile data for sending messages.
+         */
+        async function fetchCurrentUserProfile(user) {
+            try {
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                const privateDocSnap = await getDoc(privateProfileDocRef);
+
+                let profileData = null;
+                if (privateDocSnap.exists()) {
+                    profileData = privateDocSnap.data();
+                    // Ensure essential fields exist, initialize if not
+                    if (profileData.username === undefined) profileData.username = user.displayName || `User_${user.uid.substring(0, 8)}`;
+                    if (profileData.profilePicId === undefined) profileData.profilePicId = user.photoURL || null;
+                    if (profileData.banned === undefined) profileData.banned = false; // New: default to not banned
+                } else {
+                    // Create a basic profile if it doesn't exist
+                    profileData = {
+                        username: user.displayName || `User_${user.uid.substring(0, 8)}`,
+                        email: user.email || "",
+                        profilePicId: user.photoURL || null,
+                        bio: "", location: "", school: "", work: "", interests: "", website: "", socialLinks: "",
+                        friendsCount: 0, followersCount: 0, followingCount: 0,
+                        createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+                        inspirationType: "motivational",
+                        visibility: {
+                            displayName: true, profilePic: true, bio: false, location: false,
+                            emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
+                            school: false, work: false, interests: false, website: false, socialLinks: false
+                        },
+                        totalPosts: 0, jCoins: 0, gas: 0, totalGasEarned: 0, level: 1, walletUnlocked: false, unlockedBenefits: [],
+                        banned: false
+                    };
+                    await setDoc(privateProfileDocRef, profileData);
+                    console.log("JCHAT_DEBUG: Created new private profile for current user.");
+                }
+                currentUserProfileData = profileData;
+
+                // Update public profile summary to ensure it exists and is up-to-date
+                const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+                await setDoc(publicProfileDocRef, {
+                    username: currentUserProfileData.username,
+                    profilePicId: currentUserProfileData.profilePicId,
+                    level: currentUserProfileData.level,
+                    totalGasEarned: currentUserProfileData.totalGasEarned,
+                    banned: currentUserProfileData.banned,
+                    userId: user.uid,
+                    lastOnline: serverTimestamp() // Update last online status
+                }, { merge: true });
+
+                console.log("JCHAT_DEBUG: Current user profile fetched/updated:", currentUserProfileData);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching/creating current user profile:", error);
+                showMessageBox(`Error loading your profile: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Fetches the other user's profile and sets up a real-time listener for their status.
+         */
+        async function fetchOtherUserProfileAndStatus() {
+            if (!otherUserId) {
+                console.error("JCHAT_ERROR: otherUserId is not set.");
+                showMessageBox("Chat partner not specified.", 'error');
+                return;
+            }
+
+            // Unsubscribe from previous listeners if any
+            if (unsubscribeOtherUserProfile) unsubscribeOtherUserProfile();
+            if (unsubscribeOtherUserStatus) unsubscribeOtherUserStatus();
+
+            const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", otherUserId);
+            const userStatusDocRef = doc(db, "artifacts", appId, "public", "data", "user_statuses", otherUserId);
+
+            // Listen to other user's public profile
+            unsubscribeOtherUserProfile = onSnapshot(publicProfileDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    otherUserProfile = docSnap.data();
+                    const usernameInitial = (otherUserProfile.username || 'U').charAt(0).toUpperCase();
+                    if (otherUserPic && otherUserAvatarIcon) {
+                        displayProfilePicture(otherUserPic, otherUserAvatarIcon, otherUserProfile.profilePicId, usernameInitial, "w_80,h_80,c_fill,g_face,r_max");
+                    }
+                    if (otherUsernameDisplay) otherUsernameDisplay.textContent = otherUserProfile.username || 'Unknown User';
+                } else {
+                    otherUserProfile = null;
+                    if (otherUsernameDisplay) otherUsernameDisplay.textContent = 'User Not Found';
+                    if (otherUserPic) otherUserPic.style.display = 'none';
+                    if (otherUserAvatarIcon) otherUserAvatarIcon.style.display = 'block';
+                    console.warn(`JCHAT_WARNING: Other user's public profile (${otherUserId}) not found.`);
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to other user's profile:", error);
+                showMessageBox(`Error loading chat partner info: ${error.message}`, 'error');
+            });
+
+            // Listen to other user's online status
+            unsubscribeOtherUserStatus = onSnapshot(userStatusDocRef, (docSnap) => {
+                if (otherUserStatusDisplay) {
+                    if (docSnap.exists()) {
+                        const statusData = docSnap.data();
+                        if (statusData.isOnline) {
+                            otherUserStatusDisplay.classList.remove('offline', 'away');
+                            otherUserStatusDisplay.classList.add('online');
+                            otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Online`;
+                        } else if (statusData.lastOnline && (Date.now() - statusData.lastOnline.toDate().getTime()) < (5 * 60 * 1000)) { // Away if last seen within 5 mins
+                            otherUserStatusDisplay.classList.remove('online', 'offline');
+                            otherUserStatusDisplay.classList.add('away');
+                            otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Away`;
+                        } else {
+                            otherUserStatusDisplay.classList.remove('online', 'away');
+                            otherUserStatusDisplay.classList.add('offline');
+                            otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Offline`;
+                        }
+                    } else {
+                        // Default to offline if status document doesn't exist
+                        otherUserStatusDisplay.classList.remove('online', 'away');
+                        otherUserStatusDisplay.classList.add('offline');
+                        otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Offline`;
+                    }
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to other user's status:", error);
+                if (otherUserStatusDisplay) {
+                    otherUserStatusDisplay.classList.remove('online', 'away');
+                    otherUserStatusDisplay.classList.add('offline');
+                    otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Offline (Error)`;
+                }
+            });
+        }
+
+        /**
+         * Sets up the chat room and message listener.
+         */
+        async function setupChatRoom() {
+            if (!currentUser || !otherUserId) {
+                console.error("JCHAT_ERROR: Current user or other user not set for chat room setup.");
+                showMessageBox("Cannot start chat: missing user info.", 'error');
+                return;
+            }
+
+            // Determine chatRoomId for private chat (sorted UIDs)
+            chatRoomId = [currentUser.uid, otherUserId].sort().join('_');
+            chatRoomRef = doc(db, "artifacts", appId, "public", "data", "chat_rooms", chatRoomId);
+            messagesCollectionRef = collection(chatRoomRef, "messages");
+
+            try {
+                const chatRoomSnap = await getDoc(chatRoomRef);
+                if (!chatRoomSnap.exists()) {
+                    // Create new private chat room if it doesn't exist
+                    await setDoc(chatRoomRef, {
+                        type: "private",
+                        members: [currentUser.uid, otherUserId],
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
+                        lastMessage: { content: "Chat started.", timestamp: serverTimestamp(), type: "text" },
+                        readBy: { [currentUser.uid]: serverTimestamp() } // Mark as read by current user
+                    });
+                    console.log("JCHAT_DEBUG: New private chat room created:", chatRoomId);
+                } else {
+                    // Update readBy for current user when entering chat
+                    await updateDoc(chatRoomRef, {
+                        [`readBy.${currentUser.uid}`]: serverTimestamp()
+                    });
+                }
+
+                // Set up real-time listener for messages
+                if (unsubscribeMessages) unsubscribeMessages(); // Unsubscribe previous
+                const q = query(messagesCollectionRef, orderBy("timestamp", "asc"), limit(50)); // Load last 50 messages
+
+                unsubscribeMessages = onSnapshot(q, (querySnapshot) => {
+                    if (chatMessagesContainer) chatMessagesContainer.innerHTML = ''; // Clear existing messages
+                    if (querySnapshot.empty) {
+                        if (chatMessagesContainer) chatMessagesContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">No messages yet. Say hello!</p>';
+                    } else {
+                        querySnapshot.forEach(docSnap => {
+                            const message = docSnap.data();
+                            renderMessage(message);
+                        });
+                        scrollToBottom(); // Auto-scroll to latest message
+                    }
+                }, (error) => {
+                    console.error("JCHAT_ERROR: Error listening to messages:", error);
+                    showMessageBox(`Error loading messages: ${error.message}`, 'error');
+                });
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error setting up chat room:", error);
+                showMessageBox(`Failed to setup chat: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Renders a single message bubble in the chat container.
+         * @param {object} message - The message object from Firestore.
+         */
+        function renderMessage(message) {
+            if (!chatMessagesContainer) return;
+
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('message-bubble-wrapper');
+            messageWrapper.classList.add(message.senderId === currentUser.uid ? 'my-message' : 'other-message');
+
+            const messageContentBox = document.createElement('div');
+            messageContentBox.classList.add('message-content-box');
+
+            const timestamp = message.timestamp ? new Date(message.timestamp.toDate()).toLocaleString() : 'N/A';
+
+            let mediaHtml = '';
+            if (message.type === 'image' && message.mediaUrl) {
+                mediaHtml = `<img src="${message.mediaUrl}" alt="Image" loading="lazy">`;
+            } else if (message.type === 'video' && message.mediaUrl) {
+                mediaHtml = `<video controls src="${message.mediaUrl}" loading="lazy"></video>`;
+            } else if (message.type === 'audio' && message.mediaUrl) {
+                mediaHtml = `<audio controls src="${message.mediaUrl}"></audio>`;
+            } else if (message.type === 'call_start') {
+                messageContentBox.style.backgroundColor = 'rgba(0, 255, 0, 0.2)'; // Greenish for call start
+                messageContentBox.style.textAlign = 'center';
+                messageContentBox.style.color = 'var(--white)';
+                messageContentBox.innerHTML = `<i class="fas fa-phone-volume" style="margin-right: 5px;"></i> Call Started: ${message.content}`;
+            } else if (message.type === 'call_end') {
+                messageContentBox.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; // Reddish for call end
+                messageContentBox.style.textAlign = 'center';
+                messageContentBox.style.color = 'var(--white)';
+                messageContentBox.innerHTML = `<i class="fas fa-phone-slash" style="margin-right: 5px;"></i> Call Ended: ${message.content}`;
+            } else if (message.type === 'text') {
+                messageContentBox.textContent = message.content;
+            }
+
+            if (message.type !== 'call_start' && message.type !== 'call_end') {
+                messageContentBox.innerHTML = `${mediaHtml}<p>${message.content}</p>`;
+            }
+
+
+            const messageTimestamp = document.createElement('span');
+            messageTimestamp.classList.add('message-timestamp');
+            messageTimestamp.textContent = timestamp;
+
+            // Avatar for other user's messages
+            if (message.senderId !== currentUser.uid) {
+                const avatarImg = document.createElement('img');
+                avatarImg.classList.add('message-avatar');
+                const usernameInitial = (message.senderUsername || 'U').charAt(0).toUpperCase();
+                displayProfilePicture(avatarImg, null, message.senderProfilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                messageWrapper.appendChild(avatarImg);
+            }
+
+            const contentAndTimestamp = document.createElement('div');
+            contentAndTimestamp.style.display = 'flex';
+            contentAndTimestamp.style.flexDirection = 'column';
+            contentAndTimestamp.style.alignItems = message.senderId === currentUser.uid ? 'flex-end' : 'flex-start';
+            contentAndTimestamp.appendChild(messageContentBox);
+            contentAndTimestamp.appendChild(messageTimestamp);
+
+            messageWrapper.appendChild(contentAndTimestamp);
+
+            chatMessagesContainer.appendChild(messageWrapper);
+        }
+
+        /**
+         * Scrolls the chat messages container to the bottom.
+         */
+        function scrollToBottom() {
+            if (chatMessagesContainer) chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
+
+        /**
+         * Sends a text message.
+         */
+        async function sendTextMessage() {
+            const content = messageInput.value.trim();
+            if (!content || !currentUser || !chatRoomRef) {
+                return;
+            }
+
+            if (sendMessageBtn) sendMessageBtn.disabled = true; // Disable button to prevent double sending
+            if (messageInput) messageInput.value = ''; // Clear input immediately
+
+            try {
+                const newMessage = {
+                    senderId: currentUser.uid,
+                    senderUsername: currentUserProfileData?.username || 'Anonymous',
+                    senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                    content: content,
+                    timestamp: serverTimestamp(),
+                    type: "text"
+                };
+                await addDoc(messagesCollectionRef, newMessage);
+
+                // Update lastMessage and updatedAt in chat_room
+                await updateDoc(chatRoomRef, {
+                    lastMessage: {
+                        content: content,
+                        timestamp: serverTimestamp(),
+                        type: "text"
+                    },
+                    updatedAt: serverTimestamp(),
+                    [`readBy.${currentUser.uid}`]: serverTimestamp() // Mark as read by sender
+                });
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error sending message:", error);
+                showMessageBox(`Failed to send message: ${error.message}`, 'error');
+                // Re-populate input if send failed
+                if (messageInput) messageInput.value = content;
+            } finally {
+                if (sendMessageBtn) sendMessageBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Handles media file selection and upload.
+         */
+        async function handleMediaUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!currentUser || !chatRoomRef) {
+                showMessageBox("Please log in to send media.", 'warning');
+                return;
+            }
+
+            const fileType = file.type.split('/')[0]; // 'image', 'video', 'audio'
+            if (!['image', 'video', 'audio'].includes(fileType)) {
+                showMessageBox("Unsupported file type. Please upload an image, video, or audio file.", 'warning');
+                return;
+            }
+
+            if (file.size > 20 * 1024 * 1024) { // 20 MB limit
+                showMessageBox("File size exceeds 20MB limit.", 'warning');
+                return;
+            }
+
+            showMessageBox(`Uploading ${fileType}...`, 'loading', true);
+            if (sendMessageBtn) sendMessageBtn.disabled = true;
+            if (attachMediaBtn) attachMediaBtn.disabled = true;
+            if (voiceNoteBtn) voiceNoteBtn.disabled = true;
+
+            try {
+                const storageRef = ref(storage, `chat_media/${chatRoomId}/${currentUser.uid}/${Date.now()}_${file.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, file);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        showMessageBox(`Uploading ${fileType}: ${progress.toFixed(0)}%`, 'loading', true);
+                    },
+                    (error) => {
+                        console.error("JCHAT_ERROR: Media upload failed:", error);
+                        showMessageBox(`Media upload failed: ${error.message}`, 'error');
+                    },
+                    async () => {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        const newMessage = {
+                            senderId: currentUser.uid,
+                            senderUsername: currentUserProfileData?.username || 'Anonymous',
+                            senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                            content: `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} shared.`, // Default content
+                            timestamp: serverTimestamp(),
+                            type: fileType,
+                            mediaUrl: downloadURL
+                        };
+
+                        await addDoc(messagesCollectionRef, newMessage);
+
+                        // Update lastMessage and updatedAt in chat_room
+                        await updateDoc(chatRoomRef, {
+                            lastMessage: {
+                                content: newMessage.content,
+                                timestamp: serverTimestamp(),
+                                type: fileType
+                            },
+                            updatedAt: serverTimestamp(),
+                            [`readBy.${currentUser.uid}`]: serverTimestamp()
+                        });
+
+                        showMessageBox(`${fileType.charAt(0).toUpperCase() + fileType.slice(1)} sent!`, 'success');
+                    }
+                );
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error initiating media upload:", error);
+                showMessageBox(`Failed to initiate media upload: ${error.message}`, 'error');
+            } finally {
+                if (sendMessageBtn) sendMessageBtn.disabled = false;
+                if (attachMediaBtn) attachMediaBtn.disabled = false;
+                if (voiceNoteBtn) voiceNoteBtn.disabled = false;
+                if (mediaInput) mediaInput.value = ''; // Clear selected file
+            }
+        }
+
+        /**
+         * Placeholder for voice note recording logic.
+         * Actual implementation requires MediaRecorder API and user permission.
+         */
+        async function toggleVoiceNoteRecording() {
+            if (!currentUser || !chatRoomRef) {
+                showMessageBox("Please log in to record voice notes.", 'warning');
+                return;
+            }
+
+            if (!isRecording) {
+                // Start recording
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioFile = new File([audioBlob], `voice_note_${Date.now()}.webm`, { type: 'audio/webm' });
+
+                        showMessageBox("Uploading voice note...", 'loading', true);
+                        if (sendMessageBtn) sendMessageBtn.disabled = true;
+                        if (attachMediaBtn) attachMediaBtn.disabled = true;
+                        if (voiceNoteBtn) {
+                            voiceNoteBtn.disabled = true;
+                            voiceNoteBtn.classList.remove('recording');
+                        }
+
+                        try {
+                            const storageRef = ref(storage, `chat_media/${chatRoomId}/${currentUser.uid}/${audioFile.name}`);
+                            const uploadTask = uploadBytesResumable(storageRef, audioFile);
+
+                            uploadTask.on('state_changed',
+                                (snapshot) => {
+                                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                                    showMessageBox(`Uploading voice note: ${progress.toFixed(0)}%`, 'loading', true);
+                                },
+                                (error) => {
+                                    console.error("JCHAT_ERROR: Voice note upload failed:", error);
+                                    showMessageBox(`Voice note upload failed: ${error.message}`, 'error');
+                                },
+                                async () => {
+                                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                                    const newMessage = {
+                                        senderId: currentUser.uid,
+                                        senderUsername: currentUserProfileData?.username || 'Anonymous',
+                                        senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                                        content: "Voice note",
+                                        timestamp: serverTimestamp(),
+                                        type: "audio",
+                                        mediaUrl: downloadURL
+                                    };
+                                    await addDoc(messagesCollectionRef, newMessage);
+
+                                    // Update lastMessage and updatedAt in chat_room
+                                    await updateDoc(chatRoomRef, {
+                                        lastMessage: {
+                                            content: "Voice note",
+                                            timestamp: serverTimestamp(),
+                                            type: "audio"
+                                        },
+                                        updatedAt: serverTimestamp(),
+                                        [`readBy.${currentUser.uid}`]: serverTimestamp()
+                                    });
+
+                                    showMessageBox("Voice note sent!", 'success');
+                                }
+                            );
+                        } catch (error) {
+                            console.error("JCHAT_ERROR: Error uploading voice note:", error);
+                            showMessageBox(`Failed to upload voice note: ${error.message}`, 'error');
+                        } finally {
+                            if (sendMessageBtn) sendMessageBtn.disabled = false;
+                            if (attachMediaBtn) attachMediaBtn.disabled = false;
+                            if (voiceNoteBtn) voiceNoteBtn.disabled = false;
+                        }
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    if (voiceNoteBtn) voiceNoteBtn.classList.add('recording');
+                    showMessageBox("Recording voice note...", 'info', true);
+                } catch (err) {
+                    console.error("JCHAT_ERROR: Could not get audio stream:", err);
+                    showMessageBox("Failed to start recording. Please check microphone permissions.", 'error');
+                }
+            } else {
+                // Stop recording
+                if (mediaRecorder) mediaRecorder.stop();
+                isRecording = false;
+                if (voiceNoteBtn) voiceNoteBtn.classList.remove('recording');
+                showMessageBox("Processing voice note...", 'loading', true);
+            }
+        }
+
+        /**
+         * Renders the list of friends.
+         * @param {Array<Object>} friends - Array of friend objects with profile and status data.
+         */
+        function renderFriendsList(friends) {
+            if (!friendsListContainer) {
+                console.error("JCHAT_ERROR: friendsListContainer element not found.");
+                return;
+            }
+            friendsListContainer.innerHTML = ''; // Clear existing list
+
+            if (friends.length === 0) {
+                friendsListContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">No friends added yet. Go to "Users" to find friends!</p>';
+                return;
+            }
+
+            const showOnlineOnly = onlineFriendsToggle && onlineFriendsToggle.checked;
+            const filteredFriends = showOnlineOnly ? friends.filter(friend => friend.status === 'online') : friends;
+
+            if (filteredFriends.length === 0 && showOnlineOnly) {
+                friendsListContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">No friends currently online.</p>';
+                return;
+            }
+
+            filteredFriends.sort((a, b) => {
+                // Sort online friends first, then by username
+                if (a.status === 'online' && b.status !== 'online') return -1;
+                if (a.status !== 'online' && b.status === 'online') return 1;
+                return (a.username || '').localeCompare(b.username || '');
+            });
+
+            filteredFriends.forEach(friend => {
+                const friendItem = document.createElement('li');
+                friendItem.classList.add('friend-item');
+                friendItem.dataset.userId = friend.id; // Store user ID for click handler
+
+                const avatarImg = document.createElement('img');
+                avatarImg.classList.add('friend-avatar');
+                const usernameInitial = (friend.username || 'U').charAt(0).toUpperCase();
+                displayProfilePicture(avatarImg, null, friend.profilePicId, usernameInitial, "w_100,h_100,c_fill,g_face,r_max");
+
+                const friendInfo = document.createElement('div');
+                friendInfo.classList.add('friend-info');
+
+                const usernameSpan = document.createElement('p');
+                usernameSpan.classList.add('username');
+                usernameSpan.textContent = friend.username || 'Unknown User';
+
+                const statusDiv = document.createElement('div');
+                statusDiv.classList.add('status');
+                statusDiv.classList.add(friend.status || 'offline'); // Add status class
+                statusDiv.innerHTML = `<span class="status-dot"></span> ${friend.status || 'Offline'}`;
+
+                friendInfo.appendChild(usernameSpan);
+                friendInfo.appendChild(statusDiv);
+
+                friendItem.appendChild(avatarImg);
+                friendItem.appendChild(friendInfo);
+
+                friendItem.addEventListener('click', () => {
+                    // When a friend is clicked, switch to chat view
+                    otherUserId = friend.id;
+                    displayChatView();
+                    fetchOtherUserProfileAndStatus();
+                    setupChatRoom();
+                    if (sendMessageBtn) sendMessageBtn.disabled = false;
+                    if (messageInput) {
+                        messageInput.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') {
+                                sendTextMessage();
+                            }
+                        });
+                    }
+                });
+
+                friendsListContainer.appendChild(friendItem);
+            });
+        }
+
+        /**
+         * Fetches friends list and sets up listeners for their profiles and statuses.
+         */
+        async function fetchFriendsAndStatuses() {
+            if (!currentUser) return;
+
+            // Clear previous friends data and listeners
+            Object.values(unsubscribeFriendStatusListeners).forEach(unsubscribe => unsubscribe());
+            unsubscribeFriendStatusListeners = {};
+            friendsData = {};
+
+            const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
+            const q = query(friendsCollectionRef, where("status", "==", "accepted"));
+
+            if (unsubscribeFriendsList) unsubscribeFriendsList(); // Unsubscribe from previous friends list listener
+
+            unsubscribeFriendsList = onSnapshot(q, async (querySnapshot) => {
+                const friendIds = [];
+                querySnapshot.forEach(docSnap => {
+                    friendIds.push(docSnap.id); // Friend's UID is the document ID
+                });
+
+                // Fetch public profiles and set up status listeners for each friend
+                const newFriendsData = {};
+                for (const friendId of friendIds) {
+                    // Only fetch/listen if new friend or if data needs refresh
+                    if (!friendsData[friendId] || !unsubscribeFriendStatusListeners[friendId]) {
+                        const publicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
+                        const userStatusRef = doc(db, "artifacts", appId, "public", "data", "user_statuses", friendId);
+
+                        // Fetch public profile once
+                        const profileSnap = await getDoc(publicProfileRef);
+                        let profile = profileSnap.exists() ? profileSnap.data() : { username: 'Unknown User', profilePicId: null };
+                        profile.id = friendId;
+                        profile.status = 'offline'; // Default status
+
+                        newFriendsData[friendId] = profile;
+
+                        // Set up real-time listener for user status
+                        unsubscribeFriendStatusListeners[friendId] = onSnapshot(userStatusRef, (statusSnap) => {
+                            if (statusSnap.exists()) {
+                                const statusData = statusSnap.data();
+                                if (statusData.isOnline) {
+                                    newFriendsData[friendId].status = 'online';
+                                } else if (statusData.lastOnline && (Date.now() - statusData.lastOnline.toDate().getTime()) < (5 * 60 * 1000)) {
+                                    newFriendsData[friendId].status = 'away';
+                                } else {
+                                    newFriendsData[friendId].status = 'offline';
+                                }
+                            } else {
+                                newFriendsData[friendId].status = 'offline';
+                            }
+                            // Re-render the list whenever a friend's status changes
+                            renderFriendsList(Object.values(newFriendsData));
+                        }, (error) => {
+                            console.error(`JCHAT_ERROR: Error listening to friend status (${friendId}):`, error);
+                            newFriendsData[friendId].status = 'offline';
+                            renderFriendsList(Object.values(newFriendsData));
+                        });
+                    } else {
+                        newFriendsData[friendId] = friendsData[friendId]; // Keep existing data if friend already loaded
+                    }
+                }
+
+                // Remove listeners for friends who are no longer in the list
+                for (const oldFriendId in friendsData) {
+                    if (!friendIds.includes(oldFriendId)) {
+                        if (unsubscribeFriendStatusListeners[oldFriendId]) {
+                            unsubscribeFriendStatusListeners[oldFriendId]();
+                            delete unsubscribeFriendStatusListeners[oldFriendId];
+                        }
+                    }
+                }
+
+                friendsData = newFriendsData; // Update global friends data
+                renderFriendsList(Object.values(friendsData)); // Initial render
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to friends list:", error);
+                showMessageBox(`Failed to load friends: ${error.message}`, 'error');
+                if (friendsListContainer) friendsListContainer.innerHTML = '<p style="text-align: center; color: var(--delete-button-color);">Error loading friends.</p>';
+            });
+        }
+
+        /**
+         * Switches the view to the chat interface.
+         */
+        function displayChatView() {
+            if (friendsListView) friendsListView.style.display = 'none';
+            if (chatView) chatView.style.display = 'flex';
+            if (chatInputArea) chatInputArea.style.display = 'flex';
+            if (chatHeaderInfo) chatHeaderInfo.style.display = 'flex';
+            if (friendsListHeaderTitle) friendsListHeaderTitle.style.display = 'none'; // Hide "Your Chats" title
+            if (voiceCallBtn) voiceCallBtn.style.display = 'block';
+            if (videoCallBtn) videoCallBtn.style.display = 'block';
+            if (unfriendBtn) unfriendBtn.style.display = 'block'; // Show unfriend button
+            if (backToFriendsBtn) backToFriendsBtn.style.display = 'block'; // Show back button
+        }
+
+        /**
+         * Switches the view back to the friends list.
+         */
+        function displayFriendsListView() {
+            // Cleanup current chat listeners
+            if (unsubscribeMessages) unsubscribeMessages();
+            if (unsubscribeOtherUserProfile) unsubscribeOtherUserProfile();
+            if (unsubscribeOtherUserStatus) unsubscribeOtherUserStatus();
+            if (unsubscribeCallSignals) unsubscribeCallSignals(); // Stop listening to call signals
+
+            // Reset chat specific state
+            otherUserId = null;
+            otherUserProfile = null;
+            chatRoomId = null;
+            chatRoomRef = null;
+            messagesCollectionRef = null;
+            if (chatMessagesContainer) chatMessagesContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">Loading messages...</p>';
+            if (messageInput) messageInput.value = '';
+            if (sendMessageBtn) sendMessageBtn.disabled = true;
+
+            // Hide chat view, show friends list
+            if (chatView) chatView.style.display = 'none';
+            if (chatInputArea) chatInputArea.style.display = 'none';
+            if (chatHeaderInfo) chatHeaderInfo.style.display = 'none';
+            if (friendsListHeaderTitle) friendsListHeaderTitle.style.display = 'block'; // Show "Your Chats" title
+            if (voiceCallBtn) voiceCallBtn.style.display = 'none';
+            if (videoCallBtn) videoCallBtn.style.display = 'none';
+            if (unfriendBtn) unfriendBtn.style.display = 'none'; // Hide unfriend button
+            if (backToFriendsBtn) backToFriendsBtn.style.display = 'none'; // Hide back button
+
+            if (friendsListView) friendsListView.style.display = 'flex';
+            renderFriendsList(Object.values(friendsData)); // Re-render friends list
+        }
+
+        /**
+         * Handles unfriending a user.
+         */
+        async function unfriendUser() {
+            if (!currentUser || !otherUserId || !currentUserProfileData || !otherUserProfile) {
+                showMessageBox("Cannot unfriend: missing user information.", 'warning');
+                return;
+            }
+
+            const confirm = await showConfirmationDialog(`Are you sure you want to unfriend ${otherUserProfile.username}? This action cannot be undone.`);
+
+            if (confirm) {
+                showMessageBox(`Unfriending ${otherUserProfile.username}...`, 'loading', true);
+                try {
+                    // 1. Delete the friend entry for the current user
+                    const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", otherUserId);
+                    await deleteDoc(currentUserFriendDocRef);
+
+                    // 2. Delete the friend entry for the other user
+                    const otherUserFriendDocRef = doc(db, "artifacts", appId, "users", otherUserId, "friends", currentUser.uid);
+                    await deleteDoc(otherUserFriendDocRef);
+
+                    // 3. Send a notification to the unfriended user
+                    const notificationsCollectionRef = collection(db, "artifacts", appId, "users", otherUserId, "notifications");
+                    await addDoc(notificationsCollectionRef, {
+                        type: 'unfriended',
+                        senderId: currentUser.uid,
+                        senderUsername: currentUserProfileData.username,
+                        senderProfilePicId: currentUserProfileData.profilePicId,
+                        message: `${currentUserProfileData.username} has unfriended you.`,
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        relatedUserId: currentUser.uid
+                    });
+
+                    showMessageBox(`${otherUserProfile.username} has been unfriended.`, 'success');
+                    displayFriendsListView(); // Go back to friends list
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error unfriending user:", error);
+                    showMessageBox(`Failed to unfriend: ${error.message}`, 'error');
+                }
+            } else {
+                showMessageBox("Unfriend action cancelled.", 'info');
+            }
+        }
+
+
+        /**
+         * Fetches global system settings from Firestore and applies them.
+         */
+        async function fetchSystemSettings() {
+            const SYSTEM_SETTINGS_DOC_REF = doc(db, "artifacts", appId, "public", "data", "settings", "system_settings");
+            if (unsubscribeSystemSettings) unsubscribeSystemSettings();
+
+            unsubscribeSystemSettings = onSnapshot(SYSTEM_SETTINGS_DOC_REF, (docSnap) => {
+                let settings = {};
+                if (docSnap.exists()) {
+                    settings = docSnap.data();
+                } else {
+                    console.warn("JCHAT_WARNING: System settings document not found. Using default values.");
+                    settings = { maintenanceMode: false, globalAnnouncement: "", announcementStartTime: null, announcementEndTime: null };
+                }
+                currentSystemSettings = settings;
+                applySystemSettings(settings);
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to system settings:", error);
+                showMessageBox(`Failed to get real-time settings updates: ${error.message}`, 'error', true);
+            });
+        }
+
+        /**
+         * Applies the fetched system settings, specifically handling maintenance mode.
+         * @param {object} settings - The system settings object.
+         */
+        function applySystemSettings(settings) {
+            const isCurrentUserAdmin = currentUser && currentUser.uid === ADMIN_UID;
+            const now = new Date();
+
+            let currentAnnouncement = settings.globalAnnouncement || "";
+            let isAnnouncementActive = false;
+
+            if (settings.globalAnnouncement) {
+                const startTime = settings.announcementStartTime?.toDate ? new Date(settings.announcementStartTime.toDate()) : null;
+                const endTime = settings.announcementEndTime?.toDate ? new Date(settings.announcementEndTime.toDate()) : null;
+
+                if (startTime && endTime) {
+                    if (now >= startTime && now <= endTime) {
+                        isAnnouncementActive = true;
+                    }
+                } else if (startTime) {
+                    if (now >= startTime) {
+                        isAnnouncementActive = true;
+                    }
+                } else if (endTime) {
+                    if (now <= endTime) {
+                        isAnnouncementActive = true;
+                    }
+                } else {
+                    isAnnouncementActive = true;
+                }
+            }
+
+            if (settings.maintenanceMode) {
+                if (isCurrentUserAdmin) {
+                    if (maintenanceOverlay) maintenanceOverlay.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                    showMessageBox("JCHAT is in Maintenance Mode, but you (Admin) have full access.", 'info', true);
+                } else {
+                    if (maintenanceOverlay) {
+                        maintenanceOverlay.classList.add('active');
+                        if (maintenanceAnnouncementText) {
+                            maintenanceAnnouncementText.textContent = currentAnnouncement || "JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!";
+                        }
+                    }
+                    document.body.style.overflow = 'hidden';
+                    if (window.location.pathname !== '/login.html') {
+                        window.location.href = '/login.html';
+                        showMessageBox("JCHAT is currently in maintenance mode. Please try again later.", 'warning', true);
+                    }
+                }
+            } else {
+                if (maintenanceOverlay) maintenanceOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // --- WebRTC Call Logic ---
+
+        /**
+         * Initializes a new RTCPeerConnection.
+         */
+        function createPeerConnection() {
+            peerConnection = new RTCPeerConnection(iceServers);
+
+            // Listen for remote tracks
+            peerConnection.ontrack = (event) => {
+                if (remoteVideo && remoteVideo.srcObject !== event.streams[0]) {
+                    remoteVideo.srcObject = event.streams[0];
+                    console.log('JCHAT_WEBRTC: Remote stream received.');
+                }
+            };
+
+            // Listen for local ICE candidates and send them to Firestore
+            peerConnection.onicecandidate = async (event) => {
+                if (event.candidate && currentCallRoomRef) {
+                    await addDoc(collection(currentCallRoomRef, 'ice_candidates'), {
+                        senderId: currentUser.uid,
+                        candidate: event.candidate.toJSON()
+                    });
+                    console.log('JCHAT_WEBRTC: Sent ICE candidate:', event.candidate);
+                }
+            };
+
+            // Add local tracks to the peer connection
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+            }
+        }
+
+        /**
+         * Starts a new call (audio or video).
+         * @param {boolean} isVideoCall - True for video call, false for audio only.
+         */
+        async function startCall(isVideoCall) {
+            if (!currentUser || !otherUserId) {
+                showMessageBox("Cannot start call: user not selected.", 'warning');
+                return;
+            }
+
+            if (peerConnection && peerConnection.connectionState !== 'closed') {
+                showMessageBox("Call already in progress.", 'info');
+                return;
+            }
+
+            callType = isVideoCall ? 'video' : 'audio';
+            showMessageBox(`Starting ${callType} call...`, 'loading', true);
+            if (callOverlay) callOverlay.classList.add('active');
+
+            try {
+                // Get local media stream
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: isVideoCall ? { width: 640, height: 480 } : false,
+                    audio: true
+                });
+                if (localVideo) {
+                    localVideo.srcObject = localStream;
+                    localVideo.play(); // Ensure local video plays
+                }
+
+                createPeerConnection();
+
+                // Create and send offer
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                currentCallRoomRef = doc(db, "artifacts", appId, "public", "data", "call_signals", chatRoomId); // Use chatRoomId as callRoomId
+
+                // Send offer to Firestore
+                await setDoc(currentCallRoomRef, {
+                    callerId: currentUser.uid,
+                    receiverId: otherUserId,
+                    offer: offer.toJSON(),
+                    status: 'ringing',
+                    type: callType,
+                    timestamp: serverTimestamp()
+                }, { merge: true }); // Use merge to avoid overwriting existing call room if it exists
+
+                // Add message to chat history
+                if (messagesCollectionRef) {
+                    await addDoc(messagesCollectionRef, {
+                        senderId: currentUser.uid,
+                        senderUsername: currentUserProfileData?.username || 'Anonymous',
+                        senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                        content: `Outgoing ${callType} call...`,
+                        timestamp: serverTimestamp(),
+                        type: "call_start"
+                    });
+                }
+
+                showMessageBox(`Calling ${otherUserProfile?.username || 'user'}...`, 'info', true);
+                listenForCallResponses(); // Start listening for answer/candidates
+            } catch (error) {
+                console.error('JCHAT_WEBRTC: Error starting call:', error);
+                showMessageBox(`Failed to start call: ${error.message}. Check camera/mic permissions.`, 'error');
+                hangUpCall(); // Clean up on error
+            }
+        }
+
+        /**
+         * Handles an incoming call offer.
+         * @param {object} callData - The call data from Firestore.
+         */
+        async function handleIncomingCall(callData) {
+            if (peerConnection && peerConnection.connectionState !== 'closed') {
+                showMessageBox("Already on a call. Ignoring new incoming call.", 'info');
+                return;
+            }
+
+            if (callData.callerId === currentUser.uid) {
+                // This is our own offer reflecting back, ignore
+                return;
+            }
+
+            callType = callData.type;
+            showMessageBox(`Incoming ${callType} call from ${otherUserProfile?.username || 'user'}!`, 'info', true);
+            if (callOverlay) callOverlay.classList.add('active');
+
+            try {
+                // Get local media stream
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: callData.type === 'video' ? { width: 640, height: 480 } : false,
+                    audio: true
+                });
+                if (localVideo) {
+                    localVideo.srcObject = localStream;
+                    localVideo.play();
+                }
+
+                createPeerConnection();
+
+                // Set remote offer and create answer
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.offer));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+
+                // Send answer to Firestore
+                if (currentCallRoomRef) {
+                    await updateDoc(currentCallRoomRef, {
+                        answer: answer.toJSON(),
+                        status: 'connected'
+                    });
+                }
+
+
+                // Add message to chat history
+                if (messagesCollectionRef) {
+                    await addDoc(messagesCollectionRef, {
+                        senderId: currentUser.uid,
+                        senderUsername: currentUserProfileData?.username || 'Anonymous',
+                        senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                        content: `Accepted ${callType} call.`,
+                        timestamp: serverTimestamp(),
+                        type: "call_start"
+                    });
+                }
+
+                showMessageBox(`${otherUserProfile?.username || 'User'} is connected!`, 'success', true);
+            } catch (error) {
+                console.error('JCHAT_WEBRTC: Error handling incoming call:', error);
+                showMessageBox(`Failed to accept call: ${error.message}. Check camera/mic permissions.`, 'error');
+                hangUpCall();
+            }
+        }
+
+        /**
+         * Listens for WebRTC signaling messages (offers, answers, ICE candidates) in Firestore.
+         */
+        function listenForCallResponses() {
+            if (unsubscribeCallSignals) unsubscribeCallSignals();
+
+            currentCallRoomRef = doc(db, "artifacts", appId, "public", "data", "call_signals", chatRoomId);
+
+            unsubscribeCallSignals = onSnapshot(currentCallRoomRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    const callData = docSnap.data();
+
+                    // Handle incoming offer (if we are the receiver)
+                    if (callData.offer && !peerConnection && callData.receiverId === currentUser.uid && callData.status === 'ringing') {
+                        await handleIncomingCall(callData);
+                    }
+                    // Handle incoming answer (if we are the caller)
+                    else if (callData.answer && peerConnection && peerConnection.localDescription.type === 'offer' && callData.callerId === currentUser.uid && callData.status === 'connected') {
+                        if (!peerConnection.remoteDescription || peerConnection.remoteDescription.type !== 'answer') {
+                            await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.answer));
+                            console.log('JCHAT_WEBRTC: Received and set remote answer.');
+                            showMessageBox(`${otherUserProfile?.username || 'User'} connected!`, 'success');
+                        }
+                    }
+                }
+            }, (error) => {
+                console.error("JCHAT_WEBRTC: Error listening for call signals:", error);
+            });
+
+            // Listen for ICE candidates
+            onSnapshot(collection(currentCallRoomRef, 'ice_candidates'), (snapshot) => {
+                snapshot.docChanges().forEach(async (change) => {
+                    if (change.type === 'added') {
+                        const candidateData = change.doc.data();
+                        if (candidateData.senderId !== currentUser.uid && peerConnection) {
+                            try {
+                                await peerConnection.addIceCandidate(new RTCIceCandidate(candidateData.candidate));
+                                console.log('JCHAT_WEBRTC: Added remote ICE candidate:', candidateData.candidate);
+                            } catch (e) {
+                                console.error('JCHAT_WEBRTC: Error adding received ICE candidate:', e);
+                            }
+                        }
+                    }
+                });
+            }, (error) => {
+                console.error("JCHAT_WEBRTC: Error listening for ICE candidates:", error);
+            });
+        }
+
+        /**
+         * Hangs up the current call and cleans up resources.
+         */
+        async function hangUpCall() {
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+                if (localVideo) localVideo.srcObject = null;
+            }
+            if (remoteStream) {
+                remoteStream.getTracks().forEach(track => track.stop());
+                remoteStream = null;
+                if (remoteVideo) remoteVideo.srcObject = null;
+            }
+
+            if (callOverlay) callOverlay.classList.remove('active');
+            showMessageBox("Call ended.", 'info');
+
+            // Send call_end message to chat history
+            if (messagesCollectionRef && currentUser && currentUserProfileData) {
+                await addDoc(messagesCollectionRef, {
+                    senderId: currentUser.uid,
+                    senderUsername: currentUserProfileData?.username || 'Anonymous',
+                    senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                    content: `Call ended.`,
+                    timestamp: serverTimestamp(),
+                    type: "call_end"
+                });
+            }
+
+            // Clean up call signaling data in Firestore
+            if (currentCallRoomRef) {
+                try {
+                    // Delete the call signaling document and its subcollections
+                    const iceCandidatesSnapshot = await getDocs(collection(currentCallRoomRef, 'ice_candidates'));
+                    iceCandidatesSnapshot.forEach(doc => deleteDoc(doc.ref));
+                    await deleteDoc(currentCallRoomRef);
+                    console.log("JCHAT_WEBRTC: Call signaling data cleared from Firestore.");
+                } catch (error) {
+                    console.error("JCHAT_WEBRTC: Error cleaning up call signaling data:", error);
+                }
+            }
+
+            if (unsubscribeCallSignals) {
+                unsubscribeCallSignals();
+                unsubscribeCallSignals = null;
+            }
+        }
+
+        /**
+         * Toggles local audio mute/unmute.
+         */
+        function toggleAudioMute() {
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => {
+                    track.enabled = !track.enabled;
+                    if (toggleAudioBtn) toggleAudioBtn.querySelector('i').className = track.enabled ? 'fas fa-microphone' : 'fas fa-microphone-slash';
+                });
+            }
+        }
+
+        /**
+         * Toggles local video on/off.
+         */
+        function toggleVideoOnOff() {
+            if (localStream) {
+                localStream.getVideoTracks().forEach(track => {
+                    track.enabled = !track.enabled;
+                    if (toggleVideoBtn) toggleVideoBtn.querySelector('i').className = track.enabled ? 'fas fa-video' : 'fas fa-video-slash';
+                });
+            }
+        }
+
+
+        // --- Authentication State Listener ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                // Check for banned status first
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                const privateDocSnap = await getDoc(privateProfileDocRef);
+                if (privateDocSnap.exists() && privateDocSnap.data().banned) {
+                    console.log("JCHAT_DEBUG: Banned user detected. Redirecting to login page.");
+                    showMessageBox("Your account has been banned. Please contact support.", 'error', true);
+                    setTimeout(async () => {
+                        await signOut(auth);
+                        window.location.href = '/login.html';
+                    }, 2000);
+                    return;
+                }
+
+                // If not banned, proceed
+                isAuthReady = true;
+                await fetchCurrentUserProfile(user); // Fetch current user's profile for sending messages
+                await fetchSystemSettings(); // Check maintenance mode
+
+                const urlParams = new URLSearchParams(window.location.search);
+                otherUserId = urlParams.get('userId');
+
+                if (otherUserId && otherUserId !== currentUser.uid) {
+                    displayChatView(); // Show chat view
+                    await fetchOtherUserProfileAndStatus();
+                    await setupChatRoom();
+                    if (sendMessageBtn) sendMessageBtn.disabled = false; // Enable send button once chat is set up
+                    if (messageInput) {
+                        messageInput.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') {
+                                sendTextMessage();
+                            }
+                        });
+                    }
+                } else {
+                    // No userId in URL, show friends list by default
+                    displayFriendsListView();
+                }
+
+            } else {
+                isAuthReady = false;
+                // Hide chat header info and show default title
+                if (chatHeaderInfo) chatHeaderInfo.style.display = 'none';
+                if (friendsListHeaderTitle) friendsListHeaderTitle.style.display = 'block';
+                // Hide chat input area
+                if (chatInputArea) chatInputArea.style.display = 'none';
+                // Show friends list view (even if empty)
+                if (friendsListView) friendsListView.style.display = 'flex';
+                if (friendsListContainer) friendsListContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see your friends.</p>';
+                showMessageBox("You must be logged in to access your chats.", 'error', 2000, true);
+                setTimeout(() => {
+                    if (initialAuthToken) {
+                        signInWithCustomToken(auth, initialAuthToken).catch(err => {
+                            console.error("Error signing in with custom token:", err);
+                            window.location.href = '/login.html';
+                        });
+                    } else {
+                        signInAnonymously(auth).catch(err => {
+                            console.error("Error signing in anonymously:", err);
+                            window.location.href = '/login.html';
+                        });
+                    }
+                }, 2000);
+            }
+        });
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply theme on load
+            const savedTheme = localStorage.getItem('jchat-theme');
+            const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+            if (savedTheme && themes.includes(savedTheme)) {
+                document.body.classList.remove(...themes);
+                document.body.classList.add(savedTheme);
+            } else {
+                document.body.classList.add('theme-dark-mode'); // Default
+            }
+
+            // Add checks for each element before attaching event listeners
+            if (onlineFriendsToggle) {
+                onlineFriendsToggle.addEventListener('change', () => {
+                    renderFriendsList(Object.values(friendsData)); // Re-render with new filter
+                });
+            } else {
+                console.error("JCHAT_ERROR: onlineFriendsToggle element not found.");
+            }
+
+            if (sendMessageBtn) {
+                sendMessageBtn.addEventListener('click', sendTextMessage);
+            } else {
+                console.error("JCHAT_ERROR: sendMessageBtn element not found.");
+            }
+
+            if (attachMediaBtn && mediaInput) {
+                attachMediaBtn.addEventListener('click', () => mediaInput.click());
+                mediaInput.addEventListener('change', handleMediaUpload);
+            } else {
+                console.error("JCHAT_ERROR: attachMediaBtn or mediaInput element not found.");
+            }
+
+            if (voiceNoteBtn) {
+                voiceNoteBtn.addEventListener('click', toggleVoiceNoteRecording);
+            } else {
+                console.error("JCHAT_ERROR: voiceNoteBtn element not found.");
+            }
+
+            if (voiceCallBtn) {
+                voiceCallBtn.addEventListener('click', () => startCall(false)); // Audio only
+            } else {
+                console.error("JCHAT_ERROR: voiceCallBtn element not found.");
+            }
+
+            if (videoCallBtn) {
+                videoCallBtn.addEventListener('click', () => startCall(true)); // Video call
+            } else {
+                console.error("JCHAT_ERROR: videoCallBtn element not found.");
+            }
+
+            if (unfriendBtn) {
+                unfriendBtn.addEventListener('click', unfriendUser); // Attach unfriend function
+            } else {
+                console.error("JCHAT_ERROR: unfriendBtn element not found.");
+            }
+
+            if (toggleAudioBtn) {
+                toggleAudioBtn.addEventListener('click', toggleAudioMute);
+            } else {
+                console.error("JCHAT_ERROR: toggleAudioBtn element not found.");
+            }
+
+            if (toggleVideoBtn) {
+                toggleVideoBtn.addEventListener('click', toggleVideoOnOff);
+            } else {
+                console.error("JCHAT_ERROR: toggleVideoBtn element not found.");
+            }
+
+            if (hangUpBtn) {
+                hangUpBtn.addEventListener('click', hangUpCall);
+            } else {
+                console.error("JCHAT_ERROR: hangUpBtn element not found.");
+            }
+
+            if (backToFriendsBtn) {
+                backToFriendsBtn.addEventListener('click', displayFriendsListView);
+            } else {
+                console.error("JCHAT_ERROR: backToFriendsBtn element not found.");
+            }
+        });
+
+        // Cleanup resources before the page unloads.
+        window.addEventListener('beforeunload', () => {
+            if (unsubscribeFriendsList) unsubscribeFriendsList();
+            Object.values(unsubscribeFriendStatusListeners).forEach(unsubscribe => unsubscribe());
+            if (unsubscribeMessages) unsubscribeMessages();
+            if (unsubscribeOtherUserProfile) unsubscribeOtherUserProfile();
+            if (unsubscribeOtherUserStatus) unsubscribeOtherUserStatus();
+            if (unsubscribeSystemSettings) unsubscribeSystemSettings();
+            if (unsubscribeCallSignals) unsubscribeCallSignals();
+            hangUpCall(); // Ensure call is terminated on unload
+            console.log("JCHAT_DEBUG: All Firestore listeners and WebRTC resources detached on page unload.");
+        });
+
+        // Listen for changes in local storage (e.g., theme changes from other tabs).
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'jchat-theme') {
+                const newTheme = event.newValue || 'theme-dark-mode';
+                const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+                if (themes.includes(newTheme)) {
+                    document.body.classList.remove(...themes);
+                    document.body.classList.add(newTheme);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
