@@ -410,6 +410,9 @@
         .user-info {
             flex-grow: 1;
             text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .user-info .username {
@@ -418,6 +421,9 @@
             font-weight: 600;
             color: var(--text-color-primary);
             margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between username and status dot */
         }
 
         .user-info .user-id {
@@ -425,6 +431,18 @@
             color: var(--text-light);
             margin-top: 3px;
         }
+
+        /* Status dot for users list */
+        .user-info .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--status-offline); /* Default offline */
+            flex-shrink: 0;
+        }
+        .user-info .status-dot.online { background-color: var(--status-online); }
+        .user-info .status-dot.away { background-color: var(--status-away); }
+
 
         .user-actions {
             flex-shrink: 0;
@@ -834,8 +852,10 @@
         let currentUserProfileData = null;
         let allUsers = []; // Stores all fetched users
         let userFriendStatuses = {}; // Stores friend status for quick lookup: { userId: 'friends' | 'pending' | 'received' | 'none' }
+        let userOnlineStatuses = {}; // Stores online status for quick lookup: { userId: 'online' | 'offline' | 'away' }
         let unsubscribeSystemSettings = null;
-        let unsubscribeFriendStatuses = null; // New listener for real-time friend status updates
+        let unsubscribeFriendStatuses = null;
+        let unsubscribeUserStatusListeners = {}; // To manage individual user status listeners
 
         // --- Tone.js Synths for Notification Sounds (reused) ---
         const successSynth = new Tone.Synth().toDestination();
@@ -925,6 +945,24 @@
             });
         }
 
+        /**
+         * Toggles a button's loading state.
+         * @param {HTMLElement} buttonElement - The button element to modify.
+         * @param {boolean} isLoading - True to show loading, false to restore.
+         * @param {string} originalText - The original text of the button.
+         */
+        function toggleButtonLoading(buttonElement, isLoading, originalText) {
+            if (!buttonElement) return;
+            if (isLoading) {
+                buttonElement.disabled = true;
+                buttonElement.dataset.originalText = originalText; // Store original text
+                buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Spinner only
+            } else {
+                buttonElement.disabled = false;
+                buttonElement.textContent = buttonElement.dataset.originalText || originalText; // Restore original text
+            }
+        }
+
         function applyTheme(themeName) {
             const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
             document.body.classList.remove(...themes);
@@ -967,6 +1005,21 @@
                     if (iconElement) iconElement.style.display = 'block';
                 }
             }
+        }
+
+        /**
+         * Debounce function to limit how often a function is called.
+         * @param {Function} func - The function to debounce.
+         * @param {number} delay - The delay in milliseconds.
+         * @returns {Function} - The debounced function.
+         */
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
         }
 
         /**
@@ -1019,7 +1072,7 @@
         }
 
         /**
-         * Fetches all public user profiles and sets up a real-time listener for the current user's friend statuses.
+         * Fetches all public user profiles and sets up real-time listeners for friend statuses and online statuses.
          */
         async function fetchUsersAndFriendStatuses() {
             if (!currentUser) {
@@ -1036,6 +1089,11 @@
                     .map(doc => ({ id: doc.id, ...doc.data() }))
                     .filter(user => user.id !== currentUser.uid); // Exclude current user
 
+                // Clear previous status listeners
+                Object.values(unsubscribeUserStatusListeners).forEach(unsubscribe => unsubscribe());
+                unsubscribeUserStatusListeners = {};
+                userOnlineStatuses = {};
+
                 // Set up real-time listener for current user's friend relationships
                 const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
                 if (unsubscribeFriendStatuses) unsubscribeFriendStatuses(); // Unsubscribe previous listener
@@ -1045,13 +1103,42 @@
                     snapshot.forEach(doc => {
                         userFriendStatuses[doc.id] = doc.data().status;
                     });
-                    filterAndRenderUsers(); // Re-render the list whenever friend statuses change
-                    showMessageBox("Users loaded.", 'success'); // Dismiss loading message after initial load and updates
+                    // After friend statuses are updated, re-render users
+                    filterAndRenderUsers();
                 }, (error) => {
                     console.error("JCHAT_ERROR: Error listening to friend statuses:", error);
                     showMessageBox(`Failed to load friend statuses: ${error.message}`, 'error');
                     if (usersListContainer) usersListContainer.innerHTML = '<p style="text-align: center; color: var(--delete-button-color);">Error loading users.</p>';
                 });
+
+                // Set up real-time listeners for each user's online status
+                allUsers.forEach(user => {
+                    const userStatusRef = doc(db, "artifacts", appId, "public", "data", "user_statuses", user.id);
+                    unsubscribeUserStatusListeners[user.id] = onSnapshot(userStatusRef, (statusSnap) => {
+                        if (statusSnap.exists()) {
+                            const statusData = statusSnap.data();
+                            if (statusData.isOnline) {
+                                userOnlineStatuses[user.id] = 'online';
+                            } else if (statusData.lastOnline && (Date.now() - statusData.lastOnline.toDate().getTime()) < (5 * 60 * 1000)) { // Away if last seen within 5 mins
+                                userOnlineStatuses[user.id] = 'away';
+                            } else {
+                                userOnlineStatuses[user.id] = 'offline';
+                            }
+                        } else {
+                            userOnlineStatuses[user.id] = 'offline'; // Default if no status doc
+                        }
+                        filterAndRenderUsers(); // Re-render the list whenever any user's status changes
+                        showMessageBox("Users loaded.", 'success'); // Dismiss loading message after initial load and updates
+                    }, (error) => {
+                        console.error(`JCHAT_ERROR: Error listening to user status (${user.id}):`, error);
+                        userOnlineStatuses[user.id] = 'offline'; // Fallback on error
+                        filterAndRenderUsers();
+                    });
+                });
+
+                // Initial render in case there are no status updates immediately
+                filterAndRenderUsers();
+                showMessageBox("Users loaded.", 'success');
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching users or setting up friend status listener:", error);
@@ -1082,6 +1169,13 @@
             filteredUsers.forEach(user => {
                 const userItem = document.createElement('li');
                 userItem.classList.add('user-item');
+                userItem.style.cursor = 'pointer'; // Make the entire item clickable
+                userItem.addEventListener('click', (event) => {
+                    // Only navigate if the click target is not a button
+                    if (!event.target.closest('button')) {
+                        window.location.href = `/private_chat.html?userId=${user.id}`;
+                    }
+                });
 
                 const avatarImg = document.createElement('img');
                 avatarImg.classList.add('user-avatar');
@@ -1090,10 +1184,24 @@
 
                 const userInfo = document.createElement('div');
                 userInfo.classList.add('user-info');
-                userInfo.innerHTML = `
-                    <p class="username">${user.username || 'Unknown User'}</p>
-                    <p class="user-id">ID: ${user.id.substring(0, 8)}...</p>
-                `;
+
+                const usernameDiv = document.createElement('p');
+                usernameDiv.classList.add('username');
+                usernameDiv.textContent = user.username || 'Unknown User';
+
+                // Add status dot
+                const statusDot = document.createElement('span');
+                statusDot.classList.add('status-dot');
+                const currentOnlineStatus = userOnlineStatuses[user.id] || 'offline';
+                statusDot.classList.add(currentOnlineStatus);
+                usernameDiv.prepend(statusDot); // Add dot before username text
+
+                const userIdDisplay = document.createElement('p');
+                userIdDisplay.classList.add('user-id');
+                userIdDisplay.textContent = `ID: ${user.id}`; // Display full ID for clarity
+
+                userInfo.appendChild(usernameDiv);
+                userInfo.appendChild(userIdDisplay);
 
                 const userActions = document.createElement('div');
                 userActions.classList.add('user-actions');
@@ -1105,16 +1213,15 @@
                     let chatButton = document.createElement('button');
                     chatButton.textContent = 'Friends';
                     chatButton.classList.add('friends');
-                    chatButton.addEventListener('click', () => {
-                        window.location.href = `/private_chat.html?userId=${user.id}`;
-                    });
+                    // The main item is clickable for chat, this button just shows status
+                    chatButton.disabled = true; // Make it non-clickable as the whole item is for chat
                     userActions.appendChild(chatButton);
 
                     // "Unfriend" button
                     let unfriendButton = document.createElement('button');
                     unfriendButton.textContent = 'Unfriend';
                     unfriendButton.classList.add('unfriend-btn');
-                    unfriendButton.addEventListener('click', () => unfriendUser(user.id, user.username));
+                    unfriendButton.addEventListener('click', () => unfriendUser(user.id, user.username, unfriendButton));
                     userActions.appendChild(unfriendButton);
 
                 } else if (friendStatus === 'pending') {
@@ -1127,13 +1234,13 @@
                     let actionButton = document.createElement('button');
                     actionButton.textContent = 'Accept Request';
                     actionButton.classList.add('accept-request');
-                    actionButton.addEventListener('click', () => acceptFriendRequest(user.id));
+                    actionButton.addEventListener('click', () => acceptFriendRequest(user.id, actionButton));
                     userActions.appendChild(actionButton);
                 } else { // 'none'
                     let actionButton = document.createElement('button');
                     actionButton.textContent = 'Add Friend';
                     actionButton.classList.add('add-friend');
-                    actionButton.addEventListener('click', () => sendFriendRequest(user.id));
+                    actionButton.addEventListener('click', () => sendFriendRequest(user.id, actionButton));
                     userActions.appendChild(actionButton);
                 }
 
@@ -1147,13 +1254,15 @@
         /**
          * Sends a friend request to the target user.
          * @param {string} targetUserId - The UID of the user to send a request to.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
          */
-        async function sendFriendRequest(targetUserId) {
+        async function sendFriendRequest(targetUserId, buttonElement) {
             if (!currentUser || !currentUserProfileData) {
                 showMessageBox("You must be logged in to send friend requests.", 'warning');
                 return;
             }
 
+            toggleButtonLoading(buttonElement, true, 'Add Friend');
             showMessageBox("Sending friend request...", 'loading', true);
             try {
                 // Update current user's friends subcollection
@@ -1185,24 +1294,27 @@
                     relatedUserId: targetUserId // Link to the recipient for the notification
                 });
 
-                // The onSnapshot listener for friends will automatically re-render the list
                 showMessageBox("Friend request sent!", 'success');
             } catch (error) {
                 console.error("JCHAT_ERROR: Error sending friend request:", error);
                 showMessageBox(`Failed to send request: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false, 'Add Friend');
             }
         }
 
         /**
          * Accepts a friend request from the target user.
          * @param {string} targetUserId - The UID of the user whose request is being accepted.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
          */
-        async function acceptFriendRequest(targetUserId) {
+        async function acceptFriendRequest(targetUserId, buttonElement) {
             if (!currentUser || !currentUserProfileData) {
                 showMessageBox("You must be logged in to accept friend requests.", 'warning');
                 return;
             }
 
+            toggleButtonLoading(buttonElement, true, 'Accept Request');
             showMessageBox("Accepting friend request...", 'loading', true);
             try {
                 // Update current user's friends subcollection
@@ -1232,11 +1344,12 @@
                     relatedUserId: currentUser.uid
                 });
 
-                // The onSnapshot listener for friends will automatically re-render the list
                 showMessageBox("Friend request accepted! You are now friends.", 'success');
             } catch (error) {
                 console.error("JCHAT_ERROR: Error accepting friend request:", error);
                 showMessageBox(`Failed to accept request: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false, 'Accept Request');
             }
         }
 
@@ -1244,8 +1357,9 @@
          * Unfriends a user (removes friendship from both sides).
          * @param {string} targetUserId - The UID of the user to unfriend.
          * @param {string} targetUsername - The username of the user to unfriend.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
          */
-        async function unfriendUser(targetUserId, targetUsername) {
+        async function unfriendUser(targetUserId, targetUsername, buttonElement) {
             if (!currentUser || !currentUserProfileData) {
                 showMessageBox("You must be logged in to unfriend.", 'warning');
                 return;
@@ -1254,6 +1368,7 @@
             const confirmUnfriend = await showConfirmationDialog(`Are you sure you want to unfriend ${targetUsername}? This action cannot be undone.`);
 
             if (confirmUnfriend) {
+                toggleButtonLoading(buttonElement, true, 'Unfriend');
                 showMessageBox(`Unfriending ${targetUsername}...`, 'loading', true);
                 try {
                     // 1. Delete the friend entry for the current user
@@ -1282,6 +1397,8 @@
                 } catch (error) {
                     console.error("JCHAT_ERROR: Error unfriending user:", error);
                     showMessageBox(`Failed to unfriend: ${error.message}`, 'error');
+                } finally {
+                    toggleButtonLoading(buttonElement, false, 'Unfriend');
                 }
             } else {
                 showMessageBox("Unfriend action cancelled.", 'info');
@@ -1436,7 +1553,9 @@
             }
 
             if (userSearchInput) {
-                userSearchInput.addEventListener('input', filterAndRenderUsers);
+                // Debounce the search input
+                const debouncedFilterAndRenderUsers = debounce(filterAndRenderUsers, 300);
+                userSearchInput.addEventListener('input', debouncedFilterAndRenderUsers);
             } else {
                 console.error("JCHAT_ERROR: userSearchInput element not found.");
             }
@@ -1445,7 +1564,8 @@
         // Cleanup resources before the page unloads.
         window.addEventListener('beforeunload', () => {
             if (unsubscribeSystemSettings) unsubscribeSystemSettings();
-            if (unsubscribeFriendStatuses) unsubscribeFriendStatuses(); // Unsubscribe the new listener
+            if (unsubscribeFriendStatuses) unsubscribeFriendStatuses();
+            Object.values(unsubscribeUserStatusListeners).forEach(unsubscribe => unsubscribe()); // Unsubscribe all user status listeners
             console.log("JCHAT_DEBUG: All Firestore listeners detached on users page unload.");
         });
 
