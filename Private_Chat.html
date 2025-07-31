@@ -553,6 +553,7 @@
         .chat-header-info .status.online .status-dot { background-color: var(--status-online); }
         .chat-header-info .status.away .status-dot { background-color: var(--status-away); }
 
+
         /* Typing indicator */
         .chat-header-info .typing-indicator {
             font-size: 0.8rem;
@@ -1762,20 +1763,26 @@
                     if (docSnap.exists()) {
                         const statusData = docSnap.data();
                         console.log("JCHAT_DEBUG: otherUserStatus data:", statusData);
-                        // Update online status
+                        const now = Date.now();
+                        const lastOnlineTime = statusData.lastOnline?.toDate()?.getTime();
+                        const oneHourAgo = now - (60 * 60 * 1000); // 1 hour in milliseconds
+
+                        // Determine status
+                        let statusClass = 'offline';
+                        let statusText = 'Offline';
+
                         if (statusData.isOnline) {
-                            otherUserStatusDisplay.classList.remove('offline', 'away');
-                            otherUserStatusDisplay.classList.add('online');
-                            otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Online`;
-                        } else if (statusData.lastOnline && (Date.now() - statusData.lastOnline.toDate().getTime()) < (5 * 60 * 1000)) { // Away if last seen within 5 mins
-                            otherUserStatusDisplay.classList.remove('online', 'offline');
-                            otherUserStatusDisplay.classList.add('away');
-                            otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Away`;
-                        } else {
-                            otherUserStatusDisplay.classList.remove('online', 'away');
-                            otherUserStatusDisplay.classList.add('offline');
-                            otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Offline`;
+                            statusClass = 'online';
+                            statusText = 'Online';
+                        } else if (lastOnlineTime && lastOnlineTime > oneHourAgo) {
+                            statusClass = 'away';
+                            statusText = 'Away';
                         }
+
+                        otherUserStatusDisplay.classList.remove('online', 'away', 'offline');
+                        otherUserStatusDisplay.classList.add(statusClass);
+                        otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> ${statusText}`;
+                        console.log(`JCHAT_DEBUG: Other user status set to: ${statusText}`);
 
                         // Update typing indicator
                         if (typingIndicator) {
@@ -1862,43 +1869,54 @@
                     unsubscribeMessages(); // Unsubscribe previous
                     console.log("JCHAT_DEBUG: Unsubscribed from previous messages listener.");
                 }
-                const q = query(messagesCollectionRef, orderBy("timestamp", "asc"), limit(MESSAGES_PER_LOAD)); // Listen for new messages
+                // Listen for new messages added after the initial load.
+                // We order by timestamp descending to get the latest messages,
+                // but then we will reverse them for display.
+                const q = query(messagesCollectionRef, orderBy("timestamp", "desc"), limit(MESSAGES_PER_LOAD));
 
                 unsubscribeMessages = onSnapshot(q, async (querySnapshot) => {
                     console.log("JCHAT_DEBUG: messages onSnapshot triggered.");
-                    const newMessages = [];
+                    const currentMessagesOnScreen = new Set(allLoadedMessages.map(msg => msg.id));
                     let hasNewUnreadMessage = false;
+                    let changed = false;
+
                     querySnapshot.docChanges().forEach(change => {
+                        const message = { id: change.doc.id, ...change.doc.data() };
                         if (change.type === "added") {
-                            const newMessage = { id: change.doc.id, ...change.doc.data() };
-                            // Only add if it's truly a new message not already in allLoadedMessages
-                            if (!allLoadedMessages.some(msg => msg.id === newMessage.id)) {
-                                newMessages.push(newMessage);
-                                if (newMessage.senderId !== currentUser.uid) {
+                            if (!currentMessagesOnScreen.has(message.id)) {
+                                allLoadedMessages.push(message);
+                                changed = true;
+                                if (message.senderId !== currentUser.uid) {
                                     hasNewUnreadMessage = true;
                                 }
-                                console.log("JCHAT_DEBUG: New message added:", newMessage.id);
+                                console.log("JCHAT_DEBUG: New message added:", message.id);
                             }
                         } else if (change.type === "modified") {
-                            // Update existing message in allLoadedMessages if modified (e.g., read receipt)
-                            const modifiedMessage = { id: change.doc.id, ...change.doc.data() };
-                            const index = allLoadedMessages.findIndex(msg => msg.id === modifiedMessage.id);
+                            const index = allLoadedMessages.findIndex(msg => msg.id === message.id);
                             if (index !== -1) {
-                                allLoadedMessages[index] = modifiedMessage;
-                                console.log("JCHAT_DEBUG: Message modified:", modifiedMessage.id);
+                                allLoadedMessages[index] = message;
+                                changed = true;
+                                console.log("JCHAT_DEBUG: Message modified:", message.id);
                             }
                         } else if (change.type === "removed") {
-                            // Remove message from allLoadedMessages
-                            allLoadedMessages = allLoadedMessages.filter(msg => msg.id !== change.doc.id);
-                            console.log("JCHAT_DEBUG: Message removed:", change.doc.id);
+                            allLoadedMessages = allLoadedMessages.filter(msg => msg.id !== message.id);
+                            changed = true;
+                            console.log("JCHAT_DEBUG: Message removed:", message.id);
                         }
                     });
 
-                    if (newMessages.length > 0) {
-                        allLoadedMessages = allLoadedMessages.concat(newMessages).sort((a, b) => a.timestamp.toMillis() - b.timestamp.toMillis());
+                    if (changed) {
+                        allLoadedMessages.sort((a, b) => a.timestamp.toMillis() - b.timestamp.toMillis());
                         renderAllMessages(); // Re-render all messages to ensure order and new messages are shown
-                        scrollToBottom(); // Auto-scroll to latest message
-                        console.log("JCHAT_DEBUG: New messages rendered and scrolled to bottom.");
+                        // Only scroll to bottom if the new message is at the current bottom or we are already near bottom
+                        const isAtBottom = chatMessagesContainer.scrollHeight - chatMessagesContainer.clientHeight <= chatMessagesContainer.scrollTop + 50; // 50px tolerance
+                        if (hasNewUnreadMessage || isAtBottom) {
+                            scrollToBottom();
+                            console.log("JCHAT_DEBUG: New messages rendered and scrolled to bottom.");
+                        } else {
+                            console.log("JCHAT_DEBUG: New messages rendered, but not auto-scrolling (user not at bottom).");
+                        }
+
 
                         if (hasNewUnreadMessage) {
                             playNotificationSound('message');
@@ -1908,10 +1926,6 @@
                             });
                             console.log("JCHAT_DEBUG: New unread message, played sound and updated readBy.");
                         }
-                    } else if (querySnapshot.docChanges().some(change => change.type === "modified" || change.type === "removed")) {
-                        // If messages were modified or removed, re-render to reflect changes
-                        renderAllMessages();
-                        console.log("JCHAT_DEBUG: Messages modified/removed, re-rendered all messages.");
                     }
 
                     if (loadingMessagesText) loadingMessagesText.style.display = 'none'; // Hide loading text once messages are loaded
@@ -1930,74 +1944,184 @@
         }
 
         /**
-         * Renders a single message bubble in the chat container.
-         * @param {object} message - The message object from Firestore.
+         * Loads messages for the current chat room, implementing pagination.
+         * @param {boolean} initialLoad - True if this is the first load, false for "load more".
          */
-        function renderMessage(message) {
-            // This function is now mostly handled by renderAllMessages,
-            // but keeping it for clarity if a single message needs to be rendered independently.
-            // For pagination, we clear and re-render all to maintain order.
-            console.log("JCHAT_DEBUG: renderMessage called (individual message).");
+        async function loadMessages(initialLoad) {
+            console.log(`JCHAT_DEBUG: loadMessages called. Initial load: ${initialLoad}`);
+            if (!messagesCollectionRef) {
+                console.error("JCHAT_ERROR: messagesCollectionRef is null, cannot load messages.");
+                return;
+            }
+            if (!hasMoreMessages && !initialLoad) {
+                console.log("JCHAT_DEBUG: No more messages to load.");
+                if (loadMoreMessagesBtn) loadMoreMessagesBtn.style.display = 'none';
+                return;
+            }
+
+            if (loadingMessagesText) loadingMessagesText.style.display = 'block';
+            if (loadMoreMessagesBtn) loadMoreMessagesBtn.style.display = 'none'; // Hide while loading
+
+            try {
+                let q = query(messagesCollectionRef, orderBy("timestamp", "desc"), limit(MESSAGES_PER_LOAD));
+                if (lastVisibleMessage && !initialLoad) {
+                    q = query(messagesCollectionRef, orderBy("timestamp", "desc"), startAfter(lastVisibleMessage), limit(MESSAGES_PER_LOAD));
+                    console.log("JCHAT_DEBUG: Loading messages with startAfter.");
+                } else if (initialLoad) {
+                    // For initial load, we fetch the latest N messages
+                    q = query(messagesCollectionRef, orderBy("timestamp", "desc"), limit(MESSAGES_PER_LOAD));
+                    console.log("JCHAT_DEBUG: Loading initial messages.");
+                }
+
+                const documentSnapshots = await getDocs(q);
+                console.log(`JCHAT_DEBUG: Fetched ${documentSnapshots.docs.length} messages.`);
+
+                if (documentSnapshots.empty) {
+                    hasMoreMessages = false;
+                    console.log("JCHAT_DEBUG: No more messages found.");
+                    if (loadMoreMessagesBtn) loadMoreMessagesBtn.style.display = 'none';
+                    if (loadingMessagesText) loadingMessagesText.textContent = 'No messages in this chat yet.';
+                    return;
+                }
+
+                const newMessages = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                lastVisibleMessage = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+                hasMoreMessages = newMessages.length === MESSAGES_PER_LOAD;
+
+                // Add new messages to the beginning of the array for older messages
+                allLoadedMessages = [...newMessages.reverse(), ...allLoadedMessages];
+                allLoadedMessages.sort((a, b) => a.timestamp.toMillis() - b.timestamp.toMillis()); // Ensure chronological order
+                console.log(`JCHAT_DEBUG: Total messages loaded: ${allLoadedMessages.length}. Has more: ${hasMoreMessages}`);
+
+                renderAllMessages();
+
+                if (initialLoad) {
+                    scrollToBottom();
+                    console.log("JCHAT_DEBUG: Initial load complete, scrolled to bottom.");
+                } else {
+                    // For "load more", scroll to the top of the newly loaded messages
+                    const firstNewMessageElement = chatMessagesContainer.querySelector(`[data-message-id="${newMessages[newMessages.length - 1]?.id}"]`);
+                    if (firstNewMessageElement) {
+                        chatMessagesContainer.scrollTop = firstNewMessageElement.offsetTop - chatMessagesContainer.clientHeight + firstNewMessageElement.offsetHeight;
+                    }
+                    console.log("JCHAT_DEBUG: Load more complete, scrolled to new messages.");
+                }
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error loading messages:", error);
+                showMessageBox(`Failed to load messages: ${error.message}`, 'error');
+                if (loadingMessagesText) loadingMessagesText.textContent = 'Error loading messages.';
+            } finally {
+                if (loadingMessagesText) loadingMessagesText.style.display = 'none';
+                if (hasMoreMessages && loadMoreMessagesBtn) loadMoreMessagesBtn.style.display = 'block';
+                console.log("JCHAT_DEBUG: Message loading finished.");
+            }
+        }
+
+        /**
+         * Renders all messages currently in `allLoadedMessages` into the container.
+         */
+        function renderAllMessages() {
+            console.log("JCHAT_DEBUG: renderAllMessages called.");
             if (!chatMessagesContainer) return;
 
-            const messageWrapper = document.createElement('div');
-            messageWrapper.classList.add('message-bubble-wrapper');
-            messageWrapper.classList.add(message.senderId === currentUser.uid ? 'my-message' : 'other-message');
+            // Store current scroll position relative to bottom
+            const isAtBottom = chatMessagesContainer.scrollHeight - chatMessagesContainer.clientHeight <= chatMessagesContainer.scrollTop + 50; // 50px tolerance
+            const oldScrollHeight = chatMessagesContainer.scrollHeight;
 
-            const messageContentBox = document.createElement('div');
-            messageContentBox.classList.add('message-content-box');
+            chatMessagesContainer.innerHTML = ''; // Clear existing messages, will re-render all
 
-            const timestamp = message.timestamp ? new Date(message.timestamp.toDate()).toLocaleString() : 'N/A';
-
-            let mediaHtml = '';
-            if (message.type === 'image' && message.mediaUrl) {
-                mediaHtml = `<img src="${message.mediaUrl}" alt="Image" loading="lazy">`;
-            } else if (message.type === 'video' && message.mediaUrl) {
-                mediaHtml = `<video controls src="${message.mediaUrl}" loading="lazy"></video>`;
-            } else if (message.type === 'audio' && message.mediaUrl) {
-                mediaHtml = `<audio controls src="${message.mediaUrl}"></audio>`;
-            } else if (message.type === 'call_start') {
-                messageContentBox.style.backgroundColor = 'rgba(0, 255, 0, 0.2)'; // Greenish for call start
-                messageContentBox.style.textAlign = 'center';
-                messageContentBox.style.color = 'var(--white)';
-                messageContentBox.innerHTML = `<i class="fas fa-phone-volume" style="margin-right: 5px;"></i> Call Started: ${message.content}`;
-            } else if (message.type === 'call_end') {
-                messageContentBox.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; // Reddish for call end
-                messageContentBox.style.textAlign = 'center';
-                messageContentBox.style.color = 'var(--white)';
-                messageContentBox.innerHTML = `<i class="fas fa-phone-slash" style="margin-right: 5px;"></i> Call Ended: ${message.content}`;
-            } else if (message.type === 'text') {
-                messageContentBox.textContent = message.content;
+            if (hasMoreMessages && loadMoreMessagesBtn) {
+                chatMessagesContainer.prepend(loadMoreMessagesBtn);
+                loadMoreMessagesBtn.style.display = 'block';
             }
 
-            if (message.type !== 'call_start' && message.type !== 'call_end') {
-                messageContentBox.innerHTML = `${mediaHtml}<p>${message.content}</p>`;
+            if (allLoadedMessages.length === 0) {
+                chatMessagesContainer.innerHTML += '<p style="text-align: center; color: var(--text-light);">No messages in this chat yet. Start typing!</p>';
+                if (loadMoreMessagesBtn) loadMoreMessagesBtn.style.display = 'none';
+                return;
             }
 
+            allLoadedMessages.forEach(message => {
+                const messageWrapper = document.createElement('div');
+                messageWrapper.classList.add('message-bubble-wrapper');
+                messageWrapper.classList.add(message.senderId === currentUser.uid ? 'my-message' : 'other-message');
+                messageWrapper.dataset.messageId = message.id; // For scrolling to specific messages
 
-            const messageTimestamp = document.createElement('span');
-            messageTimestamp.classList.add('message-timestamp');
-            messageTimestamp.textContent = timestamp;
+                const messageContentBox = document.createElement('div');
+                messageContentBox.classList.add('message-content-box');
 
-            // Avatar for other user's messages
-            if (message.senderId !== currentUser.uid) {
-                const avatarImg = document.createElement('img');
-                avatarImg.classList.add('message-avatar');
-                const usernameInitial = (message.senderUsername || 'U').charAt(0).toUpperCase();
-                displayProfilePicture(avatarImg, null, message.senderProfilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
-                messageWrapper.appendChild(avatarImg);
+                const timestamp = message.timestamp ? formatTimestamp(message.timestamp) : 'N/A';
+
+                let mediaHtml = '';
+                if (message.type === 'image' && message.mediaUrl) {
+                    mediaHtml = `<img src="${message.mediaUrl}" alt="Image" loading="lazy">`;
+                } else if (message.type === 'video' && message.mediaUrl) {
+                    mediaHtml = `<video controls src="${message.mediaUrl}" loading="lazy"></video>`;
+                } else if (message.type === 'audio' && message.mediaUrl) {
+                    mediaHtml = `<audio controls src="${message.mediaUrl}"></audio>`;
+                } else if (message.type === 'call_start') {
+                    messageContentBox.style.backgroundColor = 'rgba(0, 255, 0, 0.2)'; // Greenish for call start
+                    messageContentBox.style.textAlign = 'center';
+                    messageContentBox.style.color = 'var(--white)';
+                    messageContentBox.innerHTML = `<i class="fas fa-phone-volume" style="margin-right: 5px;"></i> Call Started: ${message.content}`;
+                } else if (message.type === 'call_end') {
+                    messageContentBox.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; // Reddish for call end
+                    messageContentBox.style.textAlign = 'center';
+                    messageContentBox.style.color = 'var(--white)';
+                    messageContentBox.innerHTML = `<i class="fas fa-phone-slash" style="margin-right: 5px;"></i> Call Ended: ${message.content}`;
+                } else if (message.type === 'text') {
+                    messageContentBox.textContent = message.content;
+                }
+
+                if (message.type !== 'call_start' && message.type !== 'call_end') {
+                    messageContentBox.innerHTML = `${mediaHtml}<p>${message.content}</p>`;
+                }
+
+                const messageTimestamp = document.createElement('span');
+                messageTimestamp.classList.add('message-timestamp');
+                messageTimestamp.textContent = timestamp;
+
+                // Add read receipt for messages sent by current user
+                if (message.senderId === currentUser.uid && message.timestamp && chatRoomRef) {
+                    const chatRoomData = friendsData[otherUserId]?.chatRoomData; // Get cached chat room data
+                    if (chatRoomData && chatRoomData.readBy && chatRoomData.readBy[otherUserId] && message.timestamp.toDate() <= chatRoomData.readBy[otherUserId].toDate()) {
+                        const readReceipt = document.createElement('span');
+                        readReceipt.classList.add('read-receipt');
+                        readReceipt.innerHTML = '<i class="fas fa-check-double"></i>'; // Double checkmark for read
+                        messageTimestamp.appendChild(readReceipt);
+                    }
+                }
+
+
+                // Avatar for other user's messages
+                if (message.senderId !== currentUser.uid) {
+                    const avatarImg = document.createElement('img');
+                    avatarImg.classList.add('message-avatar');
+                    const senderProfile = friendsData[message.senderId] || {}; // Get sender's profile from friendsData
+                    const usernameInitial = (senderProfile.username || 'U').charAt(0).toUpperCase();
+                    displayProfilePicture(avatarImg, null, senderProfile.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                    messageWrapper.appendChild(avatarImg);
+                }
+
+                const contentAndTimestamp = document.createElement('div');
+                contentAndTimestamp.style.display = 'flex';
+                contentAndTimestamp.style.flexDirection = 'column';
+                contentAndTimestamp.style.alignItems = message.senderId === currentUser.uid ? 'flex-end' : 'flex-start';
+                contentAndTimestamp.appendChild(messageContentBox);
+                contentAndTimestamp.appendChild(messageTimestamp);
+
+                messageWrapper.appendChild(contentAndTimestamp);
+
+                chatMessagesContainer.appendChild(messageWrapper);
+            });
+
+            // Maintain scroll position if not at bottom after re-rendering
+            if (!isAtBottom) {
+                const newScrollHeight = chatMessagesContainer.scrollHeight;
+                chatMessagesContainer.scrollTop = newScrollHeight - oldScrollHeight + chatMessagesContainer.scrollTop;
             }
-
-            const contentAndTimestamp = document.createElement('div');
-            contentAndTimestamp.style.display = 'flex';
-            contentAndTimestamp.style.flexDirection = 'column';
-            contentAndTimestamp.style.alignItems = message.senderId === currentUser.uid ? 'flex-end' : 'flex-start';
-            contentAndTimestamp.appendChild(messageContentBox);
-            contentAndTimestamp.appendChild(messageTimestamp);
-
-            messageWrapper.appendChild(contentAndTimestamp);
-
-            chatMessagesContainer.appendChild(messageWrapper);
+            console.log("JCHAT_DEBUG: All messages rendered.");
         }
 
         /**
@@ -2337,7 +2461,7 @@
             }
 
             const showOnlineOnly = onlineFriendsToggle && onlineFriendsToggle.checked;
-            const filteredFriends = showOnlineOnly ? friends.filter(friend => friend.onlineStatus === 'online') : friends;
+            let filteredFriends = showOnlineOnly ? friends.filter(friend => friend.onlineStatus === 'online') : friends;
 
             if (filteredFriends.length === 0 && showOnlineOnly) {
                 friendsListContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">No friends currently online.</p>';
@@ -2347,8 +2471,12 @@
 
             filteredFriends.sort((a, b) => {
                 // Sort online friends first, then by username
-                if (a.onlineStatus === 'online' && b.onlineStatus !== 'online') return -1;
-                if (a.onlineStatus !== 'online' && b.onlineStatus === 'online') return 1;
+                const statusOrder = { 'online': 1, 'away': 2, 'offline': 3 };
+                const statusA = statusOrder[a.onlineStatus] || 3;
+                const statusB = statusOrder[b.onlineStatus] || 3;
+                if (statusA !== statusB) {
+                    return statusA - statusB;
+                }
                 return (a.username || '').localeCompare(b.username || '');
             });
             console.log("JCHAT_DEBUG: Friends filtered and sorted. Rendering...");
@@ -2512,12 +2640,19 @@
                 for (const friendId of friendIds) {
                     const publicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
                     const userStatusRef = doc(db, "artifacts", appId, "public", "data", "user_statuses", friendId);
+                    const chatRoomDocRef = doc(db, "artifacts", appId, "public", "data", "chat_rooms", [currentUser.uid, friendId].sort().join('_'));
 
-                    // Fetch public profile once
+
+                    // Fetch public profile once (or listen if needed for real-time profile updates)
                     const profileSnap = await getDoc(publicProfileRef);
                     let profile = profileSnap.exists() ? profileSnap.data() : { username: 'Unknown User', profilePicId: null };
                     profile.id = friendId;
                     profile.onlineStatus = 'offline'; // Default status
+
+                    // Also fetch chat room data for read receipts
+                    const chatRoomSnap = await getDoc(chatRoomDocRef);
+                    profile.chatRoomData = chatRoomSnap.exists() ? chatRoomSnap.data() : {};
+
 
                     newFriendsData[friendId] = profile;
 
@@ -2527,11 +2662,15 @@
                         console.log(`JCHAT_DEBUG: Cleared old status listener for friend: ${friendId}`);
                     }
                     unsubscribeFriendStatusListeners[friendId] = onSnapshot(userStatusRef, (statusSnap) => {
+                        const now = Date.now();
                         if (statusSnap.exists()) {
                             const statusData = statusSnap.data();
+                            const lastOnlineTime = statusData.lastOnline?.toDate()?.getTime();
+                            const oneHourAgo = now - (60 * 60 * 1000); // 1 hour in milliseconds
+
                             if (statusData.isOnline) {
                                 newFriendsData[friendId].onlineStatus = 'online';
-                            } else if (statusData.lastOnline && (Date.now() - statusData.lastOnline.toDate().getTime()) < (5 * 60 * 1000)) {
+                            } else if (lastOnlineTime && lastOnlineTime > oneHourAgo) {
                                 newFriendsData[friendId].onlineStatus = 'away';
                             } else {
                                 newFriendsData[friendId].onlineStatus = 'offline';
@@ -2566,9 +2705,12 @@
                 console.log("JCHAT_DEBUG: Friends data updated and list rendered.");
 
                 // If a friend was specified in URL, select them. Otherwise, if there are friends, select the first one.
-                if (otherUserId && friendsData[otherUserId]) {
-                    console.log(`JCHAT_DEBUG: Initializing chat for URL-specified friend: ${otherUserId}`);
-                    selectFriendForChat(otherUserId);
+                const urlParams = new URLSearchParams(window.location.search);
+                const initialFriendIdFromUrl = urlParams.get('userId');
+
+                if (initialFriendIdFromUrl && friendsData[initialFriendIdFromUrl]) {
+                    console.log(`JCHAT_DEBUG: Initializing chat for URL-specified friend: ${initialFriendIdFromUrl}`);
+                    selectFriendForChat(initialFriendIdFromUrl);
                 } else if (Object.keys(friendsData).length > 0) {
                     const firstFriendId = Object.keys(friendsData)[0];
                     console.log(`JCHAT_DEBUG: No URL friend, initializing chat for first friend: ${firstFriendId}`);
@@ -2776,11 +2918,13 @@
             // Listen for remote tracks
             peerConnection.ontrack = (event) => {
                 console.log("JCHAT_WEBRTC: ontrack event received.");
-                if (remoteVideo && remoteVideo.srcObject !== event.streams[0]) {
+                if (remoteVideo && event.streams && event.streams[0] && remoteVideo.srcObject !== event.streams[0]) {
                     remoteVideo.srcObject = event.streams[0];
                     remoteStream = event.streams[0]; // Store remote stream
-                    console.log('JCHAT_WEBRTC: Remote stream received.');
+                    console.log('JCHAT_WEBRTC: Remote stream received and attached to remoteVideo.');
                     if (callStatusText) callStatusText.textContent = 'Call Active';
+                } else {
+                    console.warn("JCHAT_WEBRTC: ontrack event received but no stream or remoteVideo not ready.");
                 }
             };
 
@@ -2788,11 +2932,15 @@
             peerConnection.onicecandidate = async (event) => {
                 console.log("JCHAT_WEBRTC: onicecandidate event received.");
                 if (event.candidate && currentCallRoomRef) {
-                    await addDoc(collection(currentCallRoomRef, 'ice_candidates'), {
-                        senderId: currentUser.uid,
-                        candidate: event.candidate.toJSON()
-                    });
-                    console.log('JCHAT_WEBRTC: Sent ICE candidate:', event.candidate);
+                    try {
+                        await addDoc(collection(currentCallRoomRef, 'ice_candidates'), {
+                            senderId: currentUser.uid,
+                            candidate: event.candidate.toJSON()
+                        });
+                        console.log('JCHAT_WEBRTC: Sent ICE candidate:', event.candidate.sdpMid, event.candidate.sdpMLineIndex);
+                    } catch (error) {
+                        console.error("JCHAT_WEBRTC_ERROR: Error sending ICE candidate to Firestore:", error);
+                    }
                 }
             };
 
@@ -2800,8 +2948,10 @@
             if (localStream) {
                 localStream.getTracks().forEach(track => {
                     peerConnection.addTrack(track, localStream);
+                    console.log(`JCHAT_WEBRTC: Added local track: ${track.kind} to peer connection.`);
                 });
-                console.log("JCHAT_WEBRTC: Local tracks added to peer connection.");
+            } else {
+                console.warn("JCHAT_WEBRTC: localStream is null when creating peer connection. No tracks added.");
             }
         }
 
@@ -2817,7 +2967,7 @@
                 return;
             }
 
-            if (peerConnection && peerConnection.connectionState !== 'closed') {
+            if (peerConnection && peerConnection.connectionState !== 'closed' && peerConnection.connectionState !== 'failed') {
                 showMessageBox("Call already in progress.", 'info');
                 console.log("JCHAT_WEBRTC: Call aborted: already in progress.");
                 return;
@@ -2837,7 +2987,7 @@
                 });
                 if (localVideo) {
                     localVideo.srcObject = localStream;
-                    localVideo.play(); // Ensure local video plays
+                    localVideo.play().catch(e => console.error("JCHAT_WEBRTC_ERROR: Local video play failed:", e));
                 }
                 console.log("JCHAT_WEBRTC: Local media stream obtained.");
 
@@ -2879,7 +3029,7 @@
                 listenForCallResponses(); // Start listening for answer/candidates
                 console.log("JCHAT_WEBRTC: Listening for call responses.");
             } catch (error) {
-                console.error('JCHAT_WEBRTC: Error starting call:', error);
+                console.error('JCHAT_WEBRTC_ERROR: Error starting call:', error);
                 showMessageBox(`Failed to start call: ${error.message}. Check camera/mic permissions.`, 'error');
                 hangUpCall(); // Clean up on error
             }
@@ -2891,10 +3041,17 @@
          */
         async function handleIncomingCall(callData) {
             console.log("JCHAT_WEBRTC: handleIncomingCall called.");
-            if (peerConnection && peerConnection.connectionState !== 'closed') {
+            if (peerConnection && peerConnection.connectionState !== 'closed' && peerConnection.connectionState !== 'failed') {
                 showMessageBox("Already on a call. Ignoring new incoming call.", 'info');
                 console.log("JCHAT_WEBRTC: Already on a call, ignoring incoming.");
                 // Optionally, send a 'busy' signal back
+                if (currentCallRoomRef) {
+                    try {
+                        await updateDoc(currentCallRoomRef, { status: 'busy' });
+                    } catch (e) {
+                        console.error("JCHAT_WEBRTC_ERROR: Failed to send busy status:", e);
+                    }
+                }
                 return;
             }
 
@@ -2910,13 +3067,21 @@
             if (callStatusText) callStatusText.textContent = `Incoming ${callType} call...`;
             console.log(`JCHAT_WEBRTC: UI updated for incoming ${callType} call.`);
 
+            // Ensure currentCallRoomRef is set for the incoming call
+            currentCallRoomRef = doc(db, "artifacts", appId, "public", "data", "call_signals", chatRoomId);
+            listenForCallResponses(); // Start listening for candidates for this call
+
             const acceptCall = await showConfirmationDialog(`Accept incoming ${callData.type} call from ${otherUserProfile?.username || 'user'}?`);
 
             if (!acceptCall) {
                 // User declined the call
                 if (currentCallRoomRef) {
-                    await updateDoc(currentCallRoomRef, { status: 'declined' });
-                    console.log("JCHAT_WEBRTC: Call declined in Firestore.");
+                    try {
+                        await updateDoc(currentCallRoomRef, { status: 'declined' });
+                        console.log("JCHAT_WEBRTC: Call declined in Firestore.");
+                    } catch (e) {
+                        console.error("JCHAT_WEBRTC_ERROR: Failed to update call status to declined:", e);
+                    }
                 }
                 showMessageBox("Call declined.", 'info');
                 hangUpCall();
@@ -2932,7 +3097,7 @@
                 });
                 if (localVideo) {
                     localVideo.srcObject = localStream;
-                    localVideo.play();
+                    localVideo.play().catch(e => console.error("JCHAT_WEBRTC_ERROR: Local video play failed on incoming call:", e));
                 }
                 console.log("JCHAT_WEBRTC: Local media stream obtained for incoming call.");
 
@@ -2970,7 +3135,7 @@
                 showMessageBox(`${otherUserProfile?.username || 'User'} is connected!`, 'success', true);
                 console.log("JCHAT_WEBRTC: Call connected.");
             } catch (error) {
-                console.error('JCHAT_WEBRTC: Error handling incoming call:', error);
+                console.error('JCHAT_WEBRTC_ERROR: Error handling incoming call:', error);
                 showMessageBox(`Failed to accept call: ${error.message}. Check camera/mic permissions.`, 'error');
                 hangUpCall();
             }
@@ -2986,6 +3151,11 @@
                 console.log("JCHAT_WEBRTC: Unsubscribed from previous call signals listener.");
             }
 
+            // Ensure currentCallRoomRef is set before listening
+            if (!chatRoomId) {
+                console.error("JCHAT_WEBRTC_ERROR: chatRoomId is null, cannot listen for call responses.");
+                return;
+            }
             currentCallRoomRef = doc(db, "artifacts", appId, "public", "data", "call_signals", chatRoomId);
 
             unsubscribeCallSignals = onSnapshot(currentCallRoomRef, async (docSnap) => {
@@ -2994,18 +3164,22 @@
                     const callData = docSnap.data();
                     console.log("JCHAT_WEBRTC: Call data received:", callData);
 
-                    // Handle incoming offer (if we are the receiver)
+                    // Handle incoming offer (if we are the receiver and no peer connection exists)
                     if (callData.offer && !peerConnection && callData.receiverId === currentUser.uid && callData.status === 'ringing') {
                         console.log("JCHAT_WEBRTC: Detected incoming offer.");
                         await handleIncomingCall(callData);
                     }
-                    // Handle incoming answer (if we are the caller)
-                    else if (callData.answer && peerConnection && peerConnection.localDescription.type === 'offer' && callData.callerId === currentUser.uid && callData.status === 'connected') {
+                    // Handle incoming answer (if we are the caller and have an offer set)
+                    else if (callData.answer && peerConnection && peerConnection.localDescription?.type === 'offer' && callData.callerId === currentUser.uid && callData.status === 'connected') {
                         if (!peerConnection.remoteDescription || peerConnection.remoteDescription.type !== 'answer') {
-                            await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.answer));
-                            console.log('JCHAT_WEBRTC: Received and set remote answer.');
-                            if (callStatusText) callStatusText.textContent = 'Call Active';
-                            showMessageBox(`${otherUserProfile?.username || 'User'} connected!`, 'success');
+                            try {
+                                await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.answer));
+                                console.log('JCHAT_WEBRTC: Received and set remote answer.');
+                                if (callStatusText) callStatusText.textContent = 'Call Active';
+                                showMessageBox(`${otherUserProfile?.username || 'User'} connected!`, 'success');
+                            } catch (e) {
+                                console.error("JCHAT_WEBRTC_ERROR: Error setting remote description (answer):", e);
+                            }
                         }
                     }
                     // Handle call termination by other party
@@ -3029,7 +3203,7 @@
                     }
                 }
             }, (error) => {
-                console.error("JCHAT_WEBRTC: Error listening for call signals:", error);
+                console.error("JCHAT_WEBRTC_ERROR: Error listening for call signals document:", error);
             });
 
             // Listen for ICE candidates
@@ -3038,18 +3212,19 @@
                 snapshot.docChanges().forEach(async (change) => {
                     if (change.type === 'added') {
                         const candidateData = change.doc.data();
-                        if (candidateData.senderId !== currentUser.uid && peerConnection) {
+                        // Only add candidates from the other user
+                        if (candidateData.senderId !== currentUser.uid && peerConnection && peerConnection.remoteDescription) {
                             try {
                                 await peerConnection.addIceCandidate(new RTCIceCandidate(candidateData.candidate));
-                                console.log('JCHAT_WEBRTC: Added remote ICE candidate:', candidateData.candidate);
+                                console.log('JCHAT_WEBRTC: Added remote ICE candidate:', candidateData.candidate.sdpMid, candidateData.candidate.sdpMLineIndex);
                             } catch (e) {
-                                console.error('JCHAT_WEBRTC: Error adding received ICE candidate:', e);
+                                console.error('JCHAT_WEBRTC_ERROR: Error adding received ICE candidate:', e);
                             }
                         }
                     }
                 });
             }, (error) => {
-                console.error("JCHAT_WEBRTC: Error listening for ICE candidates:", error);
+                console.error("JCHAT_WEBRTC_ERROR: Error listening for ICE candidates collection:", error);
             });
         }
 
@@ -3083,15 +3258,19 @@
 
             // Send call_end message to chat history
             if (messagesCollectionRef && currentUser && currentUserProfileData) {
-                await addDoc(messagesCollectionRef, {
-                    senderId: currentUser.uid,
-                    senderUsername: currentUserProfileData?.username || 'Anonymous',
-                    senderProfilePicId: currentUserProfileData?.profilePicId || null,
-                    content: `Call ended.`,
-                    timestamp: serverTimestamp(),
-                    type: "call_end"
-                });
-                console.log("JCHAT_WEBRTC: Call end message added to chat.");
+                try {
+                    await addDoc(messagesCollectionRef, {
+                        senderId: currentUser.uid,
+                        senderUsername: currentUserProfileData?.username || 'Anonymous',
+                        senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                        content: `Call ended.`,
+                        timestamp: serverTimestamp(),
+                        type: "call_end"
+                    });
+                    console.log("JCHAT_WEBRTC: Call end message added to chat.");
+                } catch (e) {
+                    console.error("JCHAT_WEBRTC_ERROR: Failed to add call_end message to chat:", e);
+                }
             }
 
             // Clean up call signaling data in Firestore
@@ -3108,7 +3287,7 @@
                     await deleteDoc(currentCallRoomRef);
                     console.log("JCHAT_WEBRTC: Call signaling data cleared from Firestore.");
                 } catch (error) {
-                    console.error("JCHAT_WEBRTC: Error cleaning up call signaling data:", error);
+                    console.error("JCHAT_WEBRTC_ERROR: Error cleaning up call signaling data:", error);
                 }
             }
 
@@ -3130,6 +3309,8 @@
                     if (toggleAudioBtn) toggleAudioBtn.querySelector('i').className = track.enabled ? 'fas fa-microphone' : 'fas fa-microphone-slash';
                     console.log(`JCHAT_WEBRTC: Audio track enabled: ${track.enabled}`);
                 });
+            } else {
+                console.warn("JCHAT_WEBRTC: localStream is null, cannot toggle audio.");
             }
         }
 
@@ -3144,6 +3325,8 @@
                     if (toggleVideoBtn) toggleVideoBtn.querySelector('i').className = track.enabled ? 'fas fa-video' : 'fas fa-video-slash';
                     console.log(`JCHAT_WEBRTC: Video track enabled: ${track.enabled}`);
                 });
+            } else {
+                console.warn("JCHAT_WEBRTC: localStream is null, cannot toggle video.");
             }
         }
 
@@ -3172,10 +3355,7 @@
                 await fetchCurrentUserProfile(user); // Fetch current user's profile for sending messages
                 await fetchSystemSettings(); // Check maintenance mode
 
-                const urlParams = new URLSearchParams(window.location.search);
-                otherUserId = urlParams.get('userId'); // Get userId from URL if present
-                console.log(`JCHAT_DEBUG: otherUserId from URL: ${otherUserId}`);
-
+                // otherUserId will be set by fetchFriendsAndStatuses or from URL if provided
                 await fetchFriendsAndStatuses(); // This will also handle initial chat selection
 
             } else {
