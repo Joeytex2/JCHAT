@@ -551,6 +551,16 @@
             cursor: default;
             opacity: 0.8;
         }
+        .user-actions button.cancel-request {
+            background-color: var(--warning-color); /* Orange for cancel */
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .user-actions button.cancel-request:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        }
+
 
         .user-actions button.friends {
             background-color: var(--status-online); /* Greenish for friends */
@@ -1388,21 +1398,44 @@
                     userActions.appendChild(unfriendButton);
 
                 } else if (friendStatus === 'pending') {
+                    // User has sent a request to this person
                     let actionButton = document.createElement('button');
                     actionButton.textContent = 'Pending';
                     actionButton.classList.add('pending-request');
                     actionButton.disabled = true; // Cannot click if already sent
                     userActions.appendChild(actionButton);
-                } else if (friendStatus === 'received') {
-                    let actionButton = document.createElement('button');
-                    actionButton.textContent = 'Accept Request';
-                    actionButton.classList.add('accept-request');
-                    actionButton.addEventListener('click', (event) => {
+
+                    let cancelButton = document.createElement('button');
+                    cancelButton.textContent = 'Cancel Request';
+                    cancelButton.classList.add('cancel-request');
+                    cancelButton.addEventListener('click', (event) => {
                         event.stopPropagation(); // Prevent item click from triggering
-                        acceptFriendRequest(user.id, actionButton);
+                        cancelFriendRequest(user.id, user.username, cancelButton);
                     });
-                    userActions.appendChild(actionButton);
-                } else { // 'none'
+                    userActions.appendChild(cancelButton);
+
+                } else if (friendStatus === 'received') {
+                    // User has received a request from this person
+                    let acceptButton = document.createElement('button');
+                    acceptButton.textContent = 'Accept Request';
+                    acceptButton.classList.add('accept-request');
+                    acceptButton.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent item click from triggering
+                        acceptFriendRequest(user.id, acceptButton);
+                    });
+                    userActions.appendChild(acceptButton);
+
+                    // Optionally, add a decline button here if desired
+                    // let declineButton = document.createElement('button');
+                    // declineButton.textContent = 'Decline';
+                    // declineButton.classList.add('decline-request');
+                    // declineButton.addEventListener('click', (event) => {
+                    //     event.stopPropagation();
+                    //     declineFriendRequest(user.id, user.username, declineButton);
+                    // });
+                    // userActions.appendChild(declineButton);
+
+                } else { // 'none' - no existing relationship
                     let actionButton = document.createElement('button');
                     actionButton.textContent = 'Add Friend';
                     actionButton.classList.add('add-friend');
@@ -1434,7 +1467,7 @@
             toggleButtonLoading(buttonElement, true, 'Add Friend');
             showMessageBox("Sending friend request...", 'loading', true);
             try {
-                // Update current user's friends subcollection
+                // Update current user's friends subcollection (status: pending)
                 const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId);
                 await setDoc(currentUserFriendDocRef, {
                     status: 'pending',
@@ -1442,7 +1475,7 @@
                     recipientId: targetUserId
                 });
 
-                // Update target user's friends subcollection
+                // Update target user's friends subcollection (status: received)
                 const targetUserFriendDocRef = doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid);
                 await setDoc(targetUserFriendDocRef, {
                     status: 'received',
@@ -1486,14 +1519,14 @@
             toggleButtonLoading(buttonElement, true, 'Accept Request');
             showMessageBox("Accepting friend request...", 'loading', true);
             try {
-                // Update current user's friends subcollection
+                // Update current user's friends subcollection (status: accepted)
                 const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId);
                 await updateDoc(currentUserFriendDocRef, {
                     status: 'accepted',
                     acceptedAt: serverTimestamp()
                 });
 
-                // Update target user's friends subcollection
+                // Update target user's friends subcollection (status: accepted)
                 const targetUserFriendDocRef = doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid);
                 await updateDoc(targetUserFriendDocRef, {
                     status: 'accepted',
@@ -1521,6 +1554,58 @@
                 toggleButtonLoading(buttonElement, false, 'Accept Request');
             }
         }
+
+        /**
+         * Cancels a pending friend request that the current user sent.
+         * @param {string} targetUserId - The UID of the user to whom the request was sent.
+         * @param {string} targetUsername - The username of the user.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function cancelFriendRequest(targetUserId, targetUsername, buttonElement) {
+            if (!currentUser || !currentUserProfileData) {
+                showMessageBox("You must be logged in to cancel friend requests.", 'warning');
+                return;
+            }
+
+            const confirmCancel = await showConfirmationDialog(`Are you sure you want to cancel the friend request to ${targetUsername}?`);
+
+            if (confirmCancel) {
+                toggleButtonLoading(buttonElement, true, 'Cancel Request');
+                showMessageBox(`Cancelling request to ${targetUsername}...`, 'loading', true);
+                try {
+                    // 1. Delete the pending entry from current user's friends subcollection
+                    const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId);
+                    await deleteDoc(currentUserFriendDocRef);
+
+                    // 2. Delete the received entry from target user's friends subcollection
+                    const targetUserFriendDocRef = doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid);
+                    await deleteDoc(targetUserFriendDocRef);
+
+                    // 3. Send a notification to the target user that the request was cancelled
+                    const notificationsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "notifications");
+                    await addDoc(notificationsCollectionRef, {
+                        type: 'friend_request_cancelled',
+                        senderId: currentUser.uid,
+                        senderUsername: currentUserProfileData.username,
+                        senderProfilePicId: currentUserProfileData.profilePicId,
+                        message: `${currentUserProfileData.username} cancelled their friend request.`,
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        relatedUserId: currentUser.uid
+                    });
+
+                    showMessageBox(`Friend request to ${targetUsername} cancelled.`, 'success');
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error cancelling friend request:", error);
+                    showMessageBox(`Failed to cancel request: ${error.message}`, 'error');
+                } finally {
+                    toggleButtonLoading(buttonElement, false, 'Cancel Request');
+                }
+            } else {
+                showMessageBox("Cancellation action cancelled.", 'info');
+            }
+        }
+
 
         /**
          * Unfriends a user (removes friendship from both sides).

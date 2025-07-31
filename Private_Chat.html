@@ -244,20 +244,17 @@
             --chat-timestamp-color: rgba(255, 255, 255, 0.7);
         }
 
-        html {
-            overflow-y: scroll;
+        html, body {
+            height: 100%; /* Ensure body takes full viewport height */
+            overflow: hidden; /* Prevent overall scrolling, let individual panes scroll */
         }
 
         body {
-            min-height: 100vh;
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
-            padding-bottom: 80px; /* Space for fixed input area */
+            flex-direction: column; /* Header on top, main content below */
             background-color: var(--background-main);
             background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
                               radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
@@ -271,14 +268,12 @@
             border-bottom: 1px solid var(--border-light);
             padding: 10px 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            position: fixed;
-            top: 0;
-            left: 0;
             width: 100%;
-            height: 60px;
+            height: 60px; /* Fixed height for header */
             z-index: 10;
             display: flex;
             justify-content: center;
+            flex-shrink: 0; /* Prevent header from shrinking */
         }
 
         header .header-content-wrapper {
@@ -301,7 +296,224 @@
             text-decoration: none;
         }
 
-        /* Chat Header Specifics */
+        /* Main Content Area - FLEX CONTAINER for split panes */
+        main {
+            flex-grow: 1; /* Takes remaining vertical space */
+            width: 100%;
+            display: flex; /* Flex container for left and right panes */
+            overflow: hidden; /* Prevent main scrollbar */
+        }
+
+        /* Left Pane: Friends List Sidebar */
+        #friendsListSidebar {
+            width: 300px; /* Fixed width for sidebar */
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
+            background-color: var(--background-color-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* Scrollable friends list */
+            position: relative; /* For toggle button positioning */
+        }
+
+        #friendsListSidebar h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin-top: 0;
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: var(--card-background);
+            padding: 10px 15px;
+            border-radius: 25px;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            justify-content: space-between; /* Distribute items */
+        }
+
+        .toggle-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-color-primary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px; /* Smaller switch */
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--status-offline);
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 34px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px; /* Smaller handle */
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--white);
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background: var(--button-background-gradient);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--blue);
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(22px); /* Adjust for smaller switch */
+            -ms-transform: translateX(22px);
+            transform: translateX(22px);
+        }
+
+        .friends-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .friend-item {
+            background: var(--input-background);
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .friend-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .friend-item.active-chat {
+            background: var(--accent-color);
+            color: var(--white);
+            border-color: var(--accent-color-dark);
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.4);
+        }
+        .friend-item.active-chat .username,
+        .friend-item.active-chat .status {
+            color: var(--white);
+        }
+        .friend-item.active-chat .status-dot {
+            background-color: var(--white) !important; /* White dot for active chat */
+        }
+
+
+        .friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid var(--accent-color);
+        }
+        .friend-item.active-chat .friend-avatar {
+            border-color: var(--white); /* White border for active chat */
+        }
+
+
+        .friend-info {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .friend-info .username {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color-primary);
+            margin: 0;
+        }
+
+        .friend-info .status {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 3px;
+        }
+
+        .friend-info .status .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--status-offline);
+        }
+        .friend-info .status.online .status-dot { background-color: var(--status-online); }
+        .friend-info .status.away .status-dot { background-color: var(--status-away); }
+
+
+        /* Right Pane: Chat Conversation Area */
+        #chatConversationArea {
+            flex-grow: 1; /* Takes all remaining horizontal space */
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-color-primary);
+            position: relative; /* For chat input area */
+            padding-bottom: 70px; /* Space for fixed input area */
+            overflow: hidden; /* Prevent this section from scrolling, let messages container handle it */
+        }
+
+        #chatHeader {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
         .chat-header-info {
             display: flex;
             align-items: center;
@@ -341,7 +553,6 @@
         .chat-header-info .status.online .status-dot { background-color: var(--status-online); }
         .chat-header-info .status.away .status-dot { background-color: var(--status-away); }
 
-
         .chat-header-actions {
             display: flex;
             gap: 15px;
@@ -361,205 +572,33 @@
             transform: scale(1.1);
         }
 
-        /* Main Content Area - Flexible for Friends List or Chat */
-        main {
-            flex-grow: 1;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            padding-top: 60px; /* Space for fixed header */
-            padding-bottom: 80px; /* Space for fixed input area */
-            position: relative;
-        }
-
-        /* Friends List View */
-        #friendsListView {
-            flex-grow: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            background-color: var(--background-color-secondary);
-        }
-
-        #friendsListView h1 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 2.8rem;
-            font-weight: 800;
-            background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            margin-bottom: 1rem;
-        }
-
-        #friendsListView p {
-            color: var(--text-light);
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            background: var(--card-background);
-            padding: 15px 25px;
-            border-radius: 30px;
-            border: 1px solid var(--border-light);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .toggle-label {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-color-primary);
-        }
-
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--status-offline);
-            -webkit-transition: .4s;
-            transition: .4s;
-            border-radius: 34px;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: var(--white);
-            -webkit-transition: .4s;
-            transition: .4s;
-            border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        input:checked + .slider {
-            background: var(--button-background-gradient);
-        }
-
-        input:focus + .slider {
-            box-shadow: 0 0 1px var(--blue);
-        }
-
-        input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
-            transform: translateX(26px);
-        }
-
-        .friends-list {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding: 0;
-            list-style: none;
-        }
-
-        .friend-item {
-            background: var(--input-background);
-            border: 1px solid var(--border-light);
-            border-radius: 15px;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .friend-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-            background-color: rgba(255, 255, 255, 0.08);
-        }
-
-        .friend-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex-shrink: 0;
-            border: 2px solid var(--accent-color);
-        }
-
-        .friend-info {
-            flex-grow: 1;
-            text-align: left;
-        }
-
-        .friend-info .username {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-color-primary);
-            margin: 0;
-        }
-
-        .friend-info .status {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 3px;
-        }
-
-        .friend-info .status .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--status-offline);
-        }
-        .friend-info .status.online .status-dot { background-color: var(--status-online); }
-        .friend-info .status.away .status-dot { background-color: var(--status-away); }
-
-        /* Chat View */
-        #chatView {
-            flex-grow: 1;
-            display: none; /* Hidden by default */
-            flex-direction: column;
-            padding-bottom: 80px; /* Space for fixed input area */
-        }
-
         .chat-messages-container {
-            flex-grow: 1;
+            flex-grow: 1; /* Takes all remaining space in chat area */
             padding: 20px;
-            overflow-y: auto;
+            overflow-y: auto; /* Scrollable messages */
             display: flex;
             flex-direction: column;
             gap: 10px;
             background-color: var(--background-color-secondary);
             border-top: 1px solid var(--border-color);
             border-bottom: 1px solid var(--border-color);
+        }
+
+        #chatInitialState {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            padding: 20px;
+        }
+        #chatInitialState i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--accent-color);
         }
 
         /* Message Bubble Styles */
@@ -640,7 +679,7 @@
 
         /* Chat Input Area */
         .chat-input-area {
-            position: fixed;
+            position: absolute; /* Position relative to #chatConversationArea */
             bottom: 0;
             left: 0;
             width: 100%;
@@ -652,6 +691,7 @@
             gap: 10px;
             box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
             z-index: 10;
+            flex-shrink: 0;
         }
 
         .chat-input-area input[type="text"] {
@@ -977,6 +1017,76 @@
 
         /* Responsive Adjustments */
         @media (max-width: 768px) {
+            main {
+                flex-direction: column; /* Stack panes vertically on smaller screens */
+            }
+            #friendsListSidebar {
+                width: 100%; /* Full width for sidebar */
+                height: auto; /* Auto height for content */
+                border-right: none;
+                border-bottom: 1px solid var(--border-color); /* Add bottom border */
+                padding-bottom: 10px;
+            }
+            #friendsListSidebar h2 {
+                font-size: 1.5rem;
+            }
+            .toggle-container {
+                padding: 8px 12px;
+            }
+            .toggle-label {
+                font-size: 0.85rem;
+            }
+            .toggle-switch {
+                width: 40px;
+                height: 22px;
+            }
+            .slider:before {
+                height: 16px;
+                width: 16px;
+                left: 3px;
+                bottom: 3px;
+            }
+            input:checked + .slider:before {
+                -webkit-transform: translateX(18px);
+                -ms-transform: translateX(18px);
+                transform: translateX(18px);
+            }
+            .friends-list {
+                gap: 8px;
+            }
+            .friend-item {
+                padding: 8px 12px;
+                gap: 8px;
+            }
+            .friend-avatar {
+                width: 35px;
+                height: 35px;
+            }
+            .friend-info .username {
+                font-size: 0.9rem;
+            }
+            .friend-info .status {
+                font-size: 0.75rem;
+            }
+
+            #chatConversationArea {
+                flex-grow: 1;
+                width: 100%;
+                padding-bottom: 70px; /* Space for fixed input area */
+            }
+            #chatHeader {
+                padding: 8px 15px;
+            }
+            .chat-header-info img {
+                width: 35px;
+                height: 35px;
+            }
+            .chat-header-info .name {
+                font-size: 1.1rem;
+            }
+            .chat-header-actions button {
+                font-size: 1.2rem;
+            }
             .chat-messages-container {
                 padding: 15px;
             }
@@ -995,58 +1105,6 @@
                 width: 40px;
                 height: 40px;
                 font-size: 1rem;
-            }
-            .chat-header-info img {
-                width: 35px;
-                height: 35px;
-            }
-            .chat-header-info .name {
-                font-size: 1.1rem;
-            }
-            .chat-header-actions button {
-                font-size: 1.2rem;
-            }
-            #friendsListView h1 {
-                font-size: 2.2rem;
-            }
-            .toggle-container {
-                padding: 10px 15px;
-                gap: 10px;
-            }
-            .toggle-label {
-                font-size: 1rem;
-            }
-            .toggle-switch {
-                width: 50px;
-                height: 28px;
-            }
-            .slider:before {
-                height: 22px;
-                width: 22px;
-                left: 3px;
-                bottom: 3px;
-            }
-            input:checked + .slider:before {
-                -webkit-transform: translateX(22px);
-                -ms-transform: translateX(22px);
-                transform: translateX(22px);
-            }
-            .friends-list {
-                gap: 10px;
-            }
-            .friend-item {
-                padding: 12px 15px;
-                gap: 10px;
-            }
-            .friend-avatar {
-                width: 40px;
-                height: 40px;
-            }
-            .friend-info .username {
-                font-size: 1rem;
-            }
-            .friend-info .status {
-                font-size: 0.8rem;
             }
             #localVideo {
                 width: 100px;
@@ -1075,6 +1133,15 @@
             }
             .logo {
                 font-size: 1.5rem;
+            }
+            #friendsListSidebar h2 {
+                font-size: 1.2rem;
+            }
+            .friend-info .username {
+                font-size: 0.9rem;
+            }
+            .friend-info .status {
+                font-size: 0.7rem;
             }
             .chat-header-info img {
                 width: 30px;
@@ -1111,9 +1178,6 @@
                 height: 35px;
                 font-size: 0.9rem;
             }
-            #friendsListView h1 {
-                font-size: 2rem;
-            }
         }
     </style>
 </head>
@@ -1122,34 +1186,17 @@
     <header>
         <div class="header-content-wrapper">
             <a href="/home.html" class="logo">JCHAT</a>
-            <!-- Chat Header Info (dynamic based on selected friend) -->
-            <div class="chat-header-info" id="chatHeaderInfo" style="display: none;">
-                <img id="otherUserPic" src="" alt="User Profile Picture" style="display: none;">
-                <i id="otherUserAvatarIcon" class="fas fa-user-circle" style="font-size: 40px; color: var(--text-light);"></i>
-                <div>
-                    <p class="name" id="otherUsername">Loading...</p>
-                    <p class="status" id="otherUserStatus"><span class="status-dot"></span> Offline</p>
-                </div>
-            </div>
-            <!-- Header for Friends List View -->
-            <h1 id="friendsListHeaderTitle" style="display: block; font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 800; background-clip: text; color: transparent; background-image: linear-gradient(90deg, var(--blue), var(--pink));">Your Chats</h1>
-
-            <div class="chat-header-actions">
-                <button id="voiceCallBtn" title="Voice Call" style="display: none;"><i class="fas fa-phone"></i></button>
-                <button id="videoCallBtn" title="Video Call" style="display: none;"><i class="fas fa-video"></i></button>
-                <button id="unfriendBtn" title="Unfriend" style="display: none;"><i class="fas fa-user-slash"></i></button>
-                <button id="backToFriendsBtn" title="Back to Friends" style="display: none;"><i class="fas fa-arrow-left"></i></button>
+            <!-- Header actions (e.g., back to home) -->
+            <div class="header-actions">
+                <button id="backToHomeBtn" title="Back to Home"><i class="fas fa-arrow-left"></i></button>
             </div>
         </div>
     </header>
 
     <main>
-        <!-- Friends List View -->
-        <div id="friendsListView">
-            <p style="color: var(--text-light); font-size: 0.9rem;">
-                Connect with your friends or start a new group conversation.
-            </p>
-
+        <!-- Left Pane: Friends List Sidebar -->
+        <div id="friendsListSidebar">
+            <h2>Your Chats</h2>
             <!-- Beautiful Pink and Blue Toggle -->
             <div class="toggle-container">
                 <span class="toggle-label">Show Online Friends</span>
@@ -1159,30 +1206,53 @@
                 </label>
             </div>
 
-            <h2 style="font-family: 'Poppins', sans-serif; font-size: 2rem; font-weight: 800; background-clip: text; color: transparent; background-image: linear-gradient(90deg, var(--blue), var(--pink)); margin-bottom: 1.2rem;">Friends to Chat With</h2>
             <ul class="friends-list" id="friendsList">
                 <p style="text-align: center; color: var(--text-light);">Loading friends...</p>
                 <!-- Friends will be dynamically loaded here -->
             </ul>
         </div>
 
-        <!-- Chat View -->
-        <div id="chatView" style="display: none;">
-            <div class="chat-messages-container" id="chatMessagesContainer">
+        <!-- Right Pane: Chat Conversation Area -->
+        <div id="chatConversationArea">
+            <!-- Chat Header (dynamic based on selected friend) -->
+            <div id="chatHeader">
+                <div class="chat-header-info">
+                    <img id="otherUserPic" src="" alt="User Profile Picture" style="display: none;">
+                    <i id="otherUserAvatarIcon" class="fas fa-user-circle" style="font-size: 40px; color: var(--text-light);"></i>
+                    <div>
+                        <p class="name" id="otherUsername">Select a Friend</p>
+                        <p class="status" id="otherUserStatus"><span class="status-dot"></span> Offline</p>
+                    </div>
+                </div>
+                <div class="chat-header-actions">
+                    <button id="voiceCallBtn" title="Voice Call" style="display: none;"><i class="fas fa-phone"></i></button>
+                    <button id="videoCallBtn" title="Video Call" style="display: none;"><i class="fas fa-video"></i></button>
+                    <button id="unfriendBtn" title="Unfriend" style="display: none;"><i class="fas fa-user-slash"></i></button>
+                </div>
+            </div>
+
+            <!-- Initial state when no chat is selected -->
+            <div id="chatInitialState">
+                <i class="fas fa-comments"></i>
+                <p>Select a friend from the left to start chatting!</p>
+            </div>
+
+            <!-- Chat Messages Container -->
+            <div class="chat-messages-container" id="chatMessagesContainer" style="display: none;">
                 <!-- Chat messages will be dynamically loaded here -->
                 <p style="text-align: center; color: var(--text-light);">Loading messages...</p>
             </div>
+
+            <!-- Chat Input Area -->
+            <div class="chat-input-area" id="chatInputArea" style="display: none;">
+                <input type="file" id="mediaInput" accept="image/*,video/*,audio/*">
+                <button id="attachMediaBtn" title="Attach Media"><i class="fas fa-paperclip"></i></button>
+                <button id="voiceNoteBtn" title="Record Voice Note"><i class="fas fa-microphone"></i></button>
+                <input type="text" id="messageInput" placeholder="Type a message...">
+                <button id="sendMessageBtn" title="Send Message" disabled><i class="fas fa-paper-plane"></i></button>
+            </div>
         </div>
     </main>
-
-    <!-- Chat Input Area (for chat view) -->
-    <div class="chat-input-area" id="chatInputArea" style="display: none;">
-        <input type="file" id="mediaInput" accept="image/*,video/*,audio/*">
-        <button id="attachMediaBtn" title="Attach Media"><i class="fas fa-paperclip"></i></button>
-        <button id="voiceNoteBtn" title="Record Voice Note"><i class="fas fa-microphone"></i></button>
-        <input type="text" id="messageInput" placeholder="Type a message...">
-        <button id="sendMessageBtn" title="Send Message" disabled><i class="fas fa-paper-plane"></i></button>
-    </div>
 
     <!-- Call Overlay -->
     <div id="callOverlay">
@@ -1196,7 +1266,6 @@
             <button id="hangUpBtn"><i class="fas fa-phone-slash"></i></button>
         </div>
     </div>
-
 
     <!-- Custom Message Box -->
     <div id="messageBox" role="alert" aria-live="polite"></div>
@@ -1219,7 +1288,7 @@
     </div>
 
     <script type="module">
-        console.log("JCHAT_DEBUG: private_chat_combined.html script started.");
+        console.log("JCHAT_DEBUG: private_chat_split_pane.html script started.");
 
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -1256,35 +1325,26 @@
         const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2';
 
         // --- DOM Elements ---
-        // Header elements (shared across views)
-        // const headerProfilePic = document.getElementById('headerProfilePic'); // Not used in this specific page's header
-        // const headerAvatarIcon = document.getElementById('headerAvatarIcon'); // Not used in this specific page's header
-        // const headerDisplayName = document.getElementById('headerDisplayName'); // Not used in this specific page's header
-        // const logoutButton = document.getElementById('logoutButton'); // Not used in this specific page's header
-        // const notificationCountElement = document.getElementById('notificationCount'); // Not used in this specific page's header
-        // const headerProfileNavLink = document.getElementById('headerProfileNavLink'); // Not used in this specific page's header
-        // const adminIconLink = document.getElementById('adminIconLink'); // Not used in this specific page's header
+        const backToHomeBtn = document.getElementById('backToHomeBtn');
 
-        // Combined Chat/Friends UI elements
-        const friendsListView = document.getElementById('friendsListView');
-        const chatView = document.getElementById('chatView');
-        const chatInputArea = document.getElementById('chatInputArea');
-        const chatHeaderInfo = document.getElementById('chatHeaderInfo');
-        const friendsListHeaderTitle = document.getElementById('friendsListHeaderTitle');
+        // Split-pane elements
+        const friendsListSidebar = document.getElementById('friendsListSidebar');
+        const chatConversationArea = document.getElementById('chatConversationArea');
+        const chatInitialState = document.getElementById('chatInitialState'); // New element for initial chat view
 
         // Friends List Specific
         const onlineFriendsToggle = document.getElementById('onlineFriendsToggle');
         const friendsListContainer = document.getElementById('friendsList');
 
         // Chat Specific
+        const chatHeader = document.getElementById('chatHeader');
         const otherUserPic = document.getElementById('otherUserPic');
         const otherUserAvatarIcon = document.getElementById('otherUserAvatarIcon');
         const otherUsernameDisplay = document.getElementById('otherUsername');
         const otherUserStatusDisplay = document.getElementById('otherUserStatus');
         const voiceCallBtn = document.getElementById('voiceCallBtn');
         const videoCallBtn = document.getElementById('videoCallBtn');
-        const unfriendBtn = document.getElementById('unfriendBtn'); // New unfriend button
-        const backToFriendsBtn = document.getElementById('backToFriendsBtn');
+        const unfriendBtn = document.getElementById('unfriendBtn');
         const chatMessagesContainer = document.getElementById('chatMessagesContainer');
         const messageInput = document.getElementById('messageInput');
         const sendMessageBtn = document.getElementById('sendMessageBtn');
@@ -1314,7 +1374,7 @@
 
         // --- Global State Variables ---
         let currentUser = null;
-        let currentUserProfileData = null; // Renamed from currentUserProfile for consistency
+        let currentUserProfileData = null;
         let isAuthReady = false;
         let currentSystemSettings = {};
         let friendsData = {}; // Stores friend profiles and their status listeners
@@ -1371,7 +1431,7 @@
         }
 
         // --- Utility Functions (reused and adapted) ---
-        function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
+        function showMessageBox(message, type, isPersistent = false, durationMs = 2000) { // Default duration changed to 2000ms
             if (!messageBox) { console.error("JCHAT_ERROR: messageBox element not found."); return; }
             if (messageBox.timeoutId) { clearTimeout(messageBox.timeoutId); }
 
@@ -1445,7 +1505,20 @@
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
             buttonElement.disabled = isLoading;
+            if (isLoading) {
+                buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            } else {
+                // Restore original icon based on button ID
+                if (buttonElement.id === 'sendMessageBtn') buttonElement.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                else if (buttonElement.id === 'attachMediaBtn') buttonElement.innerHTML = '<i class="fas fa-paperclip"></i>';
+                else if (buttonElement.id === 'voiceNoteBtn') buttonElement.innerHTML = '<i class="fas fa-microphone"></i>';
+                else if (buttonElement.id === 'voiceCallBtn') buttonElement.innerHTML = '<i class="fas fa-phone"></i>';
+                else if (buttonElement.id === 'videoCallBtn') buttonElement.innerHTML = '<i class="fas fa-video"></i>';
+                else if (buttonElement.id === 'unfriendBtn') buttonElement.innerHTML = '<i class="fas fa-user-slash"></i>';
+                // For toggle buttons in call overlay, their icons are managed by their specific functions
+            }
         }
+
 
         function applyTheme(themeName) {
             const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
@@ -1555,7 +1628,7 @@
         async function fetchOtherUserProfileAndStatus() {
             if (!otherUserId) {
                 console.error("JCHAT_ERROR: otherUserId is not set.");
-                showMessageBox("Chat partner not specified.", 'error');
+                // This state is now handled by chatInitialState
                 return;
             }
 
@@ -1628,7 +1701,7 @@
         async function setupChatRoom() {
             if (!currentUser || !otherUserId) {
                 console.error("JCHAT_ERROR: Current user or other user not set for chat room setup.");
-                showMessageBox("Cannot start chat: missing user info.", 'error');
+                // This state is now handled by chatInitialState
                 return;
             }
 
@@ -1766,7 +1839,7 @@
                 return;
             }
 
-            if (sendMessageBtn) sendMessageBtn.disabled = true; // Disable button to prevent double sending
+            toggleButtonLoading(sendMessageBtn, true);
             if (messageInput) messageInput.value = ''; // Clear input immediately
 
             try {
@@ -1797,7 +1870,7 @@
                 // Re-populate input if send failed
                 if (messageInput) messageInput.value = content;
             } finally {
-                if (sendMessageBtn) sendMessageBtn.disabled = false;
+                toggleButtonLoading(sendMessageBtn, false);
             }
         }
 
@@ -1825,9 +1898,9 @@
             }
 
             showMessageBox(`Uploading ${fileType}...`, 'loading', true);
-            if (sendMessageBtn) sendMessageBtn.disabled = true;
-            if (attachMediaBtn) attachMediaBtn.disabled = true;
-            if (voiceNoteBtn) voiceNoteBtn.disabled = true;
+            toggleButtonLoading(sendMessageBtn, true);
+            toggleButtonLoading(attachMediaBtn, true);
+            toggleButtonLoading(voiceNoteBtn, true);
 
             try {
                 const storageRef = ref(storage, `chat_media/${chatRoomId}/${currentUser.uid}/${Date.now()}_${file.name}`);
@@ -1874,9 +1947,9 @@
                 console.error("JCHAT_ERROR: Error initiating media upload:", error);
                 showMessageBox(`Failed to initiate media upload: ${error.message}`, 'error');
             } finally {
-                if (sendMessageBtn) sendMessageBtn.disabled = false;
-                if (attachMediaBtn) attachMediaBtn.disabled = false;
-                if (voiceNoteBtn) voiceNoteBtn.disabled = false;
+                toggleButtonLoading(sendMessageBtn, false);
+                toggleButtonLoading(attachMediaBtn, false);
+                toggleButtonLoading(voiceNoteBtn, false);
                 if (mediaInput) mediaInput.value = ''; // Clear selected file
             }
         }
@@ -1907,12 +1980,11 @@
                         const audioFile = new File([audioBlob], `voice_note_${Date.now()}.webm`, { type: 'audio/webm' });
 
                         showMessageBox("Uploading voice note...", 'loading', true);
-                        if (sendMessageBtn) sendMessageBtn.disabled = true;
-                        if (attachMediaBtn) attachMediaBtn.disabled = true;
-                        if (voiceNoteBtn) {
-                            voiceNoteBtn.disabled = true;
-                            voiceNoteBtn.classList.remove('recording');
-                        }
+                        toggleButtonLoading(sendMessageBtn, true);
+                        toggleButtonLoading(attachMediaBtn, true);
+                        toggleButtonLoading(voiceNoteBtn, true);
+                        if (voiceNoteBtn) voiceNoteBtn.classList.remove('recording');
+
 
                         try {
                             const storageRef = ref(storage, `chat_media/${chatRoomId}/${currentUser.uid}/${audioFile.name}`);
@@ -1958,9 +2030,9 @@
                             console.error("JCHAT_ERROR: Error uploading voice note:", error);
                             showMessageBox(`Failed to upload voice note: ${error.message}`, 'error');
                         } finally {
-                            if (sendMessageBtn) sendMessageBtn.disabled = false;
-                            if (attachMediaBtn) attachMediaBtn.disabled = false;
-                            if (voiceNoteBtn) voiceNoteBtn.disabled = false;
+                            toggleButtonLoading(sendMessageBtn, false);
+                            toggleButtonLoading(attachMediaBtn, false);
+                            toggleButtonLoading(voiceNoteBtn, false);
                         }
                     };
 
@@ -1982,7 +2054,7 @@
         }
 
         /**
-         * Renders the list of friends.
+         * Renders the list of friends in the sidebar.
          * @param {Array<Object>} friends - Array of friend objects with profile and status data.
          */
         function renderFriendsList(friends) {
@@ -1998,7 +2070,7 @@
             }
 
             const showOnlineOnly = onlineFriendsToggle && onlineFriendsToggle.checked;
-            const filteredFriends = showOnlineOnly ? friends.filter(friend => friend.status === 'online') : friends;
+            const filteredFriends = showOnlineOnly ? friends.filter(friend => friend.onlineStatus === 'online') : friends;
 
             if (filteredFriends.length === 0 && showOnlineOnly) {
                 friendsListContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">No friends currently online.</p>';
@@ -2007,14 +2079,17 @@
 
             filteredFriends.sort((a, b) => {
                 // Sort online friends first, then by username
-                if (a.status === 'online' && b.status !== 'online') return -1;
-                if (a.status !== 'online' && b.status === 'online') return 1;
+                if (a.onlineStatus === 'online' && b.onlineStatus !== 'online') return -1;
+                if (a.onlineStatus !== 'online' && b.onlineStatus === 'online') return 1;
                 return (a.username || '').localeCompare(b.username || '');
             });
 
             filteredFriends.forEach(friend => {
                 const friendItem = document.createElement('li');
                 friendItem.classList.add('friend-item');
+                if (otherUserId === friend.id) {
+                    friendItem.classList.add('active-chat'); // Highlight active chat
+                }
                 friendItem.dataset.userId = friend.id; // Store user ID for click handler
 
                 const avatarImg = document.createElement('img');
@@ -2031,8 +2106,8 @@
 
                 const statusDiv = document.createElement('div');
                 statusDiv.classList.add('status');
-                statusDiv.classList.add(friend.status || 'offline'); // Add status class
-                statusDiv.innerHTML = `<span class="status-dot"></span> ${friend.status || 'Offline'}`;
+                statusDiv.classList.add(friend.onlineStatus || 'offline'); // Add status class
+                statusDiv.innerHTML = `<span class="status-dot"></span> ${friend.onlineStatus || 'Offline'}`;
 
                 friendInfo.appendChild(usernameSpan);
                 friendInfo.appendChild(statusDiv);
@@ -2041,24 +2116,59 @@
                 friendItem.appendChild(friendInfo);
 
                 friendItem.addEventListener('click', () => {
-                    // When a friend is clicked, switch to chat view
-                    otherUserId = friend.id;
-                    displayChatView();
-                    fetchOtherUserProfileAndStatus();
-                    setupChatRoom();
-                    if (sendMessageBtn) sendMessageBtn.disabled = false;
-                    if (messageInput) {
-                        messageInput.addEventListener('keypress', (e) => {
-                            if (e.key === 'Enter') {
-                                sendTextMessage();
-                            }
-                        });
-                    }
+                    selectFriendForChat(friend.id);
                 });
 
                 friendsListContainer.appendChild(friendItem);
             });
         }
+
+        /**
+         * Selects a friend from the sidebar and loads their chat.
+         * @param {string} friendId - The UID of the friend to chat with.
+         */
+        function selectFriendForChat(friendId) {
+            if (otherUserId === friendId) return; // Already selected
+
+            // Clear previous chat state
+            if (unsubscribeMessages) unsubscribeMessages();
+            if (unsubscribeOtherUserProfile) unsubscribeOtherUserProfile();
+            if (unsubscribeOtherUserStatus) unsubscribeOtherUserStatus();
+            if (unsubscribeCallSignals) unsubscribeCallSignals();
+            hangUpCall(); // Ensure any ongoing call is terminated
+
+            // Set new otherUserId
+            otherUserId = friendId;
+
+            // Update UI for chat view
+            if (chatInitialState) chatInitialState.style.display = 'none';
+            if (chatMessagesContainer) chatMessagesContainer.style.display = 'flex';
+            if (chatInputArea) chatInputArea.style.display = 'flex';
+
+            // Show chat action buttons
+            if (voiceCallBtn) voiceCallBtn.style.display = 'block';
+            if (videoCallBtn) videoCallBtn.style.display = 'block';
+            if (unfriendBtn) unfriendBtn.style.display = 'block';
+
+            // Re-render friends list to highlight active chat
+            renderFriendsList(Object.values(friendsData));
+
+            // Load new chat data
+            fetchOtherUserProfileAndStatus();
+            setupChatRoom();
+            if (sendMessageBtn) sendMessageBtn.disabled = false;
+            if (messageInput) {
+                messageInput.removeEventListener('keypress', handleMessageInputEnter); // Remove old listener
+                messageInput.addEventListener('keypress', handleMessageInputEnter); // Add new listener
+            }
+        }
+
+        function handleMessageInputEnter(e) {
+            if (e.key === 'Enter') {
+                sendTextMessage();
+            }
+        }
+
 
         /**
          * Fetches friends list and sets up listeners for their profiles and statuses.
@@ -2085,43 +2195,39 @@
                 // Fetch public profiles and set up status listeners for each friend
                 const newFriendsData = {};
                 for (const friendId of friendIds) {
-                    // Only fetch/listen if new friend or if data needs refresh
-                    if (!friendsData[friendId] || !unsubscribeFriendStatusListeners[friendId]) {
-                        const publicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
-                        const userStatusRef = doc(db, "artifacts", appId, "public", "data", "user_statuses", friendId);
+                    const publicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
+                    const userStatusRef = doc(db, "artifacts", appId, "public", "data", "user_statuses", friendId);
 
-                        // Fetch public profile once
-                        const profileSnap = await getDoc(publicProfileRef);
-                        let profile = profileSnap.exists() ? profileSnap.data() : { username: 'Unknown User', profilePicId: null };
-                        profile.id = friendId;
-                        profile.status = 'offline'; // Default status
+                    // Fetch public profile once
+                    const profileSnap = await getDoc(publicProfileRef);
+                    let profile = profileSnap.exists() ? profileSnap.data() : { username: 'Unknown User', profilePicId: null };
+                    profile.id = friendId;
+                    profile.onlineStatus = 'offline'; // Default status
 
-                        newFriendsData[friendId] = profile;
+                    newFriendsData[friendId] = profile;
 
-                        // Set up real-time listener for user status
-                        unsubscribeFriendStatusListeners[friendId] = onSnapshot(userStatusRef, (statusSnap) => {
-                            if (statusSnap.exists()) {
-                                const statusData = statusSnap.data();
-                                if (statusData.isOnline) {
-                                    newFriendsData[friendId].status = 'online';
-                                } else if (statusData.lastOnline && (Date.now() - statusData.lastOnline.toDate().getTime()) < (5 * 60 * 1000)) {
-                                    newFriendsData[friendId].status = 'away';
-                                } else {
-                                    newFriendsData[friendId].status = 'offline';
-                                }
+                    // Set up real-time listener for user status
+                    if (unsubscribeFriendStatusListeners[friendId]) unsubscribeFriendStatusListeners[friendId](); // Clear old listener if exists
+                    unsubscribeFriendStatusListeners[friendId] = onSnapshot(userStatusRef, (statusSnap) => {
+                        if (statusSnap.exists()) {
+                            const statusData = statusSnap.data();
+                            if (statusData.isOnline) {
+                                newFriendsData[friendId].onlineStatus = 'online';
+                            } else if (statusData.lastOnline && (Date.now() - statusData.lastOnline.toDate().getTime()) < (5 * 60 * 1000)) {
+                                newFriendsData[friendId].onlineStatus = 'away';
                             } else {
-                                newFriendsData[friendId].status = 'offline';
+                                newFriendsData[friendId].onlineStatus = 'offline';
                             }
-                            // Re-render the list whenever a friend's status changes
-                            renderFriendsList(Object.values(newFriendsData));
-                        }, (error) => {
-                            console.error(`JCHAT_ERROR: Error listening to friend status (${friendId}):`, error);
-                            newFriendsData[friendId].status = 'offline';
-                            renderFriendsList(Object.values(newFriendsData));
-                        });
-                    } else {
-                        newFriendsData[friendId] = friendsData[friendId]; // Keep existing data if friend already loaded
-                    }
+                        } else {
+                            newFriendsData[friendId].onlineStatus = 'offline';
+                        }
+                        // Re-render the list whenever a friend's status changes
+                        renderFriendsList(Object.values(newFriendsData));
+                    }, (error) => {
+                        console.error(`JCHAT_ERROR: Error listening to friend status (${friendId}):`, error);
+                        newFriendsData[friendId].onlineStatus = 'offline';
+                        renderFriendsList(Object.values(newFriendsData));
+                    });
                 }
 
                 // Remove listeners for friends who are no longer in the list
@@ -2136,6 +2242,29 @@
 
                 friendsData = newFriendsData; // Update global friends data
                 renderFriendsList(Object.values(friendsData)); // Initial render
+                showMessageBox("Friends list loaded.", 'success');
+
+                // If a friend was specified in URL, select them. Otherwise, if there are friends, select the first one.
+                if (otherUserId && friendsData[otherUserId]) {
+                    selectFriendForChat(otherUserId);
+                } else if (Object.keys(friendsData).length > 0) {
+                    selectFriendForChat(Object.keys(friendsData)[0]); // Select the first friend by default
+                } else {
+                    // No friends or no specific friend selected, show initial state
+                    if (chatInitialState) chatInitialState.style.display = 'flex';
+                    if (chatMessagesContainer) chatMessagesContainer.style.display = 'none';
+                    if (chatInputArea) chatInputArea.style.display = 'none';
+                    if (voiceCallBtn) voiceCallBtn.style.display = 'none';
+                    if (videoCallBtn) videoCallBtn.style.display = 'none';
+                    if (unfriendBtn) unfriendBtn.style.display = 'none';
+                    if (otherUsernameDisplay) otherUsernameDisplay.textContent = 'Select a Friend';
+                    if (otherUserStatusDisplay) {
+                        otherUserStatusDisplay.classList.remove('online', 'away');
+                        otherUserStatusDisplay.classList.add('offline');
+                        otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Offline`;
+                    }
+                }
+
             }, (error) => {
                 console.error("JCHAT_ERROR: Error listening to friends list:", error);
                 showMessageBox(`Failed to load friends: ${error.message}`, 'error');
@@ -2143,54 +2272,6 @@
             });
         }
 
-        /**
-         * Switches the view to the chat interface.
-         */
-        function displayChatView() {
-            if (friendsListView) friendsListView.style.display = 'none';
-            if (chatView) chatView.style.display = 'flex';
-            if (chatInputArea) chatInputArea.style.display = 'flex';
-            if (chatHeaderInfo) chatHeaderInfo.style.display = 'flex';
-            if (friendsListHeaderTitle) friendsListHeaderTitle.style.display = 'none'; // Hide "Your Chats" title
-            if (voiceCallBtn) voiceCallBtn.style.display = 'block';
-            if (videoCallBtn) videoCallBtn.style.display = 'block';
-            if (unfriendBtn) unfriendBtn.style.display = 'block'; // Show unfriend button
-            if (backToFriendsBtn) backToFriendsBtn.style.display = 'block'; // Show back button
-        }
-
-        /**
-         * Switches the view back to the friends list.
-         */
-        function displayFriendsListView() {
-            // Cleanup current chat listeners
-            if (unsubscribeMessages) unsubscribeMessages();
-            if (unsubscribeOtherUserProfile) unsubscribeOtherUserProfile();
-            if (unsubscribeOtherUserStatus) unsubscribeOtherUserStatus();
-            if (unsubscribeCallSignals) unsubscribeCallSignals(); // Stop listening to call signals
-
-            // Reset chat specific state
-            otherUserId = null;
-            otherUserProfile = null;
-            chatRoomId = null;
-            chatRoomRef = null;
-            messagesCollectionRef = null;
-            if (chatMessagesContainer) chatMessagesContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">Loading messages...</p>';
-            if (messageInput) messageInput.value = '';
-            if (sendMessageBtn) sendMessageBtn.disabled = true;
-
-            // Hide chat view, show friends list
-            if (chatView) chatView.style.display = 'none';
-            if (chatInputArea) chatInputArea.style.display = 'none';
-            if (chatHeaderInfo) chatHeaderInfo.style.display = 'none';
-            if (friendsListHeaderTitle) friendsListHeaderTitle.style.display = 'block'; // Show "Your Chats" title
-            if (voiceCallBtn) voiceCallBtn.style.display = 'none';
-            if (videoCallBtn) videoCallBtn.style.display = 'none';
-            if (unfriendBtn) unfriendBtn.style.display = 'none'; // Hide unfriend button
-            if (backToFriendsBtn) backToFriendsBtn.style.display = 'none'; // Hide back button
-
-            if (friendsListView) friendsListView.style.display = 'flex';
-            fetchFriendsAndStatuses(); // Re-fetch and re-render friends list
-        }
 
         /**
          * Handles unfriending a user.
@@ -2204,6 +2285,7 @@
             const confirm = await showConfirmationDialog(`Are you sure you want to unfriend ${otherUserProfile.username}? This action cannot be undone.`);
 
             if (confirm) {
+                toggleButtonLoading(unfriendBtn, true);
                 showMessageBox(`Unfriending ${otherUserProfile.username}...`, 'loading', true);
                 try {
                     // 1. Delete the friend entry for the current user
@@ -2228,10 +2310,28 @@
                     });
 
                     showMessageBox(`${otherUserProfile.username} has been unfriended.`, 'success');
-                    displayFriendsListView(); // Go back to friends list
+                    // Reset chat view to initial state after unfriending
+                    otherUserId = null;
+                    if (chatInitialState) chatInitialState.style.display = 'flex';
+                    if (chatMessagesContainer) chatMessagesContainer.style.display = 'none';
+                    if (chatInputArea) chatInputArea.style.display = 'none';
+                    if (voiceCallBtn) voiceCallBtn.style.display = 'none';
+                    if (videoCallBtn) videoCallBtn.style.display = 'none';
+                    if (unfriendBtn) unfriendBtn.style.display = 'none';
+                    if (otherUsernameDisplay) otherUsernameDisplay.textContent = 'Select a Friend';
+                    if (otherUserStatusDisplay) {
+                        otherUserStatusDisplay.classList.remove('online', 'away');
+                        otherUserStatusDisplay.classList.add('offline');
+                        otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Offline`;
+                    }
+                    // Re-fetch friends list to reflect the change
+                    fetchFriendsAndStatuses();
+
                 } catch (error) {
                     console.error("JCHAT_ERROR: Error unfriending user:", error);
                     showMessageBox(`Failed to unfriend: ${error.message}`, 'error');
+                } finally {
+                    toggleButtonLoading(unfriendBtn, false);
                 }
             } else {
                 showMessageBox("Unfriend action cancelled.", 'info');
@@ -2638,34 +2738,31 @@
                 await fetchSystemSettings(); // Check maintenance mode
 
                 const urlParams = new URLSearchParams(window.location.search);
-                otherUserId = urlParams.get('userId');
+                otherUserId = urlParams.get('userId'); // Get userId from URL if present
 
-                if (otherUserId && otherUserId !== currentUser.uid) {
-                    displayChatView(); // Show chat view
-                    await fetchOtherUserProfileAndStatus();
-                    await setupChatRoom();
-                    if (sendMessageBtn) sendMessageBtn.disabled = false; // Enable send button once chat is set up
-                    if (messageInput) {
-                        messageInput.addEventListener('keypress', (e) => {
-                            if (e.key === 'Enter') {
-                                sendTextMessage();
-                            }
-                        });
-                    }
-                } else {
-                    // No userId in URL, show friends list by default
-                    displayFriendsListView();
-                }
+                await fetchFriendsAndStatuses(); // This will also handle initial chat selection
 
             } else {
                 isAuthReady = false;
-                // Hide chat header info and show default title
-                if (chatHeaderInfo) chatHeaderInfo.style.display = 'none';
-                if (friendsListHeaderTitle) friendsListHeaderTitle.style.display = 'block';
-                // Hide chat input area
+                // Reset chat header
+                if (otherUsernameDisplay) otherUsernameDisplay.textContent = 'Select a Friend';
+                if (otherUserStatusDisplay) {
+                    otherUserStatusDisplay.classList.remove('online', 'away');
+                    otherUserStatusDisplay.classList.add('offline');
+                    otherUserStatusDisplay.innerHTML = `<span class="status-dot"></span> Offline`;
+                }
+                if (otherUserPic) otherUserPic.style.display = 'none';
+                if (otherUserAvatarIcon) otherUserAvatarIcon.style.display = 'block';
+
+                // Hide chat elements
+                if (chatInitialState) chatInitialState.style.display = 'flex';
+                if (chatMessagesContainer) chatMessagesContainer.style.display = 'none';
                 if (chatInputArea) chatInputArea.style.display = 'none';
-                // Show friends list view (even if empty)
-                if (friendsListView) friendsListView.style.display = 'flex';
+                if (voiceCallBtn) voiceCallBtn.style.display = 'none';
+                if (videoCallBtn) videoCallBtn.style.display = 'none';
+                if (unfriendBtn) unfriendBtn.style.display = 'none';
+
+                // Clear friends list
                 if (friendsListContainer) friendsListContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see your friends.</p>';
                 showMessageBox("You must be logged in to access your chats.", 'error', 2000, true);
                 setTimeout(() => {
@@ -2696,7 +2793,14 @@
                 document.body.classList.add('theme-dark-mode'); // Default
             }
 
-            // Add checks for each element before attaching event listeners
+            if (backToHomeBtn) {
+                backToHomeBtn.addEventListener('click', () => {
+                    window.location.href = '/home.html';
+                });
+            } else {
+                console.error("JCHAT_ERROR: backToHomeBtn element not found.");
+            }
+
             if (onlineFriendsToggle) {
                 onlineFriendsToggle.addEventListener('change', () => {
                     renderFriendsList(Object.values(friendsData)); // Re-render with new filter
@@ -2758,12 +2862,6 @@
                 hangUpBtn.addEventListener('click', hangUpCall);
             } else {
                 console.error("JCHAT_ERROR: hangUpBtn element not found.");
-            }
-
-            if (backToFriendsBtn) {
-                backToFriendsBtn.addEventListener('click', displayFriendsListView);
-            } else {
-                console.error("JCHAT_ERROR: backToFriendsBtn element not found.");
             }
         });
 
