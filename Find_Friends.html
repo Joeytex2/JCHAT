@@ -1465,41 +1465,37 @@
             }
 
             toggleButtonLoading(buttonElement, true, 'Add Friend');
-            showMessageBox("Sending friend request...", 'loading', true);
+            showMessageBox("Sending friend request...", 'loading', true); // Show loading immediately
+
             try {
-                // Update current user's friends subcollection (status: pending)
-                const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId);
-                await setDoc(currentUserFriendDocRef, {
-                    status: 'pending',
-                    sentAt: serverTimestamp(),
-                    recipientId: targetUserId
-                });
+                // Perform both Firestore writes concurrently
+                await Promise.all([
+                    setDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId), {
+                        status: 'pending',
+                        sentAt: serverTimestamp(),
+                        recipientId: targetUserId
+                    }),
+                    setDoc(doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid), {
+                        status: 'received',
+                        receivedAt: serverTimestamp(),
+                        senderId: currentUser.uid
+                    }),
+                    addDoc(collection(db, "artifacts", appId, "users", targetUserId, "notifications"), {
+                        type: 'friend_request',
+                        senderId: currentUser.uid,
+                        senderUsername: currentUserProfileData.username,
+                        senderProfilePicId: currentUserProfileData.profilePicId,
+                        message: `${currentUserProfileData.username} sent you a friend request!`,
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        relatedUserId: targetUserId
+                    })
+                ]);
 
-                // Update target user's friends subcollection (status: received)
-                const targetUserFriendDocRef = doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid);
-                await setDoc(targetUserFriendDocRef, {
-                    status: 'received',
-                    receivedAt: serverTimestamp(),
-                    senderId: currentUser.uid
-                });
-
-                // Add a notification for the target user
-                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "notifications");
-                await addDoc(notificationsCollectionRef, {
-                    type: 'friend_request',
-                    senderId: currentUser.uid,
-                    senderUsername: currentUserProfileData.username,
-                    senderProfilePicId: currentUserProfileData.profilePicId,
-                    message: `${currentUserProfileData.username} sent you a friend request!`,
-                    read: false,
-                    timestamp: serverTimestamp(),
-                    relatedUserId: targetUserId // Link to the recipient for the notification
-                });
-
-                showMessageBox("Friend request sent!", 'success');
+                showMessageBox("Friend request sent!", 'success'); // Show success ONLY if all succeeded
             } catch (error) {
                 console.error("JCHAT_ERROR: Error sending friend request:", error);
-                showMessageBox(`Failed to send request: ${error.message}`, 'error');
+                showMessageBox(`Failed to send request: ${error.message}`, 'error'); // Show error if any failed
             } finally {
                 toggleButtonLoading(buttonElement, false, 'Add Friend');
             }
@@ -1517,39 +1513,35 @@
             }
 
             toggleButtonLoading(buttonElement, true, 'Accept Request');
-            showMessageBox("Accepting friend request...", 'loading', true);
+            showMessageBox("Accepting friend request...", 'loading', true); // Show loading immediately
+
             try {
-                // Update current user's friends subcollection (status: accepted)
-                const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId);
-                await updateDoc(currentUserFriendDocRef, {
-                    status: 'accepted',
-                    acceptedAt: serverTimestamp()
-                });
+                // Perform both Firestore updates concurrently
+                await Promise.all([
+                    updateDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId), {
+                        status: 'accepted',
+                        acceptedAt: serverTimestamp()
+                    }),
+                    updateDoc(doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid), {
+                        status: 'accepted',
+                        acceptedAt: serverTimestamp()
+                    }),
+                    addDoc(collection(db, "artifacts", appId, "users", targetUserId, "notifications"), {
+                        type: 'friend_request_accepted',
+                        senderId: currentUser.uid,
+                        senderUsername: currentUserProfileData.username,
+                        senderProfilePicId: currentUserProfileData.profilePicId,
+                        message: `${currentUserProfileData.username} accepted your friend request!`,
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        relatedUserId: currentUser.uid
+                    })
+                ]);
 
-                // Update target user's friends subcollection (status: accepted)
-                const targetUserFriendDocRef = doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid);
-                await updateDoc(targetUserFriendDocRef, {
-                    status: 'accepted',
-                    acceptedAt: serverTimestamp()
-                });
-
-                // Add a notification for the sender that their request was accepted
-                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "notifications");
-                await addDoc(notificationsCollectionRef, {
-                    type: 'friend_request_accepted',
-                    senderId: currentUser.uid,
-                    senderUsername: currentUserProfileData.username,
-                    senderProfilePicId: currentUserProfileData.profilePicId,
-                    message: `${currentUserProfileData.username} accepted your friend request!`,
-                    read: false,
-                    timestamp: serverTimestamp(),
-                    relatedUserId: currentUser.uid
-                });
-
-                showMessageBox("Friend request accepted! You are now friends.", 'success');
+                showMessageBox("Friend request accepted! You are now friends.", 'success'); // Show success ONLY if all succeeded
             } catch (error) {
                 console.error("JCHAT_ERROR: Error accepting friend request:", error);
-                showMessageBox(`Failed to accept request: ${error.message}`, 'error');
+                showMessageBox(`Failed to accept request: ${error.message}`, 'error'); // Show error if any failed
             } finally {
                 toggleButtonLoading(buttonElement, false, 'Accept Request');
             }
@@ -1571,33 +1563,28 @@
 
             if (confirmCancel) {
                 toggleButtonLoading(buttonElement, true, 'Cancel Request');
-                showMessageBox(`Cancelling request to ${targetUsername}...`, 'loading', true);
+                showMessageBox(`Cancelling request to ${targetUsername}...`, 'loading', true); // Show loading immediately
                 try {
-                    // 1. Delete the pending entry from current user's friends subcollection
-                    const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId);
-                    await deleteDoc(currentUserFriendDocRef);
+                    // Perform both Firestore deletes concurrently
+                    await Promise.all([
+                        deleteDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId)),
+                        deleteDoc(doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid)),
+                        addDoc(collection(db, "artifacts", appId, "users", targetUserId, "notifications"), {
+                            type: 'friend_request_cancelled',
+                            senderId: currentUser.uid,
+                            senderUsername: currentUserProfileData.username,
+                            senderProfilePicId: currentUserProfileData.profilePicId,
+                            message: `${currentUserProfileData.username} cancelled their friend request.`,
+                            read: false,
+                            timestamp: serverTimestamp(),
+                            relatedUserId: currentUser.uid
+                        })
+                    ]);
 
-                    // 2. Delete the received entry from target user's friends subcollection
-                    const targetUserFriendDocRef = doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid);
-                    await deleteDoc(targetUserFriendDocRef);
-
-                    // 3. Send a notification to the target user that the request was cancelled
-                    const notificationsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "notifications");
-                    await addDoc(notificationsCollectionRef, {
-                        type: 'friend_request_cancelled',
-                        senderId: currentUser.uid,
-                        senderUsername: currentUserProfileData.username,
-                        senderProfilePicId: currentUserProfileData.profilePicId,
-                        message: `${currentUserProfileData.username} cancelled their friend request.`,
-                        read: false,
-                        timestamp: serverTimestamp(),
-                        relatedUserId: currentUser.uid
-                    });
-
-                    showMessageBox(`Friend request to ${targetUsername} cancelled.`, 'success');
+                    showMessageBox(`Friend request to ${targetUsername} cancelled.`, 'success'); // Show success ONLY if all succeeded
                 } catch (error) {
                     console.error("JCHAT_ERROR: Error cancelling friend request:", error);
-                    showMessageBox(`Failed to cancel request: ${error.message}`, 'error');
+                    showMessageBox(`Failed to cancel request: ${error.message}`, 'error'); // Show error if any failed
                 } finally {
                     toggleButtonLoading(buttonElement, false, 'Cancel Request');
                 }
@@ -1623,33 +1610,28 @@
 
             if (confirmUnfriend) {
                 toggleButtonLoading(buttonElement, true, 'Unfriend');
-                showMessageBox(`Unfriending ${targetUsername}...`, 'loading', true);
+                showMessageBox(`Unfriending ${targetUsername}...`, 'loading', true); // Show loading immediately
                 try {
-                    // 1. Delete the friend entry for the current user
-                    const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId);
-                    await deleteDoc(currentUserFriendDocRef);
+                    // Perform both Firestore deletes concurrently
+                    await Promise.all([
+                        deleteDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId)),
+                        deleteDoc(doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid)),
+                        addDoc(collection(db, "artifacts", appId, "users", targetUserId, "notifications"), {
+                            type: 'unfriended',
+                            senderId: currentUser.uid,
+                            senderUsername: currentUserProfileData.username,
+                            senderProfilePicId: currentUserProfileData.profilePicId,
+                            message: `${currentUserProfileData.username} has unfriended you.`,
+                            read: false,
+                            timestamp: serverTimestamp(),
+                            relatedUserId: currentUser.uid
+                        })
+                    ]);
 
-                    // 2. Delete the friend entry for the other user
-                    const otherUserFriendDocRef = doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid);
-                    await deleteDoc(otherUserFriendDocRef);
-
-                    // 3. Send a notification to the unfriended user
-                    const notificationsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "notifications");
-                    await addDoc(notificationsCollectionRef, {
-                        type: 'unfriended',
-                        senderId: currentUser.uid,
-                        senderUsername: currentUserProfileData.username,
-                        senderProfilePicId: currentUserProfileData.profilePicId,
-                        message: `${currentUserProfileData.username} has unfriended you.`,
-                        read: false,
-                        timestamp: serverTimestamp(),
-                        relatedUserId: currentUser.uid
-                    });
-
-                    showMessageBox(`${targetUsername} has been unfriended.`, 'success');
+                    showMessageBox(`${targetUsername} has been unfriended.`, 'success'); // Show success ONLY if all succeeded
                 } catch (error) {
                     console.error("JCHAT_ERROR: Error unfriending user:", error);
-                    showMessageBox(`Failed to unfriend: ${error.message}`, 'error');
+                    showMessageBox(`Failed to unfriend: ${error.message}`, 'error'); // Show error if any failed
                 } finally {
                     toggleButtonLoading(buttonElement, false, 'Unfriend');
                 }
