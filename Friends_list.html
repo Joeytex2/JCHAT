@@ -428,6 +428,8 @@
 
         .user-actions {
             flex-shrink: 0;
+            display: flex; /* Allow multiple buttons */
+            gap: 8px; /* Space between buttons */
         }
 
         .user-actions button {
@@ -460,8 +462,12 @@
         .user-actions button.friends {
             background-color: var(--status-online); /* Greenish for friends */
             color: #333;
-            cursor: default;
-            opacity: 0.8;
+            /* cursor: default; */ /* Allow click to chat */
+            opacity: 0.9;
+        }
+        .user-actions button.friends:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
         }
 
         .user-actions button.accept-request {
@@ -472,6 +478,16 @@
         .user-actions button.accept-request:hover {
             transform: scale(1.05);
             box-shadow: 0 4px 15px rgba(0, 213, 255, 0.4);
+        }
+
+        .user-actions button.unfriend-btn {
+            background-color: var(--delete-button-color); /* Red for unfriend */
+            color: var(--white);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .user-actions button.unfriend-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
         }
 
         .user-actions button:disabled {
@@ -584,6 +600,77 @@
             color: var(--text-light);
         }
 
+        /* Custom Confirmation Dialog */
+        #confirmationDialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--card-background-color);
+            color: var(--text-color-primary);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            z-index: 1001; /* Higher than messageBox */
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            min-width: 300px;
+            max-width: 90%;
+            text-align: center;
+            border: 1px solid var(--border-light);
+        }
+        #confirmationDialog.show {
+            display: flex;
+        }
+        #confirmationDialog h3 {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.4rem;
+            color: var(--text-color-primary);
+        }
+        #confirmationDialog p {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+        .dialog-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+        .dialog-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            flex-grow: 1;
+            max-width: 120px;
+        }
+        .dialog-buttons button.confirm-btn {
+            background: var(--delete-button-color);
+            color: var(--white);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .dialog-buttons button.confirm-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+        .dialog-buttons button.cancel-btn {
+            background: var(--input-background);
+            color: var(--text-color-primary);
+            border: 1px solid var(--border-light);
+        }
+        .dialog-buttons button.cancel-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
         /* Responsive Adjustments */
         @media (max-width: 768px) {
             h1 {
@@ -612,6 +699,14 @@
             .user-actions button {
                 padding: 6px 12px;
                 font-size: 0.8rem;
+            }
+            #confirmationDialog {
+                padding: 20px;
+                min-width: unset;
+            }
+            .dialog-buttons button {
+                padding: 8px 15px;
+                font-size: 0.9rem;
             }
         }
 
@@ -666,6 +761,16 @@
     <!-- Custom Message Box -->
     <div id="messageBox" role="alert" aria-live="polite"></div>
 
+    <!-- Custom Confirmation Dialog -->
+    <div id="confirmationDialog">
+        <h3>Confirm Action</h3>
+        <p id="confirmationMessage">Are you sure you want to proceed?</p>
+        <div class="dialog-buttons">
+            <button id="confirmYesBtn" class="confirm-btn">Yes</button>
+            <button id="confirmNoBtn" class="cancel-btn">No</button>
+        </div>
+    </div>
+
     <!-- Maintenance Mode Overlay -->
     <div id="maintenanceOverlay" role="dialog" aria-modal="true" aria-labelledby="maintenanceOverlayTitle">
         <i class="fas fa-tools" role="img" aria-label="Maintenance Icon"></i>
@@ -679,7 +784,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp, onSnapshot, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // --- Firebase & Canvas Environment Configuration ---
@@ -717,6 +822,12 @@
         const messageBox = document.getElementById('messageBox');
         const maintenanceOverlay = document.getElementById('maintenanceOverlay');
         const maintenanceAnnouncementText = document.getElementById('maintenanceAnnouncementText');
+
+        // Confirmation Dialog elements
+        const confirmationDialog = document.getElementById('confirmationDialog');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const confirmYesBtn = document.getElementById('confirmYesBtn');
+        const confirmNoBtn = document.getElementById('confirmNoBtn');
 
         // --- Global State Variables ---
         let currentUser = null;
@@ -779,6 +890,41 @@
             }
         }
 
+        /**
+         * Shows a custom confirmation dialog.
+         * @param {string} message - The message to display in the dialog.
+         * @returns {Promise<boolean>} - Resolves to true if 'Yes' is clicked, false if 'No'.
+         */
+        function showConfirmationDialog(message) {
+            return new Promise((resolve) => {
+                if (!confirmationDialog || !confirmationMessage || !confirmYesBtn || !confirmNoBtn) {
+                    console.error("JCHAT_ERROR: Confirmation dialog elements not found.");
+                    resolve(false); // Default to no if dialog elements are missing
+                    return;
+                }
+
+                confirmationMessage.textContent = message;
+                confirmationDialog.classList.add('show');
+
+                const handleYes = () => {
+                    confirmationDialog.classList.remove('show');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(true);
+                };
+
+                const handleNo = () => {
+                    confirmationDialog.classList.remove('show');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(false);
+                };
+
+                confirmYesBtn.addEventListener('click', handleYes);
+                confirmNoBtn.addEventListener('click', handleNo);
+            });
+        }
+
         function applyTheme(themeName) {
             const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
             document.body.classList.remove(...themes);
@@ -831,21 +977,43 @@
                 const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
                 const privateDocSnap = await getDoc(privateProfileDocRef);
 
+                let profileData = null;
                 if (privateDocSnap.exists()) {
-                    currentUserProfileData = privateDocSnap.data();
+                    profileData = privateDocSnap.data();
+                    // Ensure essential fields exist, initialize if not
+                    if (profileData.username === undefined) profileData.username = user.displayName || `User_${user.uid.substring(0, 8)}`;
+                    if (profileData.profilePicId === undefined) profileData.profilePicId = user.photoURL || null;
+                    if (profileData.banned === undefined) profileData.banned = false; // New: default to not banned
                 } else {
-                    // This should ideally not happen if user is authenticated, but create a basic one.
-                    currentUserProfileData = {
+                    // Create a basic profile if it doesn't exist
+                    profileData = {
                         username: user.displayName || `User_${user.uid.substring(0, 8)}`,
+                        email: user.email || "",
                         profilePicId: user.photoURL || null,
                         banned: false,
                         createdAt: serverTimestamp()
                     };
-                    await setDoc(privateProfileDocRef, currentUserProfileData);
-                    console.log("JCHAT_DEBUG: Created basic private profile for current user.");
+                    await setDoc(privateProfileDocRef, profileData);
+                    console.log("JCHAT_DEBUG: Created new private profile for current user.");
                 }
+                currentUserProfileData = profileData;
+
+                // Update public profile summary to ensure it exists and is up-to-date
+                const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+                await setDoc(publicProfileDocRef, {
+                    username: currentUserProfileData.username,
+                    profilePicId: currentUserProfileData.profilePicId,
+                    level: currentUserProfileData.level || 1, // Default level if not present
+                    totalGasEarned: currentUserProfileData.totalGasEarned || 0, // Default if not present
+                    banned: currentUserProfileData.banned,
+                    userId: user.uid,
+                    lastOnline: serverTimestamp() // Update last online status
+                }, { merge: true });
+
+                console.log("JCHAT_DEBUG: Current user profile fetched/updated:", currentUserProfileData);
+
             } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching current user profile:", error);
+                console.error("JCHAT_ERROR: Error fetching/creating current user profile:", error);
                 showMessageBox(`Error loading your profile: ${error.message}`, 'error');
             }
         }
@@ -931,29 +1099,43 @@
                 userActions.classList.add('user-actions');
 
                 const friendStatus = userFriendStatuses[user.id] || 'none'; // 'pending', 'received', 'accepted', 'none'
-                let actionButton = document.createElement('button');
 
                 if (friendStatus === 'accepted') {
-                    actionButton.textContent = 'Friends';
-                    actionButton.classList.add('friends');
-                    // Enable for chat
-                    actionButton.addEventListener('click', () => {
+                    // "Friends" button (to chat)
+                    let chatButton = document.createElement('button');
+                    chatButton.textContent = 'Friends';
+                    chatButton.classList.add('friends');
+                    chatButton.addEventListener('click', () => {
                         window.location.href = `/private_chat.html?userId=${user.id}`;
                     });
+                    userActions.appendChild(chatButton);
+
+                    // "Unfriend" button
+                    let unfriendButton = document.createElement('button');
+                    unfriendButton.textContent = 'Unfriend';
+                    unfriendButton.classList.add('unfriend-btn');
+                    unfriendButton.addEventListener('click', () => unfriendUser(user.id, user.username));
+                    userActions.appendChild(unfriendButton);
+
                 } else if (friendStatus === 'pending') {
+                    let actionButton = document.createElement('button');
                     actionButton.textContent = 'Pending';
                     actionButton.classList.add('pending-request');
                     actionButton.disabled = true; // Cannot click if already sent
+                    userActions.appendChild(actionButton);
                 } else if (friendStatus === 'received') {
+                    let actionButton = document.createElement('button');
                     actionButton.textContent = 'Accept Request';
                     actionButton.classList.add('accept-request');
                     actionButton.addEventListener('click', () => acceptFriendRequest(user.id));
+                    userActions.appendChild(actionButton);
                 } else { // 'none'
+                    let actionButton = document.createElement('button');
                     actionButton.textContent = 'Add Friend';
                     actionButton.classList.add('add-friend');
                     actionButton.addEventListener('click', () => sendFriendRequest(user.id));
+                    userActions.appendChild(actionButton);
                 }
-                userActions.appendChild(actionButton);
 
                 userItem.appendChild(avatarImg);
                 userItem.appendChild(userInfo);
@@ -1000,7 +1182,7 @@
                     message: `${currentUserProfileData.username} sent you a friend request!`,
                     read: false,
                     timestamp: serverTimestamp(),
-                    relatedUserId: currentUser.uid // Link back to the sender
+                    relatedUserId: targetUserId // Link to the recipient for the notification
                 });
 
                 // The onSnapshot listener for friends will automatically re-render the list
@@ -1055,6 +1237,54 @@
             } catch (error) {
                 console.error("JCHAT_ERROR: Error accepting friend request:", error);
                 showMessageBox(`Failed to accept request: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Unfriends a user (removes friendship from both sides).
+         * @param {string} targetUserId - The UID of the user to unfriend.
+         * @param {string} targetUsername - The username of the user to unfriend.
+         */
+        async function unfriendUser(targetUserId, targetUsername) {
+            if (!currentUser || !currentUserProfileData) {
+                showMessageBox("You must be logged in to unfriend.", 'warning');
+                return;
+            }
+
+            const confirmUnfriend = await showConfirmationDialog(`Are you sure you want to unfriend ${targetUsername}? This action cannot be undone.`);
+
+            if (confirmUnfriend) {
+                showMessageBox(`Unfriending ${targetUsername}...`, 'loading', true);
+                try {
+                    // 1. Delete the friend entry for the current user
+                    const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", targetUserId);
+                    await deleteDoc(currentUserFriendDocRef);
+
+                    // 2. Delete the friend entry for the other user
+                    const otherUserFriendDocRef = doc(db, "artifacts", appId, "users", targetUserId, "friends", currentUser.uid);
+                    await deleteDoc(otherUserFriendDocRef);
+
+                    // 3. Send a notification to the unfriended user
+                    const notificationsCollectionRef = collection(db, "artifacts", appId, "users", targetUserId, "notifications");
+                    await addDoc(notificationsCollectionRef, {
+                        type: 'unfriended',
+                        senderId: currentUser.uid,
+                        senderUsername: currentUserProfileData.username,
+                        senderProfilePicId: currentUserProfileData.profilePicId,
+                        message: `${currentUserProfileData.username} has unfriended you.`,
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        relatedUserId: currentUser.uid
+                    });
+
+                    showMessageBox(`${targetUsername} has been unfriended.`, 'success');
+                    // The onSnapshot listener for friends will automatically re-render the list
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error unfriending user:", error);
+                    showMessageBox(`Failed to unfriend: ${error.message}`, 'error');
+                }
+            } else {
+                showMessageBox("Unfriend action cancelled.", 'info');
             }
         }
 
