@@ -371,6 +371,81 @@
             font-size: 1.1rem;
         }
 
+        /* Filter and Sort Controls */
+        .controls-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .filter-buttons button {
+            padding: 8px 15px;
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            background: var(--input-background);
+            color: var(--text-color-primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .filter-buttons button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .filter-buttons button.active {
+            background: var(--button-background-gradient);
+            color: var(--white);
+            border-color: transparent;
+            box-shadow: var(--button-shadow);
+        }
+
+        .sort-options {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            color: var(--text-color-primary);
+            font-size: 0.95rem;
+        }
+
+        .sort-options select {
+            padding: 8px 15px;
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            background: var(--input-background);
+            color: var(--text-color-primary);
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            appearance: none; /* Remove default arrow */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23e0e0e0" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* Custom arrow */
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 20px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .sort-options select:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+
         .users-list {
             width: 100%;
             max-width: 600px;
@@ -480,12 +555,13 @@
         .user-actions button.friends {
             background-color: var(--status-online); /* Greenish for friends */
             color: #333;
-            /* cursor: default; */ /* Allow click to chat */
+            cursor: default; /* Make it non-clickable as the whole item is for chat */
             opacity: 0.9;
         }
+        /* No hover effect for disabled 'Friends' button */
         .user-actions button.friends:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+            transform: none;
+            box-shadow: none;
         }
 
         .user-actions button.accept-request {
@@ -726,6 +802,10 @@
                 padding: 8px 15px;
                 font-size: 0.9rem;
             }
+            .filter-buttons button, .sort-options select {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -744,6 +824,20 @@
             .search-container .search-icon {
                 font-size: 1rem;
                 left: 12px;
+            }
+            .filter-buttons {
+                flex-direction: column; /* Stack buttons on small screens */
+                align-items: stretch;
+            }
+            .filter-buttons button {
+                width: 100%; /* Full width for stacked buttons */
+            }
+            .sort-options {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .sort-options select {
+                width: 100%;
             }
         }
     </style>
@@ -768,6 +862,23 @@
         <div class="search-container">
             <input type="text" id="userSearchInput" placeholder="Search by username or user ID...">
             <i class="fas fa-search search-icon"></i>
+        </div>
+
+        <div class="controls-container">
+            <div class="filter-buttons" id="filterButtons">
+                <button id="filterAll" class="active">All Users</button>
+                <button id="filterFriends">Friends</button>
+                <button id="filterPendingSent">Pending Sent</button>
+                <button id="filterPendingReceived">Pending Received</button>
+            </div>
+
+            <div class="sort-options">
+                <span>Sort by:</span>
+                <select id="sortOptions">
+                    <option value="name_asc">Username (A-Z)</option>
+                    <option value="status_online">Online Status</option>
+                </select>
+            </div>
         </div>
 
         <ul class="users-list" id="usersList">
@@ -847,15 +958,27 @@
         const confirmYesBtn = document.getElementById('confirmYesBtn');
         const confirmNoBtn = document.getElementById('confirmNoBtn');
 
+        // Filter & Sort Elements
+        const filterButtonsContainer = document.getElementById('filterButtons');
+        const filterAllBtn = document.getElementById('filterAll');
+        const filterFriendsBtn = document.getElementById('filterFriends');
+        const filterPendingSentBtn = document.getElementById('filterPendingSent');
+        const filterPendingReceivedBtn = document.getElementById('filterPendingReceived');
+        const sortOptionsSelect = document.getElementById('sortOptions');
+
+
         // --- Global State Variables ---
         let currentUser = null;
         let currentUserProfileData = null;
         let allUsers = []; // Stores all fetched users
-        let userFriendStatuses = {}; // Stores friend status for quick lookup: { userId: 'friends' | 'pending' | 'received' | 'none' }
+        let userFriendStatuses = {}; // Stores friend status for quick lookup: { userId: 'accepted' | 'pending' | 'received' | 'none' }
         let userOnlineStatuses = {}; // Stores online status for quick lookup: { userId: 'online' | 'offline' | 'away' }
         let unsubscribeSystemSettings = null;
         let unsubscribeFriendStatuses = null;
         let unsubscribeUserStatusListeners = {}; // To manage individual user status listeners
+
+        let currentFilter = 'all'; // 'all', 'friends', 'pending_sent', 'pending_received'
+        let currentSort = 'name_asc'; // 'name_asc', 'status_online'
 
         // --- Tone.js Synths for Notification Sounds (reused) ---
         const successSynth = new Tone.Synth().toDestination();
@@ -874,7 +997,7 @@
         }
 
         // --- Utility Functions (reused) ---
-        function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
+        function showMessageBox(message, type, isPersistent = false, durationMs = 2000) { // Default duration changed to 2000ms
             if (!messageBox) { console.error("JCHAT_ERROR: messageBox element not found."); return; }
             if (messageBox.timeoutId) { clearTimeout(messageBox.timeoutId); }
 
@@ -1148,25 +1271,63 @@
         }
 
         /**
-         * Filters and renders the user list based on search input.
+         * Filters and renders the user list based on search input, current filter, and sort option.
          */
         function filterAndRenderUsers() {
             if (!usersListContainer) return;
 
             const searchTerm = userSearchInput.value.toLowerCase();
-            const filteredUsers = allUsers.filter(user =>
+            let processedUsers = allUsers.map(user => ({
+                ...user,
+                friendStatus: userFriendStatuses[user.id] || 'none',
+                onlineStatus: userOnlineStatuses[user.id] || 'offline'
+            }));
+
+            // 1. Apply Search Filter
+            processedUsers = processedUsers.filter(user =>
                 (user.username && user.username.toLowerCase().includes(searchTerm)) ||
                 (user.userId && user.userId.toLowerCase().includes(searchTerm))
             );
 
+            // 2. Apply Relationship Filter
+            if (currentFilter === 'friends') {
+                processedUsers = processedUsers.filter(user => user.friendStatus === 'accepted');
+            } else if (currentFilter === 'pending_sent') {
+                processedUsers = processedUsers.filter(user => user.friendStatus === 'pending');
+            } else if (currentFilter === 'pending_received') {
+                processedUsers = processedUsers.filter(user => user.friendStatus === 'received');
+            }
+
+            // 3. Apply Sorting
+            if (currentSort === 'name_asc') {
+                processedUsers.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
+            } else if (currentSort === 'status_online') {
+                processedUsers.sort((a, b) => {
+                    const statusOrder = { 'online': 1, 'away': 2, 'offline': 3 };
+                    const statusA = statusOrder[a.onlineStatus] || 3;
+                    const statusB = statusOrder[b.onlineStatus] || 3;
+                    if (statusA !== statusB) {
+                        return statusA - statusB;
+                    }
+                    return (a.username || '').localeCompare(b.username || ''); // Secondary sort by name
+                });
+            }
+
+
             usersListContainer.innerHTML = ''; // Clear existing list
 
-            if (filteredUsers.length === 0) {
-                usersListContainer.innerHTML = '<p style="text-align: center; color: var(--text-light);">No users found matching your search.</p>';
+            if (processedUsers.length === 0) {
+                let message = 'No users found matching your criteria.';
+                if (searchTerm) message = 'No users found matching your search.';
+                if (currentFilter === 'friends') message = 'You have no accepted friends matching your search.';
+                if (currentFilter === 'pending_sent') message = 'No pending requests sent by you matching your search.';
+                if (currentFilter === 'pending_received') message = 'No pending requests received by you matching your search.';
+
+                usersListContainer.innerHTML = `<p style="text-align: center; color: var(--text-light);">${message}</p>`;
                 return;
             }
 
-            filteredUsers.forEach(user => {
+            processedUsers.forEach(user => {
                 const userItem = document.createElement('li');
                 userItem.classList.add('user-item');
                 userItem.style.cursor = 'pointer'; // Make the entire item clickable
@@ -1192,8 +1353,7 @@
                 // Add status dot
                 const statusDot = document.createElement('span');
                 statusDot.classList.add('status-dot');
-                const currentOnlineStatus = userOnlineStatuses[user.id] || 'offline';
-                statusDot.classList.add(currentOnlineStatus);
+                statusDot.classList.add(user.onlineStatus); // Apply online/offline/away class
                 usernameDiv.prepend(statusDot); // Add dot before username text
 
                 const userIdDisplay = document.createElement('p');
@@ -1206,14 +1366,14 @@
                 const userActions = document.createElement('div');
                 userActions.classList.add('user-actions');
 
-                const friendStatus = userFriendStatuses[user.id] || 'none'; // 'pending', 'received', 'accepted', 'none'
+                // Use the pre-calculated friendStatus
+                const friendStatus = user.friendStatus;
 
                 if (friendStatus === 'accepted') {
                     // "Friends" button (to chat)
                     let chatButton = document.createElement('button');
                     chatButton.textContent = 'Friends';
                     chatButton.classList.add('friends');
-                    // The main item is clickable for chat, this button just shows status
                     chatButton.disabled = true; // Make it non-clickable as the whole item is for chat
                     userActions.appendChild(chatButton);
 
@@ -1221,7 +1381,10 @@
                     let unfriendButton = document.createElement('button');
                     unfriendButton.textContent = 'Unfriend';
                     unfriendButton.classList.add('unfriend-btn');
-                    unfriendButton.addEventListener('click', () => unfriendUser(user.id, user.username, unfriendButton));
+                    unfriendButton.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent item click from triggering
+                        unfriendUser(user.id, user.username, unfriendButton);
+                    });
                     userActions.appendChild(unfriendButton);
 
                 } else if (friendStatus === 'pending') {
@@ -1234,13 +1397,19 @@
                     let actionButton = document.createElement('button');
                     actionButton.textContent = 'Accept Request';
                     actionButton.classList.add('accept-request');
-                    actionButton.addEventListener('click', () => acceptFriendRequest(user.id, actionButton));
+                    actionButton.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent item click from triggering
+                        acceptFriendRequest(user.id, actionButton);
+                    });
                     userActions.appendChild(actionButton);
                 } else { // 'none'
                     let actionButton = document.createElement('button');
                     actionButton.textContent = 'Add Friend';
                     actionButton.classList.add('add-friend');
-                    actionButton.addEventListener('click', () => sendFriendRequest(user.id, actionButton));
+                    actionButton.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent item click from triggering
+                        sendFriendRequest(user.id, actionButton);
+                    });
                     userActions.appendChild(actionButton);
                 }
 
@@ -1393,7 +1562,6 @@
                     });
 
                     showMessageBox(`${targetUsername} has been unfriended.`, 'success');
-                    // The onSnapshot listener for friends will automatically re-render the list
                 } catch (error) {
                     console.error("JCHAT_ERROR: Error unfriending user:", error);
                     showMessageBox(`Failed to unfriend: ${error.message}`, 'error');
@@ -1558,6 +1726,33 @@
                 userSearchInput.addEventListener('input', debouncedFilterAndRenderUsers);
             } else {
                 console.error("JCHAT_ERROR: userSearchInput element not found.");
+            }
+
+            // Filter buttons event listeners
+            if (filterButtonsContainer) {
+                filterButtonsContainer.addEventListener('click', (event) => {
+                    if (event.target.tagName === 'BUTTON') {
+                        // Remove 'active' class from all buttons
+                        Array.from(filterButtonsContainer.children).forEach(btn => btn.classList.remove('active'));
+                        // Add 'active' class to the clicked button
+                        event.target.classList.add('active');
+                        currentFilter = event.target.id.replace('filter', '').toLowerCase();
+                        if (currentFilter === 'all') currentFilter = 'all'; // Ensure 'all' for 'filterAll'
+                        else if (currentFilter === 'friends') currentFilter = 'friends';
+                        else if (currentFilter === 'pendingsent') currentFilter = 'pending_sent';
+                        else if (currentFilter === 'pendingreceived') currentFilter = 'pending_received';
+
+                        filterAndRenderUsers();
+                    }
+                });
+            }
+
+            // Sort options event listener
+            if (sortOptionsSelect) {
+                sortOptionsSelect.addEventListener('change', (event) => {
+                    currentSort = event.target.value;
+                    filterAndRenderUsers();
+                });
             }
         });
 
