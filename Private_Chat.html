@@ -1331,7 +1331,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp, Timestamp, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp, Timestamp, deleteDoc, getDocs, startAfter } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // --- Firebase & Canvas Environment Configuration ---
@@ -1844,6 +1844,10 @@
                         readBy: { [currentUser.uid]: serverTimestamp() } // Mark as read by current user
                     });
                     console.log("JCHAT_DEBUG: New private chat room created:", chatRoomId);
+                    // Add a small delay after creating a new document to ensure it's propagated
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    console.log("JCHAT_DEBUG: Small delay after chat room creation completed.");
+
                 } else {
                     console.log("JCHAT_DEBUG: Chat room exists, updating readBy timestamp.");
                     // Update readBy for current user when entering chat
@@ -1851,6 +1855,19 @@
                         [`readBy.${currentUser.uid}`]: serverTimestamp()
                     });
                 }
+
+                // IMPORTANT: Re-fetch the chat room document to ensure the client has the latest state
+                // especially the 'members' array, which is critical for security rules.
+                const updatedChatRoomSnap = await getDoc(chatRoomRef);
+                if (!updatedChatRoomSnap.exists()) {
+                    console.error("JCHAT_ERROR: Chat room still doesn't exist after creation/update attempt.");
+                    showMessageBox("Failed to initialize chat room. Please try again.", 'error');
+                    return;
+                }
+                // Update the cached chatRoomData for read receipts in renderAllMessages
+                friendsData[otherUserId].chatRoomData = updatedChatRoomSnap.data();
+                console.log("JCHAT_DEBUG: Chat room document re-fetched for latest state.");
+
 
                 // Reset pagination state
                 lastVisibleMessage = null;
@@ -2083,8 +2100,8 @@
                 messageTimestamp.textContent = timestamp;
 
                 // Add read receipt for messages sent by current user
-                if (message.senderId === currentUser.uid && message.timestamp && chatRoomRef) {
-                    const chatRoomData = friendsData[otherUserId]?.chatRoomData; // Get cached chat room data
+                if (message.senderId === currentUser.uid && message.timestamp && friendsData[otherUserId]?.chatRoomData) {
+                    const chatRoomData = friendsData[otherUserId].chatRoomData; // Get cached chat room data
                     if (chatRoomData && chatRoomData.readBy && chatRoomData.readBy[otherUserId] && message.timestamp.toDate() <= chatRoomData.readBy[otherUserId].toDate()) {
                         const readReceipt = document.createElement('span');
                         readReceipt.classList.add('read-receipt');
@@ -2132,6 +2149,23 @@
             if (chatMessagesContainer) chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
         }
 
+        // Function to implement exponential backoff for Firestore operations
+        async function retryOperation(operation, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    // Retry only on 'permission-denied' and if not the last attempt
+                    if (error.code === 'permission-denied' && i < maxRetries - 1) {
+                        console.warn(`JCHAT_DEBUG: Retrying due to permission-denied error (attempt ${i + 1}/${maxRetries}):`, error.message);
+                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                    } else {
+                        throw error; // Re-throw other errors or the last permission-denied error
+                    }
+                }
+            }
+        }
+
         /**
          * Sends a text message.
          */
@@ -2157,20 +2191,23 @@
                     timestamp: serverTimestamp(),
                     type: "text"
                 };
-                await addDoc(messagesCollectionRef, newMessage);
-                console.log("JCHAT_DEBUG: Message added to Firestore.");
 
-                // Update lastMessage and updatedAt in chat_room
-                await updateDoc(chatRoomRef, {
-                    lastMessage: {
-                        content: content,
-                        timestamp: serverTimestamp(),
-                        type: "text"
-                    },
-                    updatedAt: serverTimestamp(),
-                    [`readBy.${currentUser.uid}`]: serverTimestamp() // Mark as read by sender
+                await retryOperation(async () => {
+                    await addDoc(messagesCollectionRef, newMessage);
+                    console.log("JCHAT_DEBUG: Message added to Firestore.");
+
+                    // Update lastMessage and updatedAt in chat_room
+                    await updateDoc(chatRoomRef, {
+                        lastMessage: {
+                            content: content,
+                            timestamp: serverTimestamp(),
+                            type: "text"
+                        },
+                        updatedAt: serverTimestamp(),
+                        [`readBy.${currentUser.uid}`]: serverTimestamp() // Mark as read by sender
+                    });
+                    console.log("JCHAT_DEBUG: Chat room updated with last message and readBy.");
                 });
-                console.log("JCHAT_DEBUG: Chat room updated with last message and readBy.");
 
             } catch (error) {
                 console.error("JCHAT_ERROR: Error sending message:", error);
@@ -2250,20 +2287,23 @@
                                 mediaUrl: downloadURL
                             };
 
-                            await addDoc(messagesCollectionRef, newMessage);
-                            console.log("JCHAT_DEBUG: Media message added to Firestore.");
+                            await retryOperation(async () => {
+                                await addDoc(messagesCollectionRef, newMessage);
+                                console.log("JCHAT_DEBUG: Media message added to Firestore.");
 
-                            // Update lastMessage and updatedAt in chat_room
-                            await updateDoc(chatRoomRef, {
-                                lastMessage: {
-                                    content: newMessage.content,
-                                    timestamp: serverTimestamp(),
-                                    type: fileType
-                                },
-                                updatedAt: serverTimestamp(),
-                                [`readBy.${currentUser.uid}`]: serverTimestamp()
+                                // Update lastMessage and updatedAt in chat_room
+                                await updateDoc(chatRoomRef, {
+                                    lastMessage: {
+                                        content: newMessage.content,
+                                        timestamp: serverTimestamp(),
+                                        type: fileType
+                                    },
+                                    updatedAt: serverTimestamp(),
+                                    [`readBy.${currentUser.uid}`]: serverTimestamp()
+                                });
+                                console.log("JCHAT_DEBUG: Chat room updated for media message.");
                             });
-                            console.log("JCHAT_DEBUG: Chat room updated for media message.");
+
 
                             showMessageBox(`${fileType.charAt(0).toUpperCase() + fileType.slice(1)} sent!`, 'success');
                         } catch (innerError) {
@@ -2354,20 +2394,22 @@
                                             type: "audio",
                                             mediaUrl: downloadURL
                                         };
-                                        await addDoc(messagesCollectionRef, newMessage);
-                                        console.log("JCHAT_DEBUG: Voice note message added to Firestore.");
+                                        await retryOperation(async () => {
+                                            await addDoc(messagesCollectionRef, newMessage);
+                                            console.log("JCHAT_DEBUG: Voice note message added to Firestore.");
 
-                                        // Update lastMessage and updatedAt in chat_room
-                                        await updateDoc(chatRoomRef, {
-                                            lastMessage: {
-                                                content: "Voice note",
-                                                timestamp: serverTimestamp(),
-                                                type: "audio"
-                                            },
-                                            updatedAt: serverTimestamp(),
-                                            [`readBy.${currentUser.uid}`]: serverTimestamp()
+                                            // Update lastMessage and updatedAt in chat_room
+                                            await updateDoc(chatRoomRef, {
+                                                lastMessage: {
+                                                    content: "Voice note",
+                                                    timestamp: serverTimestamp(),
+                                                    type: "audio"
+                                                },
+                                                updatedAt: serverTimestamp(),
+                                                [`readBy.${currentUser.uid}`]: serverTimestamp()
+                                            });
+                                            console.log("JCHAT_DEBUG: Chat room updated for voice note message.");
                                         });
-                                        console.log("JCHAT_DEBUG: Chat room updated for voice note message.");
 
                                         showMessageBox("Voice note sent!", 'success');
                                     } catch (innerError) {
@@ -2418,11 +2460,12 @@
 
             const userStatusRef = doc(db, "artifacts", appId, "public", "data", "user_statuses", currentUser.uid);
             try {
-                await updateDoc(userStatusRef, {
+                // Use setDoc with merge:true to ensure the document exists or is created if not
+                await setDoc(userStatusRef, {
                     isTyping: typingState,
                     isTypingForChatId: typingState ? chatRoomId : null,
                     lastTypingUpdate: serverTimestamp()
-                });
+                }, { merge: true }); // Crucial: use merge to avoid overwriting the whole document
                 console.log(`JCHAT_DEBUG: Typing status updated to ${typingState} for chat ${chatRoomId}`);
             } catch (error) {
                 console.error("JCHAT_ERROR: Failed to update typing status:", error);
@@ -3014,13 +3057,15 @@
 
                 // Add message to chat history
                 if (messagesCollectionRef) {
-                    await addDoc(messagesCollectionRef, {
-                        senderId: currentUser.uid,
-                        senderUsername: currentUserProfileData?.username || 'Anonymous',
-                        senderProfilePicId: currentUserProfileData?.profilePicId || null,
-                        content: `Outgoing ${callType} call...`,
-                        timestamp: serverTimestamp(),
-                        type: "call_start"
+                    await retryOperation(async () => {
+                        await addDoc(messagesCollectionRef, {
+                            senderId: currentUser.uid,
+                            senderUsername: currentUserProfileData?.username || 'Anonymous',
+                            senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                            content: `Outgoing ${callType} call...`,
+                            timestamp: serverTimestamp(),
+                            type: "call_start"
+                        });
                     });
                     console.log("JCHAT_WEBRTC: Call start message added to chat.");
                 }
@@ -3121,13 +3166,15 @@
 
                 // Add message to chat history
                 if (messagesCollectionRef) {
-                    await addDoc(messagesCollectionRef, {
-                        senderId: currentUser.uid,
-                        senderUsername: currentUserProfileData?.username || 'Anonymous',
-                        senderProfilePicId: currentUserProfileData?.profilePicId || null,
-                        content: `Accepted ${callType} call.`,
-                        timestamp: serverTimestamp(),
-                        type: "call_start"
+                    await retryOperation(async () => {
+                        await addDoc(messagesCollectionRef, {
+                            senderId: currentUser.uid,
+                            senderUsername: currentUserProfileData?.username || 'Anonymous',
+                            senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                            content: `Accepted ${callType} call.`,
+                            timestamp: serverTimestamp(),
+                            type: "call_start"
+                        });
                     });
                     console.log("JCHAT_WEBRTC: Call accepted message added to chat.");
                 }
@@ -3259,13 +3306,15 @@
             // Send call_end message to chat history
             if (messagesCollectionRef && currentUser && currentUserProfileData) {
                 try {
-                    await addDoc(messagesCollectionRef, {
-                        senderId: currentUser.uid,
-                        senderUsername: currentUserProfileData?.username || 'Anonymous',
-                        senderProfilePicId: currentUserProfileData?.profilePicId || null,
-                        content: `Call ended.`,
-                        timestamp: serverTimestamp(),
-                        type: "call_end"
+                    await retryOperation(async () => {
+                        await addDoc(messagesCollectionRef, {
+                            senderId: currentUser.uid,
+                            senderUsername: currentUserProfileData?.username || 'Anonymous',
+                            senderProfilePicId: currentUserProfileData?.profilePicId || null,
+                            content: `Call ended.`,
+                            timestamp: serverTimestamp(),
+                            type: "call_end"
+                        });
                     });
                     console.log("JCHAT_WEBRTC: Call end message added to chat.");
                 } catch (e) {
@@ -3353,6 +3402,19 @@
                 isAuthReady = true;
                 console.log("JCHAT_DEBUG: User authenticated. isAuthReady set to true.");
                 await fetchCurrentUserProfile(user); // Fetch current user's profile for sending messages
+
+                // Ensure the user's online status document exists and is updated
+                const userStatusRef = doc(db, "artifacts", appId, "public", "data", "user_statuses", user.uid);
+                await setDoc(userStatusRef, {
+                    isOnline: true,
+                    lastOnline: serverTimestamp(),
+                    isTyping: false, // Reset typing status on login
+                    isTypingForChatId: null,
+                    userId: user.uid // Ensure userId field is present
+                }, { merge: true }); // Crucial: use merge to avoid overwriting the whole document
+                console.log("JCHAT_DEBUG: User status document ensured to exist and updated to online.");
+
+
                 await fetchSystemSettings(); // Check maintenance mode
 
                 // otherUserId will be set by fetchFriendsAndStatuses or from URL if provided
