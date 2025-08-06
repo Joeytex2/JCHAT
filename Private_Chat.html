@@ -2749,7 +2749,7 @@
 
             try {
                 await updateDoc(callDocRef, { status: reason, endedAt: serverTimestamp() });
-                hideCallStatusOverlay();
+                hideCallStatusOverlay(); // Hide overlay when call is officially ended
                 showMessageBox("Call ended.", 'info');
 
                 let messageText = '';
@@ -2787,8 +2787,8 @@
 
             try {
                 await updateDoc(callDocRef, { status: 'accepted', acceptedBy: currentUser.uid, startedAt: serverTimestamp() });
-                hideCallStatusOverlay();
-                showMessageBox(`${callType} call accepted! (Simulated)`, 'success');
+                // Do NOT hide overlay here. The onSnapshot listener will update it to "Connected".
+                // showMessageBox(`${callType} call accepted! (Simulated)`, 'success'); // Removed this message
                 playNotificationSound('success');
                 await sendMessage('call_status', `${currentUserProfileData.username} accepted the ${callType} call.`);
             } catch (error) {
@@ -2843,28 +2843,39 @@
                     const callData = docSnap.data();
                     console.log("JCHAT_DEBUG: Call status update:", callData);
 
-                    // If current user is the receiver and call is ringing
-                    if (callData.receiverId === currentUser.uid && callData.status === 'ringing') {
-                        playNotificationSound('incoming_call');
+                    if (callData.status === 'ringing') {
+                        // If current user is the receiver and call is ringing
+                        if (callData.receiverId === currentUser.uid) {
+                            playNotificationSound('incoming_call');
+                            showCallStatusOverlay(
+                                `Incoming ${callData.callType} Call`,
+                                `from ${callData.callerUsername}`,
+                                [
+                                    { text: 'Accept', icon: 'fas fa-phone', className: 'accept-call-btn', onClick: () => acceptCall(callData.callType) },
+                                    { text: 'Reject', icon: 'fas fa-phone-slash', className: 'reject-call-btn', onClick: rejectCall }
+                                ]
+                            );
+                        } else if (callData.callerId === currentUser.uid) {
+                            // Caller sees this when their call is ringing
+                            showCallStatusOverlay(
+                                `Outgoing ${callData.callType} Call`,
+                                `Calling ${callData.receiverUsername}...`,
+                                [{ text: 'End Call', icon: 'fas fa-phone-slash', className: 'end-call-btn', onClick: () => endCall('caller_ended') }]
+                            );
+                        }
+                    } else if (callData.status === 'accepted') {
+                        // Call accepted, keep overlay active and update UI
+                        const connectedPartnerName = (callData.callerId === currentUser.uid) ? callData.receiverUsername : callData.callerUsername;
                         showCallStatusOverlay(
-                            `Incoming ${callData.callType} Call`,
-                            `from ${callData.callerUsername}`,
-                            [
-                                { text: 'Accept', icon: 'fas fa-phone', className: 'accept-call-btn', onClick: () => acceptCall(callData.callType) },
-                                { text: 'Reject', icon: 'fas fa-phone-slash', className: 'reject-call-btn', onClick: rejectCall }
-                            ]
+                            `Call Connected`,
+                            `with ${connectedPartnerName}`,
+                            [{ text: 'End Call', icon: 'fas fa-phone-slash', className: 'end-call-btn', onClick: () => endCall((callData.callerId === currentUser.uid) ? 'caller_ended' : 'receiver_ended') }]
                         );
-                    } else if (callData.callerId === currentUser.uid && callData.status === 'accepted') {
+                        playNotificationSound('success'); // Play success sound for both parties on connect
+                    } else if (callData.status === 'rejected' || callData.status === 'caller_ended' || callData.status === 'receiver_ended' || callData.status === 'no_answer') {
+                        // Call ended for any reason, hide overlay
                         hideCallStatusOverlay();
-                        showMessageBox(`${callData.receiverUsername} accepted your ${callData.callType} call!`, 'success');
-                        playNotificationSound('success');
-                    } else if (callData.callerId === currentUser.uid && callData.status === 'rejected') {
-                        hideCallStatusOverlay();
-                        showMessageBox(`${callData.receiverUsername} rejected your ${callData.callType} call.`, 'info');
-                        playNotificationSound('info');
-                    } else if (callData.status === 'caller_ended' || callData.status === 'receiver_ended' || callData.status === 'no_answer') {
-                        hideCallStatusOverlay();
-                        // Message handled by sendMessage('call_status', ...)
+                        // Message handled by sendMessage('call_status', ...) already
                     }
                 } else {
                     // Call document doesn't exist or was deleted, meaning call ended
@@ -3024,7 +3035,6 @@
                     listenForCallStatus(); // Start listening for call status
                 } else {
                     // If no partnerId, open the friend selection modal by default
-                    // This replaces the redirection logic
                     openSelectFriendModal();
                     // Update initial display for no partner selected
                     partnerDisplayName.textContent = "No Partner Selected";
