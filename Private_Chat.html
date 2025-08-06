@@ -66,6 +66,10 @@
             --accent-color: #00d5ff; /* A bright cyan */
             --accent-color-dark: #00aaff;
             --border-color: #3a3a5a;
+
+            /* New Green for Play Button */
+            --play-button-green: linear-gradient(90deg, #4CAF50, #8BC34A); /* Green gradient */
+            --play-button-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
         }
 
         /* --- Theme Definitions (Light and Dark Mode) --- */
@@ -106,6 +110,9 @@
             --status-away: #ffc107;
             --delete-button-color: #dc3545;
             --warning-color: #ffc107;
+
+            --play-button-green: linear-gradient(90deg, #28a745, #218838);
+            --play-button-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
         }
 
         /* Dark Mode */
@@ -295,7 +302,7 @@
         .notification-icon-wrapper i {
             font-size: 1.5rem; /* Adjust size as needed */
             /* Apply gradient to icons */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-image: linear-gradient(90deg, #8A2BE2, #00FFFF); /* Blue Violet to Aqua */
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -587,55 +594,105 @@
             margin-top: 5px;
         }
 
-        /* Audio Player Specific Styles - VERY TINY SMALL */
+        /* Audio Player Specific Styles - Very Tiny Small */
         .message-content .audio-player-wrapper {
             display: flex;
-            flex-direction: column;
-            gap: 5px; /* Reduced gap */
-            width: 180px; /* Fixed small width for the entire audio player */
+            align-items: center; /* Align items vertically in the center */
+            gap: 8px; /* Space between play button, progress, and time */
+            width: 200px; /* Fixed small width for the entire audio player */
             padding: 5px; /* Small padding inside wrapper */
+            background-color: rgba(255, 255, 255, 0.05); /* Subtle background for the player */
+            border-radius: 10px;
         }
 
-        .message-content .audio-player-wrapper audio {
+        .audio-player-wrapper .play-pause-btn {
+            background: var(--play-button-green); /* Beautiful green gradient */
+            color: var(--white);
+            border: none;
+            border-radius: 50%; /* Circular button */
+            width: 30px; /* Small size */
+            height: 30px; /* Small size */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: var(--play-button-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .audio-player-wrapper .play-pause-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.5);
+        }
+
+        .audio-player-wrapper .progress-container {
+            flex-grow: 1; /* Allow progress bar to take available space */
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0; /* Allow content to shrink */
+        }
+
+        .audio-player-wrapper .progress-bar {
             width: 100%;
-            height: 25px; /* Reduced height for the native audio player */
-            border-radius: 5px; /* Smaller border radius */
+            height: 4px; /* Thin progress bar */
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
             outline: none;
-            background-color: rgba(255, 255, 255, 0.1);
-            /* Hide default download button if possible */
-            /* This is browser-specific and not fully reliable across all browsers */
-            /* For Chrome/Edge */
-            &::-webkit-media-controls-enclosure {
-                overflow: hidden;
-            }
-            &::-webkit-media-controls-panel {
-                width: calc(100% + 30px); /* Adjust to hide overflowed elements */
-            }
-            &::-webkit-media-controls-download-button {
-                display: none; /* Hide download button */
-            }
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
         }
 
-        /* Style for default audio controls (browser dependent, but can be influenced) */
-        .message-content .audio-player-wrapper audio::-webkit-media-controls-panel {
-            background-color: transparent; /* Make panel background transparent */
-        }
-        .message-content .audio-player-wrapper audio::-webkit-media-controls-current-time-display,
-        .message-content .audio-player-wrapper audio::-webkit-media-controls-time-remaining-display {
-            color: var(--white); /* White text for time displays */
-            font-size: 0.7em; /* Smaller font for time */
-        }
-        .message-content .audio-player-wrapper audio::-webkit-media-controls-play-button,
-        .message-content .audio-player-wrapper audio::-webkit-media-controls-volume-slider,
-        .message-content .audio-player-wrapper audio::-webkit-media-controls-timeline {
-            filter: invert(1); /* Invert colors for better visibility on dark backgrounds */
+        /* Style for WebKit browsers (Chrome, Safari) */
+        .audio-player-wrapper .progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px; /* Thumb size */
+            height: 12px; /* Thumb size */
+            border-radius: 50%;
+            background: var(--accent-color); /* Highlight color for thumb */
+            cursor: pointer;
+            margin-top: -4px; /* Adjust thumb position */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
         }
 
+        .audio-player-wrapper .progress-bar::-webkit-slider-runnable-track {
+            background: linear-gradient(to right, var(--accent-color) var(--progress, 0%), rgba(255, 255, 255, 0.3) var(--progress, 0%));
+            border-radius: 2px;
+            height: 4px;
+        }
+
+        /* Style for Firefox */
+        .audio-player-wrapper .progress-bar::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .audio-player-wrapper .progress-bar::-moz-range-track {
+            background: linear-gradient(to right, var(--accent-color) var(--progress, 0%), rgba(255, 255, 255, 0.3) var(--progress, 0%));
+            border-radius: 2px;
+            height: 4px;
+        }
+
+        .audio-player-wrapper .time-display {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
 
         .message-content .audio-buttons {
             display: flex;
             justify-content: space-around;
             gap: 3px; /* Reduced gap between buttons */
+            margin-top: 5px; /* Space between player and action buttons */
         }
 
         .message-content .audio-buttons button {
@@ -662,6 +719,34 @@
         .message-content .audio-buttons button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        /* Voice Note Recording UI */
+        #voiceNoteBtn {
+            position: relative;
+            overflow: hidden; /* Hide overflow for pulsing effect */
+        }
+
+        #voiceNoteBtn.recording {
+            background: linear-gradient(90deg, #dc3545, #e94560); /* Red gradient for recording */
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+            animation: pulse-red 1.5s infinite;
+        }
+
+        #voiceNoteBtn.recording .button-text {
+            display: inline-block; /* Ensure text is visible */
+            margin-left: 5px; /* Space for icon */
+        }
+
+        #voiceNoteBtn.recording .recording-timer {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
         }
 
 
@@ -1252,7 +1337,11 @@
                 <div class="chat-actions-top">
                     <input type="file" id="mediaInput" accept="image/*,video/*" style="display: none;">
                     <button id="mediaShareBtn" title="Share Media"><i class="fas fa-image"></i> Media</button>
-                    <button id="voiceNoteBtn" title="Record Voice Note"><i class="fas fa-microphone"></i> Voice Note</button>
+                    <button id="voiceNoteBtn" title="Record Voice Note">
+                        <i class="fas fa-microphone"></i>
+                        <span class="button-text">Voice Note</span>
+                        <span class="recording-timer" style="display: none;">00:00</span>
+                    </button>
                     <button id="voiceCallBtn" title="Start Voice Call"><i class="fas fa-phone"></i> Call</button>
                     <button id="videoCallBtn" title="Start Video Call"><i class="fas fa-video"></i> Video</button>
                 </div>
@@ -1346,6 +1435,7 @@
         const mediaInput = document.getElementById('mediaInput');
         const mediaShareBtn = document.getElementById('mediaShareBtn');
         const voiceNoteBtn = document.getElementById('voiceNoteBtn');
+        const voiceNoteTimer = voiceNoteBtn.querySelector('.recording-timer'); // Get the timer span
         const voiceCallBtn = document.getElementById('voiceCallBtn');
         const videoCallBtn = document.getElementById('videoCallBtn');
         const callStatusOverlay = document.getElementById('callStatusOverlay');
@@ -1374,6 +1464,8 @@
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
+        let recordingStartTime;
+        let recordingInterval;
 
         // --- Tone.js Synths for Notification Sounds ---
         const successSynth = new Tone.Synth().toDestination();
@@ -1537,6 +1629,17 @@
                 confirmYesBtn.addEventListener('click', handleYes);
                 confirmNoBtn.addEventListener('click', handleNo);
             });
+        }
+
+        /**
+         * Converts seconds to a formatted time string (MM:SS).
+         * @param {number} totalSeconds - The total number of seconds.
+         * @returns {string} Formatted time string.
+         */
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
         /**
@@ -1784,15 +1887,20 @@
                 const videoUrl = getCloudinaryImageUrl(message.mediaUrl, "w_400,h_auto,c_limit");
                 contentHtml = `<div class="message-content"><video controls src="${videoUrl}" onerror="this.onerror=null;this.src=''; console.error('Video load error');"></video></div>`;
             } else if (message.type === 'audio') {
-                // Enhanced Audio Preview
+                // Custom Audio Player Preview
                 contentHtml = `
                     <div class="message-content">
                         <div class="audio-player-wrapper">
-                            <audio controls src="${message.mediaUrl}" preload="none" onloadedmetadata="this.volume=0.8"></audio>
-                            <div class="audio-buttons">
-                                <button class="audio-forward-btn" data-audio-url="${message.mediaUrl}" title="Forward Audio"><i class="fas fa-share"></i></button>
-                                <button class="audio-download-btn" data-audio-url="${message.mediaUrl}" data-filename="voice_note_${message.id}.webm" title="Download Audio"><i class="fas fa-download"></i></button>
+                            <button class="play-pause-btn"><i class="fas fa-play"></i></button>
+                            <div class="progress-container">
+                                <input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1">
+                                <span class="time-display">00:00 / 00:00</span>
                             </div>
+                            <audio src="${message.mediaUrl}" preload="none" onloadedmetadata="this.volume=0.8;"></audio>
+                        </div>
+                        <div class="audio-buttons">
+                            <button class="audio-forward-btn" data-audio-url="${message.mediaUrl}" title="Forward Audio"><i class="fas fa-share"></i></button>
+                            <button class="audio-download-btn" data-audio-url="${message.mediaUrl}" data-filename="voice_note_${message.id}.webm" title="Download Audio"><i class="fas fa-download"></i></button>
                         </div>
                     </div>
                 `;
@@ -1860,11 +1968,56 @@
                 }
             }
 
-            // Add event listeners for new audio buttons
+            // Add event listeners for custom audio player and buttons
             if (message.type === 'audio') {
+                const audio = messageBubble.querySelector('audio');
+                const playPauseBtn = messageBubble.querySelector('.play-pause-btn');
+                const progressBar = messageBubble.querySelector('.progress-bar');
+                const timeDisplay = messageBubble.querySelector('.time-display');
                 const forwardBtn = messageBubble.querySelector('.audio-forward-btn');
                 const downloadBtn = messageBubble.querySelector('.audio-download-btn');
 
+                // Update time and progress bar
+                audio.addEventListener('timeupdate', () => {
+                    const progress = (audio.currentTime / audio.duration) * 100;
+                    progressBar.value = progress;
+                    progressBar.style.setProperty('--progress', `${progress}%`);
+                    timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+                });
+
+                // Update duration when metadata is loaded
+                audio.addEventListener('loadedmetadata', () => {
+                    timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
+                    progressBar.style.setProperty('--progress', `0%`);
+                });
+
+                // Toggle play/pause
+                playPauseBtn.addEventListener('click', () => {
+                    if (audio.paused) {
+                        audio.play();
+                        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    } else {
+                        audio.pause();
+                        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    }
+                });
+
+                // Reset button when audio ends
+                audio.addEventListener('ended', () => {
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    audio.currentTime = 0; // Reset to start
+                    progressBar.value = 0;
+                    progressBar.style.setProperty('--progress', `0%`);
+                    timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
+                });
+
+                // Seek functionality
+                progressBar.addEventListener('input', () => {
+                    const seekTime = (progressBar.value / 100) * audio.duration;
+                    audio.currentTime = seekTime;
+                });
+
+                // Forward button
                 if (forwardBtn) {
                     forwardBtn.addEventListener('click', () => {
                         const audioUrl = forwardBtn.getAttribute('data-audio-url');
@@ -1872,6 +2025,7 @@
                     });
                 }
 
+                // Download button
                 if (downloadBtn) {
                     downloadBtn.addEventListener('click', () => {
                         const audioUrl = downloadBtn.getAttribute('data-audio-url');
@@ -1939,6 +2093,7 @@
             // Ensure loading message is visible initially
             if (loadingMessages) loadingMessages.style.display = 'block';
             if (noMessages) noMessages.style.display = 'none';
+
 
             // Unsubscribe previous listener
             if (unsubscribeMessages) unsubscribeMessages();
@@ -2272,23 +2427,40 @@
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     const audioFile = new File([audioBlob], `voice_note_${Date.now()}.webm`, { type: 'audio/webm' });
 
+                    // Stop the timer and reset UI immediately after recording stops
+                    clearInterval(recordingInterval);
+                    voiceNoteTimer.style.display = 'none';
+                    voiceNoteBtn.classList.remove('recording');
+                    voiceNoteBtn.querySelector('.button-text').textContent = 'Voice Note';
+                    voiceNoteBtn.disabled = true; // Disable until upload is complete
+
+                    showMessageBox("Uploading voice note...", 'loading', true); // Show loading for upload
                     try {
                         const audioUrl = await uploadFileToCloudinary(audioFile);
                         await sendMessage('audio', audioUrl);
                     } catch (error) {
                         console.error("JCHAT_ERROR: Error sending voice note:", error);
+                    } finally {
+                        stream.getTracks().forEach(track => track.stop()); // Stop microphone
+                        isRecording = false;
+                        voiceNoteBtn.disabled = false; // Re-enable button
                     }
-                    stream.getTracks().forEach(track => track.stop()); // Stop microphone
-                    isRecording = false;
-                    voiceNoteBtn.innerHTML = '<i class="fas fa-microphone"></i> Voice Note';
-                    voiceNoteBtn.classList.remove('recording');
-                    voiceNoteBtn.disabled = false;
                 };
 
                 mediaRecorder.start();
                 isRecording = true;
-                voiceNoteBtn.innerHTML = '<i class="fas fa-stop-circle"></i> Stop Recording';
+                recordingStartTime = Date.now();
                 voiceNoteBtn.classList.add('recording');
+                voiceNoteBtn.querySelector('.button-text').textContent = 'Stop Recording';
+                voiceNoteTimer.textContent = '00:00';
+                voiceNoteTimer.style.display = 'inline';
+
+                // Update timer every second
+                recordingInterval = setInterval(() => {
+                    const elapsedTime = Math.floor((Date.now() - recordingStartTime) / 1000);
+                    voiceNoteTimer.textContent = formatTime(elapsedTime);
+                }, 1000);
+
                 showMessageBox("Recording voice note...", 'info', true);
             } catch (error) {
                 console.error("JCHAT_ERROR: Error accessing microphone:", error);
@@ -2304,8 +2476,7 @@
         function stopRecordingVoiceNote() {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
-                showMessageBox("Processing voice note...", 'loading', true);
-                voiceNoteBtn.disabled = true; // Disable until processing is done
+                // UI updates for stopping are now handled in mediaRecorder.onstop
             }
         }
 
@@ -2683,6 +2854,12 @@
             if (unsubscribeMessages) unsubscribeMessages();
             if (unsubscribeCallStatus) unsubscribeCallStatus();
             // No need to unsubscribe notification count as it's handled by its own function now
+            if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop(); // Ensure recording stops on unload
+            }
+            if (recordingInterval) {
+                clearInterval(recordingInterval); // Clear timer on unload
+            }
         });
     </script>
 </body>
