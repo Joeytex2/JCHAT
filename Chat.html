@@ -587,20 +587,33 @@
             margin-top: 5px;
         }
 
-        /* Audio Player Specific Styles */
+        /* Audio Player Specific Styles - VERY TINY SMALL */
         .message-content .audio-player-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            width: 100%; /* Ensure it takes full width of message content */
+            gap: 5px; /* Reduced gap */
+            width: 180px; /* Fixed small width for the entire audio player */
+            padding: 5px; /* Small padding inside wrapper */
         }
 
         .message-content .audio-player-wrapper audio {
             width: 100%;
-            border-radius: 8px;
+            height: 25px; /* Reduced height for the native audio player */
+            border-radius: 5px; /* Smaller border radius */
             outline: none;
-            background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent background for audio player */
-            padding: 5px; /* Padding around the default controls */
+            background-color: rgba(255, 255, 255, 0.1);
+            /* Hide default download button if possible */
+            /* This is browser-specific and not fully reliable across all browsers */
+            /* For Chrome/Edge */
+            &::-webkit-media-controls-enclosure {
+                overflow: hidden;
+            }
+            &::-webkit-media-controls-panel {
+                width: calc(100% + 30px); /* Adjust to hide overflowed elements */
+            }
+            &::-webkit-media-controls-download-button {
+                display: none; /* Hide download button */
+            }
         }
 
         /* Style for default audio controls (browser dependent, but can be influenced) */
@@ -610,6 +623,7 @@
         .message-content .audio-player-wrapper audio::-webkit-media-controls-current-time-display,
         .message-content .audio-player-wrapper audio::-webkit-media-controls-time-remaining-display {
             color: var(--white); /* White text for time displays */
+            font-size: 0.7em; /* Smaller font for time */
         }
         .message-content .audio-player-wrapper audio::-webkit-media-controls-play-button,
         .message-content .audio-player-wrapper audio::-webkit-media-controls-volume-slider,
@@ -621,21 +635,21 @@
         .message-content .audio-buttons {
             display: flex;
             justify-content: space-around;
-            gap: 5px;
+            gap: 3px; /* Reduced gap between buttons */
         }
 
         .message-content .audio-buttons button {
             background-color: rgba(255, 255, 255, 0.15);
             color: var(--white);
             border: none;
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-size: 0.8rem;
+            border-radius: 5px; /* Smaller border radius */
+            padding: 4px 6px; /* Reduced padding */
+            font-size: 0.7rem; /* Smaller font size */
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.1s ease;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 3px; /* Reduced gap for icon and text */
             flex-grow: 1;
             justify-content: center;
         }
@@ -1774,12 +1788,10 @@
                 contentHtml = `
                     <div class="message-content">
                         <div class="audio-player-wrapper">
-                            <audio controls src="${message.mediaUrl}"></audio>
+                            <audio controls src="${message.mediaUrl}" preload="none" onloadedmetadata="this.volume=0.8"></audio>
                             <div class="audio-buttons">
-                                <!-- Play button is handled by native audio controls -->
-                                <button class="audio-forward-btn" data-audio-url="${message.mediaUrl}" title="Forward Audio"><i class="fas fa-share"></i> Forward</button>
-                                <button class="audio-download-btn" data-audio-url="${message.mediaUrl}" data-filename="voice_note_${message.id}.webm" title="Download Audio"><i class="fas fa-download"></i> Download</button>
-                                <!-- Delete button is handled by general message options -->
+                                <button class="audio-forward-btn" data-audio-url="${message.mediaUrl}" title="Forward Audio"><i class="fas fa-share"></i></button>
+                                <button class="audio-download-btn" data-audio-url="${message.mediaUrl}" data-filename="voice_note_${message.id}.webm" title="Download Audio"><i class="fas fa-download"></i></button>
                             </div>
                         </div>
                     </div>
@@ -1834,7 +1846,7 @@
                 if (editBtn) {
                     editBtn.addEventListener('click', () => {
                         optionsMenu.classList.remove('active'); // Close menu
-                        editMessage(message.id, message.text, messageBubble);
+                        editMessage(message.id, message.text, messageBubble, message.edited); // Pass original edited status
                     });
                 }
 
@@ -1855,8 +1867,6 @@
 
                 if (forwardBtn) {
                     forwardBtn.addEventListener('click', () => {
-                        // In a real app, this would open a share sheet or a list of contacts to forward to.
-                        // For now, we'll simulate by copying the URL to clipboard.
                         const audioUrl = forwardBtn.getAttribute('data-audio-url');
                         copyToClipboard(audioUrl, "Audio URL copied for forwarding!");
                     });
@@ -1916,7 +1926,8 @@
         async function fetchAndDisplayMessages() {
             if (!currentUser || !partnerId) {
                 console.log("JCHAT_DEBUG: Cannot fetch messages: current user or partner ID missing.");
-                if (loadingMessages) messagesDisplay.removeChild(loadingMessages); // Remove loading message
+                // Ensure loading/no messages states are correctly handled
+                if (loadingMessages) loadingMessages.style.display = 'none';
                 if (noMessages) {
                     noMessages.style.display = 'block';
                     noMessages.textContent = "Cannot load chat. Please ensure you are logged in and a partner is selected.";
@@ -1925,11 +1936,9 @@
             }
 
             console.log("JCHAT_DEBUG: Fetching messages for chat between", currentUser.uid, "and", partnerId);
-            messagesDisplay.innerHTML = ''; // Clear existing messages
-            if (loadingMessages) messagesDisplay.appendChild(loadingMessages); // Add loading message back
+            // Ensure loading message is visible initially
             if (loadingMessages) loadingMessages.style.display = 'block';
             if (noMessages) noMessages.style.display = 'none';
-
 
             // Unsubscribe previous listener
             if (unsubscribeMessages) unsubscribeMessages();
@@ -1939,25 +1948,24 @@
             const q = query(messagesCollectionRef, orderBy("timestamp")); // Order by timestamp ascending
 
             unsubscribeMessages = onSnapshot(q, (snapshot) => {
-                messagesDisplay.innerHTML = ''; // Clear messages before re-rendering
+                // Hide initial loading message once data starts coming
                 if (loadingMessages) loadingMessages.style.display = 'none';
 
                 if (snapshot.empty) {
                     if (noMessages) noMessages.style.display = 'block';
                 } else {
                     if (noMessages) noMessages.style.display = 'none';
+
                     snapshot.docChanges().forEach(change => {
                         const messageData = { id: change.doc.id, ...change.doc.data() };
                         const existingBubble = messagesDisplay.querySelector(`[data-message-id="${messageData.id}"]`);
 
                         if (change.type === "added") {
-                            // Only add if it doesn't already exist (to prevent duplicates on re-render)
-                            if (!existingBubble) {
+                            if (!existingBubble) { // Only add if it doesn't already exist
                                 messagesDisplay.appendChild(createMessageBubble(messageData, currentUser.uid));
                             }
                         } else if (change.type === "modified") {
                             if (existingBubble) {
-                                // Replace or update the existing bubble
                                 const updatedBubble = createMessageBubble(messageData, currentUser.uid);
                                 messagesDisplay.replaceChild(updatedBubble, existingBubble);
                             }
@@ -1971,8 +1979,10 @@
                     messagesDisplay.scrollTop = messagesDisplay.scrollHeight;
 
                     // After messages are loaded, mark them as read for the current user
-                    if (snapshot.docs.length > 0) {
-                        const latestMessageTimestamp = snapshot.docs[snapshot.docs.length - 1].data().timestamp;
+                    // Only update if there are messages and the latest message is from the partner
+                    const latestMessage = snapshot.docs[snapshot.docs.length - 1];
+                    if (latestMessage && latestMessage.data().senderId !== currentUser.uid) {
+                        const latestMessageTimestamp = latestMessage.data().timestamp;
                         const chatMetadataDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "chat_metadata", partnerId);
                         // Use setDoc with merge:true to create/update the document
                         setDoc(chatMetadataDocRef, { lastReadMessageTimestamp: latestMessageTimestamp }, { merge: true })
@@ -2012,10 +2022,8 @@
                 return;
             }
 
-            // Disable send button and show loading for text messages
-            if (type === 'text') {
-                toggleButtonLoading(sendMessageBtn, true);
-            }
+            // Show loading state for all message types
+            toggleButtonLoading(sendMessageBtn, true);
 
             try {
                 const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
@@ -2064,9 +2072,7 @@
                 showMessageBox(`Failed to send message: ${error.message}`, 'error');
                 playNotificationSound('error');
             } finally {
-                if (type === 'text') {
-                    toggleButtonLoading(sendMessageBtn, false);
-                }
+                toggleButtonLoading(sendMessageBtn, false);
             }
         }
 
@@ -2075,8 +2081,9 @@
          * @param {string} messageId - The ID of the message to edit.
          * @param {string} currentText - The current text of the message.
          * @param {HTMLElement} messageBubbleElement - The DOM element of the message bubble.
+         * @param {boolean} wasEdited - The original edited status of the message.
          */
-        async function editMessage(messageId, currentText, messageBubbleElement) {
+        async function editMessage(messageId, currentText, messageBubbleElement, wasEdited) {
             if (!currentUser || !partnerId) {
                 showMessageBox("Authentication error. Cannot edit message.", 'error');
                 return;
@@ -2122,9 +2129,9 @@
                 const newText = textarea.value.trim();
                 if (newText === currentText || newText === '') {
                     showMessageBox("No changes or empty message. Edit cancelled.", 'info');
-                    // Revert without saving
+                    // Revert without saving, preserving original edited status
                     messageBubbleElement.classList.remove('editing');
-                    messageContentDiv.innerHTML = `${currentText}${message.edited ? ' <span style="font-size: 0.7em; opacity: 0.7;">(edited)</span>' : ''}`;
+                    messageContentDiv.innerHTML = `${currentText}${wasEdited ? ' <span style="font-size: 0.7em; opacity: 0.7;">(edited)</span>' : ''}`;
                     if (optionsBtn) optionsBtn.style.display = 'block';
                     return;
                 }
@@ -2154,7 +2161,7 @@
 
             cancelBtn.addEventListener('click', () => {
                 messageBubbleElement.classList.remove('editing');
-                messageContentDiv.innerHTML = `${currentText}${message.edited ? ' <span style="font-size: 0.7em; opacity: 0.7;">(edited)</span>' : ''}`;
+                messageContentDiv.innerHTML = `${currentText}${wasEdited ? ' <span style="font-size: 0.7em; opacity: 0.7;">(edited)</span>' : ''}`;
                 showMessageBox("Message edit cancelled.", 'info');
                 if (optionsBtn) optionsBtn.style.display = 'block';
             });
