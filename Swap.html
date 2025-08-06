@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JCHAT - Main Admin Dashboard</title>
+    <title>JCHAT - Token Swap</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -289,6 +289,14 @@
         header nav ul li a:hover::after {
             width: 100%;
         }
+        
+        header nav ul li a.active {
+            color: var(--blue);
+        }
+        header nav ul li a.active::after {
+            width: 100%;
+        }
+
 
         /* User Profile Header Styling */
         .user-profile-header {
@@ -462,29 +470,155 @@
         .section-card h1 { font-size: 2.8rem; } /* Larger main title */
         .section-card h2 { font-size: 2rem; margin-bottom: 1.2rem; } /* Larger section title */
 
+        /* Form Styling for Swap Page */
+        #swapForm {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: stretch;
+            text-align: left;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: var(--white);
+            font-size: 1.1rem;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-background);
+            color: var(--text-color-primary);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.3);
+        }
+        
+        .form-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23FFFFFF" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+        }
+
+        .swap-direction {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: var(--blue);
+        }
+
+        #swapButton {
+            background: var(--button-background-gradient);
+            color: var(--white);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--button-shadow);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        #swapButton:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        #swapButton:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* User Info Display */
+        .user-info-card {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .user-info-card.visible { display: flex; }
+        
+        .user-info-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.4rem;
+            margin: 0;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+        }
+
+        .user-info-card p {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+        .user-info-card p strong {
+            color: var(--white);
+            font-weight: 700;
+        }
+
+        /* --- Reused General Styles --- */
         .admin-tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Larger min-width for cards */
-            gap: 25px; /* Increased gap */
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
             width: 100%;
-            max-width: 900px; /* Match section-card max-width */
+            max-width: 900px;
         }
 
         .admin-tool-card {
             background: var(--input-background);
             border: 1px solid var(--border-light);
             border-radius: 15px;
-            padding: 1.8rem; /* Increased padding */
+            padding: 1.8rem;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            gap: 12px; /* Increased gap */
+            gap: 12px;
             transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
             text-decoration: none;
-            color: var(--text-color-primary); /* Ensure text color is primary */
+            color: var(--text-color-primary);
             position: relative;
-            overflow: hidden; /* Hide overflow for pseudo-elements */
+            overflow: hidden;
         }
 
         .admin-tool-card::before {
@@ -494,7 +628,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(45deg, rgba(0, 213, 255, 0.1), rgba(255, 46, 146, 0.1)); /* Subtle gradient overlay */
+            background: linear-gradient(45deg, rgba(0, 213, 255, 0.1), rgba(255, 46, 146, 0.1));
             opacity: 0;
             transition: opacity 0.3s ease;
             z-index: 0;
@@ -505,26 +639,26 @@
         }
 
         .admin-tool-card:hover {
-            transform: translateY(-8px) scale(1.02); /* More pronounced lift */
-            box-shadow: 0 12px 30px rgba(0, 0, 0, .5); /* Stronger shadow */
-            background: var(--card-background-color); /* Slightly change background on hover */
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .5);
+            background: var(--card-background-color);
         }
 
         .admin-tool-card i {
-            font-size: 3.5rem; /* Larger icons */
+            font-size: 3.5rem;
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink)); /* Gradient for icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             margin-bottom: 10px;
-            position: relative; /* For z-index */
+            position: relative;
             z-index: 1;
         }
 
         .admin-tool-card h3 {
             font-family: 'Poppins', sans-serif;
-            font-size: 1.6rem; /* Larger heading */
+            font-size: 1.6rem;
             font-weight: 700;
             color: var(--white);
             margin: 0;
@@ -533,7 +667,7 @@
         }
 
         .admin-tool-card p {
-            font-size: 1rem; /* Slightly larger paragraph text */
+            font-size: 1rem;
             color: var(--text-light);
             flex-grow: 1;
             position: relative;
@@ -542,14 +676,14 @@
 
         /* Disabled link style */
         .disabled-link {
-            opacity: 0.5; /* More visible disabled state */
+            opacity: 0.5;
             cursor: not-allowed;
-            pointer-events: none; /* Disables click events */
-            box-shadow: none !important; /* Remove shadow when disabled */
-            transform: none !important; /* Remove transform when disabled */
+            pointer-events: none;
+            box-shadow: none !important;
+            transform: none !important;
         }
         .disabled-link:hover::before {
-            opacity: 0; /* No hover effect when disabled */
+            opacity: 0;
         }
 
 
@@ -621,11 +755,6 @@
         #messageBox.info i { color: var(--accent-color); }
         #messageBox.warning i { color: var(--warning-color); }
 
-        #messageBox span {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
         @keyframes pulse-bg {
             0% { background-color: var(--accent-color); }
             50% { background-color: rgba(0, 213, 255, 0.7); }
@@ -678,21 +807,8 @@
             .section-card h2 {
                 font-size: 1.7rem;
             }
-            .admin-tools-grid {
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjusted min-width for mobile */
-                gap: 20px;
-            }
-            .admin-tool-card {
-                padding: 1.2rem;
-            }
-            .admin-tool-card i {
-                font-size: 3rem;
-            }
-            .admin-tool-card h3 {
-                font-size: 1.4rem;
-            }
-            .admin-tool-card p {
-                font-size: 0.9rem;
+            #swapForm, .user-info-card {
+                max-width: 100%;
             }
             body {
                 padding-bottom: 20px;
@@ -707,7 +823,7 @@
             <a href="/home.html" class="logo">JCHAT</a>
             <nav>
                 <ul>
-                    <li><a href="/admin.html" class="active">Admin Dashboard</a></li>
+                    <li><a href="/admin.html">Admin Dashboard</a></li>
                 </ul>
             </nav>
             <div class="user-profile-header">
@@ -732,63 +848,60 @@
     <main>
         <div class="content-wrapper">
             <div class="section-card">
-                <h1>JCHAT Main Admin Dashboard</h1>
+                <h1>JCHAT Token Swap</h1>
                 <p style="color: var(--pink); font-weight: 600; margin-top: -1rem; margin-bottom: 1rem;">
-                    <i class="fas fa-user-shield"></i> Welcome to the administrative control panel.
+                    <i class="fas fa-exchange-alt"></i> Admin tool for converting user tokens.
                 </p>
                 <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.5rem;">
-                    Manage users, content, and system settings to ensure a smooth JCHAT experience.
+                    This tool allows administrators to manually swap JCoins and Gas for a specified user.
                 </p>
 
-                <h2>Admin Tools</h2>
-                <div class="admin-tools-grid">
-                    <a href="/coin_requests_admin.html" class="admin-tool-card">
-                        <i class="fas fa-hand-holding-usd"></i>
-                        <h3>Coin Requests</h3>
-                        <p>Review and approve user JCoin purchase requests.</p>
-                        <span class="notification-badge" id="pendingCoinRequests" style="display: none;">0</span>
-                    </a>
-                    <a href="/user_management.html" class="admin-tool-card">
-                        <i class="fas fa-users-cog"></i>
-                        <h3>User Management</h3>
-                        <p>View, edit, and manage user accounts.</p>
-                    </a>
-                    <a href="/coin_management.html" class="admin-tool-card">
-                        <i class="fas fa-coins"></i>
-                        <h3>Coin Management</h3>
-                        <p>Directly manage JCoins for all users.</p>
-                    </a>
-                    <a href="/gas_management.html" class="admin-tool-card">
-                        <i class="fas fa-gas-pump"></i> <h3>Gas Management</h3>
-                        <p>Manage Gas (XP) for user progression.</p>
-                    </a>
-                    <a href="/jg_link_management.html" class="admin-tool-card">
-                        <i class="fas fa-link"></i> 
-                        <h3>J_G Link</h3>
-                        <p>Manage the conversion rates between JCoins and Gas.</p>
-                    </a>
-                    <a href="/content_moderation.html" class="admin-tool-card">
-                        <i class="fas fa-shield-alt"></i>
-                        <h3>Content Moderation</h3>
-                        <p>Review and moderate user content.</p>
-                        <span class="notification-badge" id="reportedContentCount" style="display: none;">0</span>
-                    </a>
-                    <a href="/analytics.html" class="admin-tool-card">
-                        <i class="fas fa-chart-line"></i>
-                        <h3>Analytics Dashboard</h3>
-                        <p>View app usage statistics and trends.</p>
-                    </a>
-                    <a href="/system_settings.html" class="admin-tool-card">
-                        <i class="fas fa-cogs"></i>
-                        <h3>System Settings</h3>
-                        <p>Configure global application settings and maintenance.</p>
-                    </a>
-                    <a href="/admin_logs.html" class="admin-tool-card">
-                        <i class="fas fa-clipboard-list"></i>
-                        <h3>Admin Activity Logs</h3>
-                        <p>Review all administrator actions.</p>
-                    </a>
-                </div>
+                <form id="swapForm">
+                    <div class="form-group">
+                        <label for="userIdInput">User ID</label>
+                        <input type="text" id="userIdInput" placeholder="Enter user ID..." required>
+                    </div>
+
+                    <div class="user-info-card" id="userInfoCard">
+                        <h3>User Info</h3>
+                        <p>Username: <strong id="userUsername">N/A</strong></p>
+                        <p>Current JCoins: <strong id="userJCoins">N/A</strong></p>
+                        <p>Current Gas: <strong id="userGas">N/A</strong></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fromTokenSelect">Swap From</label>
+                        <select id="fromTokenSelect" required>
+                            <option value="">Select Token...</option>
+                            <option value="JCoins">JCoins</option>
+                            <option value="Gas">Gas</option>
+                        </select>
+                    </div>
+
+                    <div class="swap-direction">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="toTokenSelect">Swap To</label>
+                        <select id="toTokenSelect" required>
+                            <option value="">Select Token...</option>
+                            <option value="JCoins">JCoins</option>
+                            <option value="Gas">Gas</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amountInput">Amount</label>
+                        <input type="number" id="amountInput" placeholder="Enter amount..." min="1" required>
+                    </div>
+
+                    <button id="swapButton" type="submit">
+                        <span class="button-text">Perform Swap</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </form>
+
             </div>
         </div>
     </main>
@@ -799,7 +912,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -833,12 +946,23 @@
         const notificationCountElement = document.getElementById('notificationCount');
         const messageBox = document.getElementById('messageBox');
         const headerNavLinkProfile = document.getElementById('profileLink');
-        const pendingCoinRequestsBadge = document.getElementById('pendingCoinRequests');
-        const reportedContentCountBadge = document.getElementById('reportedContentCount');
+
+        // Swap specific elements
+        const swapForm = document.getElementById('swapForm');
+        const userIdInput = document.getElementById('userIdInput');
+        const userInfoCard = document.getElementById('userInfoCard');
+        const userUsername = document.getElementById('userUsername');
+        const userJCoins = document.getElementById('userJCoins');
+        const userGas = document.getElementById('userGas');
+        const fromTokenSelect = document.getElementById('fromTokenSelect');
+        const toTokenSelect = document.getElementById('toTokenSelect');
+        const amountInput = document.getElementById('amountInput');
+        const swapButton = document.getElementById('swapButton');
 
         // --- Global State ---
         let isAuthReady = false; // Flag to indicate if auth state has been checked
         let currentUser = null; // The currently authenticated user (Firebase Auth object)
+        let targetUser = null; // Profile data for the user being swapped
 
         // --- Admin Specific ID ---
         const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2';
@@ -1091,52 +1215,6 @@
         }
 
         /**
-         * Fetches the count of pending JCoin requests and updates the badge.
-         */
-        async function fetchPendingCoinRequestsCount() {
-            try {
-                const q = query(collection(db, "artifacts", appId, "public", "data", "jcoin_buy_requests"), where("status", "==", "pending"));
-                onSnapshot(q, (querySnapshot) => {
-                    const count = querySnapshot.size;
-                    if (count > 0) {
-                        pendingCoinRequestsBadge.textContent = count;
-                        pendingCoinRequestsBadge.style.display = 'flex';
-                    } else {
-                        pendingCoinRequestsBadge.style.display = 'none';
-                    }
-                }, (error) => {
-                    console.error("Error listening to pending coin requests count:", error);
-                    pendingCoinRequestsBadge.style.display = 'none';
-                });
-            } catch (error) {
-                console.error("Error setting up listener for pending coin requests count:", error);
-            }
-        }
-
-        /**
-         * Fetches the count of reported content and updates the badge.
-         */
-        async function fetchReportedContentCount() {
-            try {
-                const q = query(collection(db, "artifacts", appId, "public", "data", "reports"), where("status", "==", "pending"));
-                onSnapshot(q, (querySnapshot) => {
-                    const count = querySnapshot.size;
-                    if (count > 0) {
-                        reportedContentCountBadge.textContent = count;
-                        reportedContentCountBadge.style.display = 'flex';
-                    } else {
-                        reportedContentCountBadge.style.display = 'none';
-                    }
-                }, (error) => {
-                    console.error("Error listening to reported content count:", error);
-                    reportedContentCountBadge.style.display = 'none';
-                });
-            } catch (error) {
-                console.error("Error setting up listener for reported content count:", error);
-            }
-        }
-
-        /**
          * Logs an admin action to Firestore.
          * @param {string} adminUid - The UID of the admin performing the action.
          * @param {string} actionType - The type of action (e.g., 'approve_coin_request', 'ban_user').
@@ -1155,6 +1233,98 @@
                 console.error("Error logging admin action:", error);
             }
         }
+        
+        /**
+         * Fetches and displays a user's current token balances.
+         * @param {string} userId - The UID of the user.
+         */
+        async function fetchAndDisplayUserBalances(userId) {
+            try {
+                showMessageBox("Fetching user profile...", 'loading', 0, true);
+                const userProfileDocRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+                const docSnap = await getDoc(userProfileDocRef);
+                
+                if (docSnap.exists()) {
+                    targetUser = docSnap.data();
+                    userUsername.textContent = targetUser.username || "N/A";
+                    userJCoins.textContent = targetUser.jCoins !== undefined ? targetUser.jCoins.toLocaleString() : "N/A";
+                    userGas.textContent = targetUser.gas !== undefined ? targetUser.gas.toLocaleString() : "N/A";
+                    userInfoCard.classList.add('visible');
+                    showMessageBox("User profile loaded.", 'success');
+                } else {
+                    targetUser = null;
+                    userUsername.textContent = "N/A";
+                    userJCoins.textContent = "N/A";
+                    userGas.textContent = "N/A";
+                    userInfoCard.classList.remove('visible');
+                    showMessageBox("User ID not found.", 'warning');
+                }
+            } catch (error) {
+                console.error("Error fetching user balances:", error);
+                showMessageBox(`Error fetching user profile: ${error.message}`, 'error');
+                targetUser = null;
+                userInfoCard.classList.remove('visible');
+            }
+        }
+
+        /**
+         * Handles the token swap transaction.
+         * @param {string} userId - The UID of the user.
+         * @param {string} fromToken - The token to deduct from.
+         * @param {string} toToken - The token to add to.
+         * @param {number} amount - The amount to swap.
+         */
+        async function performSwap(userId, fromToken, toToken, amount) {
+            if (!currentUser || !targetUser) {
+                showMessageBox("Admin or target user not logged in/found.", 'error');
+                return;
+            }
+
+            const userProfileRef = doc(db, "artifacts", appId, "users", userId, "profiles", "user_profile");
+            
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const userDoc = await transaction.get(userProfileRef);
+                    if (!userDoc.exists()) {
+                        throw "User profile does not exist!";
+                    }
+
+                    const currentData = userDoc.data();
+                    const fromTokenKey = fromToken.toLowerCase();
+                    const toTokenKey = toToken.toLowerCase();
+                    
+                    const currentFromBalance = currentData[fromTokenKey] || 0;
+                    
+                    if (currentFromBalance < amount) {
+                        throw `Not enough ${fromToken} to perform swap. User has ${currentFromBalance}.`;
+                    }
+                    
+                    const newFromBalance = currentFromBalance - amount;
+                    const newToBalance = (currentData[toTokenKey] || 0) + amount;
+                    
+                    transaction.update(userProfileRef, {
+                        [fromTokenKey]: newFromBalance,
+                        [toTokenKey]: newToBalance,
+                        updatedAt: serverTimestamp()
+                    });
+                });
+
+                // Log successful action
+                await logAdminAction(currentUser.uid, 'token_swap', {
+                    targetUserId: userId,
+                    fromToken: fromToken,
+                    toToken: toToken,
+                    amount: amount
+                });
+
+                showMessageBox(`Successfully swapped ${amount} ${fromToken} for ${amount} ${toToken} for user ${targetUser.username}.`, 'success');
+                fetchAndDisplayUserBalances(userId); // Refresh balances
+            } catch (error) {
+                console.error("Swap transaction failed: ", error);
+                showMessageBox(`Swap failed: ${error}`, 'error');
+            }
+        }
+
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
@@ -1181,11 +1351,7 @@
                 isAuthReady = true;
                 await fetchAndDisplayHeaderProfile(user);
                 fetchNotificationCount(user.uid);
-                fetchPendingCoinRequestsCount();
-                fetchReportedContentCount();
-
                 showMessageBox("Welcome Admin! You are logged in.", 'success', 5000);
-                // No need for a second message, the first one is sufficient.
             } else {
                 isAuthReady = false;
                 logoutButton.disabled = true;
@@ -1259,6 +1425,49 @@
                 console.error("Error logging out:", error);
                 showMessageBox("Failed to log out. Please try again.", 'error');
                 toggleButtonLoading(logoutButton, false);
+            }
+        });
+
+        userIdInput.addEventListener('change', (e) => {
+            const userId = e.target.value.trim();
+            if (userId) {
+                fetchAndDisplayUserBalances(userId);
+            } else {
+                userInfoCard.classList.remove('visible');
+                targetUser = null;
+            }
+        });
+        
+        swapForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!targetUser) {
+                showMessageBox("Please enter a valid user ID first.", 'warning');
+                return;
+            }
+
+            const userId = userIdInput.value.trim();
+            const fromToken = fromTokenSelect.value;
+            const toToken = toTokenSelect.value;
+            const amount = parseInt(amountInput.value, 10);
+            
+            if (!fromToken || !toToken || isNaN(amount) || amount <= 0) {
+                showMessageBox("Please fill in all fields with valid data.", 'warning');
+                return;
+            }
+            
+            if (fromToken === toToken) {
+                showMessageBox("Cannot swap a token to itself.", 'error');
+                return;
+            }
+
+            toggleButtonLoading(swapButton, true);
+            showMessageBox("Processing swap...", 'loading', 0, true);
+            
+            try {
+                await performSwap(userId, fromToken, toToken, amount);
+            } finally {
+                toggleButtonLoading(swapButton, false);
             }
         });
     </script>

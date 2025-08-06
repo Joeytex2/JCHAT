@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JCHAT - Privacy Settings</title>
 
-    <!-- Google Fonts: Poppins for headings, Inter for body text -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Tone.js for audio notifications -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
@@ -806,7 +802,6 @@
                 <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
                 <span id="headerDisplayName">Loading...</span>
             </a>
-            <!-- Logout Button -->
             <button id="logoutButton" aria-label="Logout" disabled>
                 <i class="fas fa-sign-out-alt"></i>
             </button>
@@ -852,18 +847,6 @@
                         <label for="showPhone">Show Phone Number</label>
                     </div>
                     <div class="checkbox-group">
-                        <input type="checkbox" id="allowFriendRequests">
-                        <label for="allowFriendRequests">Allow Friend Requests</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="allowMessages">
-                        <label for="allowMessages">Allow Messages from Friends</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="allowMessagesFromStrangers">
-                        <label for="allowMessagesFromStrangers">Allow Messages from Strangers</label>
-                    </div>
-                    <div class="checkbox-group">
                         <input type="checkbox" id="showSchool">
                         <label for="showSchool">Show School</label>
                     </div>
@@ -882,6 +865,50 @@
                     <div class="checkbox-group">
                         <input type="checkbox" id="showRelationshipStatus">
                         <label for="showRelationshipStatus">Show Relationship Status</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showDateOfBirth">
+                        <label for="showDateOfBirth">Show Date of Birth / Age</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showGender">
+                        <label for="showGender">Show Gender</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showInterests">
+                        <label for="showInterests">Show Interests</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showOnlineStatus">
+                        <label for="showOnlineStatus">Show Current Online Status</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Discovery Settings</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="allowFriendRequests">
+                        <label for="allowFriendRequests">Allow Friend Requests</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="allowMessages">
+                        <label for="allowMessages">Allow Messages from Friends</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="allowMessagesFromStrangers">
+                        <label for="allowMessagesFromStrangers">Allow Messages from Strangers</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="allowSearchByUsername">
+                        <label for="allowSearchByUsername">Allow Profile Search by Username</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="allowSearchByEmail">
+                        <label for="allowSearchByEmail">Allow Profile Search by Email</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="allowProfileDiscovery">
+                        <label for="allowProfileDiscovery">Allow Profile Discovery (e.g., suggested friends)</label>
                     </div>
                 </div>
 
@@ -904,8 +931,7 @@
                 </div>
                 <ul id="blockedUsersList" role="list">
                     <li style="color: var(--text-light); text-align: center;">No users blocked.</li>
-                    <!-- Blocked users will be dynamically loaded here -->
-                </ul>
+                    </ul>
 
                 <button id="savePrivacySettingsButton" aria-label="Save privacy settings">
                     <span class="button-text">Save Settings</span>
@@ -915,10 +941,8 @@
         </div>
     </main>
 
-    <!-- Custom Message Box -->
     <div id="messageBox" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
-    <!-- Custom Confirmation Modal -->
     <div id="customConfirmModal" class="modal-overlay" aria-modal="true" role="dialog" aria-labelledby="confirmModalMessage">
         <div class="modal-content">
             <h3 id="confirmModalMessage"></h3>
@@ -986,14 +1010,24 @@
         const showEmailCheckbox = document.getElementById('showEmail');
         const showLastSeenCheckbox = document.getElementById('showLastSeen');
         const showPhoneCheckbox = document.getElementById('showPhone');
-        const allowFriendRequestsCheckbox = document.getElementById('allowFriendRequests');
-        const allowMessagesCheckbox = document.getElementById('allowMessages');
-        const allowMessagesFromStrangersCheckbox = document.getElementById('allowMessagesFromStrangers');
         const showSchoolCheckbox = document.getElementById('showSchool');
         const showWorkCheckbox = document.getElementById('showWork');
         const showHobbyCheckbox = document.getElementById('showHobby');
         const showFavoritePlaceCheckbox = document.getElementById('showFavoritePlace');
         const showRelationshipStatusCheckbox = document.getElementById('showRelationshipStatus');
+        const showDateOfBirthCheckbox = document.getElementById('showDateOfBirth'); // New
+        const showGenderCheckbox = document.getElementById('showGender'); // New
+        const showInterestsCheckbox = document.getElementById('showInterests'); // New
+        const showOnlineStatusCheckbox = document.getElementById('showOnlineStatus'); // New
+
+        const allowFriendRequestsCheckbox = document.getElementById('allowFriendRequests');
+        const allowMessagesCheckbox = document.getElementById('allowMessages');
+        const allowMessagesFromStrangersCheckbox = document.getElementById('allowMessagesFromStrangers');
+        const allowSearchByUsernameCheckbox = document.getElementById('allowSearchByUsername'); // New
+        const allowSearchByEmailCheckbox = document.getElementById('allowSearchByEmail'); // New
+        const allowProfileDiscoveryCheckbox = document.getElementById('allowProfileDiscovery'); // New
+
+
         const storyPrivacySelect = document.getElementById('storyPrivacy');
 
         const blockUserInput = document.getElementById('blockUserInput');
@@ -1213,7 +1247,9 @@
                             displayName: true, profilePic: true, bio: false, location: false,
                             emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
                             allowMessagesFromStrangers: false,
-                            showSchool: false, showWork: false, showHobby: false, showFavoritePlace: false, showRelationshipStatus: false
+                            showSchool: false, showWork: false, showHobby: false, showFavoritePlace: false, showRelationshipStatus: false,
+                            showDateOfBirth: false, showGender: false, showInterests: false, showOnlineStatus: true, // Defaults for new fields
+                            allowSearchByUsername: true, allowSearchByEmail: false, allowProfileDiscovery: true // Defaults for new fields
                         },
                         totalPosts: 0,
                         jCoins: 0,
@@ -1300,7 +1336,14 @@
                             allowFriendRequests: true,
                             allowMessages: true,
                             allowMessagesFromStrangers: false,
-                            showSchool: false, showWork: false, showHobby: false, showFavoritePlace: false, showRelationshipStatus: false
+                            showSchool: false, showWork: false, showHobby: false, showFavoritePlace: false, showRelationshipStatus: false,
+                            showDateOfBirth: false, // New Default
+                            showGender: false, // New Default
+                            showInterests: false, // New Default
+                            showOnlineStatus: true, // New Default
+                            allowSearchByUsername: true, // New Default
+                            allowSearchByEmail: false, // New Default
+                            allowProfileDiscovery: true // New Default
                         },
                         storyPrivacy: "public",
                         blockList: [],
@@ -1324,10 +1367,20 @@
                 allowMessagesCheckbox.checked = visibility.allowMessages ?? true;
                 allowMessagesFromStrangersCheckbox.checked = visibility.allowMessagesFromStrangers ?? false;
                 showSchoolCheckbox.checked = visibility.showSchool ?? false;
-                showWorkCheckbox.checked = visibility.showWork ?? false;
-                showHobbyCheckbox.checked = visibility.showHobby ?? false;
-                showFavoritePlaceCheckbox.checked = visibility.showFavoritePlace ?? false;
-                showRelationshipStatusCheckbox.checked = visibility.showRelationshipStatus ?? false;
+                showWorkCheckbox.checked = visibility.work ?? false; // Fixed: was showWork.checked
+                showHobbyCheckbox.checked = visibility.hobby ?? false; // Fixed: was showHobby.checked
+                showFavoritePlaceCheckbox.checked = visibility.favoritePlace ?? false; // Fixed: was showFavoritePlace.checked
+                showRelationshipStatusCheckbox.checked = visibility.relationshipStatus ?? false; // Fixed: was showRelationshipStatus.checked
+
+                // New fields
+                showDateOfBirthCheckbox.checked = visibility.showDateOfBirth ?? false;
+                showGenderCheckbox.checked = visibility.showGender ?? false;
+                showInterestsCheckbox.checked = visibility.showInterests ?? false;
+                showOnlineStatusCheckbox.checked = visibility.showOnlineStatus ?? true; // Default to true
+
+                allowSearchByUsernameCheckbox.checked = visibility.allowSearchByUsername ?? true; // Default to true
+                allowSearchByEmailCheckbox.checked = visibility.allowSearchByEmail ?? false;
+                allowProfileDiscoveryCheckbox.checked = visibility.allowProfileDiscovery ?? true; // Default to true
 
 
                 // Populate select dropdown
@@ -1502,7 +1555,14 @@
                         showWork: showWorkCheckbox.checked,
                         showHobby: showHobbyCheckbox.checked,
                         showFavoritePlace: showFavoritePlaceCheckbox.checked,
-                        showRelationshipStatus: showRelationshipStatusCheckbox.checked
+                        showRelationshipStatus: showRelationshipStatusCheckbox.checked,
+                        showDateOfBirth: showDateOfBirthCheckbox.checked, // New
+                        showGender: showGenderCheckbox.checked, // New
+                        showInterests: showInterestsCheckbox.checked, // New
+                        showOnlineStatus: showOnlineStatusCheckbox.checked, // New
+                        allowSearchByUsername: allowSearchByUsernameCheckbox.checked, // New
+                        allowSearchByEmail: allowSearchByEmailCheckbox.checked, // New
+                        allowProfileDiscovery: allowProfileDiscoveryCheckbox.checked // New
                     },
                     storyPrivacy: storyPrivacySelect.value,
                     // blockList is managed separately via arrayUnion/arrayRemove
@@ -1634,6 +1694,13 @@
                 showHobbyCheckbox.disabled = true;
                 showFavoritePlaceCheckbox.disabled = true;
                 showRelationshipStatusCheckbox.disabled = true;
+                showDateOfBirthCheckbox.disabled = true; // New
+                showGenderCheckbox.disabled = true; // New
+                showInterestsCheckbox.disabled = true; // New
+                showOnlineStatusCheckbox.disabled = true; // New
+                allowSearchByUsernameCheckbox.disabled = true; // New
+                allowSearchByEmailCheckbox.disabled = true; // New
+                allowProfileDiscoveryCheckbox.disabled = true; // New
                 storyPrivacySelect.disabled = true;
                 blockUserInput.disabled = true;
                 addBlockUserButton.disabled = true;
@@ -1641,15 +1708,6 @@
                 blockedUsersList.innerHTML = '<li style="color: var(--text-light); text-align: center;">Log in to view and manage your blocked users.</li>';
             }
         });
-
-        // Removed Bottom Navigation Bar Toggle Logic and related elements
-        // const bottomNavBar = document.getElementById('bottomNavBar');
-        // const navToggleBtn = document.getElementById('navToggleBtn');
-        // function toggleNavBarVisibility() { ... }
-        // bottomNavBar.classList.add('nav-bar-hidden-full');
-        // navToggleBtn.querySelector('i').classList.remove('fa-chevron-down');
-        // navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
-        // navToggleBtn.addEventListener('click', toggleNavBarVisibility);
     </script>
 </body>
 </html>
