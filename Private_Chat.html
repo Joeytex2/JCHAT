@@ -587,10 +587,69 @@
             margin-top: 5px;
         }
 
-        .message-content audio {
-            width: 100%;
-            margin-top: 5px;
+        /* Audio Player Specific Styles */
+        .message-content .audio-player-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%; /* Ensure it takes full width of message content */
         }
+
+        .message-content .audio-player-wrapper audio {
+            width: 100%;
+            border-radius: 8px;
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent background for audio player */
+            padding: 5px; /* Padding around the default controls */
+        }
+
+        /* Style for default audio controls (browser dependent, but can be influenced) */
+        .message-content .audio-player-wrapper audio::-webkit-media-controls-panel {
+            background-color: transparent; /* Make panel background transparent */
+        }
+        .message-content .audio-player-wrapper audio::-webkit-media-controls-current-time-display,
+        .message-content .audio-player-wrapper audio::-webkit-media-controls-time-remaining-display {
+            color: var(--white); /* White text for time displays */
+        }
+        .message-content .audio-player-wrapper audio::-webkit-media-controls-play-button,
+        .message-content .audio-player-wrapper audio::-webkit-media-controls-volume-slider,
+        .message-content .audio-player-wrapper audio::-webkit-media-controls-timeline {
+            filter: invert(1); /* Invert colors for better visibility on dark backgrounds */
+        }
+
+
+        .message-content .audio-buttons {
+            display: flex;
+            justify-content: space-around;
+            gap: 5px;
+        }
+
+        .message-content .audio-buttons button {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
+        .message-content .audio-buttons button:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .message-content .audio-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
 
         /* Message Options */
         .message-options-btn {
@@ -1711,7 +1770,20 @@
                 const videoUrl = getCloudinaryImageUrl(message.mediaUrl, "w_400,h_auto,c_limit");
                 contentHtml = `<div class="message-content"><video controls src="${videoUrl}" onerror="this.onerror=null;this.src=''; console.error('Video load error');"></video></div>`;
             } else if (message.type === 'audio') {
-                contentHtml = `<div class="message-content"><audio controls src="${message.mediaUrl}"></audio></div>`;
+                // Enhanced Audio Preview
+                contentHtml = `
+                    <div class="message-content">
+                        <div class="audio-player-wrapper">
+                            <audio controls src="${message.mediaUrl}"></audio>
+                            <div class="audio-buttons">
+                                <!-- Play button is handled by native audio controls -->
+                                <button class="audio-forward-btn" data-audio-url="${message.mediaUrl}" title="Forward Audio"><i class="fas fa-share"></i> Forward</button>
+                                <button class="audio-download-btn" data-audio-url="${message.mediaUrl}" data-filename="voice_note_${message.id}.webm" title="Download Audio"><i class="fas fa-download"></i> Download</button>
+                                <!-- Delete button is handled by general message options -->
+                            </div>
+                        </div>
+                    </div>
+                `;
             } else if (message.type === 'call_status') {
                 messageBubble.classList.add('call-status-message'); // Add a specific class for styling call status
                 contentHtml = `<div class="message-content" style="text-align: center; font-style: italic; color: var(--text-light); background: none; box-shadow: none; border: none;">${message.text}</div>`;
@@ -1776,8 +1848,67 @@
                 }
             }
 
+            // Add event listeners for new audio buttons
+            if (message.type === 'audio') {
+                const forwardBtn = messageBubble.querySelector('.audio-forward-btn');
+                const downloadBtn = messageBubble.querySelector('.audio-download-btn');
+
+                if (forwardBtn) {
+                    forwardBtn.addEventListener('click', () => {
+                        // In a real app, this would open a share sheet or a list of contacts to forward to.
+                        // For now, we'll simulate by copying the URL to clipboard.
+                        const audioUrl = forwardBtn.getAttribute('data-audio-url');
+                        copyToClipboard(audioUrl, "Audio URL copied for forwarding!");
+                    });
+                }
+
+                if (downloadBtn) {
+                    downloadBtn.addEventListener('click', () => {
+                        const audioUrl = downloadBtn.getAttribute('data-audio-url');
+                        const filename = downloadBtn.getAttribute('data-filename');
+                        downloadFile(audioUrl, filename);
+                    });
+                }
+            }
+
             return messageBubble;
         }
+
+        /**
+         * Copies text to the clipboard.
+         * @param {string} text - The text to copy.
+         * @param {string} successMessage - Message to show on success.
+         */
+        function copyToClipboard(text, successMessage = "Copied to clipboard!") {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showMessageBox(successMessage, 'success');
+            } catch (err) {
+                console.error('JCHAT_ERROR: Failed to copy text: ', err);
+                showMessageBox('Failed to copy. Please try manually.', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        /**
+         * Downloads a file from a given URL.
+         * @param {string} url - The URL of the file to download.
+         * @param {string} filename - The desired filename for the downloaded file.
+         */
+        function downloadFile(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a); // Required for Firefox
+            a.click();
+            document.body.removeChild(a);
+            showMessageBox(`Downloading ${filename}...`, 'info');
+        }
+
 
         /**
          * Fetches and displays messages for the current chat.
@@ -1785,7 +1916,7 @@
         async function fetchAndDisplayMessages() {
             if (!currentUser || !partnerId) {
                 console.log("JCHAT_DEBUG: Cannot fetch messages: current user or partner ID missing.");
-                if (loadingMessages) loadingMessages.style.display = 'none';
+                if (loadingMessages) messagesDisplay.removeChild(loadingMessages); // Remove loading message
                 if (noMessages) {
                     noMessages.style.display = 'block';
                     noMessages.textContent = "Cannot load chat. Please ensure you are logged in and a partner is selected.";
@@ -1794,9 +1925,11 @@
             }
 
             console.log("JCHAT_DEBUG: Fetching messages for chat between", currentUser.uid, "and", partnerId);
-            if (messagesDisplay) messagesDisplay.innerHTML = ''; // Clear existing messages
+            messagesDisplay.innerHTML = ''; // Clear existing messages
+            if (loadingMessages) messagesDisplay.appendChild(loadingMessages); // Add loading message back
             if (loadingMessages) loadingMessages.style.display = 'block';
             if (noMessages) noMessages.style.display = 'none';
+
 
             // Unsubscribe previous listener
             if (unsubscribeMessages) unsubscribeMessages();
@@ -1813,12 +1946,39 @@
                     if (noMessages) noMessages.style.display = 'block';
                 } else {
                     if (noMessages) noMessages.style.display = 'none';
-                    snapshot.docs.forEach(docSnap => {
-                        const messageData = { id: docSnap.id, ...docSnap.data() }; // Include doc.id
-                        messagesDisplay.appendChild(createMessageBubble(messageData, currentUser.uid));
+                    snapshot.docChanges().forEach(change => {
+                        const messageData = { id: change.doc.id, ...change.doc.data() };
+                        const existingBubble = messagesDisplay.querySelector(`[data-message-id="${messageData.id}"]`);
+
+                        if (change.type === "added") {
+                            // Only add if it doesn't already exist (to prevent duplicates on re-render)
+                            if (!existingBubble) {
+                                messagesDisplay.appendChild(createMessageBubble(messageData, currentUser.uid));
+                            }
+                        } else if (change.type === "modified") {
+                            if (existingBubble) {
+                                // Replace or update the existing bubble
+                                const updatedBubble = createMessageBubble(messageData, currentUser.uid);
+                                messagesDisplay.replaceChild(updatedBubble, existingBubble);
+                            }
+                        } else if (change.type === "removed") {
+                            if (existingBubble) {
+                                messagesDisplay.removeChild(existingBubble);
+                            }
+                        }
                     });
                     // Scroll to the bottom after new messages are loaded
                     messagesDisplay.scrollTop = messagesDisplay.scrollHeight;
+
+                    // After messages are loaded, mark them as read for the current user
+                    if (snapshot.docs.length > 0) {
+                        const latestMessageTimestamp = snapshot.docs[snapshot.docs.length - 1].data().timestamp;
+                        const chatMetadataDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "chat_metadata", partnerId);
+                        // Use setDoc with merge:true to create/update the document
+                        setDoc(chatMetadataDocRef, { lastReadMessageTimestamp: latestMessageTimestamp }, { merge: true })
+                            .then(() => console.log("JCHAT_DEBUG: Chat metadata updated with last read timestamp."))
+                            .catch(error => console.error("JCHAT_ERROR: Error updating chat metadata:", error));
+                    }
                 }
             }, (error) => {
                 console.error("JCHAT_ERROR: Error fetching messages:", error);
@@ -1894,7 +2054,8 @@
                         senderId: currentUser.uid,
                         recipientId: partnerId,
                         timestamp: serverTimestamp(),
-                        read: false
+                        read: false,
+                        senderUsername: currentUserProfileData.username // Include sender username for pop-up
                     });
                 }
 
