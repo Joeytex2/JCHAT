@@ -526,6 +526,20 @@
             text-align: left;
         }
 
+        .chat-header .select-friend-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            margin-left: auto; /* Push to the right */
+        }
+
+        .chat-header .select-friend-btn:hover {
+            color: var(--accent-color);
+        }
+
         .messages-display {
             flex-grow: 1;
             padding: 20px;
@@ -1204,6 +1218,91 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        /* Friend Selection Modal Specific Styles */
+        #selectFriendModal .modal-content {
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #selectFriendModal .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-light);
+            background-color: var(--input-background);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        #selectFriendModal .search-input::placeholder {
+            color: var(--text-light);
+        }
+
+        #selectFriendModal .friend-list-modal {
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: calc(80vh - 150px); /* Adjust based on other elements in modal */
+            padding-right: 5px; /* For scrollbar */
+        }
+
+        #selectFriendModal .friend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            background-color: var(--input-background);
+            border: 1px solid var(--border-light);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        #selectFriendModal .friend-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        #selectFriendModal .friend-item img,
+        #selectFriendModal .friend-item .default-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+            flex-shrink: 0;
+        }
+
+        #selectFriendModal .friend-item .default-avatar {
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+
+        #selectFriendModal .friend-item span {
+            font-weight: 600;
+            color: var(--text-color-primary);
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #selectFriendModal .loading-friends-modal,
+        #selectFriendModal .no-friends-modal {
+            text-align: center;
+            color: var(--text-light);
+            padding: 20px;
+            font-style: italic;
+        }
+
+
         /* Responsive Adjustments */
         @media (max-width: 600px) {
             header .header-content-wrapper {
@@ -1327,6 +1426,9 @@
                 <img id="partnerProfilePic" src="" alt="Partner Profile Picture" style="display: none;">
                 <div id="partnerAvatarIcon" class="default-avatar"><i class="fas fa-user-circle"></i></div>
                 <h2 id="partnerDisplayName">Loading...</h2>
+                <button id="selectFriendBtn" class="select-friend-btn" title="Select Chat Partner">
+                    <i class="fas fa-users"></i>
+                </button>
             </div>
             <div class="messages-display" id="messagesDisplay">
                 <!-- Messages will be loaded here dynamically -->
@@ -1374,6 +1476,21 @@
             <p id="callStatusMessage"></p>
             <div class="call-actions" id="callActions">
                 <!-- Buttons dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Select Friend Modal -->
+    <div id="selectFriendModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Select a Friend to Chat With</h3>
+            <input type="text" id="friendSearchInput" placeholder="Search friends..." class="search-input">
+            <div id="friendListContainer" class="friend-list-modal">
+                <p class="loading-friends-modal">Loading friends...</p>
+                <p class="no-friends-modal" style="display: none;">No friends found.</p>
+            </div>
+            <div class="modal-buttons">
+                <button id="closeFriendModalBtn" class="cancel-btn">Close</button>
             </div>
         </div>
     </div>
@@ -1443,12 +1560,21 @@
         const callStatusMessage = document.getElementById('callStatusMessage');
         const callActions = document.getElementById('callActions');
 
-
         // Custom Confirmation Modal elements
         const customConfirmModal = document.getElementById('customConfirmModal');
         const confirmModalMessage = document.getElementById('confirmModalMessage');
         const confirmYesBtn = document.getElementById('confirmYesBtn');
         const confirmNoBtn = document.getElementById('confirmNoBtn');
+
+        // Select Friend Modal elements
+        const selectFriendBtn = document.getElementById('selectFriendBtn');
+        const selectFriendModal = document.getElementById('selectFriendModal');
+        const closeFriendModalBtn = document.getElementById('closeFriendModalBtn');
+        const friendSearchInput = document.getElementById('friendSearchInput');
+        const friendListContainer = document.getElementById('friendListContainer');
+        const loadingFriendsModal = friendListContainer.querySelector('.loading-friends-modal');
+        const noFriendsModal = friendListContainer.querySelector('.no-friends-modal');
+
 
         // --- Global State ---
         let isAuthReady = false; // Flag to indicate if auth state has been checked
@@ -1829,8 +1955,9 @@
          */
         async function fetchPartnerProfile(pId) {
             if (!pId) {
-                showMessageBox("Chat partner ID is missing.", 'error');
-                partnerDisplayName.textContent = "Unknown User";
+                partnerDisplayName.textContent = "No Partner Selected";
+                partnerProfilePic.style.display = 'none';
+                partnerAvatarIcon.style.display = 'block';
                 return;
             }
 
@@ -1896,7 +2023,7 @@
                                 <input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1">
                                 <span class="time-display">00:00 / 00:00</span>
                             </div>
-                            <audio src="${message.mediaUrl}" preload="none" onloadedmetadata="this.volume=0.8;"></audio>
+                            <audio src="${message.mediaUrl}" preload="none"></audio>
                         </div>
                         <div class="audio-buttons">
                             <button class="audio-forward-btn" data-audio-url="${message.mediaUrl}" title="Forward Audio"><i class="fas fa-share"></i></button>
@@ -1977,6 +2104,9 @@
                 const forwardBtn = messageBubble.querySelector('.audio-forward-btn');
                 const downloadBtn = messageBubble.querySelector('.audio-download-btn');
 
+                // Set initial volume
+                audio.volume = 0.8;
+
                 // Update time and progress bar
                 audio.addEventListener('timeupdate', () => {
                     const progress = (audio.currentTime / audio.duration) * 100;
@@ -1987,7 +2117,13 @@
 
                 // Update duration when metadata is loaded
                 audio.addEventListener('loadedmetadata', () => {
-                    timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
+                    if (!isNaN(audio.duration)) { // Ensure duration is a valid number
+                        timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
+                        progressBar.max = audio.duration; // Set max for progress bar to actual duration
+                    } else {
+                        timeDisplay.textContent = `00:00 / --:--`;
+                    }
+                    progressBar.value = 0;
                     progressBar.style.setProperty('--progress', `0%`);
                 });
 
@@ -2008,14 +2144,27 @@
                     audio.currentTime = 0; // Reset to start
                     progressBar.value = 0;
                     progressBar.style.setProperty('--progress', `0%`);
-                    timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
+                    if (!isNaN(audio.duration)) {
+                        timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
+                    } else {
+                        timeDisplay.textContent = `00:00 / --:--`;
+                    }
                 });
 
                 // Seek functionality
                 progressBar.addEventListener('input', () => {
-                    const seekTime = (progressBar.value / 100) * audio.duration;
-                    audio.currentTime = seekTime;
+                    if (!isNaN(audio.duration) && audio.duration > 0) {
+                        const seekTime = (progressBar.value / 100) * audio.duration; // Use 100 as max for range input
+                        audio.currentTime = seekTime;
+                    }
                 });
+                progressBar.addEventListener('change', () => { // For when user releases the thumb
+                    if (!isNaN(audio.duration) && audio.duration > 0) {
+                        const seekTime = (progressBar.value / 100) * audio.duration;
+                        audio.currentTime = seekTime;
+                    }
+                });
+
 
                 // Forward button
                 if (forwardBtn) {
@@ -2084,8 +2233,9 @@
                 if (loadingMessages) loadingMessages.style.display = 'none';
                 if (noMessages) {
                     noMessages.style.display = 'block';
-                    noMessages.textContent = "Cannot load chat. Please ensure you are logged in and a partner is selected.";
+                    noMessages.textContent = "No chat partner selected. Please select a friend to start chatting.";
                 }
+                messagesDisplay.innerHTML = ''; // Clear existing messages
                 return;
             }
 
@@ -2164,7 +2314,7 @@
          */
         async function sendMessage(type, content) {
             if (!currentUser || !partnerId || !currentUserProfileData) {
-                showMessageBox("You must be logged in to send messages.", 'error');
+                showMessageBox("You must be logged in and have a chat partner selected to send messages.", 'error');
                 return;
             }
 
@@ -2489,6 +2639,9 @@
         });
 
         // --- Call Functionality (Simulated) ---
+        // Note: Real-time voice/video calls (WebRTC) require complex server-side signaling
+        // and STUN/TURN server infrastructure, which is beyond the scope of a single HTML file.
+        // This implementation simulates call status changes via Firestore.
 
         /**
          * Displays the call status overlay.
@@ -2527,7 +2680,7 @@
          */
         async function startCall(callType) {
             if (!currentUser || !partnerId || !currentUserProfileData) {
-                showMessageBox("You must be logged in to start a call.", 'error');
+                showMessageBox("You must be logged in and have a chat partner selected to start a call.", 'error');
                 return;
             }
             if (!partnerProfileData) {
@@ -2671,7 +2824,14 @@
          * Listens for incoming call status changes.
          */
         function listenForCallStatus() {
-            if (!currentUser || !partnerId) return;
+            if (!currentUser || !partnerId) {
+                // Do not set up listener if no partner is selected
+                if (unsubscribeCallStatus) {
+                    unsubscribeCallStatus();
+                    unsubscribeCallStatus = null;
+                }
+                return;
+            }
 
             const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
             const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
@@ -2696,7 +2856,7 @@
                         );
                     } else if (callData.callerId === currentUser.uid && callData.status === 'accepted') {
                         hideCallStatusOverlay();
-                        showMessageBox(`${callData.receiverUsername} accepted your ${callData.callType} call! (Simulated)`, 'success');
+                        showMessageBox(`${callData.receiverUsername} accepted your ${callData.callType} call!`, 'success');
                         playNotificationSound('success');
                     } else if (callData.callerId === currentUser.uid && callData.status === 'rejected') {
                         hideCallStatusOverlay();
@@ -2713,6 +2873,135 @@
             }, (error) => {
                 console.error("JCHAT_ERROR: Error listening to call status:", error);
                 showMessageBox(`Error listening to call status: ${error.message}`, 'error');
+            });
+        }
+
+        /**
+         * Opens the select friend modal and loads the friend list.
+         */
+        async function openSelectFriendModal() {
+            if (!currentUser) {
+                showMessageBox("Please log in to select a friend.", 'warning');
+                return;
+            }
+            selectFriendModal.classList.add('active');
+            await loadFriendsForSelection(); // Load friends when modal opens
+        }
+
+        /**
+         * Closes the select friend modal.
+         */
+        function closeSelectFriendModal() {
+            selectFriendModal.classList.remove('active');
+            friendSearchInput.value = ''; // Clear search input
+        }
+
+        let allFriendsData = []; // Store all friends data for filtering
+
+        /**
+         * Loads and displays the current user's friends for selection in the modal.
+         * @param {string} [searchTerm=''] - Optional search term to filter friends.
+         */
+        async function loadFriendsForSelection(searchTerm = '') {
+            if (!currentUser) {
+                if (loadingFriendsModal) loadingFriendsModal.style.display = 'none';
+                if (noFriendsModal) {
+                    noFriendsModal.style.display = 'block';
+                    noFriendsModal.textContent = "Please log in to see your friends.";
+                }
+                return;
+            }
+
+            friendListContainer.innerHTML = ''; // Clear previous list
+            if (loadingFriendsModal) loadingFriendsModal.style.display = 'block';
+            if (noFriendsModal) noFriendsModal.style.display = 'none';
+
+            try {
+                const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
+                const friendsSnapshot = await getDocs(friendsCollectionRef);
+                const friendIds = friendsSnapshot.docs.map(doc => doc.id);
+
+                const friendsDataPromises = friendIds.map(async (friendId) => {
+                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
+                    const publicDocSnap = await getDoc(publicProfileDocRef);
+                    if (publicDocSnap.exists()) {
+                        const friendProfile = publicDocSnap.data();
+                        return {
+                            userId: friendId,
+                            username: friendProfile.username,
+                            profilePicId: friendProfile.profilePicId,
+                        };
+                    }
+                    return null; // Return null if profile not found
+                });
+
+                const fetchedFriends = (await Promise.all(friendsDataPromises)).filter(f => f !== null);
+                allFriendsData = fetchedFriends; // Store for filtering
+
+                renderSelectableFriends(searchTerm);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error loading friends for selection:", error);
+                showMessageBox(`Error loading friends list: ${error.message}`, 'error');
+                if (loadingFriendsModal) loadingFriendsModal.style.display = 'none';
+                if (noFriendsModal) {
+                    noFriendsModal.style.display = 'block';
+                    noFriendsModal.textContent = "Failed to load friends. Please try again.";
+                }
+            }
+        }
+
+        /**
+         * Renders the filtered list of friends into the selection modal.
+         * @param {string} searchTerm - The current search term.
+         */
+        function renderSelectableFriends(searchTerm) {
+            friendListContainer.innerHTML = ''; // Clear existing list
+            if (loadingFriendsModal) loadingFriendsModal.style.display = 'none';
+
+            const filteredFriends = allFriendsData.filter(friend =>
+                friend.username.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            if (filteredFriends.length === 0) {
+                if (noFriendsModal) noFriendsModal.style.display = 'block';
+                noFriendsModal.textContent = searchTerm ? "No matching friends found." : "You don't have any friends yet.";
+                return;
+            } else {
+                if (noFriendsModal) noFriendsModal.style.display = 'none';
+            }
+
+            filteredFriends.forEach(friend => {
+                const friendItem = document.createElement('div');
+                friendItem.classList.add('friend-item');
+                friendItem.setAttribute('data-user-id', friend.userId);
+
+                const usernameInitial = (friend.username || "J").charAt(0).toUpperCase();
+                const profilePicHtml = friend.profilePicId
+                    ? `<img src="${getCloudinaryImageUrl(friend.profilePicId, 'w_80,h_80,c_fill,g_face,r_max')}" alt="${friend.username}'s profile picture" onerror="this.onerror=null;this.src='https://placehold.co/40x40/CCCCCC/000000?text=${usernameInitial}';">`
+                    : `<div class="default-avatar"><i class="fas fa-user-circle"></i></div>`;
+
+                friendItem.innerHTML = `
+                    ${profilePicHtml}
+                    <span>${friend.username || 'Unknown User'}</span>
+                `;
+
+                friendItem.addEventListener('click', async () => {
+                    const selectedFriendId = friend.userId;
+                    if (selectedFriendId === partnerId) {
+                        showMessageBox(`${friend.username} is already your current chat partner.`, 'info');
+                        closeFriendModalBtn.click();
+                        return;
+                    }
+                    partnerId = selectedFriendId;
+                    await fetchPartnerProfile(partnerId);
+                    await fetchAndDisplayMessages();
+                    listenForCallStatus(); // Re-establish call listener for new partner
+                    closeFriendModalBtn.click();
+                    showMessageBox(`Chatting with ${friend.username}`, 'success');
+                });
+
+                friendListContainer.appendChild(friendItem);
             });
         }
 
@@ -2734,10 +3023,19 @@
                     fetchAndDisplayMessages(); // Fetch messages once authenticated and partnerId is set
                     listenForCallStatus(); // Start listening for call status
                 } else {
-                    showMessageBox("No chat partner selected. Redirecting to users list.", 'warning', true);
-                    setTimeout(() => {
-                        window.location.href = '/find_friends.html';
-                    }, 2000);
+                    // If no partnerId, open the friend selection modal by default
+                    // This replaces the redirection logic
+                    openSelectFriendModal();
+                    // Update initial display for no partner selected
+                    partnerDisplayName.textContent = "No Partner Selected";
+                    partnerProfilePic.style.display = 'none';
+                    partnerAvatarIcon.style.display = 'block';
+                    messagesDisplay.innerHTML = ''; // Clear any loading messages
+                    if (loadingMessages) loadingMessages.style.display = 'none';
+                    if (noMessages) {
+                        noMessages.style.display = 'block';
+                        noMessages.textContent = "Please select a friend to start chatting.";
+                    }
                 }
                 fetchNotificationCount(user.uid);
 
@@ -2835,6 +3133,15 @@
                         soundToggleIcon.classList.add('fa-volume-mute');
                         showMessageBox("Notification sounds OFF", 'info');
                     }
+                });
+            }
+
+            // Select Friend Modal event listeners
+            if (selectFriendBtn) selectFriendBtn.addEventListener('click', openSelectFriendModal);
+            if (closeFriendModalBtn) closeFriendModalBtn.addEventListener('click', closeSelectFriendModal);
+            if (friendSearchInput) {
+                friendSearchInput.addEventListener('input', (e) => {
+                    renderSelectableFriends(e.target.value);
                 });
             }
         });
