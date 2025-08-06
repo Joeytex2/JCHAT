@@ -17,8 +17,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Tone.js for audio notifications -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Tone.js for audio notifications (not directly used here, but kept for consistency) -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script> -->
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -26,7 +26,7 @@
             box-sizing: border-box;
         }
 
-        /* Global CSS Variables for easy theme switching (from Home.html / privacy_settings.html) */
+        /* Global CSS Variables for easy theme switching */
         :root {
             --pink: #ff2e92;
             --blue: #00d5ff;
@@ -38,15 +38,15 @@
             /* These variables will be overridden by theme classes */
             --white: #fff;
             --text-light: rgba(255, 255, 255, .7);
-            --background-main: rgba(10, 10, 10, .75);
-            --background-gradient-1: #00d5ff;
-            --background-gradient-2: #ff2e92;
-            --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
-            --header-background: linear-gradient(135deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .75));
-            --border-light: rgba(255, 255, 255, .05);
-            --input-background: rgba(255, 255, 255, 0.05);
+            --background-main: linear-gradient(135deg, #1a1a2e, #3a1a3e); /* Deeper, richer gradient */
+            --background-gradient-1: #00d5ff; /* Blue */
+            --background-gradient-2: #ff2e92; /* Pink */
+            --card-background: rgba(25, 25, 40, 0.7);
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75));
+            --border-light: rgba(255, 255, 255, .08); /* Slightly more visible border */
+            --input-background: rgba(255, 255, 255, 0.08);
             --button-background: linear-gradient(90deg, var(--blue), var(--pink));
-            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+            --button-shadow: 0 4px 15px var(--blue), 0 44px 15px var(--pink);
 
             /* New variables for consistent theming */
             --background-color-primary: #1a1a2e;
@@ -54,36 +54,39 @@
             --header-background-color: #2a2a4a;
             --footer-background-color: #2a2a4a;
             --content-background-color: #20203a;
-            --card-background-color: #2a2a4a;
+            --card-background-color: rgba(25, 25, 40, 0.7); /* Consistent with card-background */
             --text-color-primary: #e0e0e0;
             --text-color-secondary: #bbbbbb;
-            --notification-badge-color: #ff2e92;
-            --status-online: #4CAF50;
-            --status-offline: #6c757d;
+            --notification-badge-color: var(--pink); /* Explicitly pink */
+            --status-online: #4CAF50; /* Green for online */
+            --status-offline: #6c757d; /* Gray for offline */
             --status-away: #FFC107;
-            --delete-button-color: #dc3545;
+            --delete-button-color: #dc3545; /* Standard red for danger */
             --warning-color: #ffc107;
-            --accent-color: #00d5ff; /* A bright cyan */
+            --accent-color: var(--blue); /* Explicitly blue */
             --accent-color-dark: #00aaff;
             --border-color: #3a3a5a;
+
+            /* New Green for Play Button (if applicable, though not directly on this page) */
+            --play-button-green: linear-gradient(90deg, #4CAF50, #8BC34A);
+            --play-button-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
         }
 
         /* --- Theme Definitions (Light and Dark Mode) --- */
         /* Light Mode */
         body.theme-light-mode {
-            --background-main: #f0f2f5; /* Light gray background */
-            --background-gradient-1: #e0e2e5; /* Subtle lighter gradient */
-            --background-gradient-2: #d0d2d5; /* Subtle darker gradient */
-            --white: #333; /* Dark text for readability */
-            --text-light: #666; /* Lighter dark text */
-            --card-background: rgba(255, 255, 255, 0.95); /* Near white cards */
-            --header-background: rgba(255, 255, 255, 0.98); /* Near white header */
-            --border-light: rgba(0, 0, 0, 0.1); /* Light borders */
-            --input-background: rgba(0, 0, 0, 0.05); /* Light input background */
-            --button-background: linear-gradient(90deg, #6dd5ed, #2193b0); /* Blue gradient */
+            --background-main: #f0f2f5;
+            --background-gradient-1: #e0e2e5;
+            --background-gradient-2: #d0d2d5;
+            --white: #333;
+            --text-light: #666;
+            --card-background: rgba(255, 255, 255, 0.95);
+            --header-background: rgba(255, 255, 255, 0.98);
+            --border-light: rgba(0, 0, 0, 0.1);
+            --input-background: rgba(0, 0, 0, 0.05);
+            --button-background: linear-gradient(90deg, #6dd5ed, #2193b0);
             --button-shadow: 0 4px 15px rgba(109, 213, 237, 0.4), 0 4px 15px rgba(33, 147, 176, 0.4);
 
-            /* New variables override for light mode */
             --background-color-primary: #f0f2f5;
             --background-color-secondary: #e0e2e5;
             --header-background-color: #ffffff;
@@ -106,44 +109,45 @@
             --status-away: #ffc107;
             --delete-button-color: #dc3545;
             --warning-color: #ffc107;
+
+            --play-button-green: linear-gradient(90deg, #28a745, #218838);
+            --play-button-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
         }
 
-        /* Dark Mode */
+        /* Dark Mode (Default and enhanced for pink/blue) */
         body.theme-dark-mode {
-            --background-main: #1a1a2e; /* Deep purple-dark blue */
-            --background-gradient-1: #16213e; /* Slightly lighter deep blue */
-            --background-gradient-2: #0f3460; /* Darker blue */
-            --white: #e0e0e0; /* Off-white text */
-            --text-light: #a0a0a0; /* Grayish text */
-            --card-background: rgba(25, 25, 40, 0.7); /* Darker, less transparent cards */
-            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75)); /* Original dark header */
-            --border-light: rgba(255, 255, 255, 0.08); /* Subtle white borders */
+            --background-main: linear-gradient(135deg, #1a1a2e, #3a1a3e); /* Deep purple-dark blue to a more purplish dark blue */
+            --background-gradient-1: #00d5ff; /* Blue */
+            --background-gradient-2: #ff2e92; /* Pink */
+            --white: #e0e0e0;
+            --text-light: #a0a0a0;
+            --card-background: rgba(25, 25, 40, 0.7);
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75));
+            --border-light: rgba(255, 255, 255, 0.08);
             --input-background: rgba(255, 255, 255, 0.08);
-            --button-background: linear-gradient(90deg, #e94560, #ba2f49); /* Reddish gradient */
-            --button-shadow: 0 4px 15px rgba(233, 69, 96, 0.4), 0 4px 15px rgba(186, 47, 73, 0.4);
+            --button-background: linear-gradient(90deg, var(--blue), var(--pink)); /* Blue to Pink button */
+            --button-shadow: 0 4px 15px rgba(0, 213, 255, 0.4), 0 4px 15px rgba(255, 46, 146, 0.4); /* Blue/Pink shadow */
 
-            /* New variables override for dark mode */
             --background-color-primary: #121212;
             --background-color-secondary: #1e1e1e;
             --header-background-color: #2c2c2c;
             --footer-background-color: #2c2c2c;
             --content-background-color: #242424;
-            --card-background-color: #2c2c2c;
+            --card-background-color: rgba(25, 25, 40, 0.7);
             --text-color-primary: #ffffff;
             --text-color-secondary: #bbbbbb;
-            --accent-color: #bb86fc;
-            --accent-color-dark: #9a67ea;
+            --accent-color: var(--blue); /* Blue accent */
+            --accent-color-dark: #00aaff;
             --border-color: #444444;
             --input-background-color: #383838;
-            --button-background: #383838;
-            --button-hover-background: #505050;
-            --active-item-background: rgba(187, 134, 252, 0.2);
-            --notification-badge-color: #cf6679;
+            --button-hover-background: rgba(0, 213, 255, 0.2); /* Subtle blue hover */
+            --active-item-background: rgba(0, 213, 255, 0.15); /* Slightly more pronounced blue for active items */
+            --notification-badge-color: var(--pink); /* Pink badge */
             --delete-button-color: #f44336;
             --warning-color: #ffeb3b;
         }
 
-        /* Glass Mode specific variables (from original Profile.html snippet, adapted) */
+        /* Glass Mode specific variables */
         body.theme-glass-mode {
             --background-main: rgba(10, 10, 10, 0.75);
             background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important;
@@ -178,7 +182,7 @@
             --active-item-background: rgba(0, 213, 255, 0.1);
         }
 
-        /* NEW: Sunset Theme (from original Profile.html snippet, adapted) */
+        /* Sunset Theme */
         body.theme-sunset-mode {
             background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
             --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
@@ -222,7 +226,7 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden; /* Prevent horizontal scroll */
-            padding-bottom: 120px; /* Space for nav bar (60px) + toggle button (60px) */
+            padding-bottom: 40px; /* Adjusted padding as bottom nav is removed */
             background-color: var(--background-main);
             background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
                               radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
@@ -230,7 +234,7 @@
             transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
         }
 
-        /* Header Styling (from Home.html) */
+        /* Header Styling */
         header {
             background: var(--header-background);
             border-bottom: 1px solid var(--border-light);
@@ -266,53 +270,19 @@
             text-decoration: none;
         }
 
-        /* Header Navigation (from Home.html) */
+        /* Header Navigation (Removed as per user request) */
         header nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            gap: 25px;
+            display: none; /* Explicitly hide navigation */
         }
 
-        header nav ul li a {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            padding: 5px 0;
-            position: relative;
-            transition: color var(--transition);
-        }
-
-        header nav ul li a::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 0;
-            height: 3px;
-            background: var(--blue);
-            border-radius: 2px;
-            transition: width var(--transition);
-        }
-
-        header nav ul li a:hover {
-            color: var(--blue);
-        }
-
-        header nav ul li a:hover::after {
-            width: 100%;
-        }
-
-        /* User Profile Header Styling (from Home.html) */
+        /* User Profile Header Styling */
         .user-profile-header {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* Notification Icon Styling (from Home.html) */
+        /* Notification Icon Styling */
         .notification-icon-wrapper {
             position: relative;
             margin-right: 15px; /* Space between notification and profile */
@@ -328,8 +298,8 @@
 
         .notification-icon-wrapper i {
             font-size: 1.5rem; /* Adjust size as needed */
-            /* Apply gradient to icons */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            /* Apply new gradient to icons */
+            background-image: linear-gradient(90deg, #8A2BE2, #00FFFF); /* Blue Violet to Aqua */
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -413,7 +383,7 @@
             color: transparent; /* Fallback */
         }
 
-        /* NEW: Admin Icon Styling */
+        /* Admin Icon Styling */
         #adminIconLink {
             display: none; /* Hidden by default */
             margin-right: 15px; /* Space it out from other icons */
@@ -431,35 +401,7 @@
             transform: scale(1.1);
         }
 
-        /* Logout Button Styling (from Home.html) */
-        #logoutButton {
-            background: linear-gradient(90deg, var(--pink), var(--blue));
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
-            opacity: 0.8;
-            margin-left: 10px;
-        }
-
-        #logoutButton:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px var(--pink), 0 44px 15px var(--blue);
-            opacity: 1;
-        }
-
-        #logoutButton i {
-            color: var(--white);
-            font-size: 0.9rem;
-        }
-
-        /* Main Content Area (from Home.html) */
+        /* Main Content Area */
         main {
             flex-grow: 1;
             padding: 40px 0;
@@ -482,188 +424,184 @@
             align-items: center;
         }
 
-        /* General Section Styling */
-        .section-card {
+        .section-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .card {
             background: var(--card-background);
             border: 1px solid var(--glass-blue);
             backdrop-filter: blur(10px) saturate(180%);
             border-radius: var(--radius);
             box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
-            padding: 2rem;
-            width: 90%;
-            max-width: 700px; /* Adjusted for admin section */
-            margin: 20px auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5rem;
-            text-align: center;
-        }
-
-        .section-card h1, .section-card h2 {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 800;
-            background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            margin-bottom: 1.5rem;
-        }
-        .section-card h1 { font-size: 2.5rem; }
-        .section-card h2 { font-size: 1.8rem; margin-bottom: 1rem; }
-
-        /* Notification Specific Styles */
-        .notification-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .notification-controls button {
-            padding: 10px 15px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            background: var(--button-background);
-            color: var(--white);
-            box-shadow: var(--button-shadow);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .notification-controls button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px var(--blue), 0 6px 15px var(--pink);
-        }
-
-        .notification-controls button.secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--white);
-            border: 1px solid var(--border-light);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .notification-controls button.secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-
-        .notification-list {
+            padding: 25px;
             width: 100%;
-            max-height: 600px;
-            overflow-y: auto;
-            background: var(--glass-black);
-            border: 1px solid var(--blue);
-            border-radius: 10px;
-            padding: 15px;
+            max-width: 600px;
+            margin-bottom: 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-        }
-
-        .notification-item {
-            background: var(--glass-blue);
-            border: 1px solid var(--blue);
-            border-radius: 10px;
-            padding: 15px;
-            display: flex;
-            align-items: flex-start;
             gap: 15px;
-            position: relative;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
-        .notification-item.unread {
-            background-color: rgba(0, 213, 255, 0.25); /* Slightly more prominent for unread */
-            border-color: var(--pink); /* Highlight unread with pink border */
-        }
-
-        .notification-item.unread::before {
-            content: '';
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 8px;
-            height: 8px;
-            background-color: var(--pink);
-            border-radius: 50%;
-        }
-
-        .notification-icon {
-            font-size: 1.8rem;
-            color: var(--blue); /* Icon color */
-            flex-shrink: 0;
-            margin-top: 5px; /* Align with text better */
-        }
-
-        .notification-content {
-            flex-grow: 1;
+        .card-header {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--white);
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
             text-align: left;
         }
 
-        .notification-content p {
-            margin: 0;
-            font-size: 1rem;
-            color: var(--white);
-            line-height: 1.4;
-        }
-
-        .notification-content .timestamp {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            margin-top: 5px;
-            display: block;
-        }
-
-        .notification-actions {
+        .notification-list {
             display: flex;
-            flex-direction: column; /* Stack buttons vertically on smaller screens */
-            gap: 5px;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: center;
+            background-color: var(--input-background);
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            padding: 10px 15px;
+            gap: 15px;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            /* cursor: pointer; /* Indicate clickable, but only for types that open modal */
+        }
+
+        .notification-item.clickable {
+            cursor: pointer;
+        }
+
+        .notification-item.unread {
+            background-color: rgba(0, 213, 255, 0.15); /* Highlight unread notifications with blue tint */
+            border-left: 5px solid var(--blue); /* Stronger blue border */
+        }
+
+        .notification-item.clickable:hover {
+            background-color: rgba(255, 255, 255, 0.15); /* Lighter hover background */
+            transform: translateY(-3px); /* Lift effect */
+            box-shadow: 0 6px 20px rgba(0, 213, 255, 0.2), 0 6px 20px rgba(255, 46, 146, 0.1); /* Subtle blue/pink glow */
+        }
+
+        .notification-item .notification-icon {
+            font-size: 1.8rem;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink)); /* Pink/Blue gradient for icons */
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
             flex-shrink: 0;
         }
 
-        .notification-actions button {
-            padding: 5px 10px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.8rem;
+        .notification-item.unread .notification-icon {
+            background-image: linear-gradient(90deg, var(--pink), var(--blue)); /* Reverse gradient for unread icons */
+        }
+
+        .notification-item .notification-content {
+            flex-grow: 1;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notification-item .notification-content h4 {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
             font-weight: 600;
-            transition: transform 0.2s ease, opacity 0.2s ease;
-        }
-
-        .notification-actions button.mark-read-btn {
-            background-color: var(--blue);
             color: var(--white);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .notification-actions button.mark-read-btn:hover {
-            transform: scale(1.05);
-            opacity: 0.9;
+        .notification-item .notification-content p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            white-space: normal; /* Allow message to wrap */
+            word-break: break-word;
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between text and status dot */
         }
 
-        .notification-actions button.view-btn {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: var(--white);
-            border: 1px solid var(--border-light);
+        .notification-item .notification-timestamp {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            white-space: nowrap;
+            margin-left: auto; /* Push to the right */
+            flex-shrink: 0;
         }
 
-        .notification-actions button.view-btn:hover {
-            transform: scale(1.05);
-            background-color: rgba(255, 255, 255, 0.2);
+        /* Online Status Dot */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Small border for visibility */
+        }
+        .status-dot.online {
+            background-color: var(--status-online); /* Green */
+            box-shadow: 0 0 5px var(--status-online); /* Subtle glow */
+        }
+        .status-dot.offline {
+            background-color: var(--status-offline); /* Gray */
         }
 
-        .no-notifications-message {
+
+        .notification-item .friend-request-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        .notification-item .friend-request-actions .action-button {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            gap: 5px;
+        }
+        .notification-item .friend-request-actions .action-button.accept {
+            background: linear-gradient(90deg, #4CAF50, #8BC34A); /* Green for accept */
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+        .notification-item .friend-request-actions .action-button.accept:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        .notification-item .friend-request-actions .action-button.reject {
+            background: var(--delete-button-color); /* Red for reject */
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+        .notification-item .friend-request-actions .action-button.reject:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+
+
+        .empty-state {
             text-align: center;
             color: var(--text-light);
+            font-style: italic;
             padding: 20px;
         }
 
-        /* Custom Message Box Styles (reused from Home.html) */
+        /* Custom Message Box Styles */
         #messageBox {
             position: fixed;
             top: 50%; /* Center vertically */
@@ -727,7 +665,7 @@
         }
         #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
 
-        /* Loader styles for buttons (from Home.html) */
+        /* Loader styles for buttons */
         .button-loader {
             border: 3px solid rgba(255, 255, 255, 0.3);
             border-top: 3px solid var(--white);
@@ -803,13 +741,13 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .modal-buttons button.confirm-btn {
-            background: linear-gradient(90deg, var(--pink), var(--blue));
+            background: linear-gradient(90deg, var(--pink), var(--blue)); /* Pink to Blue */
             color: var(--white);
-            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+            box-shadow: 0 4px 10px rgba(255, 46, 146, 0.3); /* Pink shadow */
         }
         .modal-buttons button.confirm-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+            box-shadow: 0 6px 15px rgba(255, 46, 146, 0.4);
         }
         .modal-buttons button.cancel-btn {
             background: var(--input-background);
@@ -821,112 +759,144 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* --- Bottom Navigation Bar (reused from Home.html) --- */
-        #bottomNavBar {
-            position: fixed;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: var(--header-background);
-            border-top: 1px solid var(--border-light);
-            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 0 10px;
-            z-index: 50;
-            bottom: 60px; /* Positioned above the toggle button */
-            transition: bottom 0.3s ease-out; /* Smooth slide transition */
-        }
-
-        #bottomNavBar.nav-bar-hidden-full {
-            bottom: -60px; /* Move it completely off-screen below */
-        }
-
-        .nav-icon-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-light);
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: color 0.2s ease;
-            flex: 1;
-            max-width: 80px;
-        }
-
-        .nav-icon-item:hover {
-            color: var(--white);
-        }
-
-        .nav-icon-circle {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--blue), var(--pink));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .nav-icon-item:hover .nav-icon-circle {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px var(--blue), 0 4px 12px var(--pink);
-        }
-
-        .nav-icon-circle i {
-            color: var(--white);
-            font-size: 1.3rem;
-            transition: transform 0.2s ease;
-        }
-
-        .nav-icon-item.active .nav-icon-circle {
-            background: linear-gradient(45deg, var(--pink), var(--blue));
-            box-shadow: 0 4px 12px var(--pink), 0 44px 12px var(--blue);
-        }
-        .nav-icon-item.active {
-            color: var(--white);
-        }
-
-        /* New Toggle Button (reused from Home.html) */
-        #navToggleBtn {
-            position: fixed;
-            bottom: 0px; /* Position at the very bottom */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px; /* Slightly larger button */
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--pink), var(--blue)); /* Pink to blue gradient */
+        /* Action buttons for Mark All Read / Delete All */
+        .action-button {
+            background: linear-gradient(90deg, var(--blue), var(--pink));
             color: var(--white);
             border: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem; /* Larger icon */
+            gap: 8px;
+            width: fit-content; /* Adjust width to content */
+            margin: 0 auto; /* Center buttons */
+        }
+
+        .action-button.danger {
+            background: var(--delete-button-color); /* Red for delete */
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+        }
+
+        .action-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+
+        .action-button.danger:hover:not(:disabled) {
+            box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        /* Notification Options Modal */
+        #notificationOptionsModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1002; /* Higher than other modals */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        #notificationOptionsModal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #notificationOptionsModal .modal-content {
+            background: var(--card-background);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 30px var(--blue), 0 0 30px var(--pink); /* Glowing effect */
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            display: flex; /* Use flex for internal layout */
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #notificationOptionsModal.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        #notificationOptionsModal .modal-content h3 {
+            color: var(--white);
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.6rem;
+        }
+
+        #notificationOptionsModal .modal-content p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            word-break: break-word;
+        }
+
+        #notificationOptionsModal .option-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #notificationOptionsModal .option-buttons button {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
             cursor: pointer;
-            z-index: 60; /* Higher than nav bar */
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+            border: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            color: var(--white);
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        #navToggleBtn:hover {
-            transform: translateX(-50%) scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(45deg, var(--blue), var(--pink)); /* Reverse gradient on hover */
+        #notificationOptionsModal .option-buttons button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
         }
 
-        #navToggleBtn i {
-            transition: transform 0.3s ease; /* Smooth icon rotation */
+        #notificationOptionsModal .option-buttons button.secondary-option {
+            background: var(--input-background);
+            color: var(--text-light);
+            border: 1px solid var(--border-light);
+            box-shadow: none;
         }
 
-        #navToggleBtn.rotated i {
-            transform: rotate(180deg); /* Rotate icon when nav is hidden */
+        #notificationOptionsModal .option-buttons button.secondary-option:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
+
+        #notificationOptionsModal .option-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
 
         /* Responsive Adjustments */
         @media (max-width: 600px) {
@@ -935,12 +905,6 @@
             }
             .logo {
                 font-size: 1.6rem;
-            }
-            header nav ul {
-                gap: 15px;
-            }
-            header nav ul li a {
-                font-size: 1.1rem;
             }
             .user-profile-header #profileLink {
                 padding: 5px;
@@ -955,73 +919,48 @@
             .user-profile-header i {
                 font-size: 25px;
             }
-            #logoutButton {
-                width: 25px;
-                height: 25px;
-                font-size: 0.8rem;
-                margin-left: 8px;
+            .section-title {
+                font-size: 1.7rem;
             }
-            #logoutButton i {
-                font-size: 0.8rem;
+            .card {
+                padding: 15px;
+                gap: 10px;
             }
-            .section-card {
-                padding: 1.5rem;
-            }
-            .section-card h1 {
-                font-size: 2rem;
-            }
-            .section-card h2 {
-                font-size: 1.5rem;
+            .card-header {
+                font-size: 1.3rem;
             }
             .notification-item {
-                flex-direction: column;
-                align-items: flex-start;
+                padding: 8px 10px;
                 gap: 10px;
-                padding: 10px;
             }
-            .notification-icon {
+            .notification-item .notification-icon {
                 font-size: 1.5rem;
             }
-            .notification-content p {
-                font-size: 0.9rem;
+            .notification-item .notification-content h4 {
+                font-size: 1rem;
             }
-            .notification-content .timestamp {
-                font-size: 0.75rem;
+            .notification-item .notification-content p {
+                font-size: 0.8rem;
             }
-            .notification-actions {
-                flex-direction: row; /* Keep buttons in a row on small screens */
-                width: 100%;
-                justify-content: flex-end;
-            }
-            .notification-actions button {
-                font-size: 0.75rem;
-                padding: 6px 10px;
-            }
-            #bottomNavBar {
-                height: 55px;
-                padding: 0 5px;
-                bottom: 55px; /* Adjust for smaller button height on mobile */
-            }
-            #bottomNavBar.nav-bar-hidden-full {
-                bottom: -55px; /* Adjust for smaller button height on mobile */
-            }
-            #navToggleBtn {
-                width: 55px;
-                height: 55px;
-                font-size: 1.5rem;
-            }
-            .nav-icon-circle {
-                width: 40px;
-                height: 40px;
-            }
-            .nav-icon-circle i {
-                font-size: 1.2rem;
-            }
-            .nav-icon-item {
+            .notification-item .notification-timestamp {
                 font-size: 0.7rem;
             }
-            body {
-                padding-bottom: 110px; /* 55px (nav) + 55px (toggle) */
+            .action-button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            #notificationOptionsModal .modal-content {
+                padding: 20px;
+            }
+            #notificationOptionsModal .modal-content h3 {
+                font-size: 1.4rem;
+            }
+            #notificationOptionsModal .modal-content p {
+                font-size: 0.9rem;
+            }
+            #notificationOptionsModal .option-buttons button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -1032,8 +971,13 @@
         <div class="header-content-wrapper">
             <a href="/home.html" class="logo">JCHAT</a>
             <nav>
+                <!-- Navigation links removed as per user request -->
                 <ul>
-                    <!-- Removed Home and Profile links from header navigation -->
+                    <!-- <li><a href="/home.html">Home</a></li> -->
+                    <!-- <li><a href="/chat.html">Chat</a></li> -->
+                    <!-- <li><a href="/friends.html">Friends</a></li> -->
+                    <!-- <li><a href="/games.html">Games</a></li> -->
+                    <!-- <li><a href="/settings.html">Settings</a></li> -->
                 </ul>
             </nav>
             <div class="user-profile-header">
@@ -1048,7 +992,7 @@
                         <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
                     </a>
                 </div>
-                <!-- Removed Logout Button -->
+                <!-- Sound Toggle removed as per user request -->
                 <a href="/profile.html" id="profileLink">
                     <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
                     <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
@@ -1059,32 +1003,31 @@
     </header>
 
     <main>
-        <div class="content-wrapper">
-            <h1>Your Notifications</h1>
+        <h1 class="section-title">Notifications</h1>
 
-            <div class="notification-controls">
-                <button id="markAllReadBtn">
-                    <span class="button-text"><i class="fas fa-check-double"></i> Mark All As Read</span>
-                    <div class="button-loader"></div>
-                </button>
-                <button id="clearAllReadBtn" class="secondary">
-                    <span class="button-text"><i class="fas fa-trash-alt"></i> Clear All Read</span>
-                    <div class="button-loader"></div>
-                </button>
+        <!-- Notifications List Section -->
+        <div class="card">
+            <h3 class="card-header">Your Notifications (<span id="totalNotificationsCount">0</span>)</h3>
+            <div id="notificationsList" class="notification-list">
+                <p class="empty-state" id="notificationsEmptyState">No new notifications.</p>
+                <p class="empty-state" id="notificationsLoading" style="display: none;">Loading notifications...</p>
             </div>
-
-            <div class="notification-list" id="notificationList">
-                <p class="no-notifications-message" id="loadingNotificationsMessage">Loading notifications...</p>
-                <!-- Notifications will be loaded here dynamically by JavaScript -->
-                <p class="no-notifications-message" id="noNotificationsMessage" style="display: none;">No notifications yet.</p>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+                <button id="markAllReadBtn" class="action-button" style="display: none;">
+                    <i class="fas fa-check-double"></i> Mark All As Read
+                </button>
+                <button id="deleteAllNotificationsBtn" class="action-button danger" style="display: none;">
+                    <i class="fas fa-trash-alt"></i> Delete All Notifications
+                </button>
             </div>
         </div>
+
     </main>
 
-    <!-- Custom Message Box (reused from Home.html) -->
+    <!-- Custom Message Box -->
     <div id="messageBox"></div>
 
-    <!-- Custom Confirmation Modal (reused from Home.html) -->
+    <!-- Custom Confirmation Modal -->
     <div id="customConfirmModal" class="modal-overlay">
         <div class="modal-content">
             <h3 id="confirmModalMessage">Are you sure?</h3>
@@ -1095,45 +1038,25 @@
         </div>
     </div>
 
-
-    <!-- Bottom Navigation Bar (reused from Home.html) -->
-    <nav id="bottomNavBar" class="nav-bar-hidden-full">
-        <a href="/home.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-home"></i></div>
-            <span>Home</span>
-        </a>
-        <a href="/chat.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-comment-dots"></i></div>
-            <span>Chat</span>
-        </a>
-        <a href="/find_friends.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-users"></i></div>
-            <span>Users</span>
-        </a>
-        <a href="/friends.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-user-friends"></i></div>
-            <span>Friends</span>
-        </a>
-        <a href="/jcoin_shop.html" class="nav-icon-item">
-            <div class="nav-icon-circle"><i class="fas fa-store"></i></div>
-            <span>Shop</span>
-        </a>
-        <a href="/settings.html" class="nav-icon-item active">
-            <div class="nav-icon-circle"><i class="fas fa-cog"></i></div>
-            <span>Settings</span>
-        </a>
-    </nav>
-
-    <!-- Navigation Toggle Button (reused from Home.html) -->
-    <button id="navToggleBtn" aria-label="Toggle Navigation">
-        <i class="fas fa-chevron-up"></i>
-    </button>
+    <!-- Notification Options Modal -->
+    <div id="notificationOptionsModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="notificationOptionsTitle">Notification Options</h3>
+            <p id="notificationOptionsMessage"></p>
+            <div class="option-buttons">
+                <button id="sendMessageOptionBtn" style="display: none;"><i class="fas fa-comment"></i> Send Message</button>
+                <button id="viewProfileOptionBtn" style="display: none;"><i class="fas fa-user"></i> View Profile</button>
+                <button id="markAsReadOptionBtn" class="secondary-option" style="display: none;"><i class="fas fa-check"></i> Mark As Read</button>
+                <button id="closeNotificationOptionsBtn" class="secondary-option"><i class="fas fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, collection, query, orderBy, onSnapshot, writeBatch, where, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, getDocs, addDoc, serverTimestamp, orderBy, limit, updateDoc, deleteDoc, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1148,7 +1071,7 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Cloudinary Configuration (needed for header profile pic)
+        // Cloudinary Configuration
         const cloudinaryConfig = {
             cloudName: "dxld01rcp", // Your Cloudinary Cloud Name
             uploadPreset: "Storage_preset" // Your Cloudinary Upload Preset
@@ -1163,18 +1086,17 @@
         const headerProfilePic = document.getElementById('headerProfilePic');
         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
         const headerDisplayName = document.getElementById('headerDisplayName');
-        // const logoutButton = document.getElementById('logoutButton'); // Removed logout button
         const notificationCountElement = document.getElementById('notificationCount');
         const messageBox = document.getElementById('messageBox');
-        // const headerNavLinkProfile = document.getElementById('headerNavLinkProfile'); // Removed this variable
         const adminIconLink = document.getElementById('adminIconLink');
-        const profileLink = document.getElementById('profileLink'); // Get the profile link element
+        const profileLink = document.getElementById('profileLink');
 
-        const notificationList = document.getElementById('notificationList');
-        const loadingNotificationsMessage = document.getElementById('loadingNotificationsMessage');
-        const noNotificationsMessage = document.getElementById('noNotificationsMessage');
+        const notificationsList = document.getElementById('notificationsList');
+        const totalNotificationsCount = document.getElementById('totalNotificationsCount');
+        const notificationsEmptyState = document.getElementById('notificationsEmptyState');
+        const notificationsLoading = document.getElementById('notificationsLoading');
         const markAllReadBtn = document.getElementById('markAllReadBtn');
-        const clearAllReadBtn = document.getElementById('clearAllReadBtn');
+        const deleteAllNotificationsBtn = document.getElementById('deleteAllNotificationsBtn'); // New button
 
         // Custom Confirmation Modal elements
         const customConfirmModal = document.getElementById('customConfirmModal');
@@ -1182,49 +1104,29 @@
         const confirmYesBtn = document.getElementById('confirmYesBtn');
         const confirmNoBtn = document.getElementById('confirmNoBtn');
 
+        // Notification Options Modal elements
+        const notificationOptionsModal = document.getElementById('notificationOptionsModal');
+        const notificationOptionsTitle = document.getElementById('notificationOptionsTitle');
+        const notificationOptionsMessage = document.getElementById('notificationOptionsMessage');
+        const sendMessageOptionBtn = document.getElementById('sendMessageOptionBtn');
+        const viewProfileOptionBtn = document.getElementById('viewProfileOptionBtn');
+        const markAsReadOptionBtn = document.getElementById('markAsReadOptionBtn');
+        const closeNotificationOptionsBtn = document.getElementById('closeNotificationOptionsBtn');
+
         // --- Global State ---
         let isAuthReady = false; // Flag to indicate if auth state has been checked
         let currentUser = null; // The currently authenticated user (Firebase Auth object)
         let currentUserProfileData = null; // Store the current user's profile data
-        let unsubscribeNotifications = null; // To store unsubscribe function for notifications
+        let unsubscribeNotifications = null; // Listener for notifications
 
-        // --- Tone.js Synths for Notification Sounds ---
-        const successSynth = new Tone.Synth().toDestination();
-        const errorSynth = new Tone.Synth().toDestination();
-        const infoSynth = new Tone.Synth().toDestination();
-
-        // Set up basic sounds
-        successSynth.oscillator.type = "sine";
-        successSynth.envelope.attack = 0.01;
-        successSynth.envelope.decay = 0.2;
-        successSynth.envelope.sustain = 0.0;
-        successSynth.envelope.release = 0.5;
-
-        errorSynth.oscillator.type = "sawtooth";
-        errorSynth.envelope.attack = 0.01;
-        errorSynth.envelope.decay = 0.3;
-        errorSynth.envelope.sustain = 0.0;
-        errorSynth.envelope.release = 0.5;
-
-        infoSynth.oscillator.type = "triangle";
-        infoSynth.envelope.attack = 0.01;
-        infoSynth.envelope.decay = 0.1;
-        infoSynth.envelope.sustain = 0.0;
-        infoSynth.envelope.release = 0.3;
+        let currentNotificationData = null; // To store the notification data for the options modal
 
         /**
-         * Plays a notification sound.
-         * @param {string} type - 'success', 'error', or 'info'.
+         * Plays a notification sound. (Functionality removed, but kept as a placeholder if needed elsewhere)
+         * @param {string} type - 'success', 'error', 'info'.
          */
         function playNotificationSound(type) {
-            Tone.start(); // Ensure audio context is started
-            if (type === 'success') {
-                successSynth.triggerAttackRelease("C5", "8n"); // C5 note, 8th note duration
-            } else if (type === 'error') {
-                errorSynth.triggerAttackRelease("C3", "8n"); // C3 note, 8th note duration
-            } else if (type === 'info') {
-                infoSynth.triggerAttackRelease("E4", "16n"); // E4 note, 16th note duration
-            }
+            console.log(`JCHAT_DEBUG: Sound notification for type: ${type} (functionality removed)`);
         }
 
         /**
@@ -1289,12 +1191,13 @@
          */
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
+            // Find the loader and text elements within the button
             const loader = buttonElement.querySelector('.button-loader');
             const text = buttonElement.querySelector('.button-text');
 
             if (isLoading) {
                 buttonElement.disabled = true;
-                buttonElement.classList.add('loading'); // Add loading class for general styling
+                buttonElement.classList.add('loading');
                 if (loader) loader.classList.add('active');
                 if (text) text.style.display = 'none';
             } else {
@@ -1363,7 +1266,7 @@
         /**
          * Displays the profile picture or a default icon.
          * @param {HTMLElement} imgElement - The <img> element to update.
-         * @param {HTMLElement} iconElement - The <i> element to display if no image.
+         * @param {HTMLElement} iconElement - The <i> or <div> element to display if no image.
          * @param {string|null} profilePicId - The Cloudinary public ID or URL, or null.
          * @param {string} usernameInitial - Initial for placeholder.
          * @param {string} transformations - Cloudinary transformations.
@@ -1416,7 +1319,7 @@
                         friendsCount: 0,
                         followersCount: 0,
                         followingCount: 0,
-                        createdAt: new Date(), // Use current date for new profiles
+                        createdAt: new Date(),
                         updatedAt: new Date(),
                         inspirationType: "motivational",
                         visibility: {
@@ -1428,12 +1331,12 @@
                         gas: 0,
                         level: 1,
                         currentXp: 0,
-                        xpToNextLevel: 500, // Default initial XP to next level
+                        xpToNextLevel: 500,
                         walletUnlocked: false,
                         lastLoginBonusClaimed: null,
                         isAdmin: false
                     };
-                    await setDoc(privateProfileDocRef, profileData); // Create the profile if it doesn't exist
+                    await setDoc(privateProfileDocRef, profileData);
 
                     // Also create/update public profile
                     const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
@@ -1449,7 +1352,7 @@
                     }, { merge: true });
                 }
 
-                currentUserProfileData = profileData; // Store profile data globally
+                currentUserProfileData = profileData;
                 console.log("JCHAT_DEBUG: currentUserProfileData set:", currentUserProfileData);
 
                 // Update header UI
@@ -1462,10 +1365,9 @@
                     profileLink.href = `/profile.html?userId=${user.uid}`;
                 }
 
-
                 // Show Admin Icon only if the current user is the ADMIN_UID
-                const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2'; // Define ADMIN_UID here or import it
-                if (adminIconLink) { // Null check for adminIconLink
+                const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2';
+                if (adminIconLink) {
                     if (user.uid === ADMIN_UID) {
                         adminIconLink.style.display = 'block';
                     } else {
@@ -1489,323 +1391,458 @@
         async function fetchNotificationCount(userId) {
             try {
                 const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
-                const q = query(notificationsCollectionRef, where("read", "==", false));
-                const querySnapshot = await getDocs(q);
-                const unreadCount = querySnapshot.size;
+                const q = query(notificationsCollectionRef, orderBy("timestamp", "desc")); // Order by timestamp
+                const unsubscribe = onSnapshot(q, (snapshot) => {
+                    const unreadCount = snapshot.docs.filter(doc => !doc.data().read).length;
 
-                if (notificationCountElement) { // Null check
-                    if (unreadCount > 0) {
-                        notificationCountElement.textContent = unreadCount;
-                        notificationCountElement.style.display = 'flex';
-                    } else {
-                        notificationCountElement.style.display = 'none';
-                    }
-                }
-            } catch (error) {
-                console.error("JCHAT_ERROR: Error fetching notification count:", error);
-                if (notificationCountElement) notificationCountElement.style.display = 'none'; // Null check
-            }
-        }
-
-        /**
-         * Handles user logout.
-         */
-        async function handleLogout() {
-            if (!isAuthReady) return;
-            try {
-                await signOut(auth);
-                showMessageBox("Logged out successfully! 👋", 'success');
-                playNotificationSound('success');
-                setTimeout(() => {
-                    window.location.href = '/login.html';
-                }, 1000);
-            } catch (error) {
-                console.error("Error logging out:", error);
-                showMessageBox("Failed to log out. Please try again.", 'error');
-                playNotificationSound('error');
-            }
-        }
-
-        // --- Notification Page Specific Functions ---
-
-        /**
-         * Fetches and displays notifications for the current user in real-time.
-         */
-        function fetchAndDisplayNotifications() {
-            if (!currentUser) {
-                console.log("JCHAT_DEBUG: No user logged in, cannot fetch notifications.");
-                if (loadingNotificationsMessage) loadingNotificationsMessage.style.display = 'none';
-                if (noNotificationsMessage) {
-                    noNotificationsMessage.style.display = 'block';
-                    noNotificationsMessage.textContent = "Please log in to view your notifications.";
-                }
-                if (markAllReadBtn) markAllReadBtn.disabled = true;
-                if (clearAllReadBtn) clearAllReadBtn.disabled = true;
-                return;
-            }
-
-            console.log("JCHAT_DEBUG: Fetching notifications for user:", currentUser.uid);
-            if (notificationList) notificationList.innerHTML = ''; // Clear current list
-            if (loadingNotificationsMessage) loadingNotificationsMessage.style.display = 'block';
-            if (noNotificationsMessage) noNotificationsMessage.style.display = 'none';
-            if (markAllReadBtn) markAllReadBtn.disabled = true;
-            if (clearAllReadBtn) clearAllReadBtn.disabled = true;
-
-
-            const notificationsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "notifications");
-            const q = query(notificationsCollectionRef, orderBy("timestamp", "desc"));
-
-            if (unsubscribeNotifications) unsubscribeNotifications(); // Unsubscribe previous listener
-
-            unsubscribeNotifications = onSnapshot(q, (snapshot) => {
-                console.log("JCHAT_DEBUG: Notifications snapshot received. Size:", snapshot.size);
-                if (notificationList) notificationList.innerHTML = ''; // Clear current list
-                if (loadingNotificationsMessage) loadingNotificationsMessage.style.display = 'none';
-
-                if (snapshot.empty) {
-                    if (noNotificationsMessage) noNotificationsMessage.style.display = 'block';
-                    if (markAllReadBtn) markAllReadBtn.disabled = true;
-                    if (clearAllReadBtn) clearAllReadBtn.disabled = true;
-                } else {
-                    if (noNotificationsMessage) noNotificationsMessage.style.display = 'none';
-                    let hasUnread = false;
-                    let hasRead = false;
-
-                    snapshot.docs.forEach(docSnap => {
-                        const notification = docSnap.data();
-                        const notificationId = docSnap.id;
-                        const notificationItem = createNotificationItem(notificationId, notification);
-                        if (notificationList) notificationList.appendChild(notificationItem);
-                        
-                        if (!notification.read) {
-                            hasUnread = true;
+                    if (notificationCountElement) {
+                        if (unreadCount > 0) {
+                            notificationCountElement.textContent = unreadCount;
+                            notificationCountElement.style.display = 'flex';
                         } else {
-                            hasRead = true;
+                            notificationCountElement.style.display = 'none';
                         }
-                    });
-
-                    if (markAllReadBtn) markAllReadBtn.disabled = !hasUnread;
-                    if (clearAllReadBtn) clearAllReadBtn.disabled = !hasRead;
-                }
-                // Update header badge after rendering notifications
-                fetchNotificationCount(currentUser.uid);
-            }, (error) => {
-                console.error("JCHAT_ERROR: Error fetching notifications:", error);
-                showMessageBox(`Error loading notifications: ${error.message}`, 'error');
-                playNotificationSound('error');
-                if (loadingNotificationsMessage) loadingNotificationsMessage.style.display = 'none';
-                if (noNotificationsMessage) {
-                    noNotificationsMessage.style.display = 'block';
-                    noNotificationsMessage.textContent = "Failed to load notifications. Please try again.";
-                }
-                if (markAllReadBtn) markAllReadBtn.disabled = true;
-                if (clearAllReadBtn) clearAllReadBtn.disabled = true;
-            });
-        }
-
-        /**
-         * Creates an HTML element for a single notification item.
-         * @param {string} notificationId - The ID of the notification document.
-         * @param {Object} notificationData - The data of the notification.
-         * @returns {HTMLElement} The created notification item div.
-         */
-        function createNotificationItem(notificationId, notificationData) {
-            const item = document.createElement('div');
-            item.classList.add('notification-item');
-            if (!notificationData.read) {
-                item.classList.add('unread');
-            }
-
-            let iconClass = 'fas fa-bell'; // Default icon
-            let message = notificationData.message || 'New notification';
-            let linkHref = '#'; // Default link
-
-            switch (notificationData.type) {
-                case 'friend_request':
-                    iconClass = 'fas fa-user-plus';
-                    linkHref = `/profile.html?userId=${notificationData.senderId}`; // Link to sender's profile
-                    break;
-                case 'friend_accepted':
-                    iconClass = 'fas fa-user-friends';
-                    linkHref = `/profile.html?userId=${notificationData.senderId}`; // Link to accepted friend's profile
-                    break;
-                case 'new_message':
-                    iconClass = 'fas fa-comment-dots';
-                    linkHref = `/chat.html?userId=${notificationData.senderId}`; // Link to chat with sender
-                    break;
-                case 'group_invite':
-                    iconClass = 'fas fa-users';
-                    linkHref = `/group_chat.html?groupId=${notificationData.groupId}`; // Link to group chat
-                    break;
-                case 'jcoin_credit':
-                    iconClass = 'fas fa-coins';
-                    linkHref = `/wallet.html`; // Link to wallet
-                    break;
-                case 'jcoin_request_status':
-                    iconClass = 'fas fa-receipt';
-                    linkHref = `/wallet.html`; // Link to wallet
-                    break;
-                case 'activity_reward':
-                    iconClass = 'fas fa-star';
-                    linkHref = `/profile.html`; // Link to profile (where rewards are claimed)
-                    break;
-                case 'admin_message':
-                    iconClass = 'fas fa-user-cog';
-                    break;
-                // Add more cases for other notification types
-            }
-
-            const timestamp = notificationData.timestamp && notificationData.timestamp.toDate ? new Date(notificationData.timestamp.toDate()).toLocaleString() : 'N/A';
-
-            item.innerHTML = `
-                <i class="notification-icon ${iconClass}"></i>
-                <div class="notification-content">
-                    <p>${message}</p>
-                    <span class="timestamp">${timestamp}</span>
-                </div>
-                <div class="notification-actions">
-                    ${!notificationData.read ? `<button class="mark-read-btn" data-id="${notificationId}">Mark as Read</button>` : ''}
-                    <button class="view-btn" data-link="${linkHref}">View</button>
-                </div>
-            `;
-
-            // Attach event listeners
-            const markReadBtn = item.querySelector('.mark-read-btn');
-            if (markReadBtn) {
-                markReadBtn.addEventListener('click', () => markNotificationAsRead(notificationId, markReadBtn));
-            }
-
-            const viewBtn = item.querySelector('.view-btn');
-            if (viewBtn) {
-                viewBtn.addEventListener('click', () => {
-                    const link = viewBtn.dataset.link;
-                    if (link && link !== '#') {
-                        window.location.href = link;
-                    } else {
-                        showMessageBox("No specific link for this notification.", 'info');
-                    }
-                    // Also mark as read when viewed
-                    if (!notificationData.read) {
-                        markNotificationAsRead(notificationId, viewBtn); // Pass viewBtn to show loading
                     }
                 });
+                // Return the unsubscribe function to be called on page unload
+                return unsubscribe;
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error fetching notification count:", error);
+                if (notificationCountElement) notificationCountElement.style.display = 'none';
+                return () => {}; // Return a no-op function if an error occurs
             }
-
-            return item;
         }
 
         /**
-         * Marks a single notification as read in Firestore.
-         * @param {string} notificationId - The ID of the notification to mark.
-         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         * Formats a Firestore Timestamp or Date object into a human-readable string.
+         * @param {firebase.firestore.Timestamp | Date} timestamp - The timestamp or Date object.
+         * @returns {string} Formatted date string.
          */
-        async function markNotificationAsRead(notificationId, buttonElement) {
+        function formatTimestamp(timestamp) {
+            let date;
+            if (timestamp && typeof timestamp.toDate === 'function') {
+                date = timestamp.toDate();
+            } else if (timestamp instanceof Date) {
+                date = timestamp;
+            } else {
+                return 'Invalid Date';
+            }
+
+            const now = new Date();
+            const diffSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+            if (diffSeconds < 60) {
+                return `${diffSeconds} seconds ago`;
+            } else if (diffSeconds < 3600) {
+                const minutes = Math.floor(diffSeconds / 60);
+                return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            } else if (diffSeconds < 86400) {
+                const hours = Math.floor(diffSeconds / 3600);
+                return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            } else if (diffSeconds < 604800) { // Less than 7 days
+                const days = Math.floor(diffSeconds / 86400);
+                return `${days} day${days > 1 ? 's' : ''} ago`;
+            } else {
+                // Fallback to a more standard date format for older notifications
+                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            }
+        }
+
+        /**
+         * Fetches a user's online status.
+         * @param {string} userId - The ID of the user whose status to fetch.
+         * @returns {Promise<boolean>} True if online, false if offline or error.
+         */
+        async function fetchUserOnlineStatus(userId) {
+            try {
+                const statusDocRef = doc(db, "artifacts", appId, "public", "data", "user_status", userId);
+                const statusDocSnap = await getDoc(statusDocRef);
+                return statusDocSnap.exists() && statusDocSnap.data().isOnline === true;
+            } catch (error) {
+                console.error(`JCHAT_ERROR: Error fetching online status for ${userId}:`, error);
+                return false; // Assume offline on error
+            }
+        }
+
+        /**
+         * Renders the list of notifications.
+         * @param {Array<Object>} notifications - Array of notification data.
+         */
+        async function renderNotificationsList(notifications) {
+            notificationsList.innerHTML = ''; // Clear previous notifications
+            notificationsLoading.style.display = 'none';
+            totalNotificationsCount.textContent = notifications.length;
+
+            if (notifications.length === 0) {
+                notificationsEmptyState.style.display = 'block';
+                markAllReadBtn.style.display = 'none';
+                deleteAllNotificationsBtn.style.display = 'none';
+                return;
+            } else {
+                notificationsEmptyState.style.display = 'none';
+                markAllReadBtn.style.display = 'block';
+                deleteAllNotificationsBtn.style.display = 'block';
+            }
+
+            for (const notification of notifications) {
+                const notificationItem = document.createElement('div');
+                notificationItem.classList.add('notification-item');
+                if (!notification.read) {
+                    notificationItem.classList.add('unread');
+                }
+
+                let iconClass = 'fas fa-info-circle'; // Default icon
+                let senderInfoHtml = '';
+                let isClickableForModal = true; // Default to true for opening options modal
+
+                // Determine sender info and online status
+                if (notification.senderId && notification.senderId !== currentUser.uid) {
+                    const isSenderOnline = await fetchUserOnlineStatus(notification.senderId);
+                    const statusDotClass = isSenderOnline ? 'online' : 'offline';
+                    senderInfoHtml = `From: ${notification.senderUsername || 'Unknown User'} <span class="status-dot ${statusDotClass}"></span>`;
+                } else {
+                    senderInfoHtml = 'System Notification';
+                }
+
+
+                if (notification.type === 'friend_request') {
+                    iconClass = 'fas fa-user-plus';
+                    isClickableForModal = false; // Friend requests have direct actions, not modal on item click
+                    // If already read, disable buttons
+                    const disabledAttr = notification.read ? 'disabled' : '';
+                    actionButtonsHtml = `
+                        <div class="friend-request-actions">
+                            <button class="action-button accept" data-notification-id="${notification.id}" data-sender-id="${notification.senderId}" data-sender-username="${notification.senderUsername}" ${disabledAttr}>
+                                <i class="fas fa-check"></i> Accept
+                            </button>
+                            <button class="action-button reject" data-notification-id="${notification.id}" data-sender-id="${notification.senderId}" data-sender-username="${notification.senderUsername}" ${disabledAttr}>
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </div>
+                    `;
+                } else if (notification.type === 'friend_accepted') {
+                    iconClass = 'fas fa-user-check';
+                } else if (notification.type === 'friend_rejected' || notification.type === 'friend_removed') {
+                    iconClass = 'fas fa-user-times';
+                } else if (notification.type === 'message') {
+                    iconClass = 'fas fa-comment-dots';
+                } else if (notification.type === 'system') {
+                    iconClass = 'fas fa-cogs';
+                } else if (notification.type === 'coin_reward') {
+                    iconClass = 'fas fa-coins';
+                } else if (notification.type === 'level_up') {
+                    iconClass = 'fas fa-arrow-alt-circle-up';
+                }
+
+                const timestampText = formatTimestamp(notification.timestamp);
+
+                notificationItem.innerHTML = `
+                    <i class="notification-icon ${iconClass}"></i>
+                    <div class="notification-content">
+                        <h4>${notification.message}</h4>
+                        <p>${senderInfoHtml}</p>
+                    </div>
+                    <span class="notification-timestamp">${timestampText}</span>
+                    ${actionButtonsHtml || ''}
+                `;
+
+                if (isClickableForModal) {
+                    notificationItem.classList.add('clickable');
+                    notificationItem.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent duplicate clicks if parent also has listener
+                        showNotificationOptions(notification); // Pass the full notification object
+                    });
+                }
+
+                // Add event listeners for friend request buttons if they exist
+                if (notification.type === 'friend_request') {
+                    const acceptBtn = notificationItem.querySelector('.action-button.accept');
+                    const rejectBtn = notificationItem.querySelector('.action-button.reject');
+
+                    if (acceptBtn) {
+                        acceptBtn.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent parent click
+                            acceptFriendRequest(notification.id, notification.senderId, notification.senderUsername, acceptBtn);
+                        });
+                    }
+                    if (rejectBtn) {
+                        rejectBtn.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent parent click
+                            rejectFriendRequest(notification.id, notification.senderId, notification.senderUsername, rejectBtn);
+                        });
+                    }
+                }
+
+                notificationsList.appendChild(notificationItem);
+            }
+        }
+
+        /**
+         * Displays the notification options modal.
+         * @param {Object} notification - The full notification object.
+         */
+        function showNotificationOptions(notification) {
+            currentNotificationData = notification; // Store for button handlers
+
+            notificationOptionsTitle.textContent = "Notification Details";
+            notificationOptionsMessage.textContent = notification.message;
+
+            // Hide all buttons initially
+            sendMessageOptionBtn.style.display = 'none';
+            viewProfileOptionBtn.style.display = 'none';
+            markAsReadOptionBtn.style.display = 'none';
+
+            // Show relevant buttons based on notification type and sender presence
+            const hasSender = notification.senderId && notification.senderId !== currentUser.uid;
+
+            if (notification.type === 'message' || notification.type === 'friend_accepted') {
+                if (hasSender) {
+                    sendMessageOptionBtn.style.display = 'flex';
+                    viewProfileOptionBtn.style.display = 'flex';
+                }
+            } else if (notification.type === 'system' || notification.type === 'coin_reward' || notification.type === 'level_up' || notification.type === 'friend_removed' || notification.type === 'friend_rejected') {
+                if (hasSender) {
+                    viewProfileOptionBtn.style.display = 'flex'; // Can still view profile if sender exists
+                }
+            }
+            // Always show mark as read, unless it's already read
+            markAsReadOptionBtn.style.display = 'flex';
+
+            // If the notification is already read, disable mark as read button
+            if (notification.read) {
+                markAsReadOptionBtn.disabled = true;
+                markAsReadOptionBtn.textContent = 'Already Read';
+            } else {
+                markAsReadOptionBtn.disabled = false;
+                markAsReadOptionBtn.innerHTML = '<i class="fas fa-check"></i> Mark As Read';
+            }
+
+            notificationOptionsModal.classList.add('active');
+        }
+
+        /**
+         * Hides the notification options modal.
+         */
+        function hideNotificationOptions() {
+            notificationOptionsModal.classList.remove('active');
+            currentNotificationData = null; // Clear stored data
+        }
+
+        /**
+         * Marks a specific notification as read.
+         * @param {string} notificationId - The ID of the notification document.
+         */
+        async function markNotificationAsRead(notificationId) {
             if (!currentUser) {
-                showMessageBox("You must be logged in to mark notifications.", 'error');
+                showMessageBox("Authentication error. Cannot mark notification as read.", 'error');
                 return;
             }
-            toggleButtonLoading(buttonElement, true);
-            showMessageBox("Marking as read...", 'loading', true);
-
             try {
                 const notificationDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
                 await updateDoc(notificationDocRef, { read: true });
-                showMessageBox("Notification marked as read.", 'success');
-                playNotificationSound('success');
+                console.log(`JCHAT_DEBUG: Notification ${notificationId} marked as read.`);
+                // The onSnapshot listener will automatically re-render the list
             } catch (error) {
                 console.error("JCHAT_ERROR: Error marking notification as read:", error);
-                showMessageBox(`Failed to mark as read: ${error.message}`, 'error');
-                playNotificationSound('error');
-            } finally {
-                toggleButtonLoading(buttonElement, false);
+                showMessageBox(`Failed to mark notification as read: ${error.message}`, 'error');
             }
         }
 
         /**
-         * Marks all unread notifications as read for the current user.
+         * Marks all notifications as read.
          */
         async function markAllNotificationsAsRead() {
             if (!currentUser) {
-                showMessageBox("You must be logged in to mark notifications.", 'error');
+                showMessageBox("Authentication error. Cannot mark notifications as read.", 'error');
                 return;
             }
 
-            const confirmed = await showCustomConfirm("Are you sure you want to mark all unread notifications as read?");
+            const confirmed = await showCustomConfirm("Mark all notifications as read?");
             if (!confirmed) return;
 
-            toggleButtonLoading(markAllReadBtn, true);
             showMessageBox("Marking all as read...", 'loading', true);
 
             try {
                 const notificationsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "notifications");
-                const q = query(notificationsCollectionRef, where("read", "==", false));
-                const querySnapshot = await getDocs(q);
+                const unreadQuery = query(notificationsCollectionRef, where("read", "==", false));
+                const unreadSnapshot = await getDocs(unreadQuery);
 
-                if (querySnapshot.empty) {
+                if (unreadSnapshot.empty) {
                     showMessageBox("No unread notifications to mark.", 'info');
-                    playNotificationSound('info');
                     return;
                 }
 
                 const batch = writeBatch(db);
-                querySnapshot.docs.forEach(docSnap => {
-                    const notificationRef = doc(notificationsCollectionRef, docSnap.id);
-                    batch.update(notificationRef, { read: true });
+                unreadSnapshot.docs.forEach(docSnap => {
+                    batch.update(docSnap.ref, { read: true });
                 });
-
                 await batch.commit();
-                showMessageBox(`Successfully marked ${querySnapshot.size} notifications as read!`, 'success');
-                playNotificationSound('success');
+
+                showMessageBox("All notifications marked as read!", 'success');
             } catch (error) {
                 console.error("JCHAT_ERROR: Error marking all notifications as read:", error);
                 showMessageBox(`Failed to mark all as read: ${error.message}`, 'error');
-                playNotificationSound('error');
-            } finally {
-                toggleButtonLoading(markAllReadBtn, false);
             }
         }
 
         /**
-         * Clears all read notifications for the current user.
+         * Deletes all notifications for the current user.
          */
-        async function clearAllReadNotifications() {
+        async function deleteAllNotifications() {
             if (!currentUser) {
-                showMessageBox("You must be logged in to clear notifications.", 'error');
+                showMessageBox("Authentication error. Cannot delete notifications.", 'error');
                 return;
             }
 
-            const confirmed = await showCustomConfirm("Are you sure you want to permanently delete all read notifications? This action cannot be undone.");
+            const confirmed = await showCustomConfirm("Are you sure you want to delete ALL your notifications? This action cannot be undone.");
             if (!confirmed) return;
 
-            toggleButtonLoading(clearAllReadBtn, true);
-            showMessageBox("Clearing all read notifications...", 'loading', true);
+            showMessageBox("Deleting all notifications...", 'loading', true);
 
             try {
                 const notificationsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "notifications");
-                const q = query(notificationsCollectionRef, where("read", "==", true));
-                const querySnapshot = await getDocs(q);
+                const allNotificationsQuery = query(notificationsCollectionRef);
+                const allNotificationsSnapshot = await getDocs(allNotificationsQuery);
 
-                if (querySnapshot.empty) {
-                    showMessageBox("No read notifications to clear.", 'info');
-                    playNotificationSound('info');
+                if (allNotificationsSnapshot.empty) {
+                    showMessageBox("No notifications to delete.", 'info');
                     return;
                 }
 
                 const batch = writeBatch(db);
-                querySnapshot.docs.forEach(docSnap => {
-                    const notificationRef = doc(notificationsCollectionRef, docSnap.id);
-                    batch.delete(notificationRef);
+                allNotificationsSnapshot.docs.forEach(docSnap => {
+                    batch.delete(docSnap.ref);
+                });
+                await batch.commit();
+
+                showMessageBox("All notifications deleted!", 'success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error deleting all notifications:", error);
+                showMessageBox(`Failed to delete all notifications: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Accepts a friend request.
+         * @param {string} notificationId - The ID of the friend request notification.
+         * @param {string} senderId - The ID of the user who sent the request.
+         * @param {string} senderUsername - The username of the user who sent the request.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function acceptFriendRequest(notificationId, senderId, senderUsername, buttonElement) {
+            if (!currentUser) {
+                showMessageBox("Authentication error. Cannot accept friend request.", 'error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            // Disable both accept/reject buttons on the same notification item
+            const parentItem = buttonElement.closest('.notification-item');
+            if (parentItem) {
+                parentItem.querySelectorAll('.friend-request-actions button').forEach(btn => btn.disabled = true);
+            }
+
+            showMessageBox(`Accepting friend request from ${senderUsername}...`, 'loading', true);
+
+            const batch = writeBatch(db);
+
+            try {
+                // 1. Add sender to current user's friends list
+                const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", senderId);
+                batch.set(currentUserFriendDocRef, {
+                    userId: senderId,
+                    addedAt: serverTimestamp()
+                });
+
+                // 2. Add current user to sender's friends list
+                const senderFriendDocRef = doc(db, "artifacts", appId, "users", senderId, "friends", currentUser.uid);
+                batch.set(senderFriendDocRef, {
+                    userId: currentUser.uid,
+                    addedAt: serverTimestamp()
+                });
+
+                // 3. Mark the friend request notification as read
+                const notificationDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
+                batch.update(notificationDocRef, { read: true });
+
+                // 4. Send a "friend_accepted" notification back to the sender
+                await addDoc(collection(db, "artifacts", appId, "users", senderId, "notifications"), {
+                    type: 'friend_accepted',
+                    message: `${currentUserProfileData.username} accepted your friend request!`,
+                    senderId: currentUser.uid,
+                    recipientId: senderId,
+                    timestamp: serverTimestamp(),
+                    read: false,
+                    senderUsername: currentUserProfileData.username
                 });
 
                 await batch.commit();
-                showMessageBox(`Successfully cleared ${querySnapshot.size} read notifications!`, 'success');
-                playNotificationSound('success');
+
+                showMessageBox(`You are now friends with ${senderUsername}!`, 'success');
+                // No sound for now as per previous instruction
             } catch (error) {
-                console.error("JCHAT_ERROR: Error clearing all read notifications:", error);
-                showMessageBox(`Failed to clear read notifications: ${error.message}`, 'error');
-                playNotificationSound('error');
+                console.error("JCHAT_ERROR: Error accepting friend request:", error);
+                showMessageBox(`Failed to accept friend request: ${error.message}`, 'error');
             } finally {
-                toggleButtonLoading(clearAllReadBtn, false);
+                toggleButtonLoading(buttonElement, false);
+                if (parentItem) {
+                    parentItem.querySelectorAll('.friend-request-actions button').forEach(btn => btn.disabled = false); // Re-enable if needed, though usually the item would disappear/update
+                }
+            }
+        }
+
+        /**
+         * Rejects a friend request.
+         * @param {string} notificationId - The ID of the friend request notification.
+         * @param {string} senderId - The ID of the user who sent the request.
+         * @param {string} senderUsername - The username of the user who sent the request.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function rejectFriendRequest(notificationId, senderId, senderUsername, buttonElement) {
+            if (!currentUser) {
+                showMessageBox("Authentication error. Cannot reject friend request.", 'error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            // Disable both accept/reject buttons on the same notification item
+            const parentItem = buttonElement.closest('.notification-item');
+            if (parentItem) {
+                parentItem.querySelectorAll('.friend-request-actions button').forEach(btn => btn.disabled = true);
+            }
+
+            showMessageBox(`Rejecting friend request from ${senderUsername}...`, 'loading', true);
+
+            const batch = writeBatch(db);
+
+            try {
+                // 1. Mark the friend request notification as read
+                const notificationDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
+                batch.update(notificationDocRef, { read: true });
+
+                // 2. Optionally, send a "friend_rejected" notification back to the sender
+                await addDoc(collection(db, "artifacts", appId, "users", senderId, "notifications"), {
+                    type: 'friend_rejected',
+                    message: `${currentUserProfileData.username} rejected your friend request.`,
+                    senderId: currentUser.uid,
+                    recipientId: senderId,
+                    timestamp: serverTimestamp(),
+                    read: false,
+                    senderUsername: currentUserProfileData.username
+                });
+
+                await batch.commit();
+
+                showMessageBox(`Friend request from ${senderUsername} rejected.`, 'info');
+                // No sound for now
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error rejecting friend request:", error);
+                showMessageBox(`Failed to reject friend request: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+                if (parentItem) {
+                    parentItem.querySelectorAll('.friend-request-actions button').forEach(btn => btn.disabled = false); // Re-enable if needed
+                }
             }
         }
 
@@ -1817,8 +1854,26 @@
                 isAuthReady = true;
                 console.log("JCHAT_DEBUG: User authenticated in Notifications Page:", user.uid);
                 await fetchAndDisplayHeaderProfile(user);
-                fetchAndDisplayNotifications(); // Fetch notifications once authenticated
-                fetchNotificationCount(user.uid);
+                unsubscribeNotifications = fetchNotificationCount(user.uid); // For the bell icon
+
+                notificationsLoading.style.display = 'block';
+                notificationsEmptyState.style.display = 'none';
+
+                // Listen for all notifications for the current user
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "notifications");
+                const q = query(notificationsCollectionRef, orderBy("timestamp", "desc")); // Order by most recent first
+
+                onSnapshot(q, (snapshot) => {
+                    notificationsLoading.style.display = 'none';
+                    const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderNotificationsList(notifications);
+                }, (error) => {
+                    console.error("JCHAT_ERROR: Error fetching notifications:", error);
+                    notificationsLoading.style.display = 'none';
+                    notificationsEmptyState.textContent = "Failed to load notifications.";
+                    notificationsEmptyState.style.display = 'block';
+                    showMessageBox(`Error loading notifications: ${error.message}`, 'error');
+                });
 
             } else {
                 console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
@@ -1837,20 +1892,11 @@
                     if (!auth.currentUser) {
                         isAuthReady = false;
                         currentUser = null;
-                        // logoutButton.disabled = true; // Removed logout button
-                        if (headerDisplayName) headerDisplayName.textContent = "Guest"; // Null check
-                        if (headerProfilePic) headerProfilePic.style.display = 'none'; // Null check
-                        if (headerAvatarIcon) headerAvatarIcon.style.display = 'block'; // Null check
-                        if (adminIconLink) adminIconLink.style.display = 'none'; // Null check
-                        if (notificationList) notificationList.innerHTML = ''; // Null check
-                        if (loadingNotificationsMessage) loadingNotificationsMessage.style.display = 'none'; // Null check
-                        if (noNotificationsMessage) { // Null check
-                            noNotificationsMessage.style.display = 'block';
-                            noNotificationsMessage.textContent = "Please log in to view your notifications.";
-                        }
-                        if (markAllReadBtn) markAllReadBtn.disabled = true; // Null check
-                        if (clearAllReadBtn) clearAllReadBtn.disabled = true; // Null check
-                        showMessageBox("You must be logged in to access notifications.", 'error', true);
+                        if (headerDisplayName) headerDisplayName.textContent = "Guest";
+                        if (headerProfilePic) headerProfilePic.style.display = 'none';
+                        if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
+                        if (adminIconLink) adminIconLink.style.display = 'none';
+                        showMessageBox("You must be logged in to access this page.", 'error', true);
                         setTimeout(() => {
                             window.location.href = '/login.html';
                         }, 2000);
@@ -1868,12 +1914,61 @@
                 document.body.classList.remove(...themes);
                 document.body.classList.add(savedTheme);
             } else {
-                document.body.classList.remove(...themes);
                 document.body.classList.add('theme-dark-mode'); // Default
             }
 
-            if (markAllReadBtn) markAllReadBtn.addEventListener('click', markAllNotificationsAsRead); // Null check
-            if (clearAllReadBtn) clearAllReadBtn.addEventListener('click', clearAllReadNotifications); // Null check
+            // Mark All As Read button listener
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', markAllNotificationsAsRead);
+            }
+
+            // Delete All Notifications button listener
+            if (deleteAllNotificationsBtn) {
+                deleteAllNotificationsBtn.addEventListener('click', deleteAllNotifications);
+            }
+
+            // Notification Options Modal button listeners
+            if (closeNotificationOptionsBtn) {
+                closeNotificationOptionsBtn.addEventListener('click', hideNotificationOptions);
+            }
+            if (sendMessageOptionBtn) {
+                sendMessageOptionBtn.addEventListener('click', () => {
+                    if (currentNotificationData && currentNotificationData.senderId) {
+                        markNotificationAsRead(currentNotificationData.id);
+                        hideNotificationOptions();
+                        window.location.href = `/chat.html?partnerId=${currentNotificationData.senderId}`;
+                    } else {
+                        showMessageBox("Cannot send message: sender not found.", 'error');
+                    }
+                });
+            }
+            if (viewProfileOptionBtn) {
+                viewProfileOptionBtn.addEventListener('click', () => {
+                    if (currentNotificationData && currentNotificationData.senderId) {
+                        markNotificationAsRead(currentNotificationData.id);
+                        hideNotificationOptions();
+                        window.location.href = `/profile.html?userId=${currentNotificationData.senderId}`;
+                    } else {
+                        showMessageBox("Cannot view profile: sender not found.", 'error');
+                    }
+                });
+            }
+            if (markAsReadOptionBtn) {
+                markAsReadOptionBtn.addEventListener('click', () => {
+                    if (currentNotificationData) {
+                        markNotificationAsRead(currentNotificationData.id);
+                        hideNotificationOptions();
+                    }
+                });
+            }
+            // Close modal when clicking outside of it
+            if (notificationOptionsModal) {
+                notificationOptionsModal.addEventListener('click', (event) => {
+                    if (event.target === notificationOptionsModal) {
+                        hideNotificationOptions();
+                    }
+                });
+            }
         });
 
         window.addEventListener('storage', (event) => {
@@ -1890,34 +1985,6 @@
         window.addEventListener('beforeunload', () => {
             if (unsubscribeNotifications) unsubscribeNotifications();
         });
-
-        // logoutButton.addEventListener('click', handleLogout); // Removed logout button
-
-        // --- Bottom Navigation Bar Toggle Logic (reused from Home.html) ---
-        const bottomNavBar = document.getElementById('bottomNavBar');
-        const navToggleBtn = document.getElementById('navToggleBtn');
-
-        function toggleNavBarVisibility() {
-            const toggleIcon = navToggleBtn.querySelector('i');
-            const isHidden = bottomNavBar.classList.toggle('nav-bar-hidden-full');
-
-            if (toggleIcon) { // Null check for toggleIcon
-                if (isHidden) {
-                    toggleIcon.classList.remove('fa-chevron-down');
-                    toggleIcon.classList.add('fa-chevron-up');
-                } else {
-                    toggleIcon.classList.remove('fa-chevron-up');
-                    toggleIcon.classList.add('fa-chevron-down');
-                }
-            }
-        }
-
-        if (bottomNavBar) bottomNavBar.classList.add('nav-bar-hidden-full'); // Null check
-        if (navToggleBtn && navToggleBtn.querySelector('i')) { // Null check for navToggleBtn and its child
-            navToggleBtn.querySelector('i').classList.remove('fa-chevron-down');
-            navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
-        }
-        if (navToggleBtn) navToggleBtn.addEventListener('click', toggleNavBarVisibility); // Null check
     </script>
 </body>
 </html>
