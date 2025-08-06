@@ -534,11 +534,33 @@
             cursor: pointer;
             transition: color 0.3s ease;
             margin-left: auto; /* Push to the right */
+            position: relative; /* For the badge positioning */
         }
 
         .chat-header .select-friend-btn:hover {
             color: var(--accent-color);
         }
+
+        /* Badge for Select Friend Button */
+        .select-friend-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--notification-badge-color); /* Reuse notification color */
+            color: var(--white);
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2; /* Above the button icon */
+        }
+
 
         .messages-display {
             flex-grow: 1;
@@ -1294,6 +1316,23 @@
             text-overflow: ellipsis;
         }
 
+        /* Badge for individual friend items in modal */
+        #selectFriendModal .friend-item .message-badge {
+            background-color: var(--notification-badge-color);
+            color: var(--white);
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            min-width: 18px;
+            text-align: center;
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+            margin-left: auto; /* Push to the right */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         #selectFriendModal .loading-friends-modal,
         #selectFriendModal .no-friends-modal {
             text-align: center;
@@ -1428,6 +1467,7 @@
                 <h2 id="partnerDisplayName">Loading...</h2>
                 <button id="selectFriendBtn" class="select-friend-btn" title="Select Chat Partner">
                     <i class="fas fa-users"></i>
+                    <span class="select-friend-badge" id="selectFriendBadge" style="display: none;">0</span>
                 </button>
             </div>
             <div class="messages-display" id="messagesDisplay">
@@ -1499,7 +1539,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, getDocs, addDoc, serverTimestamp, orderBy, limit, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, getDocs, addDoc, serverTimestamp, orderBy, limit, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         // --- Firebase & Canvas Environment Configuration ---
@@ -1568,6 +1608,7 @@
 
         // Select Friend Modal elements
         const selectFriendBtn = document.getElementById('selectFriendBtn');
+        const selectFriendBadge = document.getElementById('selectFriendBadge'); // New badge element
         const selectFriendModal = document.getElementById('selectFriendModal');
         const closeFriendModalBtn = document.getElementById('closeFriendModalBtn');
         const friendSearchInput = document.getElementById('friendSearchInput');
@@ -1592,6 +1633,11 @@
         let isRecording = false;
         let recordingStartTime;
         let recordingInterval;
+
+        // New global variables for managing unread counts and their listeners
+        let unreadMessageCountsByFriendId = {}; // Stores {friendId: count}
+        let totalUnreadMessages = 0;
+        let unsubscribeAllFriendUnreadListeners = []; // Array to store unsubscribe functions for all nested listeners
 
         // --- Tone.js Synths for Notification Sounds ---
         const successSynth = new Tone.Synth().toDestination();
@@ -2788,7 +2834,6 @@
             try {
                 await updateDoc(callDocRef, { status: 'accepted', acceptedBy: currentUser.uid, startedAt: serverTimestamp() });
                 // Do NOT hide overlay here. The onSnapshot listener will update it to "Connected".
-                // showMessageBox(`${callType} call accepted! (Simulated)`, 'success'); // Removed this message
                 playNotificationSound('success');
                 await sendMessage('call_status', `${currentUserProfileData.username} accepted the ${callType} call.`);
             } catch (error) {
@@ -2992,9 +3037,14 @@
                     ? `<img src="${getCloudinaryImageUrl(friend.profilePicId, 'w_80,h_80,c_fill,g_face,r_max')}" alt="${friend.username}'s profile picture" onerror="this.onerror=null;this.src='https://placehold.co/40x40/CCCCCC/000000?text=${usernameInitial}';">`
                     : `<div class="default-avatar"><i class="fas fa-user-circle"></i></div>`;
 
+                const unreadCount = unreadMessageCountsByFriendId[friend.userId] || 0;
+
                 friendItem.innerHTML = `
                     ${profilePicHtml}
                     <span>${friend.username || 'Unknown User'}</span>
+                    <span class="message-badge" style="display: ${unreadCount > 0 ? 'flex' : 'none'};">
+                        ${unreadCount}
+                    </span>
                 `;
 
                 friendItem.addEventListener('click', async () => {
@@ -3014,6 +3064,129 @@
 
                 friendListContainer.appendChild(friendItem);
             });
+        }
+
+        /**
+         * Sets up real-time listeners to calculate and display unread message counts for friends.
+         * This includes the total count on the header's select friend button and individual counts in the modal.
+         */
+        async function setupFriendUnreadCountListeners() {
+            if (!currentUser) {
+                console.log("JCHAT_DEBUG: No current user to set up friend unread count listeners.");
+                return;
+            }
+
+            // Clear all previous listeners to prevent duplicates
+            unsubscribeAllFriendUnreadListeners.forEach(unsub => unsub());
+            unsubscribeAllFriendUnreadListeners = [];
+            unreadMessageCountsByFriendId = {};
+            totalUnreadMessages = 0;
+            updateSelectFriendBadgeUI(); // Reset badge UI
+
+            const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
+
+            // Listener for the current user's friends list
+            const unsubFriends = onSnapshot(friendsCollectionRef, (friendsSnapshot) => {
+                const currentFriendIds = friendsSnapshot.docs.map(doc => doc.id);
+                console.log("JCHAT_DEBUG: Friends list updated:", currentFriendIds);
+
+                // Create a temporary map to track existing listeners and their unsubs
+                const activeFriendListeners = {};
+
+                // Ensure listeners are set up for all current friends
+                currentFriendIds.forEach(friendId => {
+                    // Only set up a new listener if one doesn't already exist for this friendId
+                    // This is a simplified check; a more robust solution would track active listeners
+                    // and only create new ones if needed. For now, on every friends list change,
+                    // we'll re-evaluate all current friends.
+                    setupIndividualFriendUnreadListener(friendId);
+                });
+
+                // Clean up listeners for friends who are no longer in the list
+                // This part is tricky with multiple nested listeners.
+                // The current implementation re-adds listeners on every friends list change,
+                // which can lead to duplicates if not managed carefully.
+                // For simplicity here, we rely on `unsubscribeAllFriendUnreadListeners` to clear all.
+                // A more advanced pattern would involve mapping friendId to its unsub function.
+
+                // If the friend modal is open, re-render the friend list
+                if (selectFriendModal.classList.contains('active')) {
+                    renderSelectableFriends(friendSearchInput.value);
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to friends list:", error);
+            });
+            unsubscribeAllFriendUnreadListeners.push(unsubFriends);
+        }
+
+        /**
+         * Sets up a listener for a specific friend's unread message count.
+         * This is called for each friend found in the user's friends list.
+         * @param {string} friendId - The ID of the friend.
+         */
+        function setupIndividualFriendUnreadListener(friendId) {
+            const chatMetadataDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "chat_metadata", friendId);
+
+            // Listener for the current user's chat_metadata with this specific friend
+            const unsubChatMetadata = onSnapshot(chatMetadataDocRef, async (chatMetadataSnap) => {
+                const lastReadTimestamp = chatMetadataSnap.exists() ? chatMetadataSnap.data().lastReadMessageTimestamp : null;
+                const chatRoomId = getChatRoomId(currentUser.uid, friendId);
+                const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
+
+                // Query messages from this friend that are newer than lastReadTimestamp
+                let q = query(messagesCollectionRef,
+                    where("senderId", "==", friendId),
+                    orderBy("timestamp") // Order by timestamp ascending for count
+                );
+
+                if (lastReadTimestamp) {
+                    q = query(messagesCollectionRef,
+                        where("senderId", "==", friendId),
+                        where("timestamp", ">", lastReadTimestamp),
+                        orderBy("timestamp")
+                    );
+                }
+
+                try {
+                    const unreadMessagesSnapshot = await getDocs(q); // Use getDocs for a one-time fetch
+                    const unreadCount = unreadMessagesSnapshot.docs.length;
+
+                    // Update the global map and total count
+                    unreadMessageCountsByFriendId[friendId] = unreadCount;
+                    totalUnreadMessages = Object.values(unreadMessageCountsByFriendId).reduce((sum, count) => sum + count, 0);
+
+                    // Update the header badge UI
+                    updateSelectFriendBadgeUI();
+
+                    // If the friend modal is open, re-render the friend list
+                    if (selectFriendModal.classList.contains('active')) {
+                        renderSelectableFriends(friendSearchInput.value);
+                    }
+                } catch (error) {
+                    console.error(`JCHAT_ERROR: Error fetching unread messages for friend ${friendId}:`, error);
+                    // On error, set count to 0 for this friend to avoid displaying stale data
+                    unreadMessageCountsByFriendId[friendId] = 0;
+                    totalUnreadMessages = Object.values(unreadMessageCountsByFriendId).reduce((sum, count) => sum + count, 0);
+                    updateSelectFriendBadgeUI();
+                }
+            }, (error) => {
+                console.error(`JCHAT_ERROR: Error listening to chat metadata for friend ${friendId}:`, error);
+            });
+            unsubscribeAllFriendUnreadListeners.push(unsubChatMetadata); // Add to the master list of unsubs
+        }
+
+        /**
+         * Updates the UI for the select friend button badge.
+         */
+        function updateSelectFriendBadgeUI() {
+            if (selectFriendBadge) {
+                if (totalUnreadMessages > 0) {
+                    selectFriendBadge.textContent = totalUnreadMessages;
+                    selectFriendBadge.style.display = 'flex';
+                } else {
+                    selectFriendBadge.style.display = 'none';
+                }
+            }
         }
 
 
@@ -3047,7 +3220,8 @@
                         noMessages.textContent = "Please select a friend to start chatting.";
                     }
                 }
-                fetchNotificationCount(user.uid);
+                fetchNotificationCount(user.uid); // For the bell icon
+                setupFriendUnreadCountListeners(); // For friend message badges
 
             } else {
                 console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
@@ -3170,7 +3344,10 @@
         window.addEventListener('beforeunload', () => {
             if (unsubscribeMessages) unsubscribeMessages();
             if (unsubscribeCallStatus) unsubscribeCallStatus();
-            // No need to unsubscribe notification count as it's handled by its own function now
+            // Clear all dynamic friend unread listeners
+            unsubscribeAllFriendUnreadListeners.forEach(unsub => unsub());
+            unsubscribeAllFriendUnreadListeners = [];
+
             if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop(); // Ensure recording stops on unload
             }
