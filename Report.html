@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JCHAT - Report an Issue</title>
 
-    <!-- Google Fonts: Poppins for headings, Inter for body text -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Tone.js for audio notifications -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
@@ -714,6 +710,33 @@
             margin-right: 10px;
         }
 
+        /* Add a delete button to the report history item */
+        .delete-report-button {
+            position: absolute;
+            top: 20px;
+            right: 60px; /* Adjust position to be next to status */
+            background: var(--delete-button-color);
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .delete-report-button:hover {
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.5);
+        }
+
+
         /* --- Modal for user confirmation --- */
         .modal {
             position: fixed;
@@ -847,8 +870,7 @@
             <a href="/home.html" class="logo">JCHAT</a>
             <nav>
                 <ul>
-                    <!-- Navigation links will be added here via JS -->
-                </ul>
+                    </ul>
             </nav>
             <div class="header-right-actions">
                 <a href="/Report.html" aria-label="Report an Issue" style="text-decoration: none; color: inherit;">
@@ -931,7 +953,6 @@
         </div>
     </main>
     
-    <!-- Custom Modal -->
     <div id="confirmationModal" class="modal">
         <div class="modal-content">
             <h3 id="modalTitle"></h3>
@@ -949,7 +970,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1089,6 +1110,7 @@
          * Custom confirmation modal instead of alert().
          * @param {string} title - The modal title.
          * @param {string} message - The modal message.
+         * @param {boolean} [showCancel=false] - If true, shows a "Cancel" button.
          * @returns {Promise<boolean>} Resolves with true for OK, false for Cancel.
          */
         function showCustomModal(title, message, showCancel = false) {
@@ -1257,6 +1279,31 @@
                 console.error("Error setting up listener for notification count:", error);
             }
         }
+        
+        /**
+         * Deletes a report from the database.
+         * @param {string} reportId - The ID of the report document to delete.
+         * @param {string} reporterId - The ID of the user who submitted the report.
+         */
+        async function deleteReport(reportId, reporterId) {
+            if (!currentUser || currentUser.uid !== reporterId) {
+                showCustomModal('Permission Denied', 'You do not have permission to delete this report.');
+                return;
+            }
+            const confirmed = await showCustomModal('Delete Report', 'Are you sure you want to permanently delete this report?', true);
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const reportDocRef = doc(db, "artifacts", appId, "public", "data", "reports", reportId);
+                await deleteDoc(reportDocRef);
+                showMessageBox('Report deleted successfully.', 'success');
+            } catch (error) {
+                console.error("Error deleting report:", error);
+                showMessageBox('Failed to delete report. Please try again.', 'error');
+            }
+        }
 
         // --- Report History Listener ---
         function setupReportHistoryListener(userId) {
@@ -1290,9 +1337,22 @@
                         ${report.reportedUserId ? `<p><strong>Reported ID:</strong> ${report.reportedUserId}</p>` : ''}
                         ${attachmentsHtml}
                         <span class="date">Submitted on: ${timestamp}</span>
+                        <button class="delete-report-button" data-report-id="${reportId}" data-reporter-id="${report.reporterId}" title="Delete Report">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     `;
                     reportHistoryList.appendChild(li);
                 });
+                
+                // Add event listeners for new delete buttons
+                document.querySelectorAll('.delete-report-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const reportId = e.currentTarget.dataset.reportId;
+                        const reporterId = e.currentTarget.dataset.reporterId;
+                        deleteReport(reportId, reporterId);
+                    });
+                });
+
             }, (error) => {
                 console.error("Error fetching report history:", error);
                 reportHistoryList.innerHTML = `<li style="color: var(--delete-button-color); text-align: center;">Error loading reports.</li>`;
@@ -1355,9 +1415,10 @@
                 let mediaUrls = [];
                 // Upload files to Cloudinary
                 if (attachedFiles.length > 0) {
+                    console.log(`Starting upload for ${attachedFiles.length} files...`);
                     const uploadPromises = attachedFiles.map(file => {
                         const formData = new FormData();
-                        formData.append('file', file);
+                        formData.append('file', file.file);
                         formData.append('upload_preset', cloudinaryConfig.uploadPreset);
                         return fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/auto/upload`, {
                             method: 'POST',
@@ -1367,6 +1428,7 @@
 
                     const uploadResults = await Promise.all(uploadPromises);
                     mediaUrls = uploadResults.map(result => result.secure_url).filter(url => url);
+                    console.log('Upload complete. Media URLs:', mediaUrls);
                 }
 
                 // Add report to Firestore
@@ -1385,6 +1447,7 @@
                 reportForm.reset();
                 attachedFiles = [];
                 fileList.innerHTML = '';
+                mediaUploadInput.value = ''; // Reset file input
 
             } catch (error) {
                 console.error("Error submitting report:", error);
@@ -1397,28 +1460,53 @@
 
         // --- File Upload Handler ---
         mediaUploadInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            if (attachedFiles.length + files.length > 5) {
-                showCustomModal('Too Many Files', 'You can only attach a maximum of 5 files.');
+            const files = e.target.files;
+            if (!files || files.length === 0) {
+                console.log('No files selected.');
                 return;
             }
+
+            // Check if adding these files exceeds the 5-file limit
+            if (attachedFiles.length + files.length > 5) {
+                showCustomModal('Too Many Files', 'You can only attach a maximum of 5 files.');
+                e.target.value = ''; // Clear the input so the user can try again
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileId = `${file.name}-${Date.now()}`; // Unique ID for file
+                attachedFiles.push({ id: fileId, file: file });
+                
+                // Log to confirm file is picked up
+                console.log(`File successfully selected: ${file.name}`);
+
+                // Create UI element for the file
+                const li = document.createElement('li');
+                li.setAttribute('data-file-id', fileId);
+                li.innerHTML = `
+                    <span>${file.name}</span>
+                    <button class="remove-file-button" title="Remove file">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                fileList.appendChild(li);
+
+                // Add event listener for the remove button
+                li.querySelector('.remove-file-button').onclick = () => {
+                    attachedFiles = attachedFiles.filter(f => f.id !== fileId);
+                    li.remove();
+                    // If no files are left, reset the file input
+                    if (attachedFiles.length === 0) {
+                        mediaUploadInput.value = '';
+                    }
+                };
+            }
             
-            files.forEach(file => {
-                if (file) {
-                    attachedFiles.push(file);
-                    const li = document.createElement('li');
-                    li.textContent = file.name;
-                    const removeBtn = document.createElement('button');
-                    removeBtn.className = 'remove-file-button';
-                    removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
-                    removeBtn.onclick = () => {
-                        attachedFiles = attachedFiles.filter(f => f.name !== file.name);
-                        li.remove();
-                    };
-                    li.appendChild(removeBtn);
-                    fileList.appendChild(li);
-                }
-            });
+            // Clear the file input value after adding files to the list
+            // This prevents the same files from being added again if the user
+            // re-opens the picker and cancels.
+            e.target.value = '';
         });
 
         // --- Event Listeners ---
@@ -1460,7 +1548,6 @@
                 toggleButtonLoading(logoutButton, false);
             }
         });
-
     </script>
 </body>
 </html>
