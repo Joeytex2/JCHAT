@@ -58,8 +58,8 @@
             --text-color-primary: #e0e0e0;
             --text-color-secondary: #bbbbbb;
             --notification-badge-color: var(--pink); /* Explicitly pink */
-            --status-online: #4CAF50;
-            --status-offline: #6c757d;
+            --status-online: #4CAF50; /* Green for online */
+            --status-offline: #6c757d; /* Gray for offline */
             --status-away: #FFC107;
             --delete-button-color: #dc3545; /* Standard red for danger */
             --warning-color: #ffc107;
@@ -478,7 +478,7 @@
             gap: 15px;
             transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
             position: relative;
-            cursor: pointer; /* Indicate clickable */
+            cursor: pointer; /* All items are now clickable to open modal */
         }
 
         .notification-item.unread {
@@ -509,6 +509,8 @@
         .notification-item .notification-content {
             flex-grow: 1;
             text-align: left;
+            display: flex;
+            flex-direction: column;
         }
 
         .notification-item .notification-content h4 {
@@ -528,6 +530,9 @@
             color: var(--text-light);
             white-space: normal; /* Allow message to wrap */
             word-break: break-word;
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between text and status dot */
         }
 
         .notification-item .notification-timestamp {
@@ -537,6 +542,24 @@
             margin-left: auto; /* Push to the right */
             flex-shrink: 0;
         }
+
+        /* Online Status Dot */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Small border for visibility */
+        }
+        .status-dot.online {
+            background-color: var(--status-online); /* Green */
+            box-shadow: 0 0 5px var(--status-online); /* Subtle glow */
+        }
+        .status-dot.offline {
+            background-color: var(--status-offline); /* Gray */
+        }
+
 
         .empty-state {
             text-align: center;
@@ -737,7 +760,7 @@
             box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
         }
 
-        /* New Notification Options Modal */
+        /* Notification Options Modal */
         #notificationOptionsModal {
             position: fixed;
             top: 0;
@@ -834,6 +857,25 @@
             background: rgba(255, 255, 255, 0.15);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
+
+        #notificationOptionsModal .option-buttons button.accept-option {
+            background: linear-gradient(90deg, #4CAF50, #8BC34A); /* Green for accept */
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+        #notificationOptionsModal .option-buttons button.accept-option:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        #notificationOptionsModal .option-buttons button.reject-option {
+            background: var(--delete-button-color); /* Red for reject */
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+        }
+        #notificationOptionsModal .option-buttons button.reject-option:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+        }
+
 
         #notificationOptionsModal .option-buttons button:disabled {
             opacity: 0.5;
@@ -982,12 +1024,16 @@
         </div>
     </div>
 
-    <!-- NEW: Notification Options Modal -->
+    <!-- Notification Options Modal -->
     <div id="notificationOptionsModal" class="modal-overlay">
         <div class="modal-content">
             <h3 id="notificationOptionsTitle">Notification Options</h3>
             <p id="notificationOptionsMessage"></p>
             <div class="option-buttons">
+                <!-- New buttons for friend request actions within the modal -->
+                <button id="acceptFriendRequestOptionBtn" class="accept-option" style="display: none;"><i class="fas fa-user-check"></i> Accept Friend Request</button>
+                <button id="rejectFriendRequestOptionBtn" class="reject-option" style="display: none;"><i class="fas fa-user-times"></i> Reject Friend Request</button>
+
                 <button id="sendMessageOptionBtn" style="display: none;"><i class="fas fa-comment"></i> Send Message</button>
                 <button id="viewProfileOptionBtn" style="display: none;"><i class="fas fa-user"></i> View Profile</button>
                 <button id="markAsReadOptionBtn" class="secondary-option" style="display: none;"><i class="fas fa-check"></i> Mark As Read</button>
@@ -1013,7 +1059,7 @@
             measurementId: "G-S6Z9GG0R9P"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? initialAuthToken : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Cloudinary Configuration
         const cloudinaryConfig = {
@@ -1056,6 +1102,8 @@
         const viewProfileOptionBtn = document.getElementById('viewProfileOptionBtn');
         const markAsReadOptionBtn = document.getElementById('markAsReadOptionBtn');
         const closeNotificationOptionsBtn = document.getElementById('closeNotificationOptionsBtn');
+        const acceptFriendRequestOptionBtn = document.getElementById('acceptFriendRequestOptionBtn'); // New
+        const rejectFriendRequestOptionBtn = document.getElementById('rejectFriendRequestOptionBtn'); // New
 
         // --- Global State ---
         let isAuthReady = false; // Flag to indicate if auth state has been checked
@@ -1392,12 +1440,27 @@
             }
         }
 
+        /**
+         * Fetches a user's online status.
+         * @param {string} userId - The ID of the user whose status to fetch.
+         * @returns {Promise<boolean>} True if online, false if offline or error.
+         */
+        async function fetchUserOnlineStatus(userId) {
+            try {
+                const statusDocRef = doc(db, "artifacts", appId, "public", "data", "user_status", userId);
+                const statusDocSnap = await getDoc(statusDocRef);
+                return statusDocSnap.exists() && statusDocSnap.data().isOnline === true;
+            } catch (error) {
+                console.error(`JCHAT_ERROR: Error fetching online status for ${userId}:`, error);
+                return false; // Assume offline on error
+            }
+        }
 
         /**
          * Renders the list of notifications.
          * @param {Array<Object>} notifications - Array of notification data.
          */
-        function renderNotificationsList(notifications) {
+        async function renderNotificationsList(notifications) {
             notificationsList.innerHTML = ''; // Clear previous notifications
             notificationsLoading.style.display = 'none';
             totalNotificationsCount.textContent = notifications.length;
@@ -1413,16 +1476,26 @@
                 deleteAllNotificationsBtn.style.display = 'block';
             }
 
-            notifications.forEach(notification => {
+            for (const notification of notifications) {
                 const notificationItem = document.createElement('div');
                 notificationItem.classList.add('notification-item');
                 if (!notification.read) {
                     notificationItem.classList.add('unread');
                 }
-                // Store the full notification object in a data attribute for easy retrieval
-                notificationItem.dataset.notification = JSON.stringify(notification);
 
                 let iconClass = 'fas fa-info-circle'; // Default icon
+                let senderInfoHtml = '';
+
+                // Determine sender info and online status
+                if (notification.senderId && notification.senderId !== currentUser.uid) {
+                    const isSenderOnline = await fetchUserOnlineStatus(notification.senderId);
+                    const statusDotClass = isSenderOnline ? 'online' : 'offline';
+                    senderInfoHtml = `From: ${notification.senderUsername || 'Unknown User'} <span class="status-dot ${statusDotClass}"></span>`;
+                } else {
+                    senderInfoHtml = 'System Notification';
+                }
+
+
                 if (notification.type === 'friend_request') {
                     iconClass = 'fas fa-user-plus';
                 } else if (notification.type === 'friend_accepted') {
@@ -1445,20 +1518,19 @@
                     <i class="notification-icon ${iconClass}"></i>
                     <div class="notification-content">
                         <h4>${notification.message}</h4>
-                        <p>${notification.senderUsername ? `From: ${notification.senderUsername}` : 'System Notification'}</p>
+                        <p>${senderInfoHtml}</p>
                     </div>
                     <span class="notification-timestamp">${timestampText}</span>
                 `;
 
-                // Attach event listener to show options modal
+                // All notification items are now clickable to open the options modal
                 notificationItem.addEventListener('click', (event) => {
-                    // Prevent marking as read immediately, let the options modal handle it
-                    event.stopPropagation(); // Stop event from bubbling up if there are other listeners
-                    const clickedNotification = JSON.parse(event.currentTarget.dataset.notification);
-                    showNotificationOptions(clickedNotification);
+                    event.stopPropagation(); // Prevent duplicate clicks if parent also has listener
+                    showNotificationOptions(notification); // Pass the full notification object
                 });
+
                 notificationsList.appendChild(notificationItem);
-            });
+            }
         }
 
         /**
@@ -1475,35 +1547,43 @@
             sendMessageOptionBtn.style.display = 'none';
             viewProfileOptionBtn.style.display = 'none';
             markAsReadOptionBtn.style.display = 'none';
+            acceptFriendRequestOptionBtn.style.display = 'none'; // New
+            rejectFriendRequestOptionBtn.style.display = 'none'; // New
 
             // Show relevant buttons based on notification type and sender presence
             const hasSender = notification.senderId && notification.senderId !== currentUser.uid;
 
-            if (notification.type === 'message' || notification.type === 'friend_request' || notification.type === 'friend_accepted') {
+            if (notification.type === 'message' || notification.type === 'friend_accepted') {
                 if (hasSender) {
                     sendMessageOptionBtn.style.display = 'flex';
                     viewProfileOptionBtn.style.display = 'flex';
-                } else {
-                    // If no sender (e.g., self-sent test message or system message without senderId)
-                    markAsReadOptionBtn.style.display = 'flex';
+                }
+            } else if (notification.type === 'friend_request') {
+                if (hasSender) {
+                    acceptFriendRequestOptionBtn.style.display = 'flex';
+                    rejectFriendRequestOptionBtn.style.display = 'flex';
+                    viewProfileOptionBtn.style.display = 'flex'; // Can view profile for friend requests
                 }
             } else if (notification.type === 'system' || notification.type === 'coin_reward' || notification.type === 'level_up' || notification.type === 'friend_removed' || notification.type === 'friend_rejected') {
                 if (hasSender) {
                     viewProfileOptionBtn.style.display = 'flex'; // Can still view profile if sender exists
                 }
-                markAsReadOptionBtn.style.display = 'flex'; // Always allow marking as read for these types
-            } else {
-                // Default for unknown types
-                markAsReadOptionBtn.style.display = 'flex';
             }
+            // Always show mark as read, unless it's already read
+            markAsReadOptionBtn.style.display = 'flex';
 
             // If the notification is already read, disable mark as read button
             if (notification.read) {
                 markAsReadOptionBtn.disabled = true;
                 markAsReadOptionBtn.textContent = 'Already Read';
+                // Also disable accept/reject if already read (request handled)
+                acceptFriendRequestOptionBtn.disabled = true;
+                rejectFriendRequestOptionBtn.disabled = true;
             } else {
                 markAsReadOptionBtn.disabled = false;
                 markAsReadOptionBtn.innerHTML = '<i class="fas fa-check"></i> Mark As Read';
+                acceptFriendRequestOptionBtn.disabled = false;
+                rejectFriendRequestOptionBtn.disabled = false;
             }
 
             notificationOptionsModal.classList.add('active');
@@ -1608,6 +1688,120 @@
             } catch (error) {
                 console.error("JCHAT_ERROR: Error deleting all notifications:", error);
                 showMessageBox(`Failed to delete all notifications: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Accepts a friend request.
+         * @param {string} notificationId - The ID of the friend request notification.
+         * @param {string} senderId - The ID of the user who sent the request.
+         * @param {string} senderUsername - The username of the user who sent the request.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function acceptFriendRequest(notificationId, senderId, senderUsername, buttonElement) {
+            if (!currentUser) {
+                showMessageBox("Authentication error. Cannot accept friend request.", 'error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            // Disable all action buttons in the modal during processing
+            document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = true);
+
+            showMessageBox(`Accepting friend request from ${senderUsername}...`, 'loading', true);
+
+            const batch = writeBatch(db);
+
+            try {
+                // 1. Add sender to current user's friends list
+                const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", senderId);
+                batch.set(currentUserFriendDocRef, {
+                    userId: senderId,
+                    addedAt: serverTimestamp()
+                });
+
+                // 2. Add current user to sender's friends list
+                const senderFriendDocRef = doc(db, "artifacts", appId, "users", senderId, "friends", currentUser.uid);
+                batch.set(senderFriendDocRef, {
+                    userId: currentUser.uid,
+                    addedAt: serverTimestamp()
+                });
+
+                // 3. Mark the friend request notification as read
+                const notificationDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
+                batch.update(notificationDocRef, { read: true });
+
+                // 4. Send a "friend_accepted" notification back to the sender
+                await addDoc(collection(db, "artifacts", appId, "users", senderId, "notifications"), {
+                    type: 'friend_accepted',
+                    message: `${currentUserProfileData.username} accepted your friend request!`,
+                    senderId: currentUser.uid,
+                    recipientId: senderId,
+                    timestamp: serverTimestamp(),
+                    read: false,
+                    senderUsername: currentUserProfileData.username
+                });
+
+                await batch.commit();
+
+                showMessageBox(`You are now friends with ${senderUsername}!`, 'success');
+                hideNotificationOptions(); // Close modal on success
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error accepting friend request:", error);
+                showMessageBox(`Failed to accept friend request: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+                document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = false);
+            }
+        }
+
+        /**
+         * Rejects a friend request.
+         * @param {string} notificationId - The ID of the friend request notification.
+         * @param {string} senderId - The ID of the user who sent the request.
+         * @param {string} senderUsername - The username of the user who sent the request.
+         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         */
+        async function rejectFriendRequest(notificationId, senderId, senderUsername, buttonElement) {
+            if (!currentUser) {
+                showMessageBox("Authentication error. Cannot reject friend request.", 'error');
+                return;
+            }
+
+            toggleButtonLoading(buttonElement, true);
+            // Disable all action buttons in the modal during processing
+            document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = true);
+
+            showMessageBox(`Rejecting friend request from ${senderUsername}...`, 'loading', true);
+
+            const batch = writeBatch(db);
+
+            try {
+                // 1. Mark the friend request notification as read
+                const notificationDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
+                batch.update(notificationDocRef, { read: true });
+
+                // 2. Optionally, send a "friend_rejected" notification back to the sender
+                await addDoc(collection(db, "artifacts", appId, "users", senderId, "notifications"), {
+                    type: 'friend_rejected',
+                    message: `${currentUserProfileData.username} rejected your friend request.`,
+                    senderId: currentUser.uid,
+                    recipientId: senderId,
+                    timestamp: serverTimestamp(),
+                    read: false,
+                    senderUsername: currentUserProfileData.username
+                });
+
+                await batch.commit();
+
+                showMessageBox(`Friend request from ${senderUsername} rejected.`, 'info');
+                hideNotificationOptions(); // Close modal on success
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error rejecting friend request:", error);
+                showMessageBox(`Failed to reject friend request: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+                document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = false);
             }
         }
 
@@ -1726,6 +1920,27 @@
                     }
                 });
             }
+            // New: Accept Friend Request button in modal
+            if (acceptFriendRequestOptionBtn) {
+                acceptFriendRequestOptionBtn.addEventListener('click', () => {
+                    if (currentNotificationData && currentNotificationData.type === 'friend_request' && currentNotificationData.senderId) {
+                        acceptFriendRequest(currentNotificationData.id, currentNotificationData.senderId, currentNotificationData.senderUsername, acceptFriendRequestOptionBtn);
+                    } else {
+                        showMessageBox("Invalid notification for accepting friend request.", 'error');
+                    }
+                });
+            }
+            // New: Reject Friend Request button in modal
+            if (rejectFriendRequestOptionBtn) {
+                rejectFriendRequestOptionBtn.addEventListener('click', () => {
+                    if (currentNotificationData && currentNotificationData.type === 'friend_request' && currentNotificationData.senderId) {
+                        rejectFriendRequest(currentNotificationData.id, currentNotificationData.senderId, currentNotificationData.senderUsername, rejectFriendRequestOptionBtn);
+                    } else {
+                        showMessageBox("Invalid notification for rejecting friend request.", 'error');
+                    }
+                });
+            }
+
             // Close modal when clicking outside of it
             if (notificationOptionsModal) {
                 notificationOptionsModal.addEventListener('click', (event) => {
