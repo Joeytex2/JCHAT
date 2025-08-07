@@ -3,21 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JCHAT - Community Guidelines</title>
+    <title>JCHAT - User Ban Tool</title>
 
-    <!-- Google Fonts: Poppins for headings, Inter for body text -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Tone.js for audio notifications -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
@@ -294,28 +290,36 @@
             width: 100%;
         }
 
-        /* Header Actions */
-        .header-right-actions {
+        /* User Profile Header Styling */
+        .user-profile-header {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
-        .header-action-icon {
-            font-size: 1.5rem;
+        /* Notification Icon Styling */
+        .notification-icon-wrapper {
+            position: relative;
+            margin-right: 15px; /* Space between notification and profile */
+        }
+
+        .notification-icon-wrapper a {
+            text-decoration: none; /* Remove underline from link */
+            color: inherit; /* Inherit color from parent */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-icon-wrapper i {
+            font-size: 1.5rem; /* Adjust size as needed */
             color: var(--text-light);
             cursor: pointer;
             transition: color 0.2s ease;
         }
 
-        .header-action-icon:hover {
+        .notification-icon-wrapper i:hover {
             color: var(--white);
-        }
-
-        .notification-icon-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
         }
 
         .notification-badge {
@@ -334,52 +338,53 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            display: none; /* Hidden by default */
-        }
-
-        /* User Profile & Logout */
-        .user-profile-pic-header {
-            height: 40px;
-            width: 40px;
-            border-radius: 50%;
-            overflow: hidden;
-            position: relative;
-            border: 2px solid var(--accent-color);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .user-profile-pic-header:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(0, 213, 255, 0.5);
-        }
-
-        .user-profile-pic-header a {
-            display: block;
-            width: 100%;
-            height: 100%;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .user-profile-pic-header img,
-        .user-profile-pic-header i {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            /* Hide if no notifications */
             display: none;
         }
-        
-        .user-profile-pic-header i {
+
+        .user-profile-header #profileLink {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 25px;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--white);
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: var(--radius);
+        }
+
+        .user-profile-header #profileLink:hover {
+            opacity: 0.8;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile-header img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color); /* Used accent-color for consistency */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: opacity 0.3s ease;
+        }
+
+        .user-profile-header i {
+            font-size: 30px;
             color: var(--text-light);
         }
 
+        .user-profile-header span {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        /* Logout Button Styling */
         #logoutButton {
-            background: var(--button-background-gradient);
+            background: var(--button-background-gradient); /* Use gradient variable */
             border: none;
             border-radius: 50%;
             width: 30px;
@@ -391,11 +396,12 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
             opacity: 0.8;
+            margin-left: 10px;
         }
 
         #logoutButton:hover {
             transform: scale(1.1);
-            box-shadow: var(--button-shadow);
+            box-shadow: var(--button-shadow); /* Use button shadow variable */
             opacity: 1;
         }
 
@@ -403,7 +409,7 @@
             color: var(--white);
             font-size: 0.9rem;
         }
-        
+
         /* Main Content Area */
         main {
             flex-grow: 1;
@@ -416,155 +422,282 @@
             justify-content: flex-start; /* Align content to top */
             text-align: center;
         }
-        
+
         .content-wrapper {
             width: 100%;
-            max-width: 1000px;
+            max-width: 1000px; /* Increased max-width for more space */
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 25px; /* Increased gap between sections */
             align-items: center;
         }
 
         /* General Section Styling */
         .section-card {
             background: var(--card-background);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-color); /* Used border-color from root */
             backdrop-filter: blur(10px) saturate(180%);
             border-radius: var(--radius);
             box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
-            padding: 2.5rem;
-            width: 95%;
-            max-width: 900px;
-            margin: 0 auto;
+            padding: 2.5rem; /* Increased padding */
+            width: 95%; /* Slightly wider */
+            max-width: 900px; /* Adjusted max-width */
+            margin: 0 auto; /* Center the card */
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 1.5rem;
             text-align: center;
         }
-        
+
         .section-card h1, .section-card h2 {
             font-family: 'Poppins', sans-serif;
             font-weight: 800;
             background-clip: text;
             color: transparent;
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            margin-bottom: 1.5rem;
-            text-align: center;
+            margin-bottom: 1.5rem; /* Consistent margin */
         }
-        .section-card h1 { font-size: 2.8rem; }
-        .section-card h2 { font-size: 2rem; margin-bottom: 1.2rem; }
-        
-        .section-card p, .section-card ul {
-            text-align: left;
-            line-height: 1.6;
-            color: var(--text-color-secondary);
-        }
+        .section-card h1 { font-size: 2.8rem; } /* Larger main title */
+        .section-card h2 { font-size: 2rem; margin-bottom: 1.2rem; } /* Larger section title */
 
-        .section-card ul {
-            list-style: none; /* Remove default list style for custom icon layout */
-            padding: 0;
-        }
-        
-        .section-card ul li {
-            margin-bottom: 25px;
-            padding: 25px;
-            background: var(--card-background-color);
-            border-radius: 15px;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s ease;
-        }
-
-        .section-card ul li:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-        }
-
-        .section-card .guideline-title {
+        /* Form-specific styling */
+        .form-container {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            width: 100%;
+            max-width: 500px;
             gap: 15px;
-            margin-top: 0;
-            margin-bottom: 15px;
+            text-align: left;
         }
-        
-        .section-card .guideline-title h3 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.4rem;
+        .form-container label {
             font-weight: 600;
-            background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            margin: 0;
+            color: var(--text-color-primary);
+            font-size: 1.1rem;
         }
-
-        .guideline-title i {
-            font-size: 1.5rem;
-            background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-        }
-
-        .report-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: var(--button-background-gradient);
+        .form-container input,
+        .form-container textarea {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-light);
+            background: var(--input-background);
             color: var(--white);
-            padding: 12px 25px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
             font-size: 1rem;
             transition: all 0.3s ease;
-            box-shadow: var(--button-shadow);
+        }
+        .form-container input:focus,
+        .form-container textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 8px rgba(0, 213, 255, 0.3);
+        }
+        .form-container textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .ban-button {
+            background: linear-gradient(90deg, var(--delete-button-color), #8d1c25);
             border: none;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-
-        .report-button:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
-        }
-
-        .contact-list {
-            list-style: none;
-            padding: 0;
-            text-align: center;
-            width: 100%;
-        }
-
-        .contact-list li {
-            margin-bottom: 10px;
+            color: var(--white);
+            padding: 15px 30px;
             font-size: 1.1rem;
-            color: var(--text-color-primary);
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
         }
-        
-        .contact-list li i {
-            font-size: 1.3rem;
-            background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+        .ban-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6);
+        }
+        .ban-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
-        .contact-list a {
-            color: var(--text-color-secondary);
+        /* --- Reused classes from Admin.html --- */
+        .admin-tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Larger min-width for cards */
+            gap: 25px; /* Increased gap */
+            width: 100%;
+            max-width: 900px; /* Match section-card max-width */
+        }
+
+        .admin-tool-card {
+            background: var(--input-background);
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            padding: 1.8rem; /* Increased padding */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 12px; /* Increased gap */
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
             text-decoration: none;
-            transition: color 0.2s ease;
+            color: var(--text-color-primary); /* Ensure text color is primary */
+            position: relative;
+            overflow: hidden; /* Hide overflow for pseudo-elements */
         }
-        .contact-list a:hover {
-            color: var(--accent-color);
-            text-decoration: underline;
+
+        .admin-tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(0, 213, 255, 0.1), rgba(255, 46, 146, 0.1)); /* Subtle gradient overlay */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
         }
-        
+
+        .admin-tool-card:hover::before {
+            opacity: 1;
+        }
+
+        .admin-tool-card:hover {
+            transform: translateY(-8px) scale(1.02); /* More pronounced lift */
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .5); /* Stronger shadow */
+            background: var(--card-background-color); /* Slightly change background on hover */
+        }
+
+        .admin-tool-card i {
+            font-size: 3.5rem; /* Larger icons */
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink)); /* Gradient for icons */
+            margin-bottom: 10px;
+            position: relative; /* For z-index */
+            z-index: 1;
+        }
+
+        .admin-tool-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.6rem; /* Larger heading */
+            font-weight: 700;
+            color: var(--white);
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .admin-tool-card p {
+            font-size: 1rem; /* Slightly larger paragraph text */
+            color: var(--text-light);
+            flex-grow: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Disabled link style */
+        .disabled-link {
+            opacity: 0.5; /* More visible disabled state */
+            cursor: not-allowed;
+            pointer-events: none; /* Disables click events */
+            box-shadow: none !important; /* Remove shadow when disabled */
+            transform: none !important; /* Remove transform when disabled */
+        }
+        .disabled-link:hover::before {
+            opacity: 0; /* No hover effect when disabled */
+        }
+
+
+        /* Loader styles for buttons (reused from other pages) */
+        .button-loader {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid var(--white);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        .button-loader.active { display: block; }
+        .button-text { display: block; }
+        .loading .button-text { display: none; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Message Box Styles */
+        #messageBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--card-background-color);
+            color: var(--text-color-primary);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            min-width: 280px;
+            max-width: 90%;
+            text-align: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        #messageBox.show {
+            opacity: 1;
+            display: flex;
+        }
+        #messageBox.success {
+            background-image: linear-gradient(45deg, var(--pink), var(--blue));
+            color: var(--white);
+            border: none;
+            box-shadow: 0 8px 30px rgba(0, 213, 255, 0.5), 0 8px 30px rgba(255, 46, 146, 0.5);
+        }
+        #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+
+        #messageBox i {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        #messageBox.success i { color: var(--white); }
+        #messageBox.error i { color: var(--delete-button-color); }
+        #messageBox.info i { color: var(--accent-color); }
+        #messageBox.warning i { color: var(--warning-color); }
+
+        #messageBox span {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        @keyframes pulse-bg {
+            0% { background-color: var(--accent-color); }
+            50% { background-color: rgba(0, 213, 255, 0.7); }
+            100% { background-color: var(--accent-color); }
+        }
+        #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
+
         /* Responsive Adjustments */
         @media (max-width: 600px) {
             header .header-content-wrapper {
@@ -579,12 +712,18 @@
             header nav ul li a {
                 font-size: 1.1rem;
             }
-            .user-profile-pic-header {
-                height: 35px;
-                width: 35px;
+            .user-profile-header #profileLink {
+                padding: 5px;
             }
-            .user-profile-pic-header i {
-                font-size: 20px;
+            .user-profile-header span {
+                max-width: 90px;
+            }
+            .user-profile-header img {
+                width: 30px;
+                height: 30px;
+            }
+            .user-profile-header i {
+                font-size: 25px;
             }
             #logoutButton {
                 width: 25px;
@@ -604,23 +743,26 @@
             .section-card h2 {
                 font-size: 1.7rem;
             }
-            .section-card .guideline-title h3 {
-                font-size: 1.2rem;
+            .admin-tools-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjusted min-width for mobile */
+                gap: 20px;
             }
-            .guideline-title i {
-                font-size: 1.3rem;
+            .admin-tool-card {
+                padding: 1.2rem;
             }
-            .contact-list li {
-                font-size: 1rem;
+            .admin-tool-card i {
+                font-size: 3rem;
             }
-            .contact-list li i {
-                font-size: 1.2rem;
+            .admin-tool-card h3 {
+                font-size: 1.4rem;
+            }
+            .admin-tool-card p {
+                font-size: 0.9rem;
             }
             body {
                 padding-bottom: 20px;
             }
         }
-        
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -629,27 +771,25 @@
         <div class="header-content-wrapper">
             <a href="/home.html" class="logo">JCHAT</a>
             <nav>
-                <ul></ul>
+                <ul>
+                    
+                </ul>
             </nav>
-            <div class="header-right-actions">
-                <a href="/Report.html" aria-label="Report an Issue" style="text-decoration: none; color: inherit;">
-                    <i class="fas fa-flag header-action-icon" aria-hidden="true"></i>
-                </a>
+            <div class="user-profile-header">
                 <div class="notification-icon-wrapper">
                     <a href="/notifications.html" aria-label="Notifications">
-                        <i class="fas fa-bell header-action-icon"></i>
-                        <span class="notification-badge" id="notificationCount">0</span>
-                    </a>
-                </div>
-                <div class="user-profile-pic-header">
-                    <a href="/profile.html" id="profileLink">
-                        <img id="headerProfilePic" src="" alt="User Profile Picture" style="display: none;">
-                        <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
                     </a>
                 </div>
                 <button id="logoutButton" aria-label="Logout" disabled>
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
+                <a href="/profile.html" id="profileLink">
+                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
+                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                    <span id="headerDisplayName">Loading...</span>
+                </a>
             </div>
         </div>
     </header>
@@ -657,132 +797,23 @@
     <main>
         <div class="content-wrapper">
             <div class="section-card">
-                <h1>JCHAT Community Guidelines</h1>
-                <p>Welcome to JCHAT! Our mission is to create a positive, safe, and engaging community for everyone. To achieve this, we rely on every member to follow these simple but crucial guidelines. They are designed to ensure respect, trust, and a great experience for all. Please take a moment to read and understand them. Remember, violations can lead to content removal, account suspension, or even a permanent ban.</p>
-                
-                <ul class="guideline-list">
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-handshake"></i>
-                            <h3>1. Be Respectful and Kind</h3>
-                        </div>
-                        <p>This is the golden rule of our community. Always treat others with respect and empathy, even when you disagree. We have a zero-tolerance policy for harassment, bullying, hate speech, and personal attacks. This includes any content that is abusive, threatening, or defamatory towards any individual or group based on their race, ethnicity, religion, gender, sexual orientation, disability, or age. Persistent negative commentary, public shaming, or intentionally targeting a user with insults will not be tolerated. Our goal is to foster a supportive environment, not a hostile one.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-eye-slash"></i>
-                            <h3>2. No Inappropriate or Explicit Content</h3>
-                        </div>
-                        <p>JCHAT is a public platform, and we must keep it safe for all ages and backgrounds. Do not post or share any content that is sexually explicit, pornographic, or graphically violent. This includes nudity, suggestive content, gruesome imagery, or depictions of self-harm. This rule applies to all forms of communication, including text, images, videos, and links. Our filters are actively working to detect this kind of material, and our moderation team will take swift action against anyone who attempts to share it.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-user-lock"></i>
-                            <h3>3. Respect Privacy and Confidentiality</h3>
-                        </div>
-                        <p>Protecting the privacy of our users is a top priority. You must never share another person's private or confidential information without their explicit, written permission. This is what we call "doxxing." Examples of private information include real names, home addresses, phone numbers, email addresses, private photos, or any other personally identifiable details. Doxxing is a serious offense that can endanger people, and it will result in an immediate and permanent ban from JCHAT. Additionally, do not share private conversations or screenshots from private chats without the consent of all parties involved.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-bullhorn"></i>
-                            <h3>4. Stay on Topic and Avoid Spam</h3>
-                        </div>
-                        <p>We want conversations on JCHAT to be meaningful and easy to follow. To keep things organized, please post in the appropriate channels and avoid disruptive behavior. Spamming, which includes posting repetitive messages, irrelevant content, or using bots to flood a channel, is not allowed. We also consider excessive self-promotion, "link-baiting" (posting deceptive links to drive traffic), or mass-tagging users as a form of spam. The purpose of this rule is to maintain a high-quality, signal-to-noise ratio in our community.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-user-shield"></i>
-                            <h3>5. Account Integrity and Authenticity</h3>
-                        </div>
-                        <p>Your JCHAT account should be a reflection of you. Do not impersonate other users, JCHAT staff, or any public figure. Creating profiles with fake credentials, using misleading usernames, or attempting to deceive others about who you are is a violation of our terms. We also forbid creating multiple accounts to evade a ban, manipulate discussions, or artificially inflate your presence on the platform. We are committed to a community built on trust and authenticity, and these deceptive practices undermine that trust.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-copyright"></i>
-                            <h3>6. Intellectual Property and Copyright</h3>
-                        </div>
-                        <p>You must respect the creative and intellectual work of others. Do not post, share, or distribute copyrighted material without the express permission of the owner. This includes, but is not limited to, sharing unauthorized streams of movies or TV shows, distributing pirated music or software, or using copyrighted images without a license. By respecting copyright, you support creators and ensure the legal integrity of our platform. We will remove content that infringes on copyright and take action against repeat offenders.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-gavel"></i>
-                            <h3>7. No Illegal Activities</h3>
-                        </div>
-                        <p>JCHAT is not a place for illegal activities. You may not use our platform to promote, facilitate, or discuss any act that is against the law. This includes, but is not limited to, the sale of illegal drugs, weapons, or stolen goods. We will cooperate with law enforcement authorities and will report any content or behavior that indicates a violation of local or international laws. If you see something that looks illegal, please report it immediately.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-child"></i>
-                            <h3>8. Zero Tolerance for Child Exploitation</h3>
-                        </div>
-                        <p>We have an absolute, zero-tolerance policy for any form of child abuse or exploitation. Any user found to be involved in such activities, or any content that depicts, promotes, or facilitates harm to minors, will be reported to the appropriate authorities immediately and will be permanently banned from JCHAT without warning. Your vigilance is key here, and we urge you to report any suspicious activity related to this topic immediately and without hesitation.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-laptop-code"></i>
-                            <h3>9. Technical Misuse is Forbidden</h3>
-                        </div>
-                        <p>Do not attempt to disrupt or exploit the JCHAT service. This includes using malicious software, launching denial-of-service (DoS) attacks, trying to hack user accounts, or exploiting any bugs or vulnerabilities for personal gain. Unauthorized use of bots or automated scripts to interfere with the platform's normal operation is also forbidden. This rule is in place to protect the security, stability, and integrity of our service for all users.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-balance-scale"></i>
-                            <h3>10. Moderation and Appeals</h3>
-                        </div>
-                        <p>Our moderation team works hard to enforce these guidelines fairly and consistently. If you have been moderated and believe it was a mistake, you have the right to appeal the decision. However, you must do so through the official appeal process. Do not publicly debate or criticize moderation actions in channels, as this can lead to further disruption. Respecting moderation decisions is crucial for maintaining order and a healthy community environment.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-fist-raised"></i>
-                            <h3>11. Avoid Creating Conflict</h3>
-                        </div>
-                        <p>While we encourage healthy debate and the sharing of diverse opinions, intentionally creating or escalating conflict is not allowed. Do not provoke others, bait them into arguments, or engage in behavior designed to cause drama and disruption. We expect our users to be a positive force in the community, helping to de-escalate tensions and promote a harmonious atmosphere rather than amplifying negativity.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-mask"></i>
-                            <h3>12. No Deceptive Practices</h3>
-                        </div>
-                        <p>Fraud, scams, and phishing attempts have no place on JCHAT. Do not use our platform to mislead other users for personal gain, spread false information, or attempt to steal personal data. Examples include posting fake investment opportunities, sharing links to malicious websites, or pretending to be a representative from a legitimate organization. Be cautious and report any suspicious activity you encounter to help protect yourself and others.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-globe-americas"></i>
-                            <h3>13. Respect Community Diversity</h3>
-                        </div>
-                        <p>JCHAT is a global community with users from every corner of the world. We celebrate this diversity and expect all members to do the same. Be mindful of cultural differences, respect varying perspectives, and avoid making assumptions. We will not tolerate any form of discrimination or intolerance based on someone's cultural background, beliefs, or identity. By being open-minded and respectful, you contribute to a richer and more welcoming environment for everyone.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-language"></i>
-                            <h3>14. Use Appropriate Language</h3>
-                        </div>
-                        <p>While we understand that casual conversation can sometimes include strong language, please refrain from using excessive profanity and offensive language, especially in public channels. What might be acceptable in a private conversation with friends is often not appropriate in a public space. A good rule of thumb is to use language that is generally inoffensive and understandable to the widest possible audience, ensuring that our community remains welcoming and friendly.</p>
-                    </li>
-                    <li>
-                        <div class="guideline-title">
-                            <i class="fas fa-shield-alt"></i>
-                            <h3>15. Keep Personal Information Safe</h3>
-                        </div>
-                        <p>Your security is your responsibility, and we encourage you to be proactive about it. Do not share your own personal information with strangers or in public channels. This includes passwords, phone numbers, addresses, and financial details. JCHAT staff will never ask for your password or other sensitive information via chat or direct message. Be vigilant, use strong and unique passwords, and be aware of phishing attempts. If you feel pressured to share information, please report it and block the user.</p>
-                    </li>
-                </ul>
+                <h1><i class="fas fa-ban"></i> Ban User</h1>
+                <p style="color: var(--warning-color); font-weight: 600; margin-top: -1rem; margin-bottom: 1rem;">
+                    This action is permanent and irreversible. Please proceed with caution.
+                </p>
+                <form id="banUserForm" class="form-container">
+                    <label for="userIdentifier">User UID or Username:</label>
+                    <input type="text" id="userIdentifier" name="userIdentifier" placeholder="Enter user UID or username" required>
 
-                <h2 style="margin-top: 2rem;">Need to Report a Violation?</h2>
-                <p>If you encounter content or behavior that violates these guidelines, please use our reporting feature. Your report is anonymous and helps us keep the community safe.</p>
-                <a href="/Report.html" class="report-button">
-                    <i class="fas fa-flag"></i>
-                    <span>Report an Issue Now</span>
-                </a>
+                    <label for="banReason">Reason for Ban:</label>
+                    <textarea id="banReason" name="banReason" placeholder="Provide a detailed reason for the ban..." required></textarea>
 
-                <h2 style="margin-top: 3rem;">Contact & Support</h2>
-                <p>For any urgent issues, partnership inquiries, or support questions, please contact us at:</p>
-                <ul class="contact-list">
-                    <li><i class="fas fa-envelope"></i> <a href="mailto:jchatguide@gmail.com">jchatguide@gmail.com</a></li>
-                    <li><i class="fas fa-envelope"></i> <a href="mailto:eletexjoeytex@gmail.com">eletexjoeytex@gmail.com</a></li>
-                    <li><i class="fas fa-phone"></i> <a href="tel:+2348111609765">+2348111609765</a></li>
-                    <li><i class="fas fa-phone"></i> <a href="tel:+2349013790707">+2349013790707</a></li>
-                </ul>
+                    <button type="submit" id="banButton" class="ban-button">
+                        <i class="fas fa-user-slash"></i>
+                        <span class="button-text">Ban User</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </form>
             </div>
         </div>
     </main>
@@ -793,9 +824,9 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // --- Firebase & Canvas Environment Configuration ---
+        // --- Firebase & Canvas Environment Configuration (Reused from Admin.html) ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
             authDomain: "jchat-1.firebaseapp.com",
@@ -806,12 +837,12 @@
             measurementId: "G-S6Z9GG0R9P"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // Added initialAuthToken
 
-        // Cloudinary Configuration
+        // Cloudinary Configuration (needed for header profile pic)
         const cloudinaryConfig = {
-            cloudName: "dxld01rcp",
-            uploadPreset: "Storage_preset"
+            cloudName: "dxld01rcp", // Your Cloudinary Cloud Name
+            uploadPreset: "Storage_preset" // Your Cloudinary Upload Preset
         };
 
         // Initialize Firebase services
@@ -822,16 +853,24 @@
         // --- DOM Elements ---
         const headerProfilePic = document.getElementById('headerProfilePic');
         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+        const headerDisplayName = document.getElementById('headerDisplayName');
         const logoutButton = document.getElementById('logoutButton');
         const notificationCountElement = document.getElementById('notificationCount');
         const messageBox = document.getElementById('messageBox');
         const headerNavLinkProfile = document.getElementById('profileLink');
+        const banUserForm = document.getElementById('banUserForm');
+        const userIdentifierInput = document.getElementById('userIdentifier');
+        const banReasonInput = document.getElementById('banReason');
+        const banButton = document.getElementById('banButton');
 
         // --- Global State ---
-        let isAuthReady = false;
-        let currentUser = null;
+        let isAuthReady = false; // Flag to indicate if auth state has been checked
+        let currentUser = null; // The currently authenticated user (Firebase Auth object)
 
-        // --- Tone.js Synths for Notification Sounds (reused) ---
+        // --- Admin Specific ID ---
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2';
+
+        // --- Tone.js Synths for Notification Sounds (reused from Admin.html) ---
         const successSynth = new Tone.Synth().toDestination();
         const errorSynth = new Tone.Synth().toDestination();
         const infoSynth = new Tone.Synth().toDestination();
@@ -865,7 +904,7 @@
             }
         }
 
-        // --- Utility Functions ---
+        // --- Utility Functions (Reused from Admin.html) ---
 
         /**
          * Displays a temporary message box with a given message and type.
@@ -987,8 +1026,6 @@
 
         /**
          * Fetches and displays the current user's profile data for the header.
-         * This function runs on every page to ensure header is consistent.
-         * Also updates the public profile summary.
          * @param {firebase.User} user - The authenticated Firebase user object.
          */
         async function fetchAndDisplayHeaderProfile(user) {
@@ -1001,25 +1038,28 @@
 
                 if (privateDocSnap.exists()) {
                     profileData = privateDocSnap.data();
+                } else {
+                    profileData = {
+                        username: user.displayName || `User_${user.uid.substring(0, 8)}`,
+                        profilePicId: user.photoURL || null,
+                        email: user.email || "",
+                        createdAt: serverTimestamp(),
+                        banned: false
+                    };
+                    await setDoc(privateProfileDocRef, profileData);
                 }
 
-                // Update public profile summary (ensure consistency)
                 const publicProfileSummary = {
-                    username: profileData?.username || `User_${user.uid.substring(0, 8)}`,
-                    profilePicId: profileData?.profilePicId || user.photoURL || null,
-                    jCoins: profileData?.jCoins || 0,
-                    level: profileData?.level || 1,
+                    username: profileData.username,
+                    profilePicId: profileData.profilePicId,
                     userId: user.uid,
-                    email: profileData?.email || "",
-                    totalPosts: profileData?.totalPosts || 0,
-                    totalGasEarned: profileData?.totalGasEarned || 0,
-                    banned: profileData?.banned || false
+                    banned: profileData.banned
                 };
                 await setDoc(publicProfileDocRef, publicProfileSummary, { merge: true });
 
-                // Update header UI
-                const usernameInitial = (publicProfileSummary.username || "J").charAt(0).toUpperCase();
-                displayProfilePicture(headerProfilePic, headerAvatarIcon, publicProfileSummary.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
+                displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                headerDisplayName.textContent = profileData.username || "JCHAT User";
                 headerNavLinkProfile.href = `/profile.html?userId=${user.uid}`;
 
                 logoutButton.disabled = false;
@@ -1027,6 +1067,7 @@
                 console.error("Error fetching or creating profile for header:", error);
                 const usernameInitial = (user.displayName || "J").charAt(0).toUpperCase();
                 displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                headerDisplayName.textContent = user.displayName || "JCHAT User";
                 showMessageBox(`Error loading header profile: ${error.message}`, 'error');
                 logoutButton.disabled = false;
             }
@@ -1057,39 +1098,147 @@
             }
         }
 
-        // --- Authentication State Listener ---
+        /**
+         * Logs an admin action to Firestore.
+         * @param {string} adminUid - The UID of the admin performing the action.
+         * @param {string} actionType - The type of action (e.g., 'approve_coin_request', 'ban_user').
+         * @param {object} [details={}] - Optional additional details for the log entry.
+         */
+        async function logAdminAction(adminUid, actionType, details = {}) {
+            try {
+                const logsCollectionRef = collection(db, "artifacts", appId, "public", "data", "admin_logs");
+                await addDoc(logsCollectionRef, {
+                    adminUid: adminUid,
+                    actionType: actionType,
+                    details: details,
+                    timestamp: serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Error logging admin action:", error);
+            }
+        }
+
+        // --- NEW: User Ban Specific Functions ---
+
+        /**
+         * Finds a user's profile by UID or username.
+         * @param {string} identifier - The user's UID or username.
+         * @returns {Promise<string|null>} The user's UID or null if not found.
+         */
+        async function findUser(identifier) {
+            // First, assume it's a UID
+            const userDocRef = doc(db, "artifacts", appId, "public", "data", "users", identifier);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                return identifier; // Found by UID
+            }
+
+            // If not found, search by username
+            const q = query(collection(db, "artifacts", appId, "public", "data", "users"), where("username", "==", identifier));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                return querySnapshot.docs[0].id; // Found by username, return the UID
+            }
+
+            return null; // Not found
+        }
+
+        /**
+         * Performs the ban action on a user.
+         * @param {string} userUid - The UID of the user to ban.
+         * @param {string} reason - The reason for the ban.
+         */
+        async function performBan(userUid, reason) {
+            try {
+                // Update private profile
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", userUid, "profiles", "user_profile");
+                await setDoc(privateProfileDocRef, {
+                    banned: true,
+                    banReason: reason,
+                    bannedAt: serverTimestamp()
+                }, { merge: true });
+
+                // Update public profile
+                const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", userUid);
+                await setDoc(publicProfileDocRef, {
+                    banned: true
+                }, { merge: true });
+
+                return true;
+            } catch (error) {
+                console.error("Error performing ban:", error);
+                return false;
+            }
+        }
+
+        // --- Authentication State Listener (Reused from Admin.html) ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
+                // --- ADMIN AUTHORIZATION CHECK ---
+                if (currentUser.uid !== ADMIN_UID) {
+                    showMessageBox("Unauthorized access. Redirecting to home page.", 'error', 2000, true);
+                    isAuthReady = false;
+                    document.querySelectorAll('a, button').forEach(el => {
+                        if (el.id !== 'logoutButton') {
+                            el.classList.add('disabled-link');
+                            el.style.pointerEvents = 'none';
+                        }
+                    });
+                    logoutButton.disabled = true;
+                    setTimeout(() => {
+                        window.location.href = '/home.html';
+                    }, 2000);
+                    return;
+                }
+                // --- END ADMIN AUTHORIZATION CHECK ---
+
                 isAuthReady = true;
                 await fetchAndDisplayHeaderProfile(user);
                 fetchNotificationCount(user.uid);
+                showMessageBox("User Ban Tool loaded.", 'info', 5000);
+
             } else {
                 isAuthReady = false;
                 logoutButton.disabled = true;
+                headerDisplayName.textContent = "Guest";
                 headerProfilePic.style.display = 'none';
                 headerAvatarIcon.style.display = 'block';
-                // Fallback to anonymous sign-in for public pages
-                try {
-                    await signInAnonymously(auth);
-                    showMessageBox("You are viewing as a guest.", 'info', 3000);
-                } catch (error) {
-                    console.error("Anonymous sign-in failed:", error);
-                    showMessageBox("Error logging in as guest.", 'error');
-                }
+                document.querySelector('main .content-wrapper').innerHTML = `
+                    <div class="section-card">
+                        <h1>Access Denied</h1>
+                        <p style="color: var(--pink); font-weight: 600;">
+                            <i class="fas fa-exclamation-triangle"></i> Please log in to access admin tools.
+                        </p>
+                        <p style="color: var(--text-light);">Redirecting to login page...</p>
+                    </div>
+                `;
+                showMessageBox("You must be logged in to access the Admin Dashboard.", 'error', 2000, true);
+                setTimeout(() => {
+                    if (initialAuthToken) {
+                        signInWithCustomToken(auth, initialAuthToken).catch(err => {
+                            console.error("Error signing in with custom token:", err);
+                            window.location.href = '/login.html';
+                        });
+                    } else {
+                        signInAnonymously(auth).catch(err => {
+                            console.error("Error signing in anonymously:", err);
+                            window.location.href = '/login.html';
+                        });
+                    }
+                }, 2000);
             }
         });
 
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Apply saved theme
             const savedTheme = localStorage.getItem('jchat-theme');
             const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
             if (savedTheme && themes.includes(savedTheme)) {
                 document.body.classList.remove(...themes);
                 document.body.classList.add(savedTheme);
             } else {
-                document.body.classList.add('theme-dark-mode'); // Default to dark mode
+                document.body.classList.add('theme-dark-mode');
             }
         });
 
@@ -1108,6 +1257,9 @@
             if (!isAuthReady) return;
             toggleButtonLoading(logoutButton, true);
             try {
+                if (currentUser) {
+                    await logAdminAction(currentUser.uid, 'admin_logout');
+                }
                 await signOut(auth);
                 showMessageBox("Logged out successfully! 👋", 'success');
                 setTimeout(() => {
@@ -1119,6 +1271,63 @@
                 toggleButtonLoading(logoutButton, false);
             }
         });
+
+        banUserForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!isAuthReady) {
+                showMessageBox("Authentication not ready. Please wait.", 'warning');
+                return;
+            }
+
+            const identifier = userIdentifierInput.value.trim();
+            const reason = banReasonInput.value.trim();
+
+            if (!identifier || !reason) {
+                showMessageBox("Please enter both a user identifier and a reason.", 'warning');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to ban ${identifier}? This action cannot be undone.`)) {
+                return;
+            }
+
+            toggleButtonLoading(banButton, true);
+            showMessageBox("Attempting to ban user...", 'loading', 0, true);
+
+            try {
+                const userUid = await findUser(identifier);
+
+                if (!userUid) {
+                    showMessageBox(`User "${identifier}" not found.`, 'error');
+                    return;
+                }
+
+                // Prevent banning the admin themselves
+                if (userUid === ADMIN_UID) {
+                    showMessageBox("Cannot ban an administrator.", 'error');
+                    return;
+                }
+
+                const banSuccessful = await performBan(userUid, reason);
+                if (banSuccessful) {
+                    await logAdminAction(currentUser.uid, 'ban_user', {
+                        bannedUserUid: userUid,
+                        bannedUserIdentifier: identifier,
+                        reason: reason
+                    });
+                    showMessageBox(`User "${identifier}" (UID: ${userUid}) has been successfully banned.`, 'success');
+                    banUserForm.reset(); // Clear the form
+                } else {
+                    showMessageBox(`Failed to ban user "${identifier}". An error occurred.`, 'error');
+                }
+            } catch (error) {
+                console.error("Ban process failed:", error);
+                showMessageBox(`An unexpected error occurred: ${error.message}`, 'error');
+            } finally {
+                toggleButtonLoading(banButton, false);
+            }
+        });
+
     </script>
 </body>
 </html>
