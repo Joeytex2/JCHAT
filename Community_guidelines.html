@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHAT - Community Guidelines</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* Universal box-sizing for consistent layout */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Global CSS Variables for easy theme switching */
+        :root {
+            --pink: #ff2e92;
+            --blue: #00d5ff;
+            --glass-black: rgba(10, 10, 10, .75);
+            --glass-blue: rgba(0, 213, 255, .15);
+            --radius: 20px;
+            --transition: .3s ease;
+
+            /* These variables will be overridden by theme classes */
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, .7);
+            --background-main: rgba(10, 10, 10, .75);
+            --background-gradient-1: #00d5ff;
+            --background-gradient-2: #ff2e92;
+            --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            --header-background: linear-gradient(135deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .75));
+            --border-light: rgba(255, 255, 255, .05);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --button-background: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-shadow: 0 4px 15px var(--blue), 0 44px 15px var(--pink);
+
+            /* New variables for consistent theming */
+            --background-color-primary: #1a1a2e;
+            --background-color-secondary: #0f0f1f;
+            --header-background-color: #2a2a4a;
+            --footer-background-color: #2a2a4a;
+            --content-background-color: #20203a;
+            --card-background-color: #2a2a4a;
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #bbbbbb;
+            --notification-badge-color: #ff2e92;
+            --status-online: #4CAF50;
+            --status-offline: #6c757d;
+            --status-away: #FFC107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+            --accent-color: #00d5ff; /* A bright cyan */
+            --accent-color-dark: #00aaff;
+            --border-color: #3a3a5a;
+        }
+
+        /* --- Theme Definitions (Light and Dark Mode) --- */
+        /* Light Mode */
+        body.theme-light-mode {
+            --background-main: #f0f2f5; /* Light gray background */
+            --background-gradient-1: #e0e2e5; /* Subtle lighter gradient */
+            --background-gradient-2: #d0d2d5; /* Subtle darker gradient */
+            --white: #333; /* Dark text for readability */
+            --text-light: #666; /* Lighter dark text */
+            --card-background: rgba(255, 255, 255, 0.95); /* Near white cards */
+            --header-background: rgba(255, 255, 255, 0.98); /* Near white header */
+            --border-light: rgba(0, 0, 0, 0.1); /* Light borders */
+            --input-background: rgba(0, 0, 0, 0.05); /* Light input background */
+            --button-background: linear-gradient(90deg, #6dd5ed, #2193b0); /* Blue gradient */
+            --button-shadow: 0 4px 15px rgba(109, 213, 237, 0.4), 0 44px 15px rgba(33, 147, 176, 0.4);
+
+            /* New variables override for light mode */
+            --background-color-primary: #f0f2f5;
+            --background-color-secondary: #e0e2e5;
+            --header-background-color: #ffffff;
+            --footer-background-color: #ffffff;
+            --content-background-color: #f7f9fb;
+            --card-background-color: #ffffff;
+            --text-color-primary: #333333;
+            --text-color-secondary: #666666;
+            --text-color-light: #999999;
+            --accent-color: #007bff;
+            --accent-color-dark: #0056b3;
+            --border-color: #e0e0e0;
+            --input-background-color: #f0f0f0;
+            --button-background: #e9ecef;
+            --button-hover-background: #dee2e6;
+            --active-item-background: rgba(0, 123, 255, 0.1);
+            --notification-badge-color: #dc3545;
+            --status-online: #28a745;
+            --status-offline: #6c757d;
+            --status-away: #ffc107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+
+        /* Dark Mode */
+        body.theme-dark-mode {
+            --background-main: #1a1a2e; /* Deep purple-dark blue */
+            --background-gradient-1: #16213e; /* Slightly lighter deep blue */
+            --background-gradient-2: #0f3460; /* Darker blue */
+            --white: #e0e0e0; /* Off-white text */
+            --text-light: #a0a0a0; /* Grayish text */
+            --card-background: rgba(25, 25, 40, 0.7); /* Darker, less transparent cards */
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75)); /* Original dark header */
+            --border-light: rgba(255, 255, 255, 0.08); /* Subtle white borders */
+            --input-background: rgba(255, 255, 255, 0.08);
+            --button-background: linear-gradient(90deg, #e94560, #ba2f49); /* Reddish gradient */
+            --button-shadow: 0 4px 15px rgba(233, 69, 96, 0.4), 0 4px 15px rgba(186, 47, 73, 0.4);
+
+            /* New variables override for dark mode */
+            --background-color-primary: #121212;
+            --background-color-secondary: #1e1e1e;
+            --header-background-color: #2c2c2c;
+            --footer-background-color: #2c2c2c;
+            --content-background-color: #242424;
+            --card-background-color: #2c2c2c;
+            --text-color-primary: #ffffff;
+            --text-color-secondary: #bbbbbb;
+            --accent-color: #bb86fc;
+            --accent-color-dark: #9a67ea;
+            --border-color: #444444;
+            --input-background-color: #383838;
+            --button-background: #383838;
+            --button-hover-background: #505050;
+            --active-item-background: rgba(187, 134, 252, 0.2);
+            --notification-badge-color: #cf6679;
+            --delete-button-color: #f44336;
+            --warning-color: #ffeb3b;
+        }
+
+        /* Glass Mode specific variables */
+        body.theme-glass-mode {
+            --background-main: rgba(10, 10, 10, 0.75);
+            background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important;
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            backdrop-filter: blur(10px);
+            --card-background: rgba(25, 25, 40, 0.7);
+            --white: #e0e0e0; /* text-color */
+            --text-light: rgba(255, 255, 255, 0.7);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.1); /* glass-border-color */
+            --button-background: linear-gradient(90deg, var(--pink), var(--blue));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5); /* Inner shadow for glass effect */
+
+            /* New variables override for glass mode */
+            --background-color-primary: rgba(10, 10, 10, 0.75);
+            --background-color-secondary: rgba(10, 10, 10, 0.6);
+            --header-background-color: rgba(10, 10, 10, 0.85);
+            --footer-background-color: rgba(10, 10, 10, 0.85);
+            --content-background-color: rgba(10, 10, 10, 0.75);
+            --card-background-color: rgba(25, 25, 40, 0.7);
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --accent-color: #00d5ff;
+            --accent-color-dark: #00aaff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-background-color: rgba(255, 255, 255, 0.05);
+            --button-background: rgba(0, 213, 255, 0.15); /* Glassy button */
+            --button-hover-background: rgba(0, 213, 255, 0.25);
+            --active-item-background: rgba(0, 213, 255, 0.1);
+        }
+
+        /* Sunset Theme */
+        body.theme-sunset-mode {
+            background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
+            --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
+            --card-background: rgba(255, 255, 255, 0.15); /* Slightly transparent white for contrast */
+            --white: #fff; /* White text for readability */
+            --text-light: rgba(255, 255, 255, 0.8);
+            --input-background: rgba(255, 255, 255, 0.1);
+            --border-light: rgba(255, 255, 255, 0.3);
+            --button-background: linear-gradient(90deg, #fd746c, #ff9068); /* Sunset gradient */
+            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 4px 15px rgba(255, 144, 104, 0.4);
+
+            /* New variables override for sunset mode */
+            --background-color-primary: #ff7e5f;
+            --background-color-secondary: #feb47b;
+            --header-background-color: rgba(255, 126, 95, 0.9);
+            --footer-background-color: rgba(255, 126, 95, 0.9);
+            --content-background-color: rgba(255, 126, 95, 0.85);
+            --card-background-color: rgba(255, 255, 255, 0.15);
+            --text-color-primary: #fff;
+            --text-color-secondary: rgba(255, 255, 255, 0.8);
+            --accent-color: #ffd700;
+            --accent-color-dark: #ccaa00;
+            --border-color: rgba(255, 255, 255, 0.3);
+            --input-background-color: rgba(255, 255, 255, 0.1);
+            --button-background: rgba(255, 255, 255, 0.2);
+            --button-hover-background: rgba(255, 255, 255, 0.3);
+            --active-item-background: rgba(255, 215, 0, 0.1);
+        }
+        
+        /* New theme selector styles */
+        .theme-selector {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .theme-selector button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--border-light);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .theme-selector button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        #darkThemeBtn { background-color: #1a1a2e; }
+        #lightThemeBtn { background-color: #f0f2f5; }
+        #glassThemeBtn { background: linear-gradient(45deg, #1a1a2e, #00d5ff); }
+        #sunsetThemeBtn { background: linear-gradient(to top, #ff7e5f, #feb47b); }
+
+
+        /* Always show scrollbar to prevent layout shifts */
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            padding-bottom: 40px; /* Adjusted padding as bottom nav is removed */
+            background-color: var(--background-main);
+            background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
+                              radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
+            color: var(--white);
+            transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
+        }
+
+        /* Header Styling */
+        header {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 55px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        header .header-content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+        }
+
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
+            text-decoration: none;
+        }
+
+        /* Header Navigation (Removed as per user request) */
+        header nav ul {
+            display: none; /* Explicitly hide navigation */
+        }
+
+        /* User Profile Header Styling */
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Notification Icon Styling */
+        .notification-icon-wrapper {
+            position: relative;
+            margin-right: 15px; /* Space between notification and profile */
+        }
+
+        .notification-icon-wrapper a {
+            text-decoration: none; /* Remove underline from link */
+            color: inherit; /* Inherit color from parent */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-icon-wrapper i {
+            font-size: 1.5rem; /* Adjust size as needed */
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback for browsers that don't support background-clip: text on icons */
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .notification-icon-wrapper i:hover {
+            transform: scale(1.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--notification-badge-color); /* Use pink for notifications */
+            color: var(--white);
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Hide if no notifications */
+            display: none;
+        }
+
+        .user-profile-header #profileLink {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--white);
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: var(--radius);
+        }
+
+        .user-profile-header #profileLink:hover {
+            opacity: 0.8;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile-header img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color); /* Used accent-color for consistency */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: opacity 0.3s ease;
+        }
+
+        .user-profile-header i {
+            font-size: 30px;
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+
+        .user-profile-header span {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            /* Apply gradient to names */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+
+        /* Admin Icon Styling */
+        #adminIconLink {
+            display: none; /* Hidden by default */
+            margin-right: 15px; /* Space it out from other icons */
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+            font-size: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        #adminIconLink:hover {
+            transform: scale(1.1);
+        }
+        
+        .loading-text {
+            /* Apply gradient to the loading text as well */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            animation: pulse-gradient 1.5s infinite ease-in-out;
+        }
+        
+        @keyframes pulse-gradient {
+            0% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.5);
+            }
+            100% {
+                filter: brightness(1);
+            }
+        }
+
+        /* Main Content Area */
+        main {
+            flex-grow: 1;
+            padding: 40px 0;
+            padding-top: 55px; /* Adjust for fixed header */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align content to top */
+            text-align: center;
+        }
+
+        .content-wrapper {
+            width: 100%;
+            max-width: 800px; /* Adjust as needed */
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        /* General Section Styling */
+        .section-card {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 2rem;
+            width: 90%;
+            max-width: 700px;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: center;
+        }
+        
+        .section-card-guidelines {
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            backdrop-filter: blur(10px) saturate(180%);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 2rem;
+            width: 90%;
+            max-width: 900px;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align text to the left */
+            gap: 1.5rem;
+            text-align: left; /* Align text to the left */
+        }
+        
+        .section-card-guidelines h1, .section-card h1, .section-card h2, .section-card-guidelines h2 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            margin-bottom: 1.5rem;
+        }
+        .section-card-guidelines h1, .section-card h1 { font-size: 2.5rem; text-align: center; width: 100%;}
+        .section-card-guidelines h2, .section-card h2 { font-size: 1.8rem; margin-bottom: 1rem; }
+        .section-card-guidelines h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color-primary);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-card-guidelines p, .section-card-guidelines ul {
+            font-size: 1rem;
+            color: var(--text-color-secondary);
+            line-height: 1.6;
+        }
+
+        .section-card-guidelines ul {
+            list-style-type: '👉 ';
+            padding-left: 20px;
+        }
+        
+        .section-card-guidelines .contact-info ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 10px;
+        }
+        .section-card-guidelines .contact-info li {
+            margin-bottom: 5px;
+            font-size: 1rem;
+            color: var(--text-color-secondary);
+        }
+        .section-card-guidelines .contact-info a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+        .section-card-guidelines .contact-info a:hover {
+            text-decoration: underline;
+        }
+
+
+        .section-card-guidelines li {
+            margin-bottom: 10px;
+        }
+        
+        /* New Features section styling */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .feature-card i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        
+        .feature-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--white);
+            margin: 0 0 10px 0;
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+
+        /* User Search and List Specific Styles */
+        .search-container {
+            width: 100%;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .search-container input[type="text"] {
+            width: 100%;
+            padding: 12px 20px 12px 45px; /* Left padding for icon */
+            border-radius: var(--radius);
+            border: 1px solid var(--border-light);
+            background-color: var(--input-background);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .search-container input[type="text"]::placeholder {
+            color: var(--text-light);
+        }
+
+        .search-container input[type="text"]:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.3);
+        }
+
+        .search-container .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+
+        .user-list {
+            width: 100%;
+            display: flex; /* Changed to flexbox */
+            flex-direction: column; /* Stack items vertically */
+            gap: 15px; /* Space between user cards */
+            padding: 15px;
+            background: var(--glass-black);
+            border: 1px solid var(--blue);
+            border-radius: 10px;
+            max-height: 70vh; /* Limit height for scrollability */
+            overflow-y: auto;
+        }
+
+        .user-card {
+            background: var(--glass-blue);
+            border: 1px solid var(--blue);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex; /* Changed to flex for internal layout */
+            align-items: center; /* Align items vertically in the middle */
+            gap: 15px; /* Space between avatar/name and buttons */
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+            text-decoration: none; /* For the anchor tag */
+            color: inherit;
+            width: 100%; /* Take full width of its container */
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 213, 255, 0.3);
+            background-color: rgba(0, 213, 255, 0.25);
+        }
+
+        .user-card img {
+            width: 60px; /* Smaller avatar for vertical list */
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--pink);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .user-card .default-avatar {
+            width: 60px; /* Smaller avatar for vertical list */
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem; /* Smaller icon */
+            color: var(--white);
+            flex-shrink: 0; /* Prevent shrinking */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .user-card .default-avatar i {
+            background-image: linear-gradient(90deg, var(--pink), var(--blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+
+        .user-card h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--white);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1; /* Allow username to take available space */
+            text-align: left; /* Align text to the left */
+        }
+
+        /* New styles for action buttons */
+        .user-actions {
+            display: flex;
+            flex-direction: row; /* Buttons side-by-side */
+            gap: 8px;
+            margin-left: auto; /* Push buttons to the right */
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--white);
+            white-space: nowrap; /* Prevent button text from wrapping */
+        }
+
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .add-friend-btn {
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+        }
+        .add-friend-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+
+        .request-sent-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-light);
+            color: var(--text-light);
+        }
+
+        .cancel-request-btn {
+            background-color: var(--delete-button-color);
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+        }
+        .cancel-request-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .accept-request-btn {
+            background-color: var(--status-online); /* Green for accept */
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+        .accept-request-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .reject-request-btn {
+            background-color: var(--status-offline); /* Gray for reject */
+            box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+        }
+        .reject-request-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .friends-btn {
+            background-color: rgba(0, 213, 255, 0.3); /* Lighter blue for friends status */
+            border: 1px solid var(--blue);
+            color: var(--white);
+            cursor: default;
+        }
+
+        .unfriend-btn {
+            background-color: var(--delete-button-color);
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+        }
+        .unfriend-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .chat-btn {
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+        }
+        .chat-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+
+        .no-users-message {
+            text-align: center;
+            color: var(--text-light);
+            padding: 20px;
+            width: 100%;
+        }
+
+        /* Custom Message Box Styles */
+        #messageBox {
+            position: fixed;
+            top: 50%; /* Center vertically */
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center both horizontally and vertically */
+            background-color: var(--card-background-color); /* Default background, will be overridden for success */
+            color: var(--text-color-primary); /* Default text color */
+            padding: 20px 30px; /* Increased padding for a more substantial box */
+            border-radius: 15px; /* More rounded corners, slightly squarer */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); /* Enhanced shadow */
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            min-width: 280px; /* Ensure a decent minimum width */
+            max-width: 90%;
+            text-align: center;
+            flex-direction: column; /* Stack icon and text vertically */
+            align-items: center;
+            gap: 15px; /* Space between icon and text */
+        }
+        #messageBox.show {
+            opacity: 1;
+            display: flex;
+        }
+        /* Success message box specific styling */
+        #messageBox.success {
+            background-image: linear-gradient(45deg, var(--pink), var(--blue)); /* Pink and blue gradient */
+            color: var(--white); /* White text for contrast on gradient */
+            border: none; /* No border for gradient background */
+            box-shadow: 0 8px 30px rgba(0, 213, 255, 0.5), 0 8px 30px rgba(255, 46, 146, 0.5); /* Glowing shadow */
+        }
+        #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+        #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
+
+        #messageBox i {
+            font-size: 2.5rem; /* Larger icon for prominence */
+            margin-bottom: 5px; /* Space between icon and text */
+            /* Apply gradient to message box icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+        }
+        #messageBox.success i { color: var(--white); } /* White icon for success */
+        #messageBox.error i { color: var(--delete-button-color); }
+        #messageBox.info i { color: var(--accent-color); }
+        #messageBox.warning i { color: var(--warning-color); }
+
+        #messageBox span {
+            font-size: 1.1rem; /* Slightly larger text */
+            font-weight: 600;
+        }
+
+        @keyframes pulse-bg {
+            0% { background-color: var(--accent-color); }
+            50% { background-color: rgba(0, 213, 255, 0.7); }
+            100% { background-color: var(--accent-color); }
+        }
+        #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
+
+        /* Loader styles for buttons */
+        .button-loader {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid var(--white);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+            flex-shrink: 0; /* Prevent loader from shrinking */
+        }
+        .button-loader.active { display: block; }
+        .button-text { display: block; }
+        .loading .button-text { display: none; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--card-background);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .modal-content h3 {
+            color: var(--white);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .modal-buttons button {
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .modal-buttons button.confirm-btn {
+            background: linear-gradient(90deg, var(--pink), var(--blue));
+            color: var(--white);
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+        }
+        .modal-buttons button.confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+        .modal-buttons button.cancel-btn {
+            background: var(--input-background);
+            color: var(--text-light);
+            border: 1px solid var(--border-light);
+        }
+        .modal-buttons button.cancel-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 600px) {
+            header .header-content-wrapper {
+                padding: 0 20px;
+            }
+            .logo {
+                font-size: 1.6rem;
+            }
+            header nav ul {
+                gap: 15px;
+            }
+            header nav ul li a {
+                font-size: 1.1rem;
+            }
+            .user-profile-header #profileLink {
+                padding: 5px;
+            }
+            .user-profile-header span {
+                max-width: 90px;
+            }
+            .user-profile-header img {
+                width: 30px;
+                height: 30px;
+            }
+            .user-profile-header i {
+                font-size: 25px;
+            }
+            .section-card-guidelines {
+                padding: 1.5rem;
+                text-align: left;
+            }
+            .section-card-guidelines h1 {
+                font-size: 2rem;
+            }
+            .section-card-guidelines h2 {
+                font-size: 1.5rem;
+            }
+            .user-list {
+                gap: 10px; /* Slightly smaller gap for vertical list on mobile */
+            }
+            .user-card {
+                padding: 10px; /* Smaller padding for cards on mobile */
+            }
+            .user-card img, .user-card .default-avatar {
+                width: 50px; /* Even smaller avatar on mobile */
+                height: 50px;
+            }
+            .user-card .default-avatar {
+                font-size: 2rem;
+            }
+            .user-card h3 {
+                font-size: 1rem;
+            }
+            .user-actions {
+                flex-direction: column; /* Stack buttons vertically on small screens */
+                gap: 5px;
+                margin-left: 0; /* Remove auto margin */
+                width: auto; /* Allow buttons to size naturally */
+            }
+            .action-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+            body {
+                padding-bottom: 40px; /* Reset padding for no bottom nav */
+            }
+            .theme-selector {
+                bottom: 10px;
+                right: 10px;
+                flex-direction: row;
+                gap: 5px;
+            }
+            .theme-selector button {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-dark-mode">
+
+<header>
+    <div class="header-content-wrapper">
+        <a href="/home.html" class="logo">JCHAT</a>
+        <nav>
+            <ul>
+                </ul>
+        </nav>
+        <div class="user-profile-header">
+            <a href="/coin_management.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
+                <i class="fas fa-user-cog"></i>
+            </a>
+            <div class="notification-icon-wrapper">
+                <a href="/notifications.html" aria-label="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                </a>
+            </div>
+            <a href="/profile.html" id="profileLink">
+                <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
+                <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                <span id="headerDisplayName" class="loading-text">Loading...</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="content-wrapper">
+        <div class="section-card-guidelines">
+            <h1>JCHAT Features</h1>
+            <p>Here's what makes JCHAT awesome! We're always working to bring you more ways to connect and express yourself.</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-comments"></i>
+                    <h3>Real-time Messaging</h3>
+                    <p>Instant, seamless chat with friends and groups. Never miss a beat.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-user-friends"></i>
+                    <h3>Friend Management</h3>
+                    <p>Easily add, accept, and manage your friends list to stay connected.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-paint-brush"></i>
+                    <h3>Customizable Themes</h3>
+                    <p>Express your style with a variety of themes, including Dark, Light, and Glass modes.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-bell"></i>
+                    <h3>Notifications</h3>
+                    <p>Get notified of new messages and friend requests so you're always in the loop.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-user-circle"></i>
+                    <h3>Personalized Profiles</h3>
+                    <p>Customize your profile with a name and picture to show off your personality.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Community Moderation</h3>
+                    <p>Report bad behavior and help us keep JCHAT a safe and welcoming space for everyone.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card-guidelines">
+            <h1>JCHAT Community Vibe Guide</h1>
+            <p>Welcome to JCHAT! ✨ Our community thrives on good vibes and mutual respect. This guide is all about helping you create a safe, fun, and inclusive space for everyone. It's not a list of boring rules—it's a guide to being awesome!</p>
+
+            <h2>1. Be a Good Human 🤝</h2>
+            <p>We're all here to connect and have a good time. That means:</p>
+            <ul>
+                <li><strong>Be Kind, Always:</strong> Treat others with respect, even if you disagree. Remember there's a real person with feelings on the other side of the screen.</li>
+                <li><strong>No Hate Speech or Harassment:</strong> This is a zero-tolerance policy. Do not post or share anything that is discriminatory, racist, sexist, homophobic, or targets individuals or groups.</li>
+                <li><strong>Keep It Positive:</strong> Avoid personal attacks, insults, and demeaning comments. Let's lift each other up, not tear each other down.</li>
+                <li><strong>No Impersonation:</strong> Do not pretend to be another person, a JCHAT staff member, or a public figure to deceive or mislead others.</li>
+                <li><strong>Respect Intellectual Property:</strong> Do not post content that infringes on copyright, trademark, or other intellectual property rights. Always give credit where it's due.</li>
+                <li><strong>Cultural Sensitivity:</strong> Be mindful of cultural differences and avoid making jokes or comments that could be offensive or misunderstood by others.</li>
+                <li><strong>Constructive Criticism:</strong> If you must criticize, do so constructively. Focus on the content, not the person, and offer helpful suggestions rather than just negativity.</li>
+                <li><strong>Embrace Diversity:</strong> JCHAT is a global community. Celebrate the different backgrounds, opinions, and experiences of all users.</li>
+            </ul>
+
+            <h2>2. Respect Privacy 🔒</h2>
+            <p>Just like in real life, privacy is super important here. Don't share information that isn't yours to share.</p>
+            <ul>
+                <li><strong>Protect Your Info:</strong> Don't share your own personal details like phone numbers, addresses, or passwords.</li>
+                <li><strong>Respect Others' Privacy:</strong> Do not post private conversations, photos, or videos of others without their explicit permission.</li>
+                <li><strong>Think Before You Post:</strong> Once something is online, it's hard to take back. Be mindful of what you share and how it could affect others.</li>
+                <li><strong>No Doxing:</strong> Sharing private or identifying information about another user without their consent is strictly prohibited.</li>
+                <li><strong>Maintain Confidentiality:</strong> Do not share sensitive information about JCHAT's internal workings or features that have not been publicly released.</li>
+                <li><strong>Private Messages are Private:</strong> Don't screenshot or share private messages in public chats without the consent of all parties involved.</li>
+                <li><strong>Secure Your Account:</strong> Use strong, unique passwords and enable two-factor authentication if available to protect your personal information.</li>
+                <li><strong>Be Cautious of Links:</strong> Don't click on suspicious links or download files from people you don't know.</li>
+            </ul>
+
+            <h2>3. Keep It Clean (ish) 😉</h2>
+            <p>Our platform is for a broad audience. Let's keep the content friendly and appropriate for all members.</p>
+            <ul>
+                <li><strong>No NSFW Content:</strong> Posting sexually explicit, excessively violent, or graphic content is not allowed.</li>
+                <li><strong>No Shocking Content:</strong> Avoid gore, disturbing imagery, or anything designed purely to shock or disgust other users.</li>
+                <li><strong>No Encouraging Harm:</strong> Do not post content that encourages or glorifies self-harm, violence, or dangerous illegal acts.</li>
+                <li><strong>No Unsolicited Advertising:</strong> Do not post links or content that promotes gambling, illegal goods, or other inappropriate commercial activities.</li>
+                <li><strong>Respect Minors:</strong> JCHAT is not a place for adult-themed conversations with minors. Protect children by not sharing inappropriate content with them.</li>
+                <li><strong>Substance Abuse:</strong> Do not post content that promotes or glorifies illegal drug use or dangerous substance abuse.</li>
+                <li><strong>No Self-Promotion in Public Chats:</strong> While it's okay to share your projects in relevant spaces, avoid excessive self-promotion in public, general chats.</li>
+                <li><strong>Be Mindful of Language:</strong> While we don't have a strict profanity filter, using excessive profanity can make others uncomfortable. Please be considerate.</li>
+            </ul>
+
+            <h2>4. Don't Be a Spammer or Scammer 🎣</h2>
+            <p>Spam and scams ruin the fun for everyone. Let's keep the conversations real and genuine.</p>
+            <ul>
+                <li><strong>No Spamming:</strong> Don't post repetitive, unsolicited, or promotional content. We want to hear from you, not a bot!</li>
+                <li><strong>No Scamming:</strong> Phishing, scams, or any deceptive behavior to get personal information or money from other users is strictly forbidden.</li>
+                <li><strong>No Unauthorized Software:</strong> Do not use or promote any automated scripts, bots, or third-party software that interferes with the normal operation of JCHAT.</li>
+                <li><strong>No Trolling:</strong> Do not intentionally post inflammatory, irrelevant, or off-topic content to provoke others.</li>
+                <li><strong>No Mass DMing:</strong> Sending unsolicited, identical messages to a large number of users is a form of spam and is not allowed.</li>
+                <li><strong>No False Information:</strong> Do not spread misinformation or fake news, especially if it could cause harm or confusion.</li>
+                <li><strong>Use Channels Correctly:</strong> Post your content in the correct channels or chats. For example, don't post memes in a technical support channel.</li>
+                <li><strong>Avoid Flooding:</strong> Do not flood a chat with a large number of messages in a short period of time. It disrupts the conversation for everyone.</li>
+            </ul>
+
+            <h2>5. Follow the Law ⚖️</h2>
+            <p>You're responsible for your own content. Please make sure everything you share is legal and ethical.</p>
+            <ul>
+                <li><strong>Stay Legal:</strong> Do not post or promote illegal activities or content. This includes, but is not limited to, content related to illegal drugs, weapons, or terrorism.</li>
+                <li><strong>Abide by Age Restrictions:</strong> If a chat or feature has age restrictions, please respect them. Do not try to bypass them or encourage others to do so.</li>
+                <li><strong>Report Illegal Content:</strong> If you encounter content that is illegal, you have a duty to report it immediately to our moderation team.</li>
+                <li><strong>No Malicious Activity:</strong> Do not engage in any activity that could harm JCHAT's servers, other users' accounts, or the overall integrity of the platform.</li>
+            </ul>
+
+            <h2>6. Be a Community Hero, Report Bad Vibes 🦸</h2>
+            <p>If you see something that doesn't feel right, you can help! You are a key part of keeping JCHAT a great place.</p>
+            <ul>
+                <li><strong>Report, Don't Retaliate:</strong> If you see a violation, use the reporting feature. Don't engage with the user or try to handle it yourself. Our moderation team will take it from there!</li>
+                <li><strong>Provide Clear Information:</strong> When you report a user or post, provide as much detail as possible, including screenshots or links, to help our team investigate effectively.</li>
+            </ul>
+            
+            <p>By using JCHAT, you're agreeing to be a part of this awesome community. Thank you for making JCHAT a safe and welcoming space for everyone!</p>
+
+            <div class="contact-info">
+                <h2>Need to Report?</h2>
+                <p>If you see a serious violation or need to contact a moderator directly, you can reach out here:</p>
+                <ul>
+                    <li>Email: <a href="mailto:jchatguide@gmail.com">jchatguide@gmail.com</a>, <a href="mailto:eletexjoeytex@gmail.com">eletexjoeytex@gmail.com</a></li>
+                    <li>Phone: <a href="tel:+2348111609765">+2348111609765</a>, <a href="tel:+234913790707">+234913790707</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="theme-selector">
+    <button id="darkThemeBtn" title="Dark Mode"></button>
+    <button id="lightThemeBtn" title="Light Mode"></button>
+    <button id="glassThemeBtn" title="Glass Mode"></button>
+    <button id="sunsetThemeBtn" title="Sunset Mode"></button>
+</div>
+
+<div id="messageBox"></div>
+
+<div id="customConfirmModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="confirmModalMessage">Are you sure?</h3>
+        <div class="modal-buttons">
+            <button id="confirmNoBtn" class="cancel-btn">No</button>
+            <button id="confirmYesBtn" class="confirm-btn">Yes</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // --- Firebase & Canvas Environment Configuration ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+      authDomain: "jchat-1.firebaseapp.com",
+      projectId: "jchat-1",
+      storageBucket: "jchat-1.firebasestorage.app",
+      messagingSenderId: "328479683167",
+      appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+      measurementId: "G-S6Z9GG0R9P"
+    };
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    // Initialize Firebase services
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- DOM Elements ---
+    const headerProfilePic = document.getElementById('headerProfilePic');
+    const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+    const headerDisplayName = document.getElementById('headerDisplayName');
+    const notificationCountElement = document.getElementById('notificationCount');
+    const adminIconLink = document.getElementById('adminIconLink');
+    const body = document.body;
+
+    // --- Global State ---
+    let isAuthReady = false;
+
+    // =============================
+    // --- UI RENDER & UPDATE FUNCTIONS ---
+    // =============================
+
+    function updateHeaderUI(displayName, photoURL, isAdmin) {
+        headerDisplayName.textContent = displayName || "Guest";
+        headerDisplayName.classList.remove('loading-text');
+        
+        if (photoURL) {
+            headerProfilePic.src = photoURL;
+            headerProfilePic.style.display = 'block';
+            headerAvatarIcon.style.display = 'none';
+        } else {
+            headerProfilePic.style.display = 'none';
+            headerAvatarIcon.style.display = 'block';
+        }
+
+        if (isAdmin) {
+            adminIconLink.style.display = 'block';
+        } else {
+            adminIconLink.style.display = 'none';
+        }
+    }
+    
+    // Function to apply a theme
+    function applyTheme(themeName) {
+        body.className = ''; // Clear existing theme classes
+        body.classList.add(`theme-${themeName}-mode`);
+        localStorage.setItem('jchat-theme', themeName);
+    }
+    
+    // Load saved theme on startup
+    const savedTheme = localStorage.getItem('jchat-theme') || 'dark';
+    applyTheme(savedTheme);
+
+    // Add event listeners to theme buttons
+    document.getElementById('darkThemeBtn').addEventListener('click', () => applyTheme('dark'));
+    document.getElementById('lightThemeBtn').addEventListener('click', () => applyTheme('light'));
+    document.getElementById('glassThemeBtn').addEventListener('click', () => applyTheme('glass'));
+    document.getElementById('sunsetThemeBtn').addEventListener('click', () => applyTheme('sunset'));
+
+    // =============================
+    // --- FIREBASE AUTH & DB LISTENERS ---
+    // =============================
+    
+    // Set a loading state immediately
+    updateHeaderUI("Loading...", null, false);
+    headerDisplayName.classList.add('loading-text');
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            // No user is signed in. Sign in anonymously.
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Anonymous sign-in failed:", error);
+                updateHeaderUI("Guest", null, false);
+            }
+            return;
+        }
+
+        // A user is signed in. Now fetch their profile data.
+        const userDocRef = doc(db, 'users', user.uid);
+        try {
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                // Ensure photoURL is a valid string, otherwise fallback
+                const photoURL = userData.profilePhoto && userData.profilePhoto.startsWith('http') ? userData.profilePhoto : null;
+                updateHeaderUI(userData.displayName, photoURL, userData.isAdmin);
+            } else {
+                // User document not found, treat as an anonymous user.
+                updateHeaderUI("Guest", null, false);
+            }
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+            updateHeaderUI("Guest", null, false);
+        }
+    });
+
+    // Initial sign-in with custom token if available
+    if (initialAuthToken) {
+        signInWithCustomToken(auth, initialAuthToken).catch(error => {
+            console.error("Custom token sign-in failed:", error);
+            // Fallback to anonymous sign-in if custom token fails
+            signInAnonymously(auth);
+        });
+    }
+</script>
+</body>
+</html>
