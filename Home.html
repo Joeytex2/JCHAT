@@ -5692,7 +5692,7 @@
                 const url = await uploadMediaToCloudinary(file);
                 if (!url) { showMessageBox('Story upload failed.', 'error'); return; }
                 const storiesRef = collection(db, 'artifacts', appId, 'public', 'data', 'stories');
-                await addDoc(storiesRef, { userId: currentUser.uid, username: currentUserProfileData?.username||'User', mediaUrl: url, mediaType: file.type.startsWith('image/')?'image':'video', createdAt: serverTimestamp() });
+                await addDoc(storiesRef, { userId: currentUser.uid, username: currentUserProfileData?.username||'User', mediaUrl: url, mediaType: file.type.startsWith('image/')?'image':'video', viewCount: 0, createdAt: serverTimestamp() });
                 showMessageBox('Story posted!', 'success');
                 fetchStories();
             });
@@ -5721,6 +5721,4 @@
                 name.style.color='var(--text-light)'; name.style.fontSize='0.8rem';
                 name.textContent = s.username?.split(' ')[0] || 'User';
                 item.appendChild(avatar); item.appendChild(name);
-                item.addEventListener('click', ()=>{
-                    // simple viewer: open media in new tab
-                    window.open(s.mediaUrl, '_blank
+                item.addEventListener('click', ()=> openStory(idx));
