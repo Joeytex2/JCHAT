@@ -1501,10 +1501,7 @@
         #transactionDetailsModal.modal-overlay {
             background-color: rgba(0, 0, 0, 0.6);
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; right: 0; bottom: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1521,61 +1518,56 @@
             max-width: 450px;
             text-align: left;
             background: var(--card-background);
-            border: 1px solid var(--glass-blue);
-            backdrop-filter: blur(10px) saturate(180%);
-            border-radius: var(--radius);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            transform: translateY(20px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transform: translateY(10px);
             transition: transform 0.3s ease;
         }
         #transactionDetailsModal.modal-overlay.active .modal-content {
             transform: translateY(0);
         }
-        #transactionDetailsModal .modal-content h3 {
+        
+        /* NEW: Receive Modal */
+        #receiveJCoinsModal.modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #receiveJCoinsModal.modal-overlay.active { opacity: 1; visibility: visible; }
+        #receiveJCoinsModal .modal-content {
+            max-width: 420px;
             text-align: center;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.8rem;
-            background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transform: translateY(10px);
+            transition: transform 0.3s ease;
+        }
+        #receiveJCoinsModal.modal-overlay.active .modal-content { transform: translateY(0); }
+        #receiveJCoinsModal .modal-content h3 {
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
         }
-        #transactionDetailsModal .modal-content p {
-            font-size: 0.95rem;
-            color: var(--text-light);
-            margin-bottom: 0.5rem;
-        }
-        #transactionDetailsModal .modal-content p strong {
-            color: var(--white);
-        }
-        #transactionDetailsModal .modal-content .close-button {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--white);
+        .transaction-controls input[type="date"] {
+            padding: 8px 12px;
+            border-radius: 8px;
             border: 1px solid var(--border-light);
-            border-radius: 15px;
-            padding: 0.8rem 1.5rem;
-            font-size: 0.9rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s ease, background 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 1.5rem;
-            width: 100%;
+            background: var(--input-background);
+            color: var(--white);
         }
-        #transactionDetailsModal .modal-content .close-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-
-
-        /* Removed Bottom Navigation Bar and Toggle Button Styling */
 
         /* Responsive Adjustments (consistent with other JCHAT pages) */
         @media (max-width: 600px) {
@@ -1698,14 +1690,17 @@
                     <span id="usdBalance" class="usd-value">$0.00 USD</span>
                 </div>
 
-                <div class="wallet-buttons">
-                    <button id="sendJCoinsButton" class="wallet-action-button">
-                        <i class="fas fa-paper-plane"></i> Send JCoins
-                    </button>
-                    <a href="#" id="requestJCoinsLink" class="wallet-action-button secondary"> <!-- Changed to # -->
-                        <i class="fas fa-coins"></i> Request JCoins
-                    </a>
-                </div>
+                                    <div class="wallet-buttons">
+                        <button id="sendJCoinsButton" class="wallet-action-button">
+                            <i class="fas fa-paper-plane"></i> Send JCoins
+                        </button>
+                        <button id="receiveJCoinsButton" class="wallet-action-button secondary">
+                            <i class="fas fa-qrcode"></i> Receive JCoins
+                        </button>
+                        <a href="#" id="requestJCoinsLink" class="wallet-action-button secondary"> <!-- Changed to # -->
+                            <i class="fas fa-coins"></i> Request JCoins
+                        </a>
+                    </div>
 
                 <div class="transaction-history-section">
                     <h2>Transaction History</h2>
@@ -1718,7 +1713,11 @@
                             <option value="purchase">Purchases</option>
                             <option value="withdrawal">Withdrawals</option>
                         </select>
+                        <input type="date" id="transactionDateFrom" placeholder="From">
+                        <input type="date" id="transactionDateTo" placeholder="To">
                         <input type="text" id="transactionSearchInput" placeholder="Search description...">
+                        <button id="exportCsvButton" class="wallet-action-button secondary" style="padding: 6px 10px;">Export CSV</button>
+                        <button id="exportJsonButton" class="wallet-action-button secondary" style="padding: 6px 10px;">Export JSON</button>
                     </div>
                     <div id="transactionList" class="transaction-list">
                         <p class="no-transactions-message" id="noTransactionsMessage">No transactions yet.</p>
@@ -1932,12 +1931,31 @@
         </div>
     </div>
 
+    <!-- NEW: Receive JCoins Modal -->
+    <div id="receiveJCoinsModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3><i class="fas fa-qrcode"></i> Receive JCoins</h3>
+            <p style="color: var(--text-light); font-size: 0.9rem; text-align: center;">
+                Share this QR or your User ID to receive JCoins.
+            </p>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+                <canvas id="receiveQrCanvas" width="220" height="220" style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px;"></canvas>
+                <p style="font-size:0.9rem;color:var(--text-light);">Your User ID: <span id="receiveUserId">-</span> <button id="copyReceiveUserId" class="copy-button" style="padding:4px 8px;">Copy</button></p>
+                <div class="button-group" style="width:100%;">
+                    <button id="downloadQrPng" class="modal-button confirm-button"><i class="fas fa-download"></i> Download PNG</button>
+                    <button id="closeReceiveModal" class="modal-button cancel-button">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- NEW: Transaction Details Modal -->
     <div id="transactionDetailsModal" class="modal-overlay">
         <div class="modal-content">
             <h3>Transaction Details</h3>
             <p><strong>Type:</strong> <span id="detailType"></span></p>
             <p><strong>Amount:</strong> <span id="detailAmount"></span> JCoins</p>
+            <p><strong>ID:</strong> <span id="detailId"></span> <button id="copyDetailIdBtn" class="copy-button" style="padding:4px 8px;">Copy</button></p>
             <p><strong>Description:</strong> <span id="detailDescription"></span></p>
             <p><strong>Date:</strong> <span id="detailTimestamp"></span></p>
             <p id="detailStatusContainer" style="display: none;"><strong>Status:</strong> <span id="detailStatus"></span></p>
@@ -1955,7 +1973,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, runTransaction, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, runTransaction, limit, startAfter, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         // --- Firebase & Canvas Environment Configuration ---
@@ -1998,10 +2016,15 @@
         const noTransactionsMessage = document.getElementById('noTransactionsMessage');
         const loadMoreTransactionsButton = document.getElementById('loadMoreTransactionsButton'); // NEW
         const transactionTypeFilter = document.getElementById('transactionTypeFilter'); // NEW
+        const transactionDateFromInput = document.getElementById('transactionDateFrom'); // NEW
+        const transactionDateToInput = document.getElementById('transactionDateTo'); // NEW
         const transactionSearchInput = document.getElementById('transactionSearchInput'); // NEW
+        const exportCsvButton = document.getElementById('exportCsvButton'); // NEW
+        const exportJsonButton = document.getElementById('exportJsonButton'); // NEW
 
         // Wallet Buttons
         const sendJCoinsButton = document.getElementById('sendJCoinsButton'); // NEW
+        const receiveJCoinsButton = document.getElementById('receiveJCoinsButton'); // NEW
         const requestJCoinsLink = document.getElementById('requestJCoinsLink'); // NEW
 
         // Buy JCoins Panel Elements
@@ -2055,12 +2078,22 @@
         const transactionDetailsModal = document.getElementById('transactionDetailsModal');
         const detailType = document.getElementById('detailType');
         const detailAmount = document.getElementById('detailAmount');
+        const detailId = document.getElementById('detailId');
+        const copyDetailIdBtn = document.getElementById('copyDetailIdBtn');
         const detailDescription = document.getElementById('detailDescription');
         const detailTimestamp = document.getElementById('detailTimestamp');
         const detailStatusContainer = document.getElementById('detailStatusContainer');
         const detailStatus = document.getElementById('detailStatus');
         const detailReceiptContainer = document.getElementById('detailReceiptContainer');
         const detailReceiptLink = document.getElementById('detailReceiptLink');
+
+        // Receive JCoins Modal Elements (NEW)
+        const receiveJCoinsModal = document.getElementById('receiveJCoinsModal');
+        const receiveQrCanvas = document.getElementById('receiveQrCanvas');
+        const receiveUserIdSpan = document.getElementById('receiveUserId');
+        const copyReceiveUserIdBtn = document.getElementById('copyReceiveUserId');
+        const downloadQrPngBtn = document.getElementById('downloadQrPng');
+        const closeReceiveModalBtn = document.getElementById('closeReceiveModal');
 
 
         // --- Global State ---
@@ -2496,6 +2529,12 @@
             detailAmount.textContent = transaction.amount.toLocaleString();
             detailDescription.textContent = transaction.description;
             detailTimestamp.textContent = transaction.timestamp ? new Date(transaction.timestamp.toDate()).toLocaleString() : 'N/A';
+
+            // ID and copy
+            if (detailId) detailId.textContent = transaction.id || '';
+            if (copyDetailIdBtn) {
+                copyDetailIdBtn.onclick = () => copyToClipboard(transaction.id || '');
+            }
 
             // Handle status for buy/withdrawal requests
             if (transaction.status) {
@@ -3240,6 +3279,14 @@
 
             const filterType = transactionTypeFilter.value;
             const searchTerm = transactionSearchInput.value.toLowerCase();
+            // Date filter inputs
+            let fromDate = null, toDate = null;
+            if (transactionDateFromInput && transactionDateFromInput.value) {
+                fromDate = new Date(transactionDateFromInput.value + 'T00:00:00');
+            }
+            if (transactionDateToInput && transactionDateToInput.value) {
+                toDate = new Date(transactionDateToInput.value + 'T23:59:59.999');
+            }
 
             if (filterType !== 'all') {
                 qTransactions = query(qTransactions, where("type", "==", filterType));
@@ -3261,9 +3308,13 @@
                 snapshot.docs.forEach(doc => {
                     const transaction = doc.data();
                     // Client-side filtering for search term
-                    if (searchTerm && !transaction.description.toLowerCase().includes(searchTerm)) {
+                    if (searchTerm && !(transaction.description || '').toLowerCase().includes(searchTerm)) {
                         return; // Skip if search term not found
                     }
+                    // Date range filter (client-side)
+                    const txDate = transaction.timestamp ? transaction.timestamp.toDate() : null;
+                    if (fromDate && (!txDate || txDate < fromDate)) return;
+                    if (toDate && (!txDate || txDate > toDate)) return;
                     newTransactions.push({ id: doc.id, ...transaction });
                 });
 
@@ -3446,6 +3497,12 @@
                 }
             }); // Null check
 
+            // Receive button listeners
+            if (receiveJCoinsButton) receiveJCoinsButton.addEventListener('click', showReceiveModal);
+            if (closeReceiveModalBtn) closeReceiveModalBtn.addEventListener('click', hideReceiveModal);
+            if (copyReceiveUserIdBtn) copyReceiveUserIdBtn.addEventListener('click', () => copyToClipboard(receiveUserIdSpan.textContent));
+            if (downloadQrPngBtn) downloadQrPngBtn.addEventListener('click', () => downloadCanvasAsPng(receiveQrCanvas, `jchat-receive-${currentUser?.uid || 'user'}.png`));
+
             // Withdrawal button listener
             if (withdrawalButton) withdrawalButton.addEventListener('click', () => {
                 if (currentUser && currentUser.email) {
@@ -3476,7 +3533,73 @@
             if (transactionTypeFilter) transactionTypeFilter.addEventListener('change', () => fetchAndDisplayWallet(false));
             if (transactionSearchInput) transactionSearchInput.addEventListener('input', () => fetchAndDisplayWallet(false));
             if (loadMoreTransactionsButton) loadMoreTransactionsButton.addEventListener('click', () => fetchAndDisplayWallet(true));
+            if (transactionDateFromInput) transactionDateFromInput.addEventListener('change', () => fetchAndDisplayWallet(false));
+            if (transactionDateToInput) transactionDateToInput.addEventListener('change', () => fetchAndDisplayWallet(false));
+            if (exportCsvButton) exportCsvButton.addEventListener('click', async () => {
+                if (!currentUser) return showMessageBox('Please log in.', 'warning');
+                showMessageBox('Preparing CSV export...', 'loading', true);
+                try {
+                    const filters = getCurrentFilterState();
+                    const items = await fetchAllTransactionsForExport(filters);
+                    const rows = items.map(t => ({
+                        id: t.id,
+                        type: t.type,
+                        amount: t.amount,
+                        description: t.description,
+                        status: t.status || '',
+                        timestamp: t.timestamp ? t.timestamp.toDate().toISOString() : ''
+                    }));
+                    const csv = toCsv(rows);
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `jchat-transactions-${Date.now()}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showMessageBox('CSV downloaded.', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showMessageBox('Failed to export CSV.', 'error');
+                }
+            });
+            if (exportJsonButton) exportJsonButton.addEventListener('click', async () => {
+                if (!currentUser) return showMessageBox('Please log in.', 'warning');
+                showMessageBox('Preparing JSON export...', 'loading', true);
+                try {
+                    const filters = getCurrentFilterState();
+                    const items = await fetchAllTransactionsForExport(filters);
+                    const json = JSON.stringify(items.map(t => ({
+                        id: t.id,
+                        type: t.type,
+                        amount: t.amount,
+                        description: t.description,
+                        status: t.status || '',
+                        timestamp: t.timestamp ? t.timestamp.toDate().toISOString() : ''
+                    })), null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `jchat-transactions-${Date.now()}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showMessageBox('JSON downloaded.', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showMessageBox('Failed to export JSON.', 'error');
+                }
+            });
         });
+
+        function getCurrentFilterState() {
+            const filterType = transactionTypeFilter?.value || 'all';
+            const searchTerm = (transactionSearchInput?.value || '').toLowerCase();
+            let from = null, to = null;
+            if (transactionDateFromInput?.value) from = new Date(transactionDateFromInput.value + 'T00:00:00');
+            if (transactionDateToInput?.value) to = new Date(transactionDateToInput.value + 'T23:59:59.999');
+            return { type: filterType, searchTerm, from, to };
+        }
 
         window.addEventListener('storage', (event) => {
             if (event.key === 'jchat-theme') {
@@ -3519,6 +3642,197 @@
         //     navToggleBtn.querySelector('i').classList.add('fa-chevron-up');
         // }
         // if (navToggleBtn) navToggleBtn.addEventListener('click', toggleNavBarVisibility); // Null check
+
+        // --- QR code generation (simple) ---
+        function drawSimpleQr(canvas, text) {
+            // Placeholder tiny pseudo-QR (not a real QR encoder). For real QR, integrate a small lib later.
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#000';
+            // Hash text into deterministic squares
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+            const size = 21; // 21x21 pseudo grid
+            const cell = Math.floor((canvas.width - 20) / size);
+            const offset = 10;
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const bit = ((hash >> ((x + y * size) % 31)) & 1) === 1;
+                    if ((x < 4 && y < 4) || (x > size - 5 && y < 4) || (x < 4 && y > size - 5)) {
+                        // finder-like squares
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(offset + x * cell, offset + y * cell, cell, cell);
+                    } else if (bit) {
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(offset + x * cell, offset + y * cell, cell, cell);
+                    }
+                }
+            }
+        }
+
+        function showReceiveModal() {
+            if (!receiveJCoinsModal || !currentUser) return;
+            receiveUserIdSpan.textContent = currentUser.uid;
+            drawSimpleQr(receiveQrCanvas, `jchat:uid:${currentUser.uid}`);
+            receiveJCoinsModal.classList.add('active');
+        }
+        function hideReceiveModal() {
+            if (receiveJCoinsModal) receiveJCoinsModal.classList.remove('active');
+        }
+
+        function downloadCanvasAsPng(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // --- Export helpers ---
+        function toCsv(rows) {
+            if (!rows.length) return '';
+            const headers = Object.keys(rows[0]);
+            const escape = (v) => {
+                if (v == null) return '';
+                const s = String(v).replace(/"/g, '""');
+                return /[",\n]/.test(s) ? `"${s}"` : s;
+            };
+            const lines = [headers.join(',')];
+            for (const r of rows) lines.push(headers.map(h => escape(r[h])).join(','));
+            return lines.join('\n');
+        }
+
+        async function fetchAllTransactionsForExport(filters) {
+            const transactionsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "transactions");
+            let qBase = query(transactionsRef, orderBy("timestamp", "desc"));
+            // Firestore range filters require composite indexes; fall back to client filtering.
+            const snap = await getDocs(qBase);
+            const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            return items.filter(t => {
+                // Text search
+                if (filters.searchTerm && !(t.description || '').toLowerCase().includes(filters.searchTerm)) return false;
+                // Type
+                if (filters.type && filters.type !== 'all' && t.type !== filters.type) return false;
+                // Date
+                if (filters.from || filters.to) {
+                    const ts = t.timestamp ? t.timestamp.toDate() : null;
+                    if (!ts) return false;
+                    if (filters.from && ts < filters.from) return false;
+                    if (filters.to && ts > filters.to) return false;
+                }
+                return true;
+            });
+        }
+
+        // ... existing code ...
+            if (sendJCoinsButton) sendJCoinsButton.addEventListener('click', showSendJCoinsModal); // Null check
+            if (cancelSendJCoinsButton) cancelSendJCoinsButton.addEventListener('click', hideSendJCoinsModal); // Null check
+        // ... existing code ...
+            // Receive button
+            if (receiveJCoinsButton) receiveJCoinsButton.addEventListener('click', showReceiveModal);
+            if (closeReceiveModalBtn) closeReceiveModalBtn.addEventListener('click', hideReceiveModal);
+            if (copyReceiveUserIdBtn) copyReceiveUserIdBtn.addEventListener('click', () => copyToClipboard(receiveUserIdSpan.textContent));
+            if (downloadQrPngBtn) downloadQrPngBtn.addEventListener('click', () => downloadCanvasAsPng(receiveQrCanvas, `jchat-receive-${currentUser?.uid || 'user'}.png`));
+
+            // Transaction History Filters
+            if (transactionTypeFilter) transactionTypeFilter.addEventListener('change', () => fetchAndDisplayWallet(false));
+            if (transactionSearchInput) transactionSearchInput.addEventListener('input', () => fetchAndDisplayWallet(false));
+            if (loadMoreTransactionsButton) loadMoreTransactionsButton.addEventListener('click', () => fetchAndDisplayWallet(true));
+            if (transactionDateFromInput) transactionDateFromInput.addEventListener('change', () => fetchAndDisplayWallet(false));
+            if (transactionDateToInput) transactionDateToInput.addEventListener('change', () => fetchAndDisplayWallet(false));
+            if (exportCsvButton) exportCsvButton.addEventListener('click', async () => {
+                if (!currentUser) return showMessageBox('Please log in.', 'warning');
+                showMessageBox('Preparing CSV export...', 'loading', true);
+                try {
+                    const filters = getCurrentFilterState();
+                    const items = await fetchAllTransactionsForExport(filters);
+                    const rows = items.map(t => ({
+                        id: t.id,
+                        type: t.type,
+                        amount: t.amount,
+                        description: t.description,
+                        status: t.status || '',
+                        timestamp: t.timestamp ? t.timestamp.toDate().toISOString() : ''
+                    }));
+                    const csv = toCsv(rows);
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `jchat-transactions-${Date.now()}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showMessageBox('CSV downloaded.', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showMessageBox('Failed to export CSV.', 'error');
+                }
+            });
+            if (exportJsonButton) exportJsonButton.addEventListener('click', async () => {
+                if (!currentUser) return showMessageBox('Please log in.', 'warning');
+                showMessageBox('Preparing JSON export...', 'loading', true);
+                try {
+                    const filters = getCurrentFilterState();
+                    const items = await fetchAllTransactionsForExport(filters);
+                    const json = JSON.stringify(items.map(t => ({
+                        id: t.id,
+                        type: t.type,
+                        amount: t.amount,
+                        description: t.description,
+                        status: t.status || '',
+                        timestamp: t.timestamp ? t.timestamp.toDate().toISOString() : ''
+                    })), null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `jchat-transactions-${Date.now()}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showMessageBox('JSON downloaded.', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showMessageBox('Failed to export JSON.', 'error');
+                }
+            });
+        });
+
+        function getCurrentFilterState() {
+            const filterType = transactionTypeFilter?.value || 'all';
+            const searchTerm = (transactionSearchInput?.value || '').toLowerCase();
+            let from = null, to = null;
+            if (transactionDateFromInput?.value) from = new Date(transactionDateFromInput.value + 'T00:00:00');
+            if (transactionDateToInput?.value) to = new Date(transactionDateToInput.value + 'T23:59:59.999');
+            return { type: filterType, searchTerm, from, to };
+        }
+
+        // ... existing code ...
+            const filterType = transactionTypeFilter.value;
+            const searchTerm = transactionSearchInput.value.toLowerCase();
+            
+            // Date filter inputs
+            let fromDate = null, toDate = null;
+            if (transactionDateFromInput && transactionDateFromInput.value) {
+                fromDate = new Date(transactionDateFromInput.value + 'T00:00:00');
+            }
+            if (transactionDateToInput && transactionDateToInput.value) {
+                toDate = new Date(transactionDateToInput.value + 'T23:59:59.999');
+            }
+        // ... existing code ...
+                snapshot.docs.forEach(doc => {
+                    const transaction = doc.data();
+                    // Client-side filtering for search term
+                    if (searchTerm && !(transaction.description || '').toLowerCase().includes(searchTerm)) {
+                        return; // Skip if search term not found
+                    }
+                    // Date range filter (client-side)
+                    const txDate = transaction.timestamp ? transaction.timestamp.toDate() : null;
+                    if (fromDate && (!txDate || txDate < fromDate)) return;
+                    if (toDate && (!txDate || txDate > toDate)) return;
+                    newTransactions.push({ id: doc.id, ...transaction });
+                });
+        // ... existing code ...
     </script>
 </body>
 </html>
