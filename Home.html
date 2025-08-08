@@ -2789,7 +2789,7 @@
             }
 
             // Set inner HTML with icon and text elements.
-            messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
+            messageBox.innerHTML = `<i id=\"messageBoxIcon\"></i><span id=\"messageBoxText\"></span><button id=\"messageBoxClose\" aria-label=\"Close\" style=\"margin-left:8px;border:none;background:transparent;color:inherit;cursor:pointer;\"><i class=\"fas fa-times\"></i></button>`;
             const messageBoxIcon = document.getElementById('messageBoxIcon');
             const messageBoxText = document.getElementById('messageBoxText');
 
@@ -2823,6 +2823,19 @@
             // Make the message box visible.
             messageBox.style.display = 'flex';
             messageBox.style.opacity = '1';
+
+            // Manual close handler
+            const messageBoxClose = document.getElementById('messageBoxClose');
+            if (messageBoxClose) {
+                messageBoxClose.onclick = () => {
+                    messageBox.style.opacity = '0';
+                    messageBox.addEventListener('transitionend', function handler() {
+                        messageBox.style.display = 'none';
+                        messageBox.removeEventListener('transitionend', handler);
+                        messageBox.classList.remove('loading-pulse');
+                    }, { once: true });
+                };
+            }
 
             // Set auto-hide timeout if not persistent.
             if (!isPersistent) {
