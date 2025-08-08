@@ -3724,80 +3724,7 @@
                 return true;
             });
         }
-
-        // ... existing code ...
-            if (sendJCoinsButton) sendJCoinsButton.addEventListener('click', showSendJCoinsModal); // Null check
-            if (cancelSendJCoinsButton) cancelSendJCoinsButton.addEventListener('click', hideSendJCoinsModal); // Null check
-        // ... existing code ...
-            // Receive button
-            if (receiveJCoinsButton) receiveJCoinsButton.addEventListener('click', showReceiveModal);
-            if (closeReceiveModalBtn) closeReceiveModalBtn.addEventListener('click', hideReceiveModal);
-            if (copyReceiveUserIdBtn) copyReceiveUserIdBtn.addEventListener('click', () => copyToClipboard(receiveUserIdSpan.textContent));
-            if (downloadQrPngBtn) downloadQrPngBtn.addEventListener('click', () => downloadCanvasAsPng(receiveQrCanvas, `jchat-receive-${currentUser?.uid || 'user'}.png`));
-
-            // Transaction History Filters
-            if (transactionTypeFilter) transactionTypeFilter.addEventListener('change', () => fetchAndDisplayWallet(false));
-            if (transactionSearchInput) transactionSearchInput.addEventListener('input', () => fetchAndDisplayWallet(false));
-            if (loadMoreTransactionsButton) loadMoreTransactionsButton.addEventListener('click', () => fetchAndDisplayWallet(true));
-            if (transactionDateFromInput) transactionDateFromInput.addEventListener('change', () => fetchAndDisplayWallet(false));
-            if (transactionDateToInput) transactionDateToInput.addEventListener('change', () => fetchAndDisplayWallet(false));
-            if (exportCsvButton) exportCsvButton.addEventListener('click', async () => {
-                if (!currentUser) return showMessageBox('Please log in.', 'warning');
-                showMessageBox('Preparing CSV export...', 'loading', true);
-                try {
-                    const filters = getCurrentFilterState();
-                    const items = await fetchAllTransactionsForExport(filters);
-                    const rows = items.map(t => ({
-                        id: t.id,
-                        type: t.type,
-                        amount: t.amount,
-                        description: t.description,
-                        status: t.status || '',
-                        timestamp: t.timestamp ? t.timestamp.toDate().toISOString() : ''
-                    }));
-                    const csv = toCsv(rows);
-                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `jchat-transactions-${Date.now()}.csv`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    showMessageBox('CSV downloaded.', 'success');
-                } catch (e) {
-                    console.error(e);
-                    showMessageBox('Failed to export CSV.', 'error');
-                }
-            });
-            if (exportJsonButton) exportJsonButton.addEventListener('click', async () => {
-                if (!currentUser) return showMessageBox('Please log in.', 'warning');
-                showMessageBox('Preparing JSON export...', 'loading', true);
-                try {
-                    const filters = getCurrentFilterState();
-                    const items = await fetchAllTransactionsForExport(filters);
-                    const json = JSON.stringify(items.map(t => ({
-                        id: t.id,
-                        type: t.type,
-                        amount: t.amount,
-                        description: t.description,
-                        status: t.status || '',
-                        timestamp: t.timestamp ? t.timestamp.toDate().toISOString() : ''
-                    })), null, 2);
-                    const blob = new Blob([json], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `jchat-transactions-${Date.now()}.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    showMessageBox('JSON downloaded.', 'success');
-                } catch (e) {
-                    console.error(e);
-                    showMessageBox('Failed to export JSON.', 'error');
-                }
-            });
-        });
-
+    
         function getCurrentFilterState() {
             const filterType = transactionTypeFilter?.value || 'all';
             const searchTerm = (transactionSearchInput?.value || '').toLowerCase();
@@ -3806,33 +3733,6 @@
             if (transactionDateToInput?.value) to = new Date(transactionDateToInput.value + 'T23:59:59.999');
             return { type: filterType, searchTerm, from, to };
         }
-
-        // ... existing code ...
-            const filterType = transactionTypeFilter.value;
-            const searchTerm = transactionSearchInput.value.toLowerCase();
-            
-            // Date filter inputs
-            let fromDate = null, toDate = null;
-            if (transactionDateFromInput && transactionDateFromInput.value) {
-                fromDate = new Date(transactionDateFromInput.value + 'T00:00:00');
-            }
-            if (transactionDateToInput && transactionDateToInput.value) {
-                toDate = new Date(transactionDateToInput.value + 'T23:59:59.999');
-            }
-        // ... existing code ...
-                snapshot.docs.forEach(doc => {
-                    const transaction = doc.data();
-                    // Client-side filtering for search term
-                    if (searchTerm && !(transaction.description || '').toLowerCase().includes(searchTerm)) {
-                        return; // Skip if search term not found
-                    }
-                    // Date range filter (client-side)
-                    const txDate = transaction.timestamp ? transaction.timestamp.toDate() : null;
-                    if (fromDate && (!txDate || txDate < fromDate)) return;
-                    if (toDate && (!txDate || txDate > toDate)) return;
-                    newTransactions.push({ id: doc.id, ...transaction });
-                });
-        // ... existing code ...
     </script>
 </body>
 </html>
