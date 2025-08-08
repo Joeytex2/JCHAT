@@ -1850,6 +1850,8 @@
         #storyImage, #storyVideo { max-width:100%; max-height:100%; display:none; }
         #storyViewer .viewer-footer { display:flex; align-items:center; justify-content:space-between; padding:6px 10px; }
         #prevStoryBtn, #nextStoryBtn { background: rgba(255,255,255,0.1); color: var(--white); border: 1px solid var(--border-light); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+    #smartScrollBtn { position: fixed; right: 16px; bottom: 90px; z-index: 1100; border: 1px solid var(--border-light); border-radius: 999px; background: var(--button-background); color: #fff; padding: 10px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); cursor: pointer; }
+        #smartScrollBtn .label { font-weight: 600; }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -2159,6 +2161,9 @@
             </a>
         </div>
     </aside>
+
+    <!-- Smart Scroll Button -->
+    <button id="smartScrollBtn" aria-label="Smart Scroll"><i class="fas fa-arrow-down"></i><span class="label">Bottom</span></button>
 
     <!-- Compact Story Viewer -->
     <div id="storyViewer" aria-live="polite">
@@ -5809,6 +5814,28 @@
             updateStreakAndQuestsUI();
             fetchStories();
         });
+
+        // Smart Scroll logic
+        const smartScrollBtn = document.getElementById('smartScrollBtn');
+        let scrollTarget = 'bottom';
+        function updateSmartScrollState() {
+            const nearTop = window.scrollY < 50;
+            const nearBottom = (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 50);
+            if (nearBottom) { scrollTarget = 'top'; if (smartScrollBtn) { smartScrollBtn.querySelector('i').className='fas fa-arrow-up'; smartScrollBtn.querySelector('.label').textContent='Top'; } }
+            else { scrollTarget = 'bottom'; if (smartScrollBtn) { smartScrollBtn.querySelector('i').className='fas fa-arrow-down'; smartScrollBtn.querySelector('.label').textContent='Bottom'; } }
+        }
+        if (smartScrollBtn) {
+            smartScrollBtn.addEventListener('click', ()=> {
+                if (scrollTarget === 'bottom') {
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+            window.addEventListener('scroll', updateSmartScrollState, { passive: true });
+            window.addEventListener('resize', updateSmartScrollState);
+            document.addEventListener('DOMContentLoaded', updateSmartScrollState);
+        }
     </script>
 </body>
 </html>
