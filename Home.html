@@ -1918,6 +1918,16 @@
                     <img id="mediaImagePreview" class="media-preview" src="" alt="Image Preview" style="display: none;">
                     <video id="mediaVideoPreview" class="media-preview" src="" controls style="display: none;"></video>
                 </div>
+                <div style="margin:8px 0; display:flex; align-items:center; gap:10px;">
+                    <label style="display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" id="addPollCheckbox" disabled> Add Poll
+                    </label>
+                    <div id="pollComposer" style="display:none; flex-direction:column; gap:6px; width:100%;">
+                        <input type="text" class="poll-option-input" placeholder="Option 1" maxlength="100">
+                        <input type="text" class="poll-option-input" placeholder="Option 2" maxlength="100">
+                        <button id="addPollOptionBtn" class="post-control-button" type="button" style="width:max-content;">Add Option</button>
+                    </div>
+                </div>
                 <div class="post-actions">
                     <button id="createPostButton" class="post-button" disabled aria-label="Create Post">
                         <span class="button-text">Post</span>
@@ -3548,22 +3558,34 @@
                     }
                 }
 
+                // Poll handling
+                const pollEnabled = !!document.getElementById('addPollCheckbox')?.checked;
+                let poll = null;
+                if (pollEnabled) {
+                    const optionEls = [...document.querySelectorAll('#pollComposer .poll-option-input')];
+                    const options = optionEls.map(o => o.value.trim()).filter(Boolean).slice(0,6);
+                    if (options.length >= 2) {
+                        poll = { options: options.map(o => ({ text:o, votes:0 })), allowMultiple:false };
+                    }
+                }
+
                 const postData = {
                     authorId: currentUser.uid,
                     username: currentUserProfileData.username || "JCHAT User",
                     profilePhoto: currentUserProfileData.profilePicId || null,
                     content: content,
                     timestamp: serverTimestamp(),
-                    likesCount: 0, // Initial likes count
-                    commentsCount: 0, // Initial comments count
+                    likesCount: 0,
+                    commentsCount: 0,
                     isEdited: false,
                     status: 'active',
-                    reactions: { like: 0, love: 0, haha: 0 }, // Detailed reactions
+                    reactions: { like: 0, love: 0, haha: 0 },
                     mediaUrl: mediaUrl,
                     mediaType: mediaType,
                     visibility: 'public',
                     tags: [],
-                    location: {}
+                    location: {},
+                    poll: poll
                 };
 
                 let postId = null; // To store the ID of the newly created post.
@@ -4143,6 +4165,10 @@
                 <div class="post-content-text">
                     <p>${post.content}</p>
                 </div>
+                ${post.poll && post.poll.options ? `
+                <div class="post-poll" data-post-id="${postId}">
+                    ${post.poll.options.map((opt, i)=>`<button class=\"poll-vote-button\" data-post-id=\"${postId}\" data-index=\"${i}\">${opt.text} — <span class=\"poll-votes\">${opt.votes||0}</span></button>`).join('')}
+                </div>` : ''}
                 ${post.mediaUrl ? `
                 <div class="post-media">
                     ${post.mediaType === 'image' ?
@@ -4465,6 +4491,13 @@
                 const postId = button.dataset.postId;
                 const reactionType = button.dataset.reactionType;
                 handleReaction(postId, reactionType);
+            }
+            // Handle Poll Vote
+            else if (event.target.closest('.poll-vote-button')) {
+                const btn = event.target.closest('.poll-vote-button');
+                const postId = btn.dataset.postId;
+                const index = parseInt(btn.dataset.index, 10);
+                votePoll(postId, index);
             }
             // Handle Comment Toggle Buttons
             else if (event.target.closest('.comment-toggle-button')) {
