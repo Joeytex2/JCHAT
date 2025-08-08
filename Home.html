@@ -1813,6 +1813,27 @@
             cursor: pointer;
         }
         .post-control-button:hover { opacity: .95; }
+
+        /* Stories Bar */
+        .stories-bar { display:flex; gap:10px; padding:8px 0; overflow-x:auto; }
+        .story-item { display:flex; flex-direction:column; align-items:center; gap:6px; }
+        .story-avatar { width:56px; height:56px; border-radius:50%; border:2px solid var(--blue); background:#333; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+        .story-avatar img { width:100%; height:100%; object-fit:cover; }
+        .add-story-button { background: var(--button-background); color: var(--white); border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+
+        /* Engagement Panel */
+        .engagement-panel { display:grid; grid-template-columns: 1fr; gap: 12px; margin: 10px 0; }
+        .engage-card { background: var(--card-background); border:1px solid var(--glass-blue); border-radius: 15px; padding: 12px; }
+        .engage-title { font-weight:600; margin-bottom:6px; }
+        .quests-list { display:flex; flex-direction:column; gap:8px; }
+        .quest-item { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+        .quest-progress { flex:1; height:8px; background:rgba(255,255,255,0.1); border-radius:6px; overflow:hidden; margin:0 8px; }
+        .quest-progress > div { height:100%; background: var(--blue); }
+        .spin-button { background: linear-gradient(90deg, var(--blue), var(--pink)); color:#fff; border:none; border-radius:10px; padding:8px 12px; cursor:pointer; }
+
+        /* Theme Switcher */
+        .theme-switcher { display:flex; gap:8px; align-items:center; }
+        .theme-switcher select { padding:6px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--input-background); color:var(--white); }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -1891,6 +1912,15 @@
 
             <!-- Posts Controls -->
             <div class="post-controls" id="postControls">
+                <div class="theme-switcher">
+                    <i class="fas fa-adjust"></i>
+                    <select id="themeSelect">
+                        <option value="theme-light-mode">Light</option>
+                        <option value="theme-dark-mode" selected>Dark</option>
+                        <option value="theme-glass-mode">Glass</option>
+                        <option value="theme-sunset-mode">Sunset</option>
+                    </select>
+                </div>
                 <select id="postTypeFilter">
                     <option value="all">All</option>
                     <option value="text">Text</option>
@@ -1907,6 +1937,31 @@
                 <button id="exportPostsJsonButton" class="post-control-button">Export JSON</button>
             </div>
             <div id="trendingHashtags" style="margin:8px 0;color:var(--text-light);font-size:0.9rem;"></div>
+
+            <!-- Engagement Panel -->
+            <div class="engagement-panel">
+                <div class="engage-card" id="streakCard">
+                    <div class="engage-title">Daily Streak</div>
+                    <div id="streakInfo" style="color:var(--text-light);">Loading streak...</div>
+                </div>
+                <div class="engage-card" id="questsCard">
+                    <div class="engage-title">Weekly Quests</div>
+                    <div class="quests-list" id="questsList"></div>
+                </div>
+                <div class="engage-card" id="spinCard">
+                    <div class="engage-title">Daily Spin</div>
+                    <button class="spin-button" id="spinNowButton"><i class="fas fa-sync"></i> Spin Now</button>
+                    <div id="spinStatus" style="color:var(--text-light); margin-top:6px;"></div>
+                </div>
+                <div class="engage-card" id="storiesCard">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <div class="engage-title">Stories</div>
+                        <button class="add-story-button" id="addStoryButton"><i class="fas fa-plus"></i> Add Story</button>
+                        <input type="file" id="storyUploadInput" accept="image/*,video/*" style="display:none;">
+                    </div>
+                    <div class="stories-bar" id="storiesBar"></div>
+                </div>
+            </div>
 
             <!-- Posts Feed Section -->
             <div class="posts-feed-section" id="postsFeed">
@@ -5497,6 +5552,152 @@
         // Re-trigger fetch when toggling saved only
         document.addEventListener('DOMContentLoaded', () => {
             if (showSavedOnlyCheckbox) showSavedOnlyCheckbox.addEventListener('change', fetchAndDisplayPosts);
+        });
+
+        // Theme selector
+        const themeSelect = document.getElementById('themeSelect');
+        if (themeSelect) {
+            const saved = localStorage.getItem('jchat-theme');
+            if (saved && [...themeSelect.options].some(o => o.value === saved)) {
+                themeSelect.value = saved;
+            }
+            themeSelect.addEventListener('change', () => applyTheme(themeSelect.value));
+        }
+
+        // Streaks & Quests basic implementation
+        const streakInfo = document.getElementById('streakInfo');
+        const questsList = document.getElementById('questsList');
+        async function updateStreakAndQuestsUI() {
+            if (!currentUser || !currentUserProfileData) { if (streakInfo) streakInfo.textContent = 'Login to start a streak.'; return; }
+            try {
+                const streakDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'engagement', 'streak');
+                const streakSnap = await getDoc(streakDocRef);
+                const today = new Date(); today.setHours(0,0,0,0);
+                let streakCount = 0; let lastDate = null;
+                if (streakSnap.exists()) {
+                    const d = streakSnap.data();
+                    streakCount = d.count || 0;
+                    lastDate = d.lastDate ? d.lastDate.toDate() : null;
+                }
+                // Increment if lastDate is before today
+                const needIncrement = !lastDate || (new Date(lastDate.setHours(0,0,0,0)) < today);
+                if (needIncrement) {
+                    await setDoc(streakDocRef, { count: streakCount + 1, lastDate: serverTimestamp() }, { merge: true });
+                    streakCount += 1;
+                }
+                if (streakInfo) streakInfo.textContent = `Current streak: ${streakCount} day${streakCount===1?'':'s'}`;
+            } catch (e) { console.error('Streak update failed', e); }
+
+            // Quests (static weekly set)
+            const weekQuests = [
+                { id:'q1', title:'React 10 times', target:10 },
+                { id:'q2', title:'Comment 5 times', target:5 },
+                { id:'q3', title:'Create 2 posts', target:2 },
+            ];
+            if (questsList) {
+                questsList.innerHTML = '';
+                weekQuests.forEach(q => {
+                    const progress = 0; // placeholder; wire to activity logs later
+                    const pct = Math.min(100, Math.round((progress / q.target) * 100));
+                    const row = document.createElement('div');
+                    row.className = 'quest-item';
+                    row.innerHTML = `<span>${q.title}</span><div class="quest-progress"><div style="width:${pct}%"></div></div><span>${progress}/${q.target}</span>`;
+                    questsList.appendChild(row);
+                });
+            }
+        }
+
+        // Daily Spin
+        const spinNowButton = document.getElementById('spinNowButton');
+        const spinStatus = document.getElementById('spinStatus');
+        if (spinNowButton) {
+            spinNowButton.addEventListener('click', async () => {
+                if (!currentUser) { showMessageBox('Login to spin.', 'warning'); return; }
+                const spinRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'engagement', 'daily_spin');
+                const snap = await getDoc(spinRef);
+                const now = new Date();
+                if (snap.exists()) {
+                    const last = snap.data().lastSpinAt?.toDate();
+                    if (last) {
+                        const since = now - last;
+                        if (since < 24*60*60*1000) {
+                            const hrs = Math.ceil((24*60*60*1000 - since)/3600000);
+                            if (spinStatus) spinStatus.textContent = `Come back in ~${hrs}h.`;
+                            return;
+                        }
+                    }
+                }
+                // Weighted rewards
+                const rewards = [ {j:5, w:40}, {j:10, w:30}, {j:20, w:20}, {j:50, w:8}, {j:100, w:2} ];
+                const totalW = rewards.reduce((a,b)=>a+b.w,0);
+                let r = Math.random()*totalW, pick = rewards[0];
+                for (const it of rewards) { if (r < it.w) { pick = it; break; } r -= it.w; }
+                // Credit user
+                try {
+                    const profileRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
+                    await runTransaction(db, async (trx) => {
+                        const ps = await trx.get(profileRef);
+                        const cur = ps.exists()? (ps.data().jCoins||0):0;
+                        trx.update(profileRef, { jCoins: cur + pick.j, updatedAt: serverTimestamp() });
+                    });
+                    await setDoc(spinRef, { lastSpinAt: serverTimestamp() }, { merge: true });
+                    if (spinStatus) spinStatus.textContent = `You won ${pick.j} JCoins!`;
+                } catch(e) { console.error(e); showMessageBox('Spin failed.', 'error'); }
+            });
+        }
+
+        // Stories
+        const addStoryButton = document.getElementById('addStoryButton');
+        const storyUploadInput = document.getElementById('storyUploadInput');
+        const storiesBar = document.getElementById('storiesBar');
+        if (addStoryButton && storyUploadInput) {
+            addStoryButton.addEventListener('click', ()=> storyUploadInput.click());
+            storyUploadInput.addEventListener('change', async (e)=>{
+                const file = e.target.files[0]; if (!file || !currentUser) return;
+                showMessageBox('Uploading story...', 'loading', true);
+                const url = await uploadMediaToCloudinary(file);
+                if (!url) { showMessageBox('Story upload failed.', 'error'); return; }
+                const storiesRef = collection(db, 'artifacts', appId, 'public', 'data', 'stories');
+                await addDoc(storiesRef, { userId: currentUser.uid, username: currentUserProfileData?.username||'User', mediaUrl: url, mediaType: file.type.startsWith('image/')?'image':'video', createdAt: serverTimestamp() });
+                showMessageBox('Story posted!', 'success');
+                fetchStories();
+            });
+        }
+        async function fetchStories() {
+            if (!storiesBar) return;
+            storiesBar.innerHTML = '';
+            const storiesRef = collection(db, 'artifacts', appId, 'public', 'data', 'stories');
+            const qStories = query(storiesRef, orderBy('createdAt','desc'));
+            const snap = await getDocs(qStories);
+            const now = Date.now();
+            snap.docs.forEach(d=>{
+                const s = d.data();
+                const ts = s.createdAt?.toDate()?.getTime() || 0;
+                if (now - ts > 24*60*60*1000) return; // expire client-side after 24h
+                const item = document.createElement('div');
+                item.className = 'story-item';
+                const avatar = document.createElement('div');
+                avatar.className = 'story-avatar';
+                if (s.mediaType==='image') {
+                    avatar.innerHTML = `<img src="${s.mediaUrl}" alt="story">`;
+                } else {
+                    avatar.innerHTML = `<i class="fas fa-video"></i>`;
+                }
+                const name = document.createElement('span');
+                name.style.color='var(--text-light)'; name.style.fontSize='0.8rem';
+                name.textContent = s.username?.split(' ')[0] || 'User';
+                item.appendChild(avatar); item.appendChild(name);
+                item.addEventListener('click', ()=>{
+                    // simple viewer: open media in new tab
+                    window.open(s.mediaUrl, '_blank');
+                });
+                storiesBar.appendChild(item);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStreakAndQuestsUI();
+            fetchStories();
         });
     </script>
 </body>
