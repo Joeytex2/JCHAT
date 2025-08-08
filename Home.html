@@ -5743,10 +5743,10 @@
             const qStories = query(storiesRef, orderBy('createdAt','desc'));
             const snap = await getDocs(qStories);
             const now = Date.now();
-            snap.docs.forEach(d=>{
-                const s = d.data();
-                const ts = s.createdAt?.toDate()?.getTime() || 0;
-                if (now - ts > 24*60*60*1000) return; // expire client-side after 24h
+            currentStories = snap.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(s => (now - (s.createdAt?.toDate()?.getTime() || 0)) <= 24*60*60*1000);
+            currentStories.forEach((s, idx) => {
                 const item = document.createElement('div');
                 item.className = 'story-item';
                 const avatar = document.createElement('div');
@@ -5754,13 +5754,13 @@
                 if (s.mediaType==='image') {
                     avatar.innerHTML = `<img src="${s.mediaUrl}" alt="story">`;
                 } else {
-                    avatar.innerHTML = `<i class="fas fa-video"></i>`;
+                    avatar.innerHTML = `<i class=\"fas fa-video\"></i>`;
                 }
                 const name = document.createElement('span');
                 name.style.color='var(--text-light)'; name.style.fontSize='0.8rem';
                 name.textContent = s.username?.split(' ')[0] || 'User';
                 item.appendChild(avatar); item.appendChild(name);
-                item.addEventListener('click', ()=> openStory(currentStories.indexOf(s)));
+                item.addEventListener('click', ()=> openStory(idx));
                 storiesBar.appendChild(item);
             });
         }
