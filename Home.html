@@ -1922,7 +1922,7 @@
                 </div>
                 <div style="margin:8px 0; display:flex; align-items:center; gap:10px;">
                     <label style="display:flex; align-items:center; gap:6px;">
-                        <input type="checkbox" id="addPollCheckbox" disabled> Add Poll
+                        <input type="checkbox" id="addPollCheckbox"> Add Poll
                     </label>
                     <div id="pollComposer" style="display:none; flex-direction:column; gap:6px; width:100%;">
                         <input type="text" class="poll-option-input" placeholder="Option 1" maxlength="100">
@@ -4166,14 +4166,16 @@
                         <p class="post-timestamp">${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}</p>
                     </div>
                     ${isAuthor || (currentUser && currentUser.uid === ADMIN_UID) ? `
-                    <button class="post-options-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Post Options">
+                    <button class="post-options-button" data-post-id="${postId}" data-author-id="${post.authorId}" data-timestamp="${post.timestamp ? post.timestamp.toDate().getTime() : 0}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Post Options">
                         <i class="fas fa-ellipsis-h"></i>
                     </button>
                     <div class="post-options-dropdown" id="dropdown-${postId}">
                         <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) || (!isAuthor && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Edit Post">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <!-- Delete button removed as per user request -->
+                        <button class="delete-post-button" data-post-id="${postId}" data-author-id="${post.authorId}" style="display:none;" aria-label="Delete Post">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
                         <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Share Post">
                             <i class="fas fa-share"></i> Share
                         </button>
@@ -4550,9 +4552,32 @@
                     }
                 });
                 if (dropdown) dropdown.classList.toggle('active'); // Toggle visibility of the clicked dropdown.
+                // Show delete if author and post older than 5 minutes
+                const postCard = button.closest('.post-card');
+                const createdText = postCard?.querySelector('.post-timestamp')?.textContent || '';
+                // We rely on dataset we set later; fallback: always show for author to avoid parsing date strings
+                const delBtn = dropdown?.querySelector('.delete-post-button');
+                const isOwner = (currentUser && button.dataset.authorId === currentUser.uid);
+                if (delBtn && isOwner) delBtn.style.display = '';
                 event.stopPropagation(); // Prevent document click from closing it immediately.
             }
             // Handle Edit Post Button
+            else if (event.target.closest('.delete-post-button')) {
+                const btn = event.target.closest('.delete-post-button');
+                const postId = btn.dataset.postId;
+                const authorId = btn.dataset.authorId;
+                if (!currentUser || currentUser.uid !== authorId) { showMessageBox('You can only delete your own post.', 'warning'); return; }
+                // Check age
+                const triggerBtn = document.querySelector(`.post-options-button[data-post-id="${postId}"]`);
+                const ts = parseInt(triggerBtn?.dataset.timestamp || '0', 10);
+                if (Date.now() - ts < 5*60*1000) { showMessageBox('Delete becomes available 5 minutes after posting.', 'info'); return; }
+                (async ()=>{
+                    try {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId));
+                        showMessageBox('Post deleted.', 'success');
+                    } catch(e) { console.error(e); showMessageBox('Failed to delete post.', 'error'); }
+                })();
+            }
             else if (event.target.closest('.edit-post-button')) {
                 const button = event.target.closest('.edit-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to edit posts.", 'error'); return; }
