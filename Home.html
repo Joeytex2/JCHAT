@@ -1900,9 +1900,13 @@
                 <input type="date" id="postDateFrom" placeholder="From">
                 <input type="date" id="postDateTo" placeholder="To">
                 <input type="text" id="postSearchInput" placeholder="Search posts...">
+                <label style="display:flex;align-items:center;gap:6px;">
+                    <input type="checkbox" id="showSavedOnly"> Saved
+                </label>
                 <button id="exportPostsCsvButton" class="post-control-button">Export CSV</button>
                 <button id="exportPostsJsonButton" class="post-control-button">Export JSON</button>
             </div>
+            <div id="trendingHashtags" style="margin:8px 0;color:var(--text-light);font-size:0.9rem;"></div>
 
             <!-- Posts Feed Section -->
             <div class="posts-feed-section" id="postsFeed">
@@ -2152,6 +2156,8 @@
         const postDateToInput = document.getElementById('postDateTo');
         const exportPostsCsvButton = document.getElementById('exportPostsCsvButton');
         const exportPostsJsonButton = document.getElementById('exportPostsJsonButton');
+        const showSavedOnlyCheckbox = document.getElementById('showSavedOnly');
+        const trendingHashtagsDiv = document.getElementById('trendingHashtags');
 
         // Edit Post Modal elements
         const editPostModal = document.getElementById('editPostModal');
@@ -4064,6 +4070,9 @@
                     <span><span class="comments-count">${post.commentsCount || 0}</span> Comments</span>
                 </div>
                 <div class="post-actions-row">
+                    <button class="post-action-button save-post-button" data-post-id="${postId}" aria-label="Save Post">
+                        <i class="fas fa-bookmark"></i> Save
+                    </button>
                     <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Like Post">
                         <i class="fas fa-thumbs-up"></i> Like
                     </button>
@@ -4168,8 +4177,10 @@
                     const textSearch = (postSearchInput?.value || '').toLowerCase();
                     const fromDate = postDateFromInput?.value ? new Date(postDateFromInput.value + 'T00:00:00') : null;
                     const toDate = postDateToInput?.value ? new Date(postDateToInput.value + 'T23:59:59.999') : null;
+                    const savedOnly = !!(showSavedOnlyCheckbox && showSavedOnlyCheckbox.checked);
 
                     const newOrderedPostIds = []; // To maintain the correct order of posts in the DOM.
+
                     querySnapshot.forEach(docSnapshot => {
                         const post = docSnapshot.data();
                         const postId = docSnapshot.id;
@@ -4183,6 +4194,10 @@
                         const ts = post.timestamp ? post.timestamp.toDate() : null;
                         if (fromDate && (!ts || ts < fromDate)) return;
                         if (toDate && (!ts || ts > toDate)) return;
+                        if (savedOnly) {
+                            const savedState = localStorage.getItem(`saved-post-${postId}`) === '1';
+                            if (!savedState) return;
+                        }
 
                         newOrderedPostIds.push(postId);
 
@@ -5400,6 +5415,88 @@
                     showMessageBox('Failed to export JSON.', 'error');
                 }
             });
+        });
+
+        // Save/Unsave post helper
+        async function toggleSavePost(postId, shouldSave) {
+            if (!isAuthReady || !currentUser) { showMessageBox('Please log in.', 'warning'); return; }
+            const savedRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'saved_posts', postId);
+            if (shouldSave) {
+                await setDoc(savedRef, { savedAt: serverTimestamp() }).catch(e => console.error('Save failed', e));
+                showMessageBox('Post saved.', 'success');
+            } else {
+                await deleteDoc(savedRef).catch(e => console.error('Unsave failed', e));
+                showMessageBox('Removed from saved.', 'info');
+            }
+        }
+
+        // Enhance post content: link hashtags
+        function linkHashtags(text) {
+            if (!text) return '';
+            return text.replace(/(^|\s)#(\w{2,30})/g, (m, p1, tag) => `${p1}<a href="#" class="hashtag-link" data-tag="${tag}">#${tag}</a>`);
+        }
+
+        // Track hashtags for trending display
+        function updateTrendingHashtags(allPosts) {
+            const counts = new Map();
+            allPosts.forEach(p => {
+                const content = p.content || '';
+                const matches = content.match(/#\w{2,30}/g) || [];
+                matches.forEach(tag => {
+                    counts.set(tag, (counts.get(tag) || 0) + 1);
+                });
+            });
+            const top = [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+            if (trendingHashtagsDiv) {
+                if (top.length === 0) { trendingHashtagsDiv.textContent = ''; return; }
+                trendingHashtagsDiv.innerHTML = 'Trending: ' + top.map(([tag]) => `<a href="#" class="hashtag-link" data-tag="${tag.substring(1)}">${tag}</a>`).join(' • ');
+            }
+        }
+
+        // Extend renderPost to link hashtags
+        const _origRenderPost = renderPost;
+        renderPost = function(post, postId) {
+            const el = _origRenderPost(post, postId);
+            const textDiv = el.querySelector('.post-content-text p');
+            if (textDiv) {
+                textDiv.innerHTML = linkHashtags(post.content);
+            }
+            return el;
+        }
+
+        // Hook into document click for save and hashtag
+        document.addEventListener('click', (ev) => {
+            const saveBtn = ev.target.closest('.save-post-button');
+            if (saveBtn) {
+                const pid = saveBtn.dataset.postId;
+                const saved = saveBtn.classList.toggle('saved');
+                localStorage.setItem(`saved-post-${pid}`, saved ? '1' : '0');
+                toggleSavePost(pid, saved);
+            }
+            const tagLink = ev.target.closest('.hashtag-link');
+            if (tagLink) {
+                const tag = tagLink.dataset.tag;
+                if (postSearchInput) postSearchInput.value = `#${tag}`;
+                fetchAndDisplayPosts();
+            }
+        });
+
+        // Modify posts onSnapshot to compute trending + filter saved only
+        const _origFetchAndDisplayPosts = fetchAndDisplayPosts;
+        fetchAndDisplayPosts = async function() {
+            await _origFetchAndDisplayPosts();
+            // After initial render, we cannot easily intercept onSnapshot pipeline; recompute trending client-side from DOM
+            const cards = [...(postsFeed?.querySelectorAll('.post-card') || [])];
+            const posts = cards.map(c => ({
+                id: c.dataset.postId,
+                content: (c.querySelector('.post-content-text p')?.textContent) || ''
+            }));
+            updateTrendingHashtags(posts);
+        }
+
+        // Re-trigger fetch when toggling saved only
+        document.addEventListener('DOMContentLoaded', () => {
+            if (showSavedOnlyCheckbox) showSavedOnlyCheckbox.addEventListener('change', fetchAndDisplayPosts);
         });
     </script>
 </body>
