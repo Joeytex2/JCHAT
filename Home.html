@@ -1834,6 +1834,22 @@
         /* Theme Switcher */
         .theme-switcher { display:flex; gap:8px; align-items:center; }
         .theme-switcher select { padding:6px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--input-background); color:var(--white); }
+
+        /* Story Viewer (compact) */
+        #storyViewer { position: fixed; right: 16px; bottom: 16px; z-index: 1200; display: none; }
+        #storyViewer.active { display: block; }
+        #storyViewer .viewer-card {
+            width: 300px; height: 520px; border-radius: 16px; overflow: hidden;
+            background: var(--card-background); border: 1px solid var(--glass-blue);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5); position: relative; display: flex; flex-direction: column;
+        }
+        #storyViewer .viewer-header { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; }
+        #storyViewer .viewer-title { color: var(--white); font-weight: 600; font-size: 0.95rem; }
+        #storyViewer .viewer-close { background: transparent; border:none; color: var(--white); cursor:pointer; }
+        #storyViewer .viewer-media { flex:1; display:flex; align-items:center; justify-content:center; background:#000; }
+        #storyImage, #storyVideo { max-width:100%; max-height:100%; display:none; }
+        #storyViewer .viewer-footer { display:flex; align-items:center; justify-content:space-between; padding:6px 10px; }
+        #prevStoryBtn, #nextStoryBtn { background: rgba(255,255,255,0.1); color: var(--white); border: 1px solid var(--border-light); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -2133,6 +2149,24 @@
             </a>
         </div>
     </aside>
+
+    <!-- Compact Story Viewer -->
+    <div id="storyViewer" aria-live="polite">
+        <div class="viewer-card">
+            <div class="viewer-header">
+                <div class="viewer-title" id="storyViewerTitle">Story</div>
+                <button class="viewer-close" id="closeStoryViewer" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="viewer-media">
+                <img id="storyImage" alt="story image" />
+                <video id="storyVideo" controls playsinline></video>
+            </div>
+            <div class="viewer-footer">
+                <button id="prevStoryBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+                <button id="nextStoryBtn">Next <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         console.log("JCHAT_DEBUG: Home.html script started.");
@@ -5689,16 +5723,4 @@
                 item.appendChild(avatar); item.appendChild(name);
                 item.addEventListener('click', ()=>{
                     // simple viewer: open media in new tab
-                    window.open(s.mediaUrl, '_blank');
-                });
-                storiesBar.appendChild(item);
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateStreakAndQuestsUI();
-            fetchStories();
-        });
-    </script>
-</body>
-</html>
+                    window.open(s.mediaUrl, '_blank
