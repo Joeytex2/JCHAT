@@ -1786,6 +1786,33 @@
                 right: 10px;
             }
         }
+
+        /* Posts Controls */
+        .post-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .post-controls select,
+        .post-controls input[type="text"],
+        .post-controls input[type="date"] {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: var(--input-background);
+            color: var(--white);
+        }
+        .post-control-button {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: var(--button-background);
+            color: var(--white);
+            cursor: pointer;
+        }
+        .post-control-button:hover { opacity: .95; }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -1860,6 +1887,21 @@
                         <div class="button-loader" role="status" aria-label="Loading"></div>
                     </button>
                 </div>
+            </div>
+
+            <!-- Posts Controls -->
+            <div class="post-controls" id="postControls">
+                <select id="postTypeFilter">
+                    <option value="all">All</option>
+                    <option value="text">Text</option>
+                    <option value="image">Images</option>
+                    <option value="video">Videos</option>
+                </select>
+                <input type="date" id="postDateFrom" placeholder="From">
+                <input type="date" id="postDateTo" placeholder="To">
+                <input type="text" id="postSearchInput" placeholder="Search posts...">
+                <button id="exportPostsCsvButton" class="post-control-button">Export CSV</button>
+                <button id="exportPostsJsonButton" class="post-control-button">Export JSON</button>
             </div>
 
             <!-- Posts Feed Section -->
@@ -2104,6 +2146,12 @@
         const createPostButton = document.getElementById('createPostButton');
         const postsFeed = document.getElementById('postsFeed');
         const loadingPostsMessage = document.getElementById('loadingPostsMessage');
+        const postTypeFilter = document.getElementById('postTypeFilter');
+        const postSearchInput = document.getElementById('postSearchInput');
+        const postDateFromInput = document.getElementById('postDateFrom');
+        const postDateToInput = document.getElementById('postDateTo');
+        const exportPostsCsvButton = document.getElementById('exportPostsCsvButton');
+        const exportPostsJsonButton = document.getElementById('exportPostsJsonButton');
 
         // Edit Post Modal elements
         const editPostModal = document.getElementById('editPostModal');
@@ -4115,10 +4163,27 @@
                         currentPostElements.set(card.dataset.postId, card);
                     });
 
+                    // Read filters
+                    const typeFilter = postTypeFilter?.value || 'all';
+                    const textSearch = (postSearchInput?.value || '').toLowerCase();
+                    const fromDate = postDateFromInput?.value ? new Date(postDateFromInput.value + 'T00:00:00') : null;
+                    const toDate = postDateToInput?.value ? new Date(postDateToInput.value + 'T23:59:59.999') : null;
+
                     const newOrderedPostIds = []; // To maintain the correct order of posts in the DOM.
                     querySnapshot.forEach(docSnapshot => {
                         const post = docSnapshot.data();
                         const postId = docSnapshot.id;
+
+                        // Client-side filter
+                        if (typeFilter !== 'all') {
+                            const pType = post.mediaType ? post.mediaType : 'text';
+                            if (pType !== typeFilter) return;
+                        }
+                        if (textSearch && !(post.content || '').toLowerCase().includes(textSearch)) return;
+                        const ts = post.timestamp ? post.timestamp.toDate() : null;
+                        if (fromDate && (!ts || ts < fromDate)) return;
+                        if (toDate && (!ts || ts > toDate)) return;
+
                         newOrderedPostIds.push(postId);
 
                         if (!postId) {
@@ -5233,6 +5298,109 @@
         if (sidebarToggleFab) sidebarToggleFab.addEventListener('click', toggleSidebar);
         if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleSidebar);
         if (sidebarLogoutLink) sidebarLogoutLink.addEventListener('click', handleLogout); // Add logout to sidebar.
+
+        // Export helpers (CSV/JSON) for posts
+        function toCsv(rows) {
+            if (!rows.length) return '';
+            const headers = Object.keys(rows[0]);
+            const escape = (v) => {
+                if (v == null) return '';
+                const s = String(v).replace(/"/g, '""');
+                return /[",\n]/.test(s) ? `"${s}"` : s;
+            };
+            const lines = [headers.join(',')];
+            for (const r of rows) lines.push(headers.map(h => escape(r[h])).join(','));
+            return lines.join('\n');
+        }
+
+        async function fetchAllPostsForExport(filters) {
+            const postsCollectionRef = collection(db, "artifacts", appId, "public", "data", "posts");
+            const qAll = query(postsCollectionRef, orderBy("timestamp", "desc"));
+            const snap = await getDocs(qAll);
+            const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            return items.filter(p => {
+                const pType = p.mediaType ? p.mediaType : 'text';
+                if (filters.type && filters.type !== 'all' && pType !== filters.type) return false;
+                if (filters.search && !(p.content || '').toLowerCase().includes(filters.search)) return false;
+                if (filters.from || filters.to) {
+                    const ts = p.timestamp ? p.timestamp.toDate() : null;
+                    if (!ts) return false;
+                    if (filters.from && ts < filters.from) return false;
+                    if (filters.to && ts > filters.to) return false;
+                }
+                return true;
+            });
+        }
+
+        function getPostFilterState() {
+            const type = postTypeFilter?.value || 'all';
+            const search = (postSearchInput?.value || '').toLowerCase();
+            let from = null, to = null;
+            if (postDateFromInput?.value) from = new Date(postDateFromInput.value + 'T00:00:00');
+            if (postDateToInput?.value) to = new Date(postDateToInput.value + 'T23:59:59.999');
+            return { type, search, from, to };
+        }
+
+        // Wire controls
+        document.addEventListener('DOMContentLoaded', () => {
+            if (postTypeFilter) postTypeFilter.addEventListener('change', fetchAndDisplayPosts);
+            if (postSearchInput) postSearchInput.addEventListener('input', fetchAndDisplayPosts);
+            if (postDateFromInput) postDateFromInput.addEventListener('change', fetchAndDisplayPosts);
+            if (postDateToInput) postDateToInput.addEventListener('change', fetchAndDisplayPosts);
+            if (exportPostsCsvButton) exportPostsCsvButton.addEventListener('click', async () => {
+                if (!currentUser && !isAuthReady) return showMessageBox('Please log in.', 'warning');
+                showMessageBox('Preparing CSV export...', 'loading', true);
+                try {
+                    const filters = getPostFilterState();
+                    const items = await fetchAllPostsForExport(filters);
+                    const rows = items.map(p => ({
+                        id: p.id,
+                        type: p.mediaType ? p.mediaType : 'text',
+                        content: p.content || '',
+                        authorId: p.authorId || '',
+                        timestamp: p.timestamp ? p.timestamp.toDate().toISOString() : ''
+                    }));
+                    const csv = toCsv(rows);
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `jchat-posts-${Date.now()}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showMessageBox('CSV downloaded.', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showMessageBox('Failed to export CSV.', 'error');
+                }
+            });
+            if (exportPostsJsonButton) exportPostsJsonButton.addEventListener('click', async () => {
+                if (!currentUser && !isAuthReady) return showMessageBox('Please log in.', 'warning');
+                showMessageBox('Preparing JSON export...', 'loading', true);
+                try {
+                    const filters = getPostFilterState();
+                    const items = await fetchAllPostsForExport(filters);
+                    const json = JSON.stringify(items.map(p => ({
+                        id: p.id,
+                        type: p.mediaType ? p.mediaType : 'text',
+                        content: p.content || '',
+                        authorId: p.authorId || '',
+                        timestamp: p.timestamp ? p.timestamp.toDate().toISOString() : ''
+                    })), null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `jchat-posts-${Date.now()}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showMessageBox('JSON downloaded.', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showMessageBox('Failed to export JSON.', 'error');
+                }
+            });
+        });
     </script>
 </body>
 </html>
