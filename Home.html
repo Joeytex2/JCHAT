@@ -5722,3 +5722,59 @@
                 name.textContent = s.username?.split(' ')[0] || 'User';
                 item.appendChild(avatar); item.appendChild(name);
                 item.addEventListener('click', ()=> openStory(idx));
+                storiesBar.appendChild(item);
+            });
+        }
+
+        // Story viewer refs/state
+        const storyViewer = document.getElementById('storyViewer');
+        const storyImageEl = document.getElementById('storyImage');
+        const storyVideoEl = document.getElementById('storyVideo');
+        const storyViewerTitle = document.getElementById('storyViewerTitle');
+        const closeStoryViewerBtn = document.getElementById('closeStoryViewer');
+        const prevStoryBtn = document.getElementById('prevStoryBtn');
+        const nextStoryBtn = document.getElementById('nextStoryBtn');
+        let currentStoryIndex = 0;
+        const viewedStoryIds = new Set();
+
+        async function openStory(index) {
+            if (!currentStories || !currentStories.length) return;
+            currentStoryIndex = Math.max(0, Math.min(index, currentStories.length-1));
+            const s = currentStories[currentStoryIndex];
+            if (!s) return;
+            if (storyViewerTitle) storyViewerTitle.textContent = `${s.username || 'Story'}`;
+            if (s.mediaType === 'image') {
+                if (storyVideoEl) { try { storyVideoEl.pause(); } catch{} storyVideoEl.style.display = 'none'; storyVideoEl.src=''; }
+                if (storyImageEl) { storyImageEl.src = s.mediaUrl; storyImageEl.style.display = 'block'; }
+            } else {
+                if (storyImageEl) { storyImageEl.style.display = 'none'; storyImageEl.src=''; }
+                if (storyVideoEl) { storyVideoEl.src = s.mediaUrl; storyVideoEl.style.display = 'block'; storyVideoEl.play().catch(()=>{}); }
+            }
+            if (storyViewer) storyViewer.classList.add('active');
+            if (!viewedStoryIds.has(s.id)) {
+                viewedStoryIds.add(s.id);
+                try {
+                    const storyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'stories', s.id);
+                    await updateDoc(storyDocRef, { viewCount: (s.viewCount || 0) + 1 });
+                    s.viewCount = (s.viewCount || 0) + 1;
+                } catch (e) { console.error('Failed to update viewCount', e); }
+            }
+            if (prevStoryBtn) prevStoryBtn.disabled = currentStoryIndex <= 0;
+            if (nextStoryBtn) nextStoryBtn.disabled = currentStoryIndex >= currentStories.length-1;
+        }
+        function closeStoryViewer() {
+            if (storyViewer) storyViewer.classList.remove('active');
+            if (storyImageEl) { storyImageEl.style.display = 'none'; storyImageEl.src=''; }
+            if (storyVideoEl) { try { storyVideoEl.pause(); } catch{} storyVideoEl.style.display = 'none'; storyVideoEl.src=''; }
+        }
+        if (closeStoryViewerBtn) closeStoryViewerBtn.addEventListener('click', closeStoryViewer);
+        if (prevStoryBtn) prevStoryBtn.addEventListener('click', ()=> openStory(currentStoryIndex-1));
+        if (nextStoryBtn) nextStoryBtn.addEventListener('click', ()=> openStory(currentStoryIndex+1));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStreakAndQuestsUI();
+            fetchStories();
+        });
+    </script>
+</body>
+</html>
