@@ -2931,13 +2931,35 @@
         infoSynth.envelope.release = 0.3;
 
         function playNotificationSound(type) {
-            Tone.start();
-            if (type === 'success') {
-                successSynth.triggerAttackRelease("C5", "8n");
-            } else if (type === 'error') {
-                errorSynth.triggerAttackRelease("C3", "8n");
-            } else if (type === 'info') {
-                infoSynth.triggerAttackRelease("E4", "16n");
+            try {
+                // Create audio element for the new notification sound
+                const audio = new Audio('ne.mp3');
+                audio.volume = 0.6; // Set volume to 60%
+                
+                // Play the notification sound
+                audio.play().catch(error => {
+                    console.log('JCHAT_DEBUG: Could not play notification sound:', error);
+                    // Fallback to Tone.js if audio file fails
+                    Tone.start();
+                    if (type === 'success') {
+                        successSynth.triggerAttackRelease("C5", "8n");
+                    } else if (type === 'error') {
+                        errorSynth.triggerAttackRelease("C3", "8n");
+                    } else if (type === 'info') {
+                        infoSynth.triggerAttackRelease("E4", "16n");
+                    }
+                });
+            } catch (error) {
+                console.log('JCHAT_DEBUG: Error playing notification sound:', error);
+                // Fallback to Tone.js
+                Tone.start();
+                if (type === 'success') {
+                    successSynth.triggerAttackRelease("C5", "8n");
+                } else if (type === 'error') {
+                    errorSynth.triggerAttackRelease("C3", "8n");
+                } else if (type === 'info') {
+                    infoSynth.triggerAttackRelease("E4", "16n");
+                }
             }
         }
 
