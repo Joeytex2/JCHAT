@@ -306,6 +306,156 @@
             width: 100%;
         }
 
+        /* Cool Notification Icon Styling (from Home.html) */
+        .notification-icon-wrapper {
+            position: relative;
+            margin-right: 15px;
+        }
+
+        .notification-icon-wrapper a {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification-icon-wrapper a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .notification-icon-wrapper a:hover::before {
+            left: 100%;
+        }
+
+        .notification-icon-wrapper a:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 213, 255, 0.3);
+            border-color: var(--blue);
+        }
+
+        .notification-icon-wrapper i {
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            transition: all 0.3s ease;
+            z-index: 1;
+            position: relative;
+        }
+
+        .notification-icon-wrapper a:hover i {
+            transform: rotate(15deg) scale(1.1);
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(45deg, #ff4757, #ff3742);
+            color: var(--white);
+            border-radius: 50%;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            min-width: 22px;
+            height: 22px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--background-main);
+            animation: pulse-notification 2s infinite;
+            z-index: 2;
+        }
+
+        @keyframes pulse-notification {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .notification-badge:empty {
+            display: none;
+        }
+
+        /* Additional cool effects for notification icon */
+        .notification-icon-wrapper a:active {
+            transform: scale(0.95);
+        }
+
+        /* Glow effect when there are notifications */
+        .notification-icon-wrapper.has-notifications a {
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
+        }
+
+        .notification-icon-wrapper.has-notifications a:hover {
+            box-shadow: 0 0 30px rgba(255, 71, 87, 0.5);
+        }
+
+        /* Shaking animation for notification bell when there are unread notifications */
+        .notification-icon-wrapper.has-notifications i {
+            animation: bell-shake 2s ease-in-out infinite, subtle-shake 3s ease-in-out infinite 1s;
+            transform-origin: top;
+        }
+
+        @keyframes bell-shake {
+            0%, 100% { transform: rotate(0deg); }
+            5%, 15%, 25%, 35% { transform: rotate(8deg); }
+            10%, 20%, 30% { transform: rotate(-8deg); }
+            40%, 100% { transform: rotate(0deg); }
+        }
+
+        @keyframes subtle-shake {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(2deg); }
+        }
+
+        /* Pause shaking on hover */
+        .notification-icon-wrapper.has-notifications a:hover i {
+            animation-play-state: paused;
+        }
+
+        /* Admin Icon Styling */
+        #adminIconLink {
+            display: none; /* Hidden by default */
+            margin-right: 15px; /* Space it out from other icons */
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+            font-size: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        #adminIconLink:hover {
+            transform: scale(1.1);
+        }
+
         /* User Profile Header Styling (from Home.html) */
         .user-profile-header {
             display: flex;
@@ -484,7 +634,7 @@
             align-items: center;
         }
 
-        /* Profile Section (adapted from original Profile.html and settings-section) */
+        /* Enhanced Profile Section (adapted from original Profile.html and settings-section) */
         .profile-section {
             background: var(--card-background);
             border: 1px solid var(--glass-blue); /* Consistent border */
@@ -501,6 +651,24 @@
             gap: 1.5rem;
             text-align: center;
             position: relative;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .profile-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        .profile-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, .4);
         }
 
         .profile-header-area { /* New wrapper for top part of profile */
@@ -603,6 +771,12 @@
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
             margin: 0;
             text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .profile-name:hover {
+            background-image: linear-gradient(90deg, var(--pink), var(--blue));
+            transform: scale(1.02);
         }
 
         .profile-bio, .profile-location, .profile-email, .profile-info-item {
@@ -630,10 +804,18 @@
             margin-top: 1rem;
             flex-wrap: wrap;
             gap: 15px;
-            background: rgba(0, 0, 0, 0.2); /* Consistent with old profile, but blended */
-            border-radius: 10px;
-            padding: 10px 0;
-            border: 1px solid var(--border-light); /* Consistent border */
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid var(--border-light);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .profile-stats:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
         .stat-item {
@@ -646,7 +828,19 @@
         .stat-value {
             font-size: 1.4rem;
             font-weight: 700;
-            color: var(--white);
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover .stat-value {
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            transform: scale(1.1);
         }
 
         .stat-label {
@@ -797,13 +991,30 @@
             font-weight: 700;
             cursor: pointer;
             box-shadow: var(--button-shadow);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-action-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .profile-action-button:hover::before {
+            left: 100%;
         }
 
         .profile-action-button:hover {
@@ -1261,6 +1472,66 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Enhanced Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes loading-shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Loading Skeleton Animation */
+        .loading-skeleton {
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                rgba(255, 255, 255, 0.1) 75%);
+            background-size: 200px 100%;
+            animation: loading-shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        .skeleton-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+        }
+
+        .skeleton-text {
+            height: 20px;
+            margin: 8px 0;
+        }
+
+        .skeleton-text.short {
+            width: 60%;
+        }
+
+        .skeleton-text.medium {
+            width: 80%;
+        }
+
         /* Custom Confirmation Modal */
         .modal-overlay {
             position: fixed;
@@ -1590,6 +1861,125 @@
         }
 
 
+
+        /* Enhanced Responsive Design */
+        @media (max-width: 768px) {
+            .profile-section {
+                width: 95%;
+                padding: 1.5rem;
+                margin: 15px auto;
+            }
+
+            .profile-pic-wrapper {
+                width: 100px;
+                height: 100px;
+            }
+
+            .profile-name {
+                font-size: 1.8rem;
+            }
+
+            .profile-stats {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            .stat-item {
+                flex: 1 1 100%;
+                padding: 8px 0;
+            }
+
+            .profile-action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .profile-action-button {
+                width: 100%;
+                padding: 1rem 1.5rem;
+            }
+
+            /* Enhanced mobile header */
+            .header-content {
+                padding: 0 15px;
+            }
+
+            .notification-icon-wrapper {
+                margin-right: 10px;
+            }
+
+            .notification-icon-wrapper a {
+                width: 35px;
+                height: 35px;
+            }
+
+            .notification-icon-wrapper i {
+                font-size: 1.1rem;
+            }
+
+            .user-profile-header span {
+                font-size: 0.9rem;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profile-section {
+                width: 98%;
+                padding: 1rem;
+                margin: 10px auto;
+            }
+
+            .profile-pic-wrapper {
+                width: 80px;
+                height: 80px;
+            }
+
+            .profile-name {
+                font-size: 1.5rem;
+            }
+
+            .profile-stats {
+                padding: 10px;
+                gap: 8px;
+            }
+
+            .stat-value {
+                font-size: 1.2rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            .profile-action-button {
+                padding: 0.8rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            /* Mobile header adjustments */
+            .header-content {
+                padding: 0 10px;
+            }
+
+            .notification-icon-wrapper a {
+                width: 32px;
+                height: 32px;
+            }
+
+            .notification-icon-wrapper i {
+                font-size: 1rem;
+            }
+
+            .user-profile-header span {
+                font-size: 0.8rem;
+                max-width: 100px;
+            }
+        }
 
         /* Responsive Adjustments (from Home.html / privacy_settings.html) */
         @media (max-width: 600px) {
@@ -2286,6 +2676,24 @@
         const locationText = document.getElementById('locationText'); // Span inside profileLocation
         const profileEmail = document.getElementById('profileEmail'); // P element container
         const emailText = document.getElementById('emailText'); // Span inside profileEmail
+
+        // --- Notification Badge Management ---
+        function updateNotificationBadge(count) {
+            const notificationWrapper = document.querySelector('.notification-icon-wrapper');
+            const badge = document.getElementById('notificationCount');
+            if (badge && notificationWrapper) {
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count.toString();
+                    badge.style.display = 'flex';
+                    notificationWrapper.classList.add('has-notifications');
+                    console.log('🔔 Notification badge updated:', count, 'notifications');
+                } else {
+                    badge.style.display = 'none';
+                    notificationWrapper.classList.remove('has-notifications');
+                    console.log('🔕 No notifications, badge hidden');
+                }
+            }
+        }
 
         // NEW: User Info Display Elements
         const profileSchool = document.getElementById('profileSchool');
