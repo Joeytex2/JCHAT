@@ -86,17 +86,18 @@
         /* Theme Switcher Button */
         .theme-switcher-btn {
             background: linear-gradient(45deg, rgba(0, 213, 255, 0.7), rgba(255, 46, 146, 0.7));
+
             color: var(--white);
             border: none;
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            width: 26px;
+            height: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
@@ -1576,21 +1577,6 @@
         }
         #messageBox.error { border-left: 5px solid var(--delete-button-color); background-color: var(--card-background-color); color: var(--text-color-primary); } /* Corrected from original */
         #messageBox.info { border-left: 5px solid var(--accent-color); background-color: var(--card-background-color); color: var(--text-color-primary); } /* Corrected from original */
-        #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); } /* Added for consistency */
-
-        #messageBox i { /* Added for consistency with Profile/Levels */
-            font-size: 2.5rem; /* Larger icon for prominence */
-            margin-bottom: 5px; /* Space between icon and text */
-            /* Apply gradient to message box icons */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback */
-        }
-        #messageBox.success i { color: var(--white); } /* White icon for success */
-        #messageBox.error i { color: var(--delete-button-color); }
-        #messageBox.info i { color: var(--accent-color); }
         #messageBox.warning i { color: var(--warning-color); }
 
 
@@ -2217,7 +2203,7 @@
             <div class="user-profile-header" style="display:flex;align-items:center;gap:10px;">
                 <!-- Theme Switcher Button -->
                 <button id="themeSwitcherBtn" class="theme-switcher-btn" aria-label="Switch Theme">
-                    <i class="fas fa-key"></i>
+                    <i class="fas fa-moon"></i>
                 </button>
                 <!-- Admin Icon Link (visible only to admin) -->
                 <a href="/Admin.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
@@ -2638,7 +2624,7 @@
         let cancelEditPostButton, saveEditedPostButton;
         // Theme switcher functionality
         let currentTheme = 'theme-dark-mode'; // Default theme
-        const themeSwitcherThemes = ['theme-dark-mode', 'theme-light-mode', 'theme-sunset-mode'];
+        const themeSwitcherThemes = ['theme-dark-mode', 'theme-light-mode'];
 
         // Initialize theme switcher
         function initializeThemeSwitcher() {
@@ -2647,6 +2633,7 @@
             setTheme(savedTheme);
             
             // Add event listener to theme switcher button
+            themeSwitcherBtn = document.getElementById('themeSwitcherBtn');
             if (themeSwitcherBtn) {
                 themeSwitcherBtn.addEventListener('click', cycleTheme);
             }
@@ -2654,9 +2641,7 @@
 
         // Cycle through themes
         function cycleTheme() {
-            const currentIndex = themeSwitcherThemes.indexOf(currentTheme);
-            const nextIndex = (currentIndex + 1) % themeSwitcherThemes.length;
-            const nextTheme = themeSwitcherThemes[nextIndex];
+            const nextTheme = currentTheme === 'theme-dark-mode' ? 'theme-light-mode' : 'theme-dark-mode';
             setTheme(nextTheme);
         }
 
@@ -2680,7 +2665,7 @@
             if (themeSwitcherBtn) {
                 const icon = themeSwitcherBtn.querySelector('i');
                 if (icon) {
-                    icon.className = 'fas fa-key';
+                    icon.className = (theme === 'theme-light-mode') ? 'fas fa-sun' : 'fas fa-moon';
                 }
             }
             
@@ -5988,8 +5973,8 @@
         window.addEventListener('storage', (event) => {
             if (event.key === 'jchat-theme') {
                 const newTheme = event.newValue || 'theme-dark-mode';
-                if (themes.includes(newTheme)) {
-                    applyTheme(newTheme);
+                if (newTheme === 'theme-light-mode' || newTheme === 'theme-dark-mode') {
+                    setTheme(newTheme);
                 }
             }
         });
