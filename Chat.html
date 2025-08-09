@@ -285,54 +285,131 @@
             gap: 10px;
         }
 
-        /* Notification Icon Styling */
+        /* Cool Notification Icon Styling */
         .notification-icon-wrapper {
             position: relative;
-            margin-right: 15px; /* Space between notification and profile */
+            margin-right: 15px;
         }
 
         .notification-icon-wrapper a {
-            text-decoration: none; /* Remove underline from link */
-            color: inherit; /* Inherit color from parent */
+            text-decoration: none;
+            color: inherit;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification-icon-wrapper a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .notification-icon-wrapper a:hover::before {
+            left: 100%;
+        }
+
+        .notification-icon-wrapper a:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 213, 255, 0.3);
+            border-color: var(--blue);
         }
 
         .notification-icon-wrapper i {
-            font-size: 1.5rem; /* Adjust size as needed */
-            /* Apply gradient to icons */
-            background-image: linear-gradient(90deg, #8A2BE2, #00FFFF); /* Blue Violet to Aqua */
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ff8e53);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback for browsers that don't support background-clip: text on icons */
-            cursor: pointer;
-            transition: transform 0.2s ease;
+            color: transparent;
+            transition: all 0.3s ease;
+            z-index: 1;
+            position: relative;
         }
 
-        .notification-icon-wrapper i:hover {
-            transform: scale(1.1);
+        .notification-icon-wrapper a:hover i {
+            transform: rotate(15deg) scale(1.1);
+            background: linear-gradient(45deg, #ff8e53, #ffd700, #ff6b35);
+            background-clip: text;
+            -webkit-background-clip: text;
         }
 
         .notification-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--notification-badge-color); /* Use pink for notifications */
-            color: var(--white);
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ff8e53);
+            color: #000;
             border-radius: 50%;
-            padding: 3px 7px;
+            padding: 4px 8px;
             font-size: 0.7rem;
-            font-weight: 700;
-            min-width: 20px;
+            font-weight: 800;
+            min-width: 22px;
+            height: 22px;
             text-align: center;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Hide if no notifications */
+            border: 2px solid var(--background-main);
+            animation: pulse-notification 2s infinite;
+            z-index: 2;
+        }
+
+        @keyframes pulse-notification {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .notification-badge:empty {
             display: none;
+        }
+
+        /* Additional cool effects for notification icon */
+        .notification-icon-wrapper a:active {
+            transform: scale(0.95);
+        }
+
+        /* Glow effect when there are notifications */
+        .notification-icon-wrapper.has-notifications a {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .notification-icon-wrapper.has-notifications a:hover {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        }
+
+        /* Shaking animation for notification bell when there are unread notifications */
+        .notification-icon-wrapper.has-notifications i {
+            animation: bell-shake 3s ease-in-out infinite;
+            transform-origin: top;
+        }
+
+        @keyframes bell-shake {
+            0%, 90%, 100% { transform: rotate(0deg); }
+            5%, 15%, 25%, 35% { transform: rotate(10deg); }
+            10%, 20%, 30% { transform: rotate(-10deg); }
+            40%, 50%, 60%, 70%, 80% { transform: rotate(0deg); }
+        }
+
+        /* Pause shaking on hover */
+        .notification-icon-wrapper.has-notifications a:hover i {
+            animation-play-state: paused;
         }
 
         .user-profile-header #profileLink {
