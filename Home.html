@@ -2223,7 +2223,7 @@
                     </a>
                 </div>
                 <!-- Profile Link with Picture and Name -->
-                <a href="#" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <a href="./Profile.html" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;">
                     <img id="headerProfilePic" src="" alt="Profile Picture" style="display:none;width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);">
                     <i id="headerAvatarIcon" class="fas fa-user-circle" role="img" aria-label="User Avatar" style="font-size:28px;"></i>
                     <span id="headerDisplayName">Loading...</span>
@@ -2577,20 +2577,22 @@
             console.log('JCHAT_DEBUG: Gone offline');
         });
 
-        // Enhanced Error Handling - Only catch serious errors
+        // Global Error Handling - Temporarily disabled for debugging
         window.addEventListener('error', (event) => {
             console.error('JCHAT_ERROR: Unhandled error:', event.error);
+            console.error('JCHAT_ERROR: Error details:', {
+                name: event.error?.name,
+                message: event.error?.message,
+                stack: event.error?.stack,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno
+            });
             
-            // Only show message box for specific error types and if it's available
-            if (typeof showMessageBox === 'function' && messageBox && event.error) {
-                // Only show errors for serious issues, not navigation or DOM access
-                if (event.error.name !== 'TypeError' && 
-                    event.error.name !== 'ReferenceError' && 
-                    !event.error.message.includes('profile') &&
-                    !event.error.message.includes('click')) {
-                    showMessageBox('An unexpected error occurred. Please refresh if issues persist.', 'error');
-                }
-            }
+            // Temporarily disabled to debug profile link issues
+            // if (typeof showMessageBox === 'function' && messageBox && event.error) {
+            //     showMessageBox('An unexpected error occurred. Please refresh if issues persist.', 'error');
+            // }
         });
 
         // Performance Monitoring
@@ -6464,29 +6466,8 @@
             fetchStories();
             initializeNotificationSystem();
             
-            // Simple profile link handler
-            if (profileLink) {
-                profileLink.addEventListener('click', function(e) {
-                    e.preventDefault(); // Prevent default navigation
-                    
-                    console.log('JCHAT_DEBUG: Profile link clicked');
-                    console.log('JCHAT_DEBUG: isAuthReady:', isAuthReady);
-                    console.log('JCHAT_DEBUG: currentUser:', currentUser ? currentUser.uid : 'null');
-                    
-                    // Simple check and navigation
-                    if (isAuthReady && currentUser && currentUser.uid) {
-                        const profileUrl = `./Profile.html?userId=${currentUser.uid}`;
-                        console.log('JCHAT_DEBUG: Navigating to:', profileUrl);
-                        window.location.href = profileUrl;
-                    } else if (!isAuthReady) {
-                        console.log('JCHAT_DEBUG: Auth not ready, waiting...');
-                        // Don't show error message, just log and let user try again
-                    } else {
-                        console.log('JCHAT_DEBUG: User not logged in, redirecting to login');
-                        window.location.href = './Login.html';
-                    }
-                });
-            }
+            // Profile link - let it use default href behavior for now
+            // Custom handler removed to prevent errors
         });
 
         // Initialize notification system
