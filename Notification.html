@@ -620,7 +620,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = "jchat-app-id"; // Replace with your actual app ID
+        const appId = "jchat-app-id";
 
         // Global state
         let currentUser = null;
@@ -688,6 +688,10 @@
                     notifications = JSON.parse(savedNotifications);
                     notifications.forEach(n => n.timestamp = new Date(n.timestamp));
                 }
+                
+                // Update unread count in localStorage if not present
+                const unreadCount = notifications.filter(n => !n.read).length;
+                localStorage.setItem('jchat_unread_count', unreadCount.toString());
             } catch (error) {
                 console.error('Error loading notifications:', error);
             }
@@ -697,6 +701,7 @@
         function saveNotificationsToStorage() {
             try {
                 localStorage.setItem('jchat_notifications', JSON.stringify(notifications));
+                localStorage.setItem('jchat_unread_count', notifications.filter(n => !n.read).length.toString());
             } catch (error) {
                 console.error('Error saving notifications:', error);
             }
