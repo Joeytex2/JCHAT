@@ -1091,14 +1091,14 @@
             box-shadow: none;
         }
 
-        /* Call Status Overlay */
+        /* Enhanced Call Status Overlay */
         #callStatusOverlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -1108,6 +1108,7 @@
             visibility: hidden;
             transition: opacity 0.3s ease;
             color: var(--white);
+            backdrop-filter: blur(10px);
         }
         #callStatusOverlay.active {
             opacity: 1;
@@ -1115,47 +1116,353 @@
         }
         #callStatusOverlay h2 {
             font-family: 'Poppins', sans-serif;
-            font-size: 2rem;
+            font-size: 2.5rem;
             margin-bottom: 20px;
             background-clip: text;
             color: transparent;
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            text-align: center;
         }
         #callStatusOverlay p {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             margin-bottom: 30px;
+            text-align: center;
+            opacity: 0.9;
         }
         #callStatusOverlay .call-actions {
             display: flex;
-            gap: 20px;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         #callStatusOverlay .call-actions button {
             background: linear-gradient(90deg, var(--blue), var(--pink));
             color: var(--white);
             border: none;
-            border-radius: 50%; /* Circular buttons */
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        #callStatusOverlay .call-actions button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        #callStatusOverlay .call-actions button:hover::before {
+            left: 100%;
+        }
+        #callStatusOverlay .call-actions button.end-call-btn {
+            background: linear-gradient(45deg, #ff4757, #ff3742);
+        }
+        #callStatusOverlay .call-actions button.accept-call-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+        #callStatusOverlay .call-actions button.reject-call-btn {
+            background: linear-gradient(45deg, #6c757d, #5a6268);
+        }
+        #callStatusOverlay .call-actions button.mute-btn {
+            background: linear-gradient(45deg, #ffc107, #e0a800);
+        }
+        #callStatusOverlay .call-actions button.video-toggle-btn {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+        }
+        #callStatusOverlay .call-actions button:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        }
+        #callStatusOverlay .call-actions button:active {
+            transform: translateY(-4px) scale(0.98);
+        }
+
+        /* Video Call Interface */
+        .video-call-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 1003;
+            display: none;
+            flex-direction: column;
+        }
+        .video-call-container.active {
+            display: flex;
+        }
+        .video-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 20px;
+            position: relative;
+        }
+        .video-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-item.fullscreen {
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+        }
+        .video-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+        .video-item .video-label {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .video-item .connection-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            border: 2px solid white;
+        }
+        .video-item .connection-status.poor {
+            background: #ffc107;
+        }
+        .video-item .connection-status.disconnected {
+            background: #ff4757;
+        }
+        .video-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 30px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+        .video-controls button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
             width: 60px;
             height: 60px;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        #callStatusOverlay .call-actions button.end-call-btn {
-            background: var(--delete-button-color);
+        .video-controls button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
         }
-        #callStatusOverlay .call-actions button.accept-call-btn {
-            background: var(--status-online);
+        .video-controls button.active {
+            background: #4CAF50;
         }
-        #callStatusOverlay .call-actions button.reject-call-btn {
-            background: var(--status-offline);
+        .video-controls button.muted {
+            background: #ff4757;
         }
-        #callStatusOverlay .call-actions button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        .video-controls button.end-call {
+            background: #ff4757;
+        }
+        .video-controls button.end-call:hover {
+            background: #ff3742;
+            transform: scale(1.1);
+        }
+        .call-timer {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .call-quality-indicator {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            gap: 5px;
+        }
+        .quality-bar {
+            width: 4px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+        .quality-bar.active {
+            background: #4CAF50;
+        }
+        .quality-bar.poor {
+            background: #ffc107;
+        }
+        .quality-bar.bad {
+            background: #ff4757;
+        }
+
+        /* Voice Call Interface */
+        .voice-call-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1003;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .voice-call-container.active {
+            display: flex;
+        }
+        .voice-call-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .voice-call-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .voice-call-avatar i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .voice-call-avatar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: rotate 3s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .voice-call-info {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .voice-call-info h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        .voice-call-info p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            color: white;
+        }
+        .voice-controls {
+            display: flex;
+            gap: 20px;
+        }
+        .voice-controls button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        .voice-controls button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        .voice-controls button.active {
+            background: #4CAF50;
+        }
+        .voice-controls button.muted {
+            background: #ff4757;
+        }
+        .voice-controls button.end-call {
+            background: #ff4757;
+        }
+        .voice-controls button.end-call:hover {
+            background: #ff3742;
+        }
+
+        /* Call Loading Animation */
+        .call-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .call-loading .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .call-loading .pulse {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
         }
 
 
@@ -1594,6 +1901,69 @@
             <div class="call-actions" id="callActions">
                 <!-- Buttons dynamically added here -->
             </div>
+        </div>
+    </div>
+
+    <!-- Video Call Interface -->
+    <div id="videoCallContainer" class="video-call-container">
+        <div class="video-grid">
+            <div class="video-item" id="localVideoItem">
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div class="video-label">You</div>
+                <div class="connection-status" id="localConnectionStatus"></div>
+            </div>
+            <div class="video-item" id="remoteVideoItem">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div class="video-label" id="remoteVideoLabel">Partner</div>
+                <div class="connection-status" id="remoteConnectionStatus"></div>
+            </div>
+        </div>
+        <div class="call-timer" id="callTimer">00:00</div>
+        <div class="call-quality-indicator" id="callQualityIndicator">
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+        </div>
+        <div class="video-controls">
+            <button id="muteVideoBtn" title="Mute Audio">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button id="toggleVideoBtn" title="Toggle Video">
+                <i class="fas fa-video"></i>
+            </button>
+            <button id="switchCameraBtn" title="Switch Camera">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button id="fullscreenBtn" title="Fullscreen">
+                <i class="fas fa-expand"></i>
+            </button>
+            <button id="endVideoCallBtn" class="end-call" title="End Call">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Voice Call Interface -->
+    <div id="voiceCallContainer" class="voice-call-container">
+        <div class="voice-call-avatar" id="voiceCallAvatar">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="voice-call-info">
+            <h2 id="voiceCallPartnerName">Partner Name</h2>
+            <p id="voiceCallStatus">Connecting...</p>
+        </div>
+        <div class="voice-controls">
+            <button id="muteVoiceBtn" title="Mute">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button id="speakerBtn" title="Speaker">
+                <i class="fas fa-volume-up"></i>
+            </button>
+            <button id="endVoiceCallBtn" class="end-call" title="End Call">
+                <i class="fas fa-phone-slash"></i>
+            </button>
         </div>
     </div>
 
@@ -2761,10 +3131,55 @@
             }
         });
 
-        // --- Call Functionality (Simulated) ---
-        // Note: Real-time voice/video calls (WebRTC) require complex server-side signaling
-        // and STUN/TURN server infrastructure, which is beyond the scope of a single HTML file.
-        // This implementation simulates call status changes via Firestore.
+        // --- WebRTC Call Functionality ---
+        // Comprehensive voice and video call implementation using WebRTC
+
+        // WebRTC Configuration
+        const rtcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ]
+        };
+
+        // WebRTC State Management
+        let peerConnection = null;
+        let localStream = null;
+        let remoteStream = null;
+        let isInitiator = false;
+        let isCallActive = false;
+        let callType = null;
+        let callStartTime = null;
+        let callTimer = null;
+        let isMuted = false;
+        let isVideoEnabled = true;
+        let isSpeakerOn = false;
+        let currentCamera = 'front';
+        let availableCameras = [];
+
+        // DOM Elements for calls
+        const videoCallContainer = document.getElementById('videoCallContainer');
+        const voiceCallContainer = document.getElementById('voiceCallContainer');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const callTimerElement = document.getElementById('callTimer');
+        const voiceCallPartnerName = document.getElementById('voiceCallPartnerName');
+        const voiceCallStatus = document.getElementById('voiceCallStatus');
+        const voiceCallAvatar = document.getElementById('voiceCallAvatar');
+        const remoteVideoLabel = document.getElementById('remoteVideoLabel');
+
+        // Call control buttons
+        const muteVideoBtn = document.getElementById('muteVideoBtn');
+        const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const endVideoCallBtn = document.getElementById('endVideoCallBtn');
+        const muteVoiceBtn = document.getElementById('muteVoiceBtn');
+        const speakerBtn = document.getElementById('speakerBtn');
+        const endVoiceCallBtn = document.getElementById('endVoiceCallBtn');
 
         /**
          * Displays the call status overlay.
@@ -2798,7 +3213,7 @@
         }
 
         /**
-         * Initiates a voice or video call.
+         * Initiates a voice or video call with WebRTC.
          * @param {string} callType - 'voice' or 'video'.
          */
         async function startCall(callType) {
@@ -2814,23 +3229,29 @@
             const confirmed = await showCustomConfirm(`Start a ${callType} call with ${partnerProfileData.username}?`);
             if (!confirmed) return;
 
-            showMessageBox(`Calling ${partnerProfileData.username}...`, 'info', true);
-            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
-            const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
-
             try {
-                await setDoc(callDocRef, {
-                    callerId: currentUser.uid,
-                    receiverId: partnerId,
-                    callType: callType,
-                    status: 'ringing',
-                    timestamp: serverTimestamp(),
-                    callerUsername: currentUserProfileData.username,
-                    receiverUsername: partnerProfileData.username
+                // Initialize WebRTC
+                await initializeWebRTC(callType);
+                isInitiator = true;
+                callType = callType;
+
+                // Get user media
+                await getUserMedia(callType);
+
+                // Create peer connection
+                createPeerConnection();
+
+                // Add local stream to peer connection
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
                 });
 
-                // Send a message to the chat indicating the call started
-                await sendMessage('call_status', `${currentUserProfileData.username} started a ${callType} call.`);
+                // Create and send offer
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                // Send call offer to partner
+                await sendCallOffer(offer, callType);
 
                 showCallStatusOverlay(
                     `Outgoing ${callType} Call`,
@@ -2848,8 +3269,9 @@
                     timestamp: serverTimestamp(),
                     read: false,
                     callType: callType,
-                    chatRoomId: chatRoomId
+                    chatRoomId: getChatRoomId(currentUser.uid, partnerId)
                 });
+
                 playNotificationSound('incoming_call');
 
             } catch (error) {
@@ -2857,31 +3279,172 @@
                 showMessageBox(`Failed to start call: ${error.message}`, 'error');
                 playNotificationSound('error');
                 hideCallStatusOverlay();
+                cleanupCall();
             }
         }
 
         /**
-         * Ends the current call.
-         * @param {string} reason - The reason for ending the call (e.g., 'caller_ended', 'receiver_ended', 'busy').
+         * Initialize WebRTC for calls
+         */
+        async function initializeWebRTC(callType) {
+            // Check if WebRTC is supported
+            if (!navigator.mediaDevices || !window.RTCPeerConnection) {
+                throw new Error('WebRTC is not supported in this browser');
+            }
+
+            // Check permissions
+            if (callType === 'video') {
+                const videoPermission = await navigator.permissions.query({ name: 'camera' });
+                if (videoPermission.state === 'denied') {
+                    throw new Error('Camera permission is required for video calls');
+                }
+            }
+
+            const audioPermission = await navigator.permissions.query({ name: 'microphone' });
+            if (audioPermission.state === 'denied') {
+                throw new Error('Microphone permission is required for calls');
+            }
+
+            console.log("JCHAT_DEBUG: WebRTC initialized for", callType, "call");
+        }
+
+        /**
+         * Get user media (camera/microphone)
+         */
+        async function getUserMedia(callType) {
+            const constraints = {
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                },
+                video: callType === 'video' ? {
+                    width: { ideal: 1280, min: 640 },
+                    height: { ideal: 720, min: 480 },
+                    facingMode: currentCamera
+                } : false
+            };
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                if (callType === 'video') {
+                    localVideo.srcObject = localStream;
+                    await localVideo.play();
+                }
+
+                console.log("JCHAT_DEBUG: User media obtained successfully");
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error getting user media:", error);
+                throw new Error(`Failed to access ${callType === 'video' ? 'camera/microphone' : 'microphone'}: ${error.message}`);
+            }
+        }
+
+        /**
+         * Create peer connection
+         */
+        function createPeerConnection() {
+            peerConnection = new RTCPeerConnection(rtcConfig);
+
+            // Handle incoming tracks
+            peerConnection.ontrack = (event) => {
+                console.log("JCHAT_DEBUG: Received remote track");
+                remoteStream = event.streams[0];
+                if (callType === 'video') {
+                    remoteVideo.srcObject = remoteStream;
+                    remoteVideo.play();
+                }
+            };
+
+            // Handle ICE candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    sendIceCandidate(event.candidate);
+                }
+            };
+
+            // Handle connection state changes
+            peerConnection.onconnectionstatechange = () => {
+                console.log("JCHAT_DEBUG: Connection state:", peerConnection.connectionState);
+                updateConnectionStatus(peerConnection.connectionState);
+            };
+
+            // Handle ICE connection state changes
+            peerConnection.oniceconnectionstatechange = () => {
+                console.log("JCHAT_DEBUG: ICE connection state:", peerConnection.iceConnectionState);
+                updateCallQuality(peerConnection.iceConnectionState);
+            };
+
+            console.log("JCHAT_DEBUG: Peer connection created");
+        }
+
+        /**
+         * Send call offer to partner
+         */
+        async function sendCallOffer(offer, callType) {
+            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+            const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
+
+            await setDoc(signalingRef, {
+                type: 'offer',
+                offer: offer,
+                callType: callType,
+                callerId: currentUser.uid,
+                receiverId: partnerId,
+                timestamp: serverTimestamp()
+            });
+        }
+
+        /**
+         * Send ICE candidate to partner
+         */
+        async function sendIceCandidate(candidate) {
+            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+            const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
+
+            await updateDoc(signalingRef, {
+                iceCandidate: candidate,
+                timestamp: serverTimestamp()
+            });
+        }
+
+        /**
+         * Ends the current call and cleans up WebRTC resources.
+         * @param {string} reason - The reason for ending the call.
          */
         async function endCall(reason) {
             if (!currentUser || !partnerId) return;
 
-            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
-            const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
-
             try {
+                // Stop call timer
+                if (callTimer) {
+                    clearInterval(callTimer);
+                    callTimer = null;
+                }
+
+                // Clean up WebRTC resources
+                cleanupCall();
+
+                // Hide call interfaces
+                hideCallInterfaces();
+
+                // Send call end signal to partner
+                await sendCallEndSignal(reason);
+
+                // Update call status in Firestore
+                const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
                 await updateDoc(callDocRef, { status: reason, endedAt: serverTimestamp() });
-                hideCallStatusOverlay(); // Hide overlay when call is officially ended
+
+                hideCallStatusOverlay();
                 showMessageBox("Call ended.", 'info');
 
+                // Send chat message about call end
                 let messageText = '';
                 if (reason === 'caller_ended') {
                     messageText = `${currentUserProfileData.username} ended the call.`;
                 } else if (reason === 'receiver_ended') {
                     messageText = `${partnerProfileData.username} ended the call.`;
-                } else if (reason === 'accepted') {
-                     messageText = "Call started."; // Should not happen here, but for completeness
                 } else if (reason === 'rejected') {
                     messageText = `${partnerProfileData.username} rejected the call.`;
                 } else if (reason === 'no_answer') {
@@ -2899,24 +3462,231 @@
         }
 
         /**
-         * Accepts an incoming call.
+         * Clean up WebRTC resources
+         */
+        function cleanupCall() {
+            // Stop all tracks
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            if (remoteStream) {
+                remoteStream.getTracks().forEach(track => track.stop());
+                remoteStream = null;
+            }
+
+            // Close peer connection
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            // Reset state
+            isCallActive = false;
+            isInitiator = false;
+            callType = null;
+            callStartTime = null;
+            isMuted = false;
+            isVideoEnabled = true;
+            isSpeakerOn = false;
+
+            console.log("JCHAT_DEBUG: WebRTC resources cleaned up");
+        }
+
+        /**
+         * Hide call interfaces
+         */
+        function hideCallInterfaces() {
+            videoCallContainer.classList.remove('active');
+            voiceCallContainer.classList.remove('active');
+        }
+
+        /**
+         * Send call end signal to partner
+         */
+        async function sendCallEndSignal(reason) {
+            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+            const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
+
+            await setDoc(signalingRef, {
+                type: 'end_call',
+                reason: reason,
+                timestamp: serverTimestamp()
+            });
+        }
+
+        /**
+         * Accepts an incoming call and establishes WebRTC connection.
          * @param {string} callType - The type of call ('voice' or 'video').
          */
         async function acceptCall(callType) {
             if (!currentUser || !partnerId) return;
 
-            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
-            const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
-
             try {
-                await updateDoc(callDocRef, { status: 'accepted', acceptedBy: currentUser.uid, startedAt: serverTimestamp() });
-                // Do NOT hide overlay here. The onSnapshot listener will update it to "Connected".
-                playNotificationSound('success');
-                await sendMessage('call_status', `${currentUserProfileData.username} accepted the ${callType} call.`);
+                // Initialize WebRTC
+                await initializeWebRTC(callType);
+                callType = callType;
+
+                // Get user media
+                await getUserMedia(callType);
+
+                // Create peer connection
+                createPeerConnection();
+
+                // Add local stream to peer connection
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+
+                // Get the offer from signaling data
+                const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
+                const signalingDoc = await getDoc(signalingRef);
+                
+                if (signalingDoc.exists() && signalingDoc.data().type === 'offer') {
+                    const offer = signalingDoc.data().offer;
+                    await peerConnection.setRemoteDescription(offer);
+
+                    // Create and send answer
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+
+                    // Send answer to caller
+                    await sendCallAnswer(answer);
+
+                    // Start the call
+                    startActiveCall(callType);
+
+                    // Update call status
+                    const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
+                    await updateDoc(callDocRef, { 
+                        status: 'accepted', 
+                        acceptedBy: currentUser.uid, 
+                        startedAt: serverTimestamp() 
+                    });
+
+                    playNotificationSound('success');
+                    await sendMessage('call_status', `${currentUserProfileData.username} accepted the ${callType} call.`);
+                }
+
             } catch (error) {
                 console.error("JCHAT_ERROR: Error accepting call:", error);
                 showMessageBox(`Failed to accept call: ${error.message}`, 'error');
                 playNotificationSound('error');
+                cleanupCall();
+            }
+        }
+
+        /**
+         * Send call answer to partner
+         */
+        async function sendCallAnswer(answer) {
+            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+            const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
+
+            await updateDoc(signalingRef, {
+                type: 'answer',
+                answer: answer,
+                timestamp: serverTimestamp()
+            });
+        }
+
+        /**
+         * Start active call interface
+         */
+        function startActiveCall(callType) {
+            isCallActive = true;
+            callStartTime = Date.now();
+            
+            // Start call timer
+            callTimer = setInterval(updateCallTimer, 1000);
+
+            // Show appropriate call interface
+            if (callType === 'video') {
+                videoCallContainer.classList.add('active');
+                remoteVideoLabel.textContent = partnerProfileData.username;
+            } else {
+                voiceCallContainer.classList.add('active');
+                voiceCallPartnerName.textContent = partnerProfileData.username;
+                voiceCallStatus.textContent = 'Connected';
+                
+                // Set partner avatar
+                if (partnerProfileData.profilePicId) {
+                    voiceCallAvatar.innerHTML = `<img src="${partnerProfileData.profilePicId}" alt="${partnerProfileData.username}">`;
+                } else {
+                    voiceCallAvatar.innerHTML = `<i class="fas fa-user-circle"></i>`;
+                }
+            }
+
+            hideCallStatusOverlay();
+            console.log("JCHAT_DEBUG: Active call started");
+        }
+
+        /**
+         * Update call timer display
+         */
+        function updateCallTimer() {
+            if (callStartTime) {
+                const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                callTimerElement.textContent = timeString;
+            }
+        }
+
+        /**
+         * Update connection status indicator
+         */
+        function updateConnectionStatus(state) {
+            const localStatus = document.getElementById('localConnectionStatus');
+            const remoteStatus = document.getElementById('remoteConnectionStatus');
+
+            if (state === 'connected') {
+                localStatus.className = 'connection-status';
+                remoteStatus.className = 'connection-status';
+            } else if (state === 'connecting') {
+                localStatus.className = 'connection-status poor';
+                remoteStatus.className = 'connection-status poor';
+            } else {
+                localStatus.className = 'connection-status disconnected';
+                remoteStatus.className = 'connection-status disconnected';
+            }
+        }
+
+        /**
+         * Update call quality indicator
+         */
+        function updateCallQuality(state) {
+            const qualityBars = document.querySelectorAll('.quality-bar');
+            
+            if (state === 'connected' || state === 'completed') {
+                qualityBars.forEach((bar, index) => {
+                    if (index < 4) {
+                        bar.className = 'quality-bar active';
+                    } else {
+                        bar.className = 'quality-bar poor';
+                    }
+                });
+            } else if (state === 'checking' || state === 'connected') {
+                qualityBars.forEach((bar, index) => {
+                    if (index < 3) {
+                        bar.className = 'quality-bar active';
+                    } else if (index < 4) {
+                        bar.className = 'quality-bar poor';
+                    } else {
+                        bar.className = 'quality-bar bad';
+                    }
+                });
+            } else {
+                qualityBars.forEach((bar, index) => {
+                    if (index < 2) {
+                        bar.className = 'quality-bar poor';
+                    } else {
+                        bar.className = 'quality-bar bad';
+                    }
+                });
             }
         }
 
@@ -2943,7 +3713,7 @@
         }
 
         /**
-         * Listens for incoming call status changes.
+         * Listens for incoming call status changes and WebRTC signaling.
          */
         function listenForCallStatus() {
             if (!currentUser || !partnerId) {
@@ -2957,10 +3727,12 @@
 
             const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
             const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
+            const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
 
             if (unsubscribeCallStatus) unsubscribeCallStatus(); // Clean up previous listener
 
-            unsubscribeCallStatus = onSnapshot(callDocRef, async (docSnap) => {
+            // Listen for call status changes
+            const callStatusUnsubscribe = onSnapshot(callDocRef, async (docSnap) => {
                 if (docSnap.exists()) {
                     const callData = docSnap.data();
                     console.log("JCHAT_DEBUG: Call status update:", callData);
@@ -2997,16 +3769,73 @@
                     } else if (callData.status === 'rejected' || callData.status === 'caller_ended' || callData.status === 'receiver_ended' || callData.status === 'no_answer') {
                         // Call ended for any reason, hide overlay
                         hideCallStatusOverlay();
+                        cleanupCall();
                         // Message handled by sendMessage('call_status', ...) already
                     }
                 } else {
                     // Call document doesn't exist or was deleted, meaning call ended
                     hideCallStatusOverlay();
+                    cleanupCall();
                 }
             }, (error) => {
                 console.error("JCHAT_ERROR: Error listening to call status:", error);
                 showMessageBox(`Error listening to call status: ${error.message}`, 'error');
             });
+
+            // Listen for WebRTC signaling
+            const signalingUnsubscribe = onSnapshot(signalingRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    const signalingData = docSnap.data();
+                    console.log("JCHAT_DEBUG: Signaling data:", signalingData);
+
+                    if (signalingData.type === 'offer' && signalingData.callerId !== currentUser.uid) {
+                        // Received call offer
+                        try {
+                            await initializeWebRTC(signalingData.callType);
+                            callType = signalingData.callType;
+                            await getUserMedia(signalingData.callType);
+                            createPeerConnection();
+                            
+                            localStream.getTracks().forEach(track => {
+                                peerConnection.addTrack(track, localStream);
+                            });
+
+                            await peerConnection.setRemoteDescription(signalingData.offer);
+                            const answer = await peerConnection.createAnswer();
+                            await peerConnection.setLocalDescription(answer);
+                            await sendCallAnswer(answer);
+
+                        } catch (error) {
+                            console.error("JCHAT_ERROR: Error handling call offer:", error);
+                            rejectCall();
+                        }
+                    } else if (signalingData.type === 'answer' && signalingData.callerId === currentUser.uid) {
+                        // Received call answer
+                        if (peerConnection) {
+                            await peerConnection.setRemoteDescription(signalingData.answer);
+                            startActiveCall(callType);
+                        }
+                    } else if (signalingData.type === 'ice_candidate') {
+                        // Received ICE candidate
+                        if (peerConnection && signalingData.iceCandidate) {
+                            await peerConnection.addIceCandidate(signalingData.iceCandidate);
+                        }
+                    } else if (signalingData.type === 'end_call') {
+                        // Call ended by partner
+                        hideCallStatusOverlay();
+                        cleanupCall();
+                        showMessageBox("Call ended by partner", 'info');
+                    }
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to signaling:", error);
+            });
+
+            // Combine both unsubscribes
+            unsubscribeCallStatus = () => {
+                callStatusUnsubscribe();
+                signalingUnsubscribe();
+            };
         }
 
         /**
@@ -3330,6 +4159,128 @@
             }
         });
 
+        // --- Call Control Functions ---
+        /**
+         * Toggle mute/unmute
+         */
+        function toggleMute() {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    isMuted = !audioTrack.enabled;
+                    
+                    // Update button states
+                    muteVideoBtn.classList.toggle('muted', isMuted);
+                    muteVoiceBtn.classList.toggle('muted', isMuted);
+                    
+                    // Update button icons
+                    const muteIcon = isMuted ? 'fa-microphone-slash' : 'fa-microphone';
+                    muteVideoBtn.innerHTML = `<i class="fas ${muteIcon}"></i>`;
+                    muteVoiceBtn.innerHTML = `<i class="fas ${muteIcon}"></i>`;
+                }
+            }
+        }
+
+        /**
+         * Toggle video on/off
+         */
+        function toggleVideo() {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.enabled = !videoTrack.enabled;
+                    isVideoEnabled = videoTrack.enabled;
+                    
+                    // Update button state
+                    toggleVideoBtn.classList.toggle('muted', !isVideoEnabled);
+                    
+                    // Update button icon
+                    const videoIcon = isVideoEnabled ? 'fa-video' : 'fa-video-slash';
+                    toggleVideoBtn.innerHTML = `<i class="fas ${videoIcon}"></i>`;
+                }
+            }
+        }
+
+        /**
+         * Switch between front and back cameras
+         */
+        async function switchCamera() {
+            if (localStream && callType === 'video') {
+                try {
+                    // Stop current video track
+                    const currentVideoTrack = localStream.getVideoTracks()[0];
+                    if (currentVideoTrack) {
+                        currentVideoTrack.stop();
+                    }
+
+                    // Switch camera
+                    currentCamera = currentCamera === 'front' ? 'environment' : 'front';
+
+                    // Get new video stream
+                    const newVideoStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 1280, min: 640 },
+                            height: { ideal: 720, min: 480 },
+                            facingMode: currentCamera
+                        }
+                    });
+
+                    // Replace video track in local stream
+                    const newVideoTrack = newVideoStream.getVideoTracks()[0];
+                    const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                    if (sender) {
+                        sender.replaceTrack(newVideoTrack);
+                    }
+
+                    // Update local video
+                    localVideo.srcObject = localStream;
+                    await localVideo.play();
+
+                    console.log("JCHAT_DEBUG: Camera switched to", currentCamera);
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error switching camera:", error);
+                    showMessageBox("Failed to switch camera", 'error');
+                }
+            }
+        }
+
+        /**
+         * Toggle fullscreen mode
+         */
+        function toggleFullscreen() {
+            const videoItem = document.querySelector('.video-item.fullscreen');
+            if (videoItem) {
+                // Exit fullscreen
+                videoItem.classList.remove('fullscreen');
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                fullscreenBtn.title = 'Fullscreen';
+            } else {
+                // Enter fullscreen
+                const remoteVideoItem = document.getElementById('remoteVideoItem');
+                remoteVideoItem.classList.add('fullscreen');
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                fullscreenBtn.title = 'Exit Fullscreen';
+            }
+        }
+
+        /**
+         * Toggle speaker mode
+         */
+        function toggleSpeaker() {
+            if (remoteVideo) {
+                isSpeakerOn = !isSpeakerOn;
+                remoteVideo.muted = !isSpeakerOn;
+                
+                // Update button state
+                speakerBtn.classList.toggle('active', isSpeakerOn);
+                
+                // Update button icon
+                const speakerIcon = isSpeakerOn ? 'fa-volume-mute' : 'fa-volume-up';
+                speakerBtn.innerHTML = `<i class="fas ${speakerIcon}"></i>`;
+            }
+        }
+
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
             // Apply theme on load
@@ -3377,6 +4328,17 @@
             mediaShareBtn.addEventListener('click', handleMediaShare);
             voiceCallBtn.addEventListener('click', () => startCall('voice'));
             videoCallBtn.addEventListener('click', () => startCall('video'));
+
+            // Call control event listeners
+            muteVideoBtn.addEventListener('click', toggleMute);
+            toggleVideoBtn.addEventListener('click', toggleVideo);
+            switchCameraBtn.addEventListener('click', switchCamera);
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+            endVideoCallBtn.addEventListener('click', () => endCall('caller_ended'));
+
+            muteVoiceBtn.addEventListener('click', toggleMute);
+            speakerBtn.addEventListener('click', toggleSpeaker);
+            endVoiceCallBtn.addEventListener('click', () => endCall('caller_ended'));
 
             // Sound toggle click listener
             if (soundToggleIcon) {
