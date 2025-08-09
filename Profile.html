@@ -922,22 +922,70 @@
 
         .progress-bar-container {
             width: 80%; /* Adjust width as needed */
-            height: 10px;
+            height: 12px;
             background-color: rgba(255, 255, 255, 0.1); /* Lighter background for the bar */
-            border-radius: 5px;
+            border-radius: 6px;
             overflow: hidden;
-            margin-top: 5px; /* Space between level name and bar */
+            margin-top: 8px; /* Space between level name and bar */
             box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+            position: relative;
         }
 
         .progress-bar-fill {
             height: 100%;
             width: 100%; /* Always 100% width, the gradient moves */
-            background-image: linear-gradient(90deg, var(--pink), var(--blue)); /* Pink to blue gradient */
+            background-image: linear-gradient(90deg, 
+                #ff4757 0%,    /* Red */
+                #ff6b35 25%,   /* Orange-Red */
+                #ffa726 50%,   /* Orange */
+                #ffd700 75%,   /* Yellow */
+                #4caf50 100%   /* Green */
+            );
             background-size: 200% 100%; /* Make gradient twice as wide */
-            background-position: right; /* Start with blue showing */
-            border-radius: 5px; /* Match container border-radius */
-            transition: background-position 0.5s ease-out; /* Smooth transition for position */
+            background-position: right; /* Start with red showing */
+            border-radius: 6px; /* Match container border-radius */
+            transition: background-position 0.8s ease-out; /* Smooth transition for position */
+            position: relative;
+        }
+
+        /* Progress percentage display */
+        .progress-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #000;
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+            z-index: 2;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Progress bar glow effect */
+        .progress-bar-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                rgba(255, 71, 87, 0.3) 0%,    /* Red glow */
+                rgba(255, 107, 53, 0.3) 25%,  /* Orange-Red glow */
+                rgba(255, 167, 38, 0.3) 50%,  /* Orange glow */
+                rgba(255, 215, 0, 0.3) 75%,   /* Yellow glow */
+                rgba(76, 175, 80, 0.3) 100%   /* Green glow */
+            );
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .progress-bar-container:hover::after {
+            opacity: 1;
         }
 
         /* Hide the "XP Level" label as requested */
@@ -2193,9 +2241,10 @@
                         <i id="xpLevelIcon" class="fas fa-question-circle profile-level-icon"></i>
                         <span id="xpLevelName" class="profile-level-name">Loading Level...</span>
                     </div>
-                    <div class="progress-bar-container" id="progressBarContainer">
-                        <div id="xpProgressBarFill" class="progress-bar-fill" style="background-position: right;"></div>
-                    </div>
+                                    <div class="progress-bar-container" id="progressBarContainer">
+                    <div id="xpProgressBarFill" class="progress-bar-fill" style="background-position: right;"></div>
+                    <div id="progressPercentage" class="progress-percentage">0%</div>
+                </div>
                     <!-- End NEW: Level Info Display -->
 
                 </div>
@@ -4700,8 +4749,16 @@
             if (gasValue) gasValue.textContent = "0"; // Reset Gas (XP)
             if (xpLevelIcon) xpLevelIcon.className = "fas fa-question-circle profile-level-icon"; // Reset icon
             if (xpLevelName) xpLevelName.textContent = "Loading Level..."; // Reset level name
-            if (xpProgressBarFill) xpProgressBarFill.style.width = "0%"; // Reset progress bar
-            if (xpProgressBarFill) xpProgressBarFill.style.backgroundPosition = "right"; // Reset gradient position
+                    if (xpProgressBarFill) xpProgressBarFill.style.width = "0%"; // Reset progress bar
+        if (xpProgressBarFill) xpProgressBarFill.style.backgroundPosition = "right"; // Reset gradient position
+        
+        // Reset percentage display
+        const progressPercentageElement = document.getElementById('progressPercentage');
+        if (progressPercentageElement) {
+            progressPercentageElement.textContent = "0%";
+            progressPercentageElement.style.color = '#fff';
+            progressPercentageElement.style.textShadow = '0 0 3px rgba(0, 0, 0, 0.8)';
+        }
 
 
             if (profilePagePic) profilePagePic.style.display = 'none';
@@ -4928,6 +4985,24 @@
                     if (xpProgressBarFill) {
                         xpProgressBarFill.style.backgroundPosition = `${backgroundPosition}% 0`; // Set background-position
                         xpProgressBarFill.style.width = `100%`; // Ensure width is always 100%
+                    }
+
+                    // Update percentage display
+                    const progressPercentageElement = document.getElementById('progressPercentage');
+                    if (progressPercentageElement) {
+                        progressPercentageElement.textContent = `${Math.round(progressPercentage)}%`;
+                        
+                        // Update text color based on progress percentage for better visibility
+                        if (progressPercentage < 30) {
+                            progressPercentageElement.style.color = '#fff'; // White for low progress
+                            progressPercentageElement.style.textShadow = '0 0 3px rgba(0, 0, 0, 0.8)';
+                        } else if (progressPercentage < 70) {
+                            progressPercentageElement.style.color = '#000'; // Black for medium progress
+                            progressPercentageElement.style.textShadow = '0 0 2px rgba(255, 255, 255, 0.8)';
+                        } else {
+                            progressPercentageElement.style.color = '#000'; // Black for high progress
+                            progressPercentageElement.style.textShadow = '0 0 2px rgba(255, 255, 255, 0.8)';
+                        }
                     }
 
 
