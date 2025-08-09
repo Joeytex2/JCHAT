@@ -2223,7 +2223,7 @@
                     </a>
                 </div>
                 <!-- Profile Link with Picture and Name -->
-                <a href="./Profile.html" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;">
+                <a href="#" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                     <img id="headerProfilePic" src="" alt="Profile Picture" style="display:none;width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);">
                     <i id="headerAvatarIcon" class="fas fa-user-circle" role="img" aria-label="User Avatar" style="font-size:28px;"></i>
                     <span id="headerDisplayName">Loading...</span>
@@ -2577,16 +2577,19 @@
             console.log('JCHAT_DEBUG: Gone offline');
         });
 
-        // Enhanced Error Handling - More defensive approach
+        // Enhanced Error Handling - Only catch serious errors
         window.addEventListener('error', (event) => {
             console.error('JCHAT_ERROR: Unhandled error:', event.error);
             
-            // Only show message box if it's available and this isn't during initial load
-            if (typeof showMessageBox === 'function' && messageBox) {
-                showMessageBox('An unexpected error occurred. Please refresh if issues persist.', 'error');
-            } else {
-                // Fallback: Just log the error during initialization
-                console.warn('JCHAT_WARNING: Error occurred during page initialization - this is normal if page is still loading');
+            // Only show message box for specific error types and if it's available
+            if (typeof showMessageBox === 'function' && messageBox && event.error) {
+                // Only show errors for serious issues, not navigation or DOM access
+                if (event.error.name !== 'TypeError' && 
+                    event.error.name !== 'ReferenceError' && 
+                    !event.error.message.includes('profile') &&
+                    !event.error.message.includes('click')) {
+                    showMessageBox('An unexpected error occurred. Please refresh if issues persist.', 'error');
+                }
             }
         });
 
@@ -6461,51 +6464,26 @@
             fetchStories();
             initializeNotificationSystem();
             
-            // Add error handling for profile link
+            // Simple profile link handler
             if (profileLink) {
                 profileLink.addEventListener('click', function(e) {
                     e.preventDefault(); // Prevent default navigation
                     
-                    try {
-                        // Check if authentication is ready and user is logged in
-                        if (!isAuthReady) {
-                            showMessageBox('Please wait while authentication loads...', 'info');
-                            console.log('JCHAT_DEBUG: Profile clicked but auth not ready yet');
-                            return;
-                        }
-                        
-                        if (!currentUser || !currentUser.uid) {
-                            showMessageBox('Please log in to view your profile.', 'warning');
-                            console.log('JCHAT_DEBUG: Profile clicked but user not logged in');
-                            return;
-                        }
-                        
-                        // Construct the profile URL
+                    console.log('JCHAT_DEBUG: Profile link clicked');
+                    console.log('JCHAT_DEBUG: isAuthReady:', isAuthReady);
+                    console.log('JCHAT_DEBUG: currentUser:', currentUser ? currentUser.uid : 'null');
+                    
+                    // Simple check and navigation
+                    if (isAuthReady && currentUser && currentUser.uid) {
                         const profileUrl = `./Profile.html?userId=${currentUser.uid}`;
-                        console.log('JCHAT_DEBUG: Navigating to profile:', profileUrl);
-                        
-                        // Navigate using window.location.href
+                        console.log('JCHAT_DEBUG: Navigating to:', profileUrl);
                         window.location.href = profileUrl;
-                        
-                    } catch (error) {
-                        console.error('JCHAT_ERROR: Profile navigation error:', error);
-                        
-                        // More specific error handling
-                        if (error.name === 'ReferenceError') {
-                            console.error('JCHAT_ERROR: Variable not defined:', error.message);
-                            showMessageBox('Profile is loading, please try again in a moment.', 'warning');
-                        } else {
-                            showMessageBox('Error opening profile. Please try again later.', 'error');
-                        }
-                        
-                        // Fallback: try basic navigation only if currentUser exists
-                        if (currentUser && currentUser.uid) {
-                            try {
-                                window.location.href = `./Profile.html?userId=${currentUser.uid}`;
-                            } catch (fallbackError) {
-                                console.error('JCHAT_ERROR: Fallback navigation also failed:', fallbackError);
-                            }
-                        }
+                    } else if (!isAuthReady) {
+                        console.log('JCHAT_DEBUG: Auth not ready, waiting...');
+                        // Don't show error message, just log and let user try again
+                    } else {
+                        console.log('JCHAT_DEBUG: User not logged in, redirecting to login');
+                        window.location.href = './Login.html';
                     }
                 });
             }
