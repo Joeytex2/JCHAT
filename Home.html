@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JCHAT - Home</title>
+    
+    <!-- Security Meta Tags -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="JCHAT - Modern social chat platform with levels, JCoins, and community features">
+    <meta name="keywords" content="chat, social, messaging, community, levels, gaming">
+    <meta name="author" content="JCHAT Team">
 
     <!-- Google Fonts: Poppins for headings, Inter for body text -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,15 +22,18 @@
     <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://firebaseio.com" crossorigin>
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+    <link rel="preconnect" href="https://api.cloudinary.com" crossorigin>
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
 
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <!-- Tone.js for audio notifications -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -2517,10 +2531,10 @@
     <script type="module">
         console.log("JCHAT_DEBUG: Home.html script started.");
 
-        // Import Firebase modules (Updated to v11.6.1)
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, where, getDocs, addDoc, runTransaction, writeBatch, serverTimestamp, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Import Firebase modules (Updated to v11.8.0 - Latest Stable)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, where, getDocs, addDoc, runTransaction, writeBatch, serverTimestamp, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         // Firebase configuration, dynamically loaded from Canvas environment variables if available.
@@ -2544,6 +2558,43 @@
             cloudName: "dxld01rcp",
             uploadPreset: "Storage_preset"
         };
+
+        // Enhanced Client-Side Features (Updated)
+        const JCHAT_VERSION = "2.1.0";
+        const CACHE_VERSION = "jchat-v2.1.0";
+        
+        // Offline Detection
+        let isOnline = navigator.onLine;
+        window.addEventListener('online', () => {
+            isOnline = true;
+            showMessageBox('🟢 Connection restored! Back online.', 'success');
+            console.log('JCHAT_DEBUG: Back online');
+        });
+        
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            showMessageBox('🔴 You are offline. Some features may be limited.', 'warning', true);
+            console.log('JCHAT_DEBUG: Gone offline');
+        });
+
+        // Enhanced Error Handling
+        window.addEventListener('error', (event) => {
+            console.error('JCHAT_ERROR: Unhandled error:', event.error);
+            showMessageBox('An unexpected error occurred. Please refresh if issues persist.', 'error');
+        });
+
+        // Performance Monitoring
+        const performanceObserver = new PerformanceObserver((list) => {
+            for (const entry of list.getEntries()) {
+                if (entry.entryType === 'navigation') {
+                    console.log(`JCHAT_PERF: Page load time: ${entry.loadEventEnd - entry.loadEventStart}ms`);
+                }
+            }
+        });
+        
+        if ('PerformanceObserver' in window) {
+            performanceObserver.observe({ entryTypes: ['navigation'] });
+        }
 
         // Initialize Firebase services: App, Auth, and Firestore.
         const app = initializeApp(firebaseConfig);
