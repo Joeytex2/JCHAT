@@ -2841,25 +2841,10 @@
 
             if (level < 1) level = 1;
 
-            // XP Calculation Logic - Designed for "harder" progression
-            // This defines how much XP is needed to reach the next level.
-            if (level === 1) {
-                xpToNextLevel = 500;
-            } else if (level <= 5) {
-                xpToNextLevel = 500 + (level - 1) * 250;
-            } else if (level <= 10) {
-                xpToNextLevel = (500 + 4 * 250) + (level - 5) * 500;
-            } else if (level <= 20) {
-                xpToNextLevel = ((500 + 4 * 250) + (10 - 5) * 500) + (level - 10) * 1000;
-            } else if (level <= 50) {
-                xpToNextLevel = (((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (level - 20) * 2000;
-            } else if (level <= 100) {
-                xpToNextLevel = ((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 2000) + (50 - 20) * 2000) + (level - 50) * 5000;
-            } else if (level <= 500) {
-                xpToNextLevel = (((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (50 - 20) * 5000) + (100 - 50) * 5000) + (level - 100) * 10000;
-            } else {
-                xpToNextLevel = 10000000; // Very high XP for levels beyond 500
-            }
+            // XP Calculation Logic - CHALLENGING progression system
+            // Uses the same formula as Profile.html: 1500 * level * (level + 1) / 2
+            // This creates a more challenging and rewarding progression curve
+            xpToNextLevel = 1500 * level * (level + 1) / 2;
 
             // Find specific level data or generate generic tier names
             const specificLevel = levelData.find(l => l.level === level);
