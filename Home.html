@@ -2862,9 +2862,276 @@
         ringingPattern.loop = true;
         ringingPattern.autostart = false; // Will be started manually.
 
+        // --- Comprehensive Notification System ---
+        let notifications = [];
+        let unreadNotificationCount = 0;
+        let notificationSoundEnabled = true;
+        let notificationCenterOpen = false;
+
+        /**
+         * Creates a new notification
+         * @param {string} type - 'success', 'error', 'info', 'warning', 'friend_request', 'message', 'level_up'
+         * @param {string} title - Notification title
+         * @param {string} message - Notification message
+         * @param {string} icon - FontAwesome icon class
+         * @param {boolean} persistent - Whether notification should persist
+         */
+        function createNotification(type, title, message, icon = 'fas fa-bell', persistent = false) {
+            const notification = {
+                id: Date.now() + Math.random(),
+                type: type,
+                title: title,
+                message: message,
+                icon: icon,
+                timestamp: new Date(),
+                read: false,
+                persistent: persistent
+            };
+
+            notifications.unshift(notification);
+            if (!notification.read) {
+                unreadNotificationCount++;
+            }
+
+            // Limit notifications to 50
+            if (notifications.length > 50) {
+                notifications = notifications.slice(0, 50);
+            }
+
+            updateNotificationBadge(unreadNotificationCount);
+            updateNotificationCenter();
+            showToastNotification(notification);
+            
+            // Play sound if enabled
+            if (notificationSoundEnabled) {
+                playNotificationSound(type);
+            }
+
+            // Save to localStorage
+            saveNotificationsToStorage();
+
+            return notification;
+        }
+
+        /**
+         * Shows a toast notification
+         * @param {object} notification - Notification object
+         */
+        function showToastNotification(notification) {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification toast-${notification.type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="${notification.icon}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${notification.title}</div>
+                    <div class="toast-message">${notification.message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            document.body.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => toast.classList.add('show'), 100);
+
+            // Auto remove after 5 seconds (unless persistent)
+            if (!notification.persistent) {
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, 5000);
+            }
+        }
+
+        /**
+         * Updates the notification badge
+         * @param {number} count - Number of unread notifications
+         */
+        function updateNotificationBadge(count) {
+            const notificationWrapper = document.querySelector('.notification-icon-wrapper');
+            const badge = document.getElementById('notificationCount');
+            
+            if (badge && notificationWrapper) {
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count.toString();
+                    badge.style.display = 'flex';
+                    notificationWrapper.classList.add('has-notifications');
+                    console.log('🔔 Notification badge updated:', count, 'notifications');
+                } else {
+                    badge.style.display = 'none';
+                    notificationWrapper.classList.remove('has-notifications');
+                    console.log('🔕 No notifications, badge hidden');
+                }
+            }
+        }
+
+        /**
+         * Updates the notification center
+         */
+        function updateNotificationCenter() {
+            const notificationCenter = document.getElementById('notificationCenter');
+            if (!notificationCenter) return;
+
+            const notificationsList = notificationCenter.querySelector('.notifications-list');
+            if (!notificationsList) return;
+
+            notificationsList.innerHTML = '';
+
+            if (notifications.length === 0) {
+                notificationsList.innerHTML = `
+                    <div class="no-notifications">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>No notifications yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            notifications.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'} notification-${notification.type}`;
+                notificationItem.innerHTML = `
+                    <div class="notification-icon">
+                        <i class="${notification.icon}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${notification.title}</div>
+                        <div class="notification-message">${notification.message}</div>
+                        <div class="notification-time">${formatNotificationTime(notification.timestamp)}</div>
+                    </div>
+                    <button class="notification-close" onclick="removeNotification(${notification.id})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                notificationItem.addEventListener('click', () => markNotificationAsRead(notification.id));
+                notificationsList.appendChild(notificationItem);
+            });
+        }
+
+        /**
+         * Marks a notification as read
+         * @param {number} id - Notification ID
+         */
+        function markNotificationAsRead(id) {
+            const notification = notifications.find(n => n.id === id);
+            if (notification && !notification.read) {
+                notification.read = true;
+                unreadNotificationCount = Math.max(0, unreadNotificationCount - 1);
+                updateNotificationBadge(unreadNotificationCount);
+                updateNotificationCenter();
+                saveNotificationsToStorage();
+            }
+        }
+
+        /**
+         * Removes a notification
+         * @param {number} id - Notification ID
+         */
+        function removeNotification(id) {
+            const notification = notifications.find(n => n.id === id);
+            if (notification && !notification.read) {
+                unreadNotificationCount = Math.max(0, unreadNotificationCount - 1);
+            }
+            
+            notifications = notifications.filter(n => n.id !== id);
+            updateNotificationBadge(unreadNotificationCount);
+            updateNotificationCenter();
+            saveNotificationsToStorage();
+        }
+
+        /**
+         * Clears all notifications
+         */
+        function clearAllNotifications() {
+            notifications = [];
+            unreadNotificationCount = 0;
+            updateNotificationBadge(unreadNotificationCount);
+            updateNotificationCenter();
+            saveNotificationsToStorage();
+        }
+
+        /**
+         * Formats notification time
+         * @param {Date} timestamp - Notification timestamp
+         * @returns {string} Formatted time string
+         */
+        function formatNotificationTime(timestamp) {
+            const now = new Date();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            if (days < 7) return `${days}d ago`;
+            return timestamp.toLocaleDateString();
+        }
+
+        /**
+         * Saves notifications to localStorage
+         */
+        function saveNotificationsToStorage() {
+            try {
+                localStorage.setItem('jchat_notifications', JSON.stringify(notifications));
+                localStorage.setItem('jchat_unread_count', unreadNotificationCount.toString());
+            } catch (error) {
+                console.log('JCHAT_DEBUG: Could not save notifications to storage:', error);
+            }
+        }
+
+        /**
+         * Loads notifications from localStorage
+         */
+        function loadNotificationsFromStorage() {
+            try {
+                const savedNotifications = localStorage.getItem('jchat_notifications');
+                const savedCount = localStorage.getItem('jchat_unread_count');
+                
+                if (savedNotifications) {
+                    notifications = JSON.parse(savedNotifications);
+                    notifications.forEach(n => n.timestamp = new Date(n.timestamp));
+                }
+                
+                if (savedCount) {
+                    unreadNotificationCount = parseInt(savedCount);
+                }
+                
+                updateNotificationBadge(unreadNotificationCount);
+                updateNotificationCenter();
+            } catch (error) {
+                console.log('JCHAT_DEBUG: Could not load notifications from storage:', error);
+            }
+        }
+
+        /**
+         * Toggles notification center
+         */
+        function toggleNotificationCenter() {
+            const notificationCenter = document.getElementById('notificationCenter');
+            if (!notificationCenter) return;
+
+            notificationCenterOpen = !notificationCenterOpen;
+            
+            if (notificationCenterOpen) {
+                notificationCenter.classList.add('show');
+                updateNotificationCenter();
+            } else {
+                notificationCenter.classList.remove('show');
+            }
+        }
+
         /**
          * Plays a notification sound based on type.
-         * @param {string} type - 'success', 'error', or 'info'.
+         * @param {string} type - 'success', 'error', 'info', 'warning', 'friend_request', 'message', 'level_up'.
          */
         function playNotificationSound(type) {
             try {
@@ -2883,6 +3150,14 @@
                         errorSynth.triggerAttackRelease("C3", "8n");
                     } else if (type === 'info') {
                         infoSynth.triggerAttackRelease("E4", "16n");
+                    } else if (type === 'warning') {
+                        errorSynth.triggerAttackRelease("A3", "8n");
+                    } else if (type === 'friend_request') {
+                        infoSynth.triggerAttackRelease("G4", "8n");
+                    } else if (type === 'message') {
+                        infoSynth.triggerAttackRelease("D4", "8n");
+                    } else if (type === 'level_up') {
+                        successSynth.triggerAttackRelease("C6", "4n");
                     }
                 });
             } catch (error) {
@@ -2895,6 +3170,14 @@
                     errorSynth.triggerAttackRelease("C3", "8n");
                 } else if (type === 'info') {
                     infoSynth.triggerAttackRelease("E4", "16n");
+                } else if (type === 'warning') {
+                    errorSynth.triggerAttackRelease("A3", "8n");
+                } else if (type === 'friend_request') {
+                    infoSynth.triggerAttackRelease("G4", "8n");
+                } else if (type === 'message') {
+                    infoSynth.triggerAttackRelease("D4", "8n");
+                } else if (type === 'level_up') {
+                    successSynth.triggerAttackRelease("C6", "4n");
                 }
             }
         }
