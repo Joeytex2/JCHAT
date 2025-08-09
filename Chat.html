@@ -603,19 +603,30 @@
             text-align: left;
         }
 
-        .chat-header .select-friend-btn {
+        .chat-header .select-friend-btn, .chat-header .find-friends-btn {
             background: none;
             border: none;
             color: var(--text-light);
             font-size: 1.5rem;
             cursor: pointer;
             transition: color 0.3s ease;
-            margin-left: auto; /* Push to the right */
             position: relative; /* For the badge positioning */
+        }
+
+        .chat-header .select-friend-btn {
+            margin-left: auto; /* Push to the right */
+        }
+
+        .chat-header .find-friends-btn {
+            margin-left: 10px; /* Space between buttons */
         }
 
         .chat-header .select-friend-btn:hover {
             color: var(--accent-color);
+        }
+
+        .chat-header .find-friends-btn:hover {
+            color: #4CAF50;
         }
 
         /* Badge for Select Friend Button */
@@ -1802,6 +1813,271 @@
             }
         }
 
+        /* Find Friends Modal Styling */
+        .find-friends-modal {
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-light);
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            border-radius: 20px 20px 0 0;
+        }
+
+        .modal-header h3 {
+            color: white;
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .close-modal-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .search-container {
+            position: relative;
+            margin: 20px 25px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid var(--border-light);
+            border-radius: 25px;
+            background: var(--input-background);
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 10px rgba(0, 213, 255, 0.3);
+        }
+
+        .search-container input::placeholder {
+            color: var(--text-light);
+        }
+
+        .user-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 25px 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .user-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .user-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .user-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            border-radius: 3px;
+        }
+
+        .user-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .user-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--blue);
+            flex-shrink: 0;
+        }
+
+        .user-card .default-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .user-card h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--white);
+            flex-grow: 1;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .add-friend-btn {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .add-friend-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .cancel-request-btn {
+            background: linear-gradient(45deg, #ffc107, #ff9800);
+            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+        }
+
+        .cancel-request-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .accept-request-btn {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .accept-request-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .reject-request-btn {
+            background: linear-gradient(45deg, #f44336, #e91e63);
+            box-shadow: 0 4px 10px rgba(244, 67, 54, 0.3);
+        }
+
+        .reject-request-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .unfriend-btn {
+            background: linear-gradient(45deg, #f44336, #e91e63);
+            box-shadow: 0 4px 10px rgba(244, 67, 54, 0.3);
+        }
+
+        .unfriend-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .chat-btn {
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+        }
+
+        .chat-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+
+        .loading-users-message, .no-users-message {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 1rem;
+            margin: 20px 0;
+        }
+
+        .button-loader {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .action-btn.loading .button-loader {
+            display: block;
+        }
+
+        .action-btn.loading .button-text {
+            display: none;
+        }
+
 
         /* Custom Message Box Styles */
         #messageBox {
@@ -2190,6 +2466,9 @@
                     <i class="fas fa-users"></i>
                     <span class="select-friend-badge" id="selectFriendBadge" style="display: none;">0</span>
                 </button>
+                <button id="findFriendsBtn" class="find-friends-btn" title="Find New Friends">
+                    <i class="fas fa-user-plus"></i>
+                </button>
             </div>
             <div class="messages-display" id="messagesDisplay">
                 <!-- Messages will be loaded here dynamically -->
@@ -2370,7 +2649,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, getDocs, addDoc, serverTimestamp, orderBy, limit, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, getDocs, addDoc, serverTimestamp, orderBy, limit, updateDoc, deleteDoc, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         // --- Firebase & Canvas Environment Configuration ---
@@ -3570,6 +3849,14 @@
         let notificationSoundEnabled = true;
         let notificationCenterOpen = false;
 
+        // Find Friends System State Management
+        let allUsersData = [];
+        let currentUsersFriends = new Set();
+        let sentRequests = new Set();
+        let receivedRequests = new Set();
+        let unsubscribeUsers = null;
+        let unsubscribeFriendStatus = null;
+
         // DOM Elements for calls
         const videoCallContainer = document.getElementById('videoCallContainer');
         const voiceCallContainer = document.getElementById('voiceCallContainer');
@@ -3595,6 +3882,14 @@
         const notificationCenter = document.getElementById('notificationCenter');
         const notificationsList = document.getElementById('notificationsList');
         const toastNotification = document.getElementById('toastNotification');
+
+        // Find Friends DOM Elements
+        const findFriendsModal = document.getElementById('findFriendsModal');
+        const findFriendsBtn = document.getElementById('findFriendsBtn');
+        const userSearchInput = document.getElementById('userSearchInput');
+        const userList = document.getElementById('userList');
+        const loadingUsersMessage = document.getElementById('loadingUsersMessage');
+        const noUsersFoundMessage = document.getElementById('noUsersFoundMessage');
 
         // --- Notification System Functions ---
         /**
@@ -3883,12 +4178,470 @@
          */
         function initializeNotificationSystem() {
             loadNotificationsFromStorage();
-            
-            // Create some sample notifications for demonstration
-            if (notifications.length === 0) {
-                createNotification('info', 'Welcome to JCHAT!', 'Your notification center is ready.', null, false);
-                createNotification('success', 'System Ready', 'All features are now available.', null, false);
+        }
+
+        // --- Find Friends System Functions ---
+        /**
+         * Initialize Find Friends functionality
+         */
+        function initializeFindFriends() {
+            // Add event listeners
+            if (findFriendsBtn) {
+                findFriendsBtn.addEventListener('click', openFindFriendsModal);
             }
+            if (userSearchInput) {
+                userSearchInput.addEventListener('input', (e) => {
+                    renderUserList(allUsersData, e.target.value);
+                });
+            }
+        }
+
+        /**
+         * Open Find Friends modal
+         */
+        function openFindFriendsModal() {
+            if (!currentUser) {
+                showMessageBox("Please log in to find friends.", 'warning');
+                return;
+            }
+            findFriendsModal.classList.add('active');
+            loadAllUsers();
+        }
+
+        /**
+         * Close Find Friends modal
+         */
+        function closeFindFriendsModal() {
+            findFriendsModal.classList.remove('active');
+            if (userSearchInput) {
+                userSearchInput.value = '';
+            }
+            if (unsubscribeUsers) {
+                unsubscribeUsers();
+                unsubscribeUsers = null;
+            }
+            if (unsubscribeFriendStatus) {
+                unsubscribeFriendStatus();
+                unsubscribeFriendStatus = null;
+            }
+        }
+
+        /**
+         * Load all users for the Find Friends feature
+         */
+        async function loadAllUsers() {
+            if (!currentUser) return;
+
+            try {
+                loadingUsersMessage.style.display = 'block';
+                noUsersFoundMessage.style.display = 'none';
+
+                // Get all public user profiles
+                const publicUsersRef = collection(db, "artifacts", appId, "public", "data", "users");
+                const usersSnapshot = await getDocs(publicUsersRef);
+                
+                const users = [];
+                usersSnapshot.forEach(doc => {
+                    if (doc.id !== currentUser.uid) {
+                        users.push({
+                            uid: doc.id,
+                            ...doc.data()
+                        });
+                    }
+                });
+
+                allUsersData = users;
+                await loadFriendStatuses();
+                renderUserList(users, '');
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error loading users:", error);
+                showMessageBox("Failed to load users: " + error.message, 'error');
+            } finally {
+                loadingUsersMessage.style.display = 'none';
+            }
+        }
+
+        /**
+         * Load friend statuses for all users
+         */
+        async function loadFriendStatuses() {
+            if (!currentUser) return;
+
+            try {
+                // Reset sets
+                currentUsersFriends.clear();
+                sentRequests.clear();
+                receivedRequests.clear();
+
+                // Get current user's friends
+                const friendsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
+                const friendsSnapshot = await getDocs(friendsRef);
+                friendsSnapshot.forEach(doc => {
+                    currentUsersFriends.add(doc.id);
+                });
+
+                // Get sent friend requests
+                const sentRequestsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "sent");
+                const sentRequestsSnapshot = await getDocs(sentRequestsRef);
+                sentRequestsSnapshot.forEach(doc => {
+                    sentRequests.add(doc.id);
+                });
+
+                // Get received friend requests
+                const receivedRequestsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "received");
+                const receivedRequestsSnapshot = await getDocs(receivedRequestsRef);
+                receivedRequestsSnapshot.forEach(doc => {
+                    receivedRequests.add(doc.id);
+                });
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error loading friend statuses:", error);
+            }
+        }
+
+        /**
+         * Render user list with search filtering
+         */
+        function renderUserList(usersToRender, searchQuery) {
+            if (!userList) return;
+
+            userList.innerHTML = '';
+            loadingUsersMessage.style.display = 'none';
+
+            let filteredUsers = usersToRender;
+
+            if (searchQuery) {
+                const lowerCaseQuery = searchQuery.toLowerCase();
+                filteredUsers = usersToRender.filter(user =>
+                    (user.username && user.username.toLowerCase().includes(lowerCaseQuery))
+                );
+            }
+
+            if (filteredUsers.length === 0) {
+                noUsersFoundMessage.style.display = 'block';
+                return;
+            }
+
+            noUsersFoundMessage.style.display = 'none';
+
+            filteredUsers.forEach(user => {
+                const userCard = createUserCard(user);
+                userList.appendChild(userCard);
+            });
+        }
+
+        /**
+         * Create user card element
+         */
+        function createUserCard(userData) {
+            const card = document.createElement('div');
+            card.className = 'user-card';
+            card.setAttribute('data-user-id', userData.uid);
+
+            const userId = userData.uid;
+            const username = userData.username || 'Anonymous User';
+            const isFriend = currentUsersFriends.has(userId);
+            const hasSentRequest = sentRequests.has(userId);
+            const hasReceivedRequest = receivedRequests.has(userId);
+
+            // Profile image
+            let profileImageHtml = '';
+            if (userData.profilePicId) {
+                profileImageHtml = `<img src="${userData.profilePicId}" alt="${username}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+            }
+            profileImageHtml += `<div class="default-avatar" style="display: ${userData.profilePicId ? 'none' : 'flex'}"><i class="fas fa-user"></i></div>`;
+
+            // Action buttons
+            let actionButtonsHtml = '';
+            if (isFriend) {
+                actionButtonsHtml = `
+                    <button class="action-btn chat-btn" onclick="startChatWithUser('${userId}')">
+                        <span class="button-text"><i class="fas fa-comment"></i> Chat</span>
+                        <div class="button-loader"></div>
+                    </button>
+                    <button class="action-btn unfriend-btn" onclick="unfriendUser('${userId}', this)">
+                        <span class="button-text"><i class="fas fa-user-minus"></i> Unfriend</span>
+                        <div class="button-loader"></div>
+                    </button>
+                `;
+            } else if (hasSentRequest) {
+                actionButtonsHtml = `
+                    <button class="action-btn cancel-request-btn" onclick="cancelFriendRequest('${userId}', this)">
+                        <span class="button-text"><i class="fas fa-times"></i> Cancel</span>
+                        <div class="button-loader"></div>
+                    </button>
+                `;
+            } else if (hasReceivedRequest) {
+                actionButtonsHtml = `
+                    <button class="action-btn accept-request-btn" onclick="acceptFriendRequest('${userId}', this)">
+                        <span class="button-text"><i class="fas fa-check"></i> Accept</span>
+                        <div class="button-loader"></div>
+                    </button>
+                    <button class="action-btn reject-request-btn" onclick="rejectFriendRequest('${userId}', this)">
+                        <span class="button-text"><i class="fas fa-times"></i> Reject</span>
+                        <div class="button-loader"></div>
+                    </button>
+                `;
+            } else {
+                actionButtonsHtml = `
+                    <button class="action-btn add-friend-btn" onclick="sendFriendRequest('${userId}', this)">
+                        <span class="button-text"><i class="fas fa-user-plus"></i> Add Friend</span>
+                        <div class="button-loader"></div>
+                    </button>
+                `;
+            }
+
+            card.innerHTML = `
+                ${profileImageHtml}
+                <h3>${userData.visibility?.displayName !== false ? username : 'Anonymous User'}</h3>
+                <div class="user-actions">
+                    ${actionButtonsHtml}
+                </div>
+            `;
+
+            return card;
+        }
+
+        /**
+         * Send friend request
+         */
+        async function sendFriendRequest(userId, buttonElement) {
+            if (!currentUser) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                const requestData = {
+                    senderId: currentUser.uid,
+                    receiverId: userId,
+                    senderUsername: currentUserProfileData?.username || 'Unknown User',
+                    receiverUsername: allUsersData.find(u => u.uid === userId)?.username || 'Unknown User',
+                    status: 'pending',
+                    timestamp: serverTimestamp()
+                };
+
+                // Add to sender's sent requests
+                await addDoc(collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "sent"), {
+                    ...requestData,
+                    id: userId
+                });
+
+                // Add to receiver's received requests
+                await addDoc(collection(db, "artifacts", appId, "users", userId, "friend_requests", "received"), {
+                    ...requestData,
+                    id: currentUser.uid
+                });
+
+                // Update local state
+                sentRequests.add(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("Friend request sent!", 'success');
+                createNotification('success', 'Friend Request Sent', `Friend request sent to ${requestData.receiverUsername}`, null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error sending friend request:", error);
+                showMessageBox("Failed to send friend request: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Cancel friend request
+         */
+        async function cancelFriendRequest(userId, buttonElement) {
+            if (!currentUser) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                // Remove from sender's sent requests
+                const sentRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "sent"),
+                    where("receiverId", "==", userId)
+                );
+                const sentRequestSnapshot = await getDocs(sentRequestQuery);
+                const batch = writeBatch(db);
+                sentRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                // Remove from receiver's received requests
+                const receivedRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", userId, "friend_requests", "received"),
+                    where("senderId", "==", currentUser.uid)
+                );
+                const receivedRequestSnapshot = await getDocs(receivedRequestQuery);
+                receivedRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+
+                // Update local state
+                sentRequests.delete(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("Friend request cancelled!", 'info');
+                createNotification('info', 'Friend Request Cancelled', 'Friend request has been cancelled', null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error cancelling friend request:", error);
+                showMessageBox("Failed to cancel friend request: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Accept friend request
+         */
+        async function acceptFriendRequest(userId, buttonElement) {
+            if (!currentUser) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                const batch = writeBatch(db);
+
+                // Add to both users' friends lists
+                batch.set(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", userId), {
+                    friendId: userId,
+                    addedAt: serverTimestamp()
+                });
+
+                batch.set(doc(db, "artifacts", appId, "users", userId, "friends", currentUser.uid), {
+                    friendId: currentUser.uid,
+                    addedAt: serverTimestamp()
+                });
+
+                // Remove the request from both users
+                const receivedRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "received"),
+                    where("senderId", "==", userId)
+                );
+                const receivedRequestSnapshot = await getDocs(receivedRequestQuery);
+                receivedRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                const sentRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", userId, "friend_requests", "sent"),
+                    where("receiverId", "==", currentUser.uid)
+                );
+                const sentRequestSnapshot = await getDocs(sentRequestQuery);
+                sentRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+
+                // Update local state
+                currentUsersFriends.add(userId);
+                receivedRequests.delete(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("Friend request accepted!", 'success');
+                createNotification('success', 'Friend Added', 'You are now friends!', null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error accepting friend request:", error);
+                showMessageBox("Failed to accept friend request: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Reject friend request
+         */
+        async function rejectFriendRequest(userId, buttonElement) {
+            if (!currentUser) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                const batch = writeBatch(db);
+
+                // Remove the request from both users
+                const receivedRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "received"),
+                    where("senderId", "==", userId)
+                );
+                const receivedRequestSnapshot = await getDocs(receivedRequestQuery);
+                receivedRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                const sentRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", userId, "friend_requests", "sent"),
+                    where("receiverId", "==", currentUser.uid)
+                );
+                const sentRequestSnapshot = await getDocs(sentRequestQuery);
+                sentRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+
+                // Update local state
+                receivedRequests.delete(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("Friend request rejected!", 'info');
+                createNotification('info', 'Friend Request Rejected', 'Friend request has been rejected', null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error rejecting friend request:", error);
+                showMessageBox("Failed to reject friend request: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Unfriend user
+         */
+        async function unfriendUser(userId, buttonElement) {
+            if (!currentUser) return;
+
+            const confirmed = await showCustomConfirm(`Are you sure you want to unfriend this user?`);
+            if (!confirmed) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                const batch = writeBatch(db);
+
+                // Remove from both users' friends lists
+                batch.delete(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", userId));
+                batch.delete(doc(db, "artifacts", appId, "users", userId, "friends", currentUser.uid));
+
+                await batch.commit();
+
+                // Update local state
+                currentUsersFriends.delete(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("User unfriended!", 'info');
+                createNotification('info', 'Friend Removed', 'User has been unfriended', null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error unfriending user:", error);
+                showMessageBox("Failed to unfriend user: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Start chat with user
+         */
+        function startChatWithUser(userId) {
+            closeFindFriendsModal();
+            window.location.href = `/chat.html?partnerId=${userId}`;
         }
 
         /**
@@ -5077,6 +5830,9 @@
                     renderSelectableFriends(e.target.value);
                 });
             }
+
+            // Find Friends Modal event listeners
+            if (findFriendsBtn) findFriendsBtn.addEventListener('click', openFindFriendsModal);
 
             // Initialize notification system
             initializeNotificationSystem();
