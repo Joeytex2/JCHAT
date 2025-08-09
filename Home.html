@@ -279,56 +279,114 @@
             gap: 10px;
         }
 
-        /* Notification Icon Styling */
+        /* Cool Notification Icon Styling */
         .notification-icon-wrapper {
             position: relative;
-            margin-right: 15px; /* Space between notification and profile */
+            margin-right: 15px;
         }
 
         .notification-icon-wrapper a {
-            text-decoration: none; /* Remove underline from link */
-            color: inherit; /* Inherit color from parent */
+            text-decoration: none;
+            color: inherit;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification-icon-wrapper a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .notification-icon-wrapper a:hover::before {
+            left: 100%;
+        }
+
+        .notification-icon-wrapper a:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 213, 255, 0.3);
+            border-color: var(--blue);
         }
 
         .notification-icon-wrapper i {
-    font-size: 1.5rem; /* Adjust size as needed */
-    color: var(--white) !important; /* Force icon color to white */
-    /* Remove gradient to ensure color is visible */
-    background-image: none !important;
-    background-clip: initial !important;
-    -webkit-background-clip: initial !important;
-    -webkit-text-fill-color: initial !important;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            transition: all 0.3s ease;
+            z-index: 1;
+            position: relative;
+        }
 
-        .notification-icon-wrapper i:hover {
-            transform: scale(1.1);
+        .notification-icon-wrapper a:hover i {
+            transform: rotate(15deg) scale(1.1);
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+            background-clip: text;
+            -webkit-background-clip: text;
         }
 
         .notification-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background-color: red !important; /* Force count background to red */
-    background-image: none !important; /* Remove any overriding gradient */
-    color: var(--white);
-    border-radius: 50%;
-    padding: 3px 7px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    min-width: 20px;
-    text-align: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Hide if no notifications */
-    display: none;
-}
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(45deg, #ff4757, #ff3742);
+            color: var(--white);
+            border-radius: 50%;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            min-width: 22px;
+            height: 22px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--background-main);
+            animation: pulse-notification 2s infinite;
+            z-index: 2;
+        }
+
+        @keyframes pulse-notification {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .notification-badge:empty {
+            display: none;
+        }
+
+        /* Additional cool effects for notification icon */
+        .notification-icon-wrapper a:active {
+            transform: scale(0.95);
+        }
+
+        /* Glow effect when there are notifications */
+        .notification-icon-wrapper.has-notifications a {
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
+        }
+
+        .notification-icon-wrapper.has-notifications a:hover {
+            box-shadow: 0 0 30px rgba(255, 71, 87, 0.5);
+        }
 
         .user-profile-header #profileLink {
             display: flex;
@@ -370,9 +428,9 @@
             font-weight: 600;
             font-size: 1rem;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 120px;
+            overflow: visible;
+            text-overflow: unset;
+            max-width: none;
             /* Apply gradient to names */
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
@@ -381,23 +439,7 @@
             color: transparent; /* Fallback */
         }
 
-        /* Admin Icon Styling */
-        #adminIconLink {
-            display: none; /* Hidden by default */
-            margin-right: 15px; /* Space it out from other icons */
-            /* Apply gradient to icons */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback */
-            font-size: 1.5rem;
-            transition: transform 0.2s ease;
-        }
 
-        #adminIconLink:hover {
-            transform: scale(1.1);
-        }
 
         /* Main Content Area */
         main {
@@ -1649,12 +1691,24 @@
                 font-size: 1rem;
                 margin-right: 10px;
             }
-            .notification-icon-wrapper i, #adminIconLink {
-                font-size: 1.3rem;
+            .notification-icon-wrapper a {
+                width: 35px;
+                height: 35px;
+            }
+            .notification-icon-wrapper i {
+                font-size: 1.1rem;
             }
             .notification-badge {
-                padding: 2px 5px;
+                padding: 3px 6px;
                 font-size: 0.6rem;
+                min-width: 18px;
+                height: 18px;
+            }
+            .user-profile-header span {
+                font-size: 0.9rem;
+                max-width: 150px;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             .daily-inspiration-section {
                 padding: 1.5rem;
@@ -1866,20 +1920,14 @@
             <a href="/home.html" class="logo">JCHAT</a>
             <!-- Removed Header Navigation (Home, Profile) -->
             <div class="user-profile-header" style="display:flex;align-items:center;gap:10px;">
-                <button id="filtersOpenBtn" class="icon-btn" aria-label="Open Feed Filters"><i class="fas fa-filter"></i></button>
-                <button id="utilitiesToggleBtn" class="icon-btn" aria-label="Toggle Utilities"><i class="fas fa-layer-group"></i></button>
-                <!-- Admin Icon Link (visible only to admin) -->
-                <a href="/Admin.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
-                    <i class="fas fa-user-cog"></i>
-                </a>
                 <!-- Notification Icon with Badge -->
                 <div class="notification-icon-wrapper" style="position:relative;">
-                    <a href="/notifications.html" aria-label="Notifications" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:1px solid var(--border-light);">
+                    <a href="/notifications.html" aria-label="Notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationCount" style="display:none;position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--notification-badge-color);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;">0</span>
+                        <span class="notification-badge" id="notificationCount">0</span>
                     </a>
                 </div>
-                <!-- Profile Link with Picture and Name (kept as per request) -->
+                <!-- Profile Link with Picture and Name -->
                 <a href="/profile.html" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;">
                     <img id="headerProfilePic" src="" alt="Profile Picture" style="display:none;width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);">
                     <i id="headerAvatarIcon" class="fas fa-user-circle" role="img" aria-label="User Avatar" style="font-size:28px;"></i>
@@ -2229,7 +2277,6 @@
         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
         const headerDisplayName = document.getElementById('headerDisplayName');
         const notificationCountElement = document.getElementById('notificationCount');
-        const adminIconLink = document.getElementById('adminIconLink');
         const profileLink = document.getElementById('profileLink');
 
         // Daily Inspiration section elements
@@ -2329,6 +2376,23 @@
         let isAuthReady = false; // Flag indicating if Firebase authentication state has been determined.
         let unsubscribeListeners = []; // Array to store all onSnapshot unsubscribe functions for cleanup.
         let currentSystemSettings = {}; // Stores global system settings fetched from Firestore.
+
+        // --- Notification Badge Management ---
+        function updateNotificationBadge(count) {
+            const notificationWrapper = document.querySelector('.notification-icon-wrapper');
+            const badge = document.getElementById('notificationCount');
+            
+            if (badge && notificationWrapper) {
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count.toString();
+                    badge.style.display = 'flex';
+                    notificationWrapper.classList.add('has-notifications');
+                } else {
+                    badge.style.display = 'none';
+                    notificationWrapper.classList.remove('has-notifications');
+                }
+            }
+        }
 
         // WebRTC Call State Variables
         let localStream; // Local media stream (audio/video).
