@@ -3416,16 +3416,7 @@
                 startInspirationDisplay(currentUserProfileData.inspirationType || "motivational");
                 await fetchNotificationCount(user.uid); // Fetch unread notification count.
 
-                // Display admin icon if the current user is the admin.
-                if (adminIconLink) {
-                    if (user.uid === ADMIN_UID) {
-                        adminIconLink.style.display = 'block';
-                        console.log("JCHAT_DEBUG: Admin icon displayed.");
-                    } else {
-                        adminIconLink.style.display = 'none';
-                        console.log("JCHAT_DEBUG: Admin icon hidden.");
-                    }
-                }
+
 
                 console.log("JCHAT_DEBUG: fetchAndDisplayHeaderProfile completed successfully.");
 
@@ -3455,18 +3446,12 @@
                 const querySnapshot = await getDocs(q);
                 const unreadCount = querySnapshot.size;
 
-                if (notificationCountElement) {
-                    if (unreadCount > 0) {
-                        notificationCountElement.textContent = unreadCount;
-                        notificationCountElement.style.display = 'flex'; // Show badge.
-                    } else {
-                        notificationCountElement.style.display = 'none'; // Hide badge.
-                    }
-                }
+                // Use the new updateNotificationBadge function
+                updateNotificationBadge(unreadCount);
             }
             catch (error) {
                 console.error("JCHAT_ERROR: Error fetching notification count:", error);
-                if (notificationCountElement) notificationCountElement.style.display = 'none';
+                updateNotificationBadge(0);
             }
         }
 
@@ -5392,7 +5377,7 @@
                     if (headerDisplayName) headerDisplayName.textContent = "Guest";
                     if (headerProfilePic) headerProfilePic.style.display = 'none';
                     if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
-                    if (adminIconLink) adminIconLink.style.display = 'none'; // Ensure admin icon is hidden for guests.
+
                     if (postsFeed) postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see posts and interact.</p>';
                     if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
                     if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Please log in to get your daily inspiration.";
