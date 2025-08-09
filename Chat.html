@@ -2098,6 +2098,25 @@
                 padding-bottom: 40px; /* Reset padding for no bottom nav */
             }
         }
+
+        /* Theme Switcher Button (small) */
+        .theme-switcher-btn {
+            background: linear-gradient(45deg, rgba(0, 213, 255, 0.7), rgba(255, 46, 146, 0.7));
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.75rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-left: 8px;
+        }
+        .theme-switcher-btn:hover { transform: scale(1.05); }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -2148,6 +2167,9 @@
                 </button>
                 <button id="findFriendsBtn" class="find-friends-btn" title="Find New Friends">
                     <i class="fas fa-user-plus"></i>
+                </button>
+                <button id="themeSwitcherBtn" class="theme-switcher-btn" aria-label="Switch Theme" title="Toggle Theme">
+                    <i class="fas fa-moon"></i>
                 </button>
             </div>
             <div class="messages-display" id="messagesDisplay">
@@ -2837,7 +2859,19 @@
 
             let contentHtml = '';
             if (message.type === 'text') {
-                contentHtml = `<div class="message-content">${message.text}${message.edited ? ' <span style="font-size: 0.7em; opacity: 0.7;">(edited)</span>' : ''}</div>`;
+                // XSS-safe text rendering
+                const wrapper = document.createElement('div');
+                wrapper.className = 'message-content';
+                const textNode = document.createTextNode(message.text || '');
+                wrapper.appendChild(textNode);
+                if (message.edited) {
+                    const edited = document.createElement('span');
+                    edited.style.fontSize = '0.7em';
+                    edited.style.opacity = '0.7';
+                    edited.textContent = ' (edited)';
+                    wrapper.appendChild(edited);
+                }
+                contentHtml = wrapper.outerHTML;
             } else if (message.type === 'image') {
                 const imageUrl = getCloudinaryImageUrl(message.mediaUrl, "w_400,h_auto,c_limit");
                 contentHtml = `<div class="message-content"><img src="${imageUrl}" alt="Image" onerror="this.onerror=null;this.src='https://placehold.co/200x150?text=Image+Error';"></div>`;
@@ -3070,6 +3104,26 @@
                 return;
             }
 
+            // Friendship gate: ensure both sides have friend docs
+            try {
+                const youToThem = await getDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", partnerId));
+                const themToYou = await getDoc(doc(db, "artifacts", appId, "users", partnerId, "friends", currentUser.uid));
+                const isFriends = youToThem.exists() && themToYou.exists();
+                if (!isFriends) {
+                    if (messageInput) messageInput.disabled = true;
+                    if (sendMessageBtn) sendMessageBtn.disabled = true;
+                    if (noMessages) {
+                        noMessages.style.display = 'block';
+                        noMessages.textContent = "You are not friends yet. Use Find Friends to send a request.";
+                    }
+                } else {
+                    if (messageInput) messageInput.disabled = false;
+                    if (sendMessageBtn) sendMessageBtn.disabled = false;
+                }
+            } catch (e) {
+                console.warn('JCHAT_WARN: Friendship check failed:', e?.message || e);
+            }
+
             console.log("JCHAT_DEBUG: Fetching messages for chat between", currentUser.uid, "and", partnerId);
             // Ensure loading message is visible initially
             if (loadingMessages) loadingMessages.style.display = 'block';
@@ -3147,6 +3201,18 @@
             if (!currentUser || !partnerId || !currentUserProfileData) {
                 showMessageBox("You must be logged in and have a chat partner selected to send messages.", 'error');
                 return;
+            }
+
+            // Prevent sending if not friends
+            try {
+                const youToThem = await getDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", partnerId));
+                const themToYou = await getDoc(doc(db, "artifacts", appId, "users", partnerId, "friends", currentUser.uid));
+                if (!(youToThem.exists() && themToYou.exists())) {
+                    showMessageBox("You can only message friends. Send a request from Find Friends.", 'info');
+                    return;
+                }
+            } catch (e) {
+                console.warn('JCHAT_WARN: Friendship re-check failed on send:', e?.message || e);
             }
 
             if (type === 'text' && !content.trim()) {
@@ -5232,6 +5298,26 @@
             
             // Initialize find friends functionality
             initializeFindFriends();
+
+            // Lightweight theme toggle (light/dark)
+            const themeSwitcherBtn = document.getElementById('themeSwitcherBtn');
+            function setChatTheme(theme) {
+                const allowed = ['theme-light-mode', 'theme-dark-mode'];
+                document.body.classList.remove(...allowed);
+                document.body.classList.add(theme);
+                localStorage.setItem('jchat-theme', theme);
+                const icon = themeSwitcherBtn?.querySelector('i');
+                if (icon) icon.className = theme === 'theme-light-mode' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            if (themeSwitcherBtn) {
+                themeSwitcherBtn.addEventListener('click', () => {
+                    const next = document.body.classList.contains('theme-dark-mode') ? 'theme-light-mode' : 'theme-dark-mode';
+                    setChatTheme(next);
+                });
+                // Sync icon on load
+                const isLight = document.body.classList.contains('theme-light-mode');
+                themeSwitcherBtn.querySelector('i').className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+            }
         });
 
         window.addEventListener('storage', (event) => {
