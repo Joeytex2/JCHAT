@@ -325,7 +325,7 @@
 
         .notification-icon-wrapper i {
             font-size: 1.3rem;
-            background: linear-gradient(45deg, var(--blue), var(--pink));
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ff8e53);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -337,7 +337,7 @@
 
         .notification-icon-wrapper a:hover i {
             transform: rotate(15deg) scale(1.1);
-            background: linear-gradient(45deg, var(--pink), var(--blue));
+            background: linear-gradient(45deg, #ff8e53, #ffd700, #ff6b35);
             background-clip: text;
             -webkit-background-clip: text;
         }
@@ -346,8 +346,8 @@
             position: absolute;
             top: -8px;
             right: -8px;
-            background: linear-gradient(45deg, #ff4757, #ff3742);
-            color: var(--white);
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ff8e53);
+            color: #000;
             border-radius: 50%;
             padding: 4px 8px;
             font-size: 0.7rem;
@@ -355,7 +355,7 @@
             min-width: 22px;
             height: 22px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -381,24 +381,24 @@
 
         /* Glow effect when there are notifications */
         .notification-icon-wrapper.has-notifications a {
-            box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
         }
 
         .notification-icon-wrapper.has-notifications a:hover {
-            box-shadow: 0 0 30px rgba(255, 71, 87, 0.5);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
         }
 
-        /* Shaking animation for notification bell when there are unread notifications */
+        /* Enhanced shaking animation for notification bell - shakes every 3 seconds */
         .notification-icon-wrapper.has-notifications i {
-            animation: bell-shake 2s ease-in-out infinite;
+            animation: bell-shake 3s ease-in-out infinite;
             transform-origin: top;
         }
 
         @keyframes bell-shake {
-            0%, 100% { transform: rotate(0deg); }
-            5%, 15%, 25%, 35% { transform: rotate(8deg); }
-            10%, 20%, 30% { transform: rotate(-8deg); }
-            40%, 100% { transform: rotate(0deg); }
+            0%, 90%, 100% { transform: rotate(0deg); }
+            5%, 15%, 25%, 35% { transform: rotate(10deg); }
+            10%, 20%, 30% { transform: rotate(-10deg); }
+            40%, 50%, 60%, 70%, 80% { transform: rotate(0deg); }
         }
 
         /* Pause shaking on hover */
@@ -408,12 +408,12 @@
 
         /* Add a subtle continuous shake for persistent attention */
         .notification-icon-wrapper.has-notifications i {
-            animation: bell-shake 2s ease-in-out infinite, subtle-shake 3s ease-in-out infinite 1s;
+            animation: bell-shake 3s ease-in-out infinite, subtle-shake 3s ease-in-out infinite 1.5s;
         }
 
         @keyframes subtle-shake {
             0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(2deg); }
+            50% { transform: rotate(3deg); }
         }
 
         /* Admin Icon Styling */
@@ -2867,13 +2867,35 @@
          * @param {string} type - 'success', 'error', or 'info'.
          */
         function playNotificationSound(type) {
-            Tone.start(); // Ensure audio context is started.
-            if (type === 'success') {
-                successSynth.triggerAttackRelease("C5", "8n");
-            } else if (type === 'error') {
-                errorSynth.triggerAttackRelease("C3", "8n");
-            } else if (type === 'info') {
-                infoSynth.triggerAttackRelease("E4", "16n");
+            try {
+                // Create audio element for the new notification sound
+                const audio = new Audio('/ne.Mp3');
+                audio.volume = 0.6; // Set volume to 60%
+                
+                // Play the notification sound
+                audio.play().catch(error => {
+                    console.log('JCHAT_DEBUG: Could not play notification sound:', error);
+                    // Fallback to Tone.js if audio file fails
+                    Tone.start();
+                    if (type === 'success') {
+                        successSynth.triggerAttackRelease("C5", "8n");
+                    } else if (type === 'error') {
+                        errorSynth.triggerAttackRelease("C3", "8n");
+                    } else if (type === 'info') {
+                        infoSynth.triggerAttackRelease("E4", "16n");
+                    }
+                });
+            } catch (error) {
+                console.log('JCHAT_DEBUG: Error playing notification sound:', error);
+                // Fallback to Tone.js
+                Tone.start();
+                if (type === 'success') {
+                    successSynth.triggerAttackRelease("C5", "8n");
+                } else if (type === 'error') {
+                    errorSynth.triggerAttackRelease("C3", "8n");
+                } else if (type === 'info') {
+                    infoSynth.triggerAttackRelease("E4", "16n");
+                }
             }
         }
 
