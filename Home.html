@@ -6467,9 +6467,16 @@
                     e.preventDefault(); // Prevent default navigation
                     
                     try {
-                        // Check if user is logged in before navigation
+                        // Check if authentication is ready and user is logged in
+                        if (!isAuthReady) {
+                            showMessageBox('Please wait while authentication loads...', 'info');
+                            console.log('JCHAT_DEBUG: Profile clicked but auth not ready yet');
+                            return;
+                        }
+                        
                         if (!currentUser || !currentUser.uid) {
                             showMessageBox('Please log in to view your profile.', 'warning');
+                            console.log('JCHAT_DEBUG: Profile clicked but user not logged in');
                             return;
                         }
                         
@@ -6477,18 +6484,27 @@
                         const profileUrl = `./Profile.html?userId=${currentUser.uid}`;
                         console.log('JCHAT_DEBUG: Navigating to profile:', profileUrl);
                         
-                        // Navigate using window.location.href for better error handling
+                        // Navigate using window.location.href
                         window.location.href = profileUrl;
                         
                     } catch (error) {
                         console.error('JCHAT_ERROR: Profile navigation error:', error);
-                        showMessageBox('Error opening profile. Please try again later.', 'error');
                         
-                        // Fallback: try basic navigation
-                        try {
-                            window.location.href = './Profile.html';
-                        } catch (fallbackError) {
-                            console.error('JCHAT_ERROR: Fallback navigation also failed:', fallbackError);
+                        // More specific error handling
+                        if (error.name === 'ReferenceError') {
+                            console.error('JCHAT_ERROR: Variable not defined:', error.message);
+                            showMessageBox('Profile is loading, please try again in a moment.', 'warning');
+                        } else {
+                            showMessageBox('Error opening profile. Please try again later.', 'error');
+                        }
+                        
+                        // Fallback: try basic navigation only if currentUser exists
+                        if (currentUser && currentUser.uid) {
+                            try {
+                                window.location.href = `./Profile.html?userId=${currentUser.uid}`;
+                            } catch (fallbackError) {
+                                console.error('JCHAT_ERROR: Fallback navigation also failed:', fallbackError);
+                            }
                         }
                     }
                 });
