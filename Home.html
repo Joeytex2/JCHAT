@@ -2605,12 +2605,18 @@
         // The specific UID for the administrator, used for feature toggling and permissions.
         const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2';
 
-        // --- DOM Elements ---
-        const themeSwitcherBtn = document.getElementById('themeSwitcherBtn');
-        // Header elements
-        const headerProfilePic = document.getElementById('headerProfilePic');
-        const headerAvatarIcon = document.getElementById('headerAvatarIcon');
-        const headerDisplayName = document.getElementById('headerDisplayName');
+        // --- DOM Elements (Initialize after DOM is loaded) ---
+        let themeSwitcherBtn, headerProfilePic, headerAvatarIcon, headerDisplayName;
+        let notificationCountElement, adminIconLink, profileLink;
+        let inspirationQuoteElement, inspirationAuthorElement, sharePostInspirationButton;
+        let customizeInspirationButton, claimDailyBonusButton, customizeInspirationModal;
+        let inspirationTypeRadios, cancelCustomizeButton, saveCustomizeButton;
+        let postCreationSection, postContentInput, postMediaUpload, mediaImagePreview, mediaVideoPreview;
+        let createPostButton, postsFeed, loadingPostsMessage, postTypeFilter, postSearchInput;
+        let postDateFromInput, postDateToInput, exportPostsCsvButton, exportPostsJsonButton;
+        let showSavedOnlyCheckbox, trendingHashtagsDiv, editPostModal, editPostContentInput;
+        let editPostMediaUpload, editMediaImagePreview, editMediaVideoPreview, removeEditMediaButton;
+        let cancelEditPostButton, saveEditedPostButton;
         // Theme switcher functionality
         let currentTheme = 'theme-dark-mode'; // Default theme
         const themeSwitcherThemes = ['theme-dark-mode', 'theme-light-mode', 'theme-sunset-mode'];
@@ -2674,92 +2680,107 @@
             const themeName = theme.replace('theme-', '').replace('-mode', '');
             if (typeof showMessageBox === 'function') { showMessageBox(`Theme changed to ${themeName} mode`, 'success'); }
         }
-        const notificationCountElement = document.getElementById('notificationCount');
-        const adminIconLink = document.getElementById('adminIconLink');
-        const profileLink = document.getElementById('profileLink');
+        // Function to initialize all DOM elements safely
+        function initializeDOMElements() {
+            try {
+                // Header elements
+                themeSwitcherBtn = document.getElementById('themeSwitcherBtn');
+                headerProfilePic = document.getElementById('headerProfilePic');
+                headerAvatarIcon = document.getElementById('headerAvatarIcon');
+                headerDisplayName = document.getElementById('headerDisplayName');
+                notificationCountElement = document.getElementById('notificationCount');
+                adminIconLink = document.getElementById('adminIconLink');
+                profileLink = document.getElementById('profileLink');
 
-        // Daily Inspiration section elements
-        const inspirationQuoteElement = document.getElementById('inspirationQuote');
-        const inspirationAuthorElement = document.getElementById('inspirationAuthor');
-        const sharePostInspirationButton = document.getElementById('sharePostInspirationButton');
-        const customizeInspirationButton = document.getElementById('customizeInspirationButton');
-        const claimDailyBonusButton = document.getElementById('claimDailyBonusButton');
+                // Daily Inspiration section elements
+                inspirationQuoteElement = document.getElementById('inspirationQuote');
+                inspirationAuthorElement = document.getElementById('inspirationAuthor');
+                sharePostInspirationButton = document.getElementById('sharePostInspirationButton');
+                customizeInspirationButton = document.getElementById('customizeInspirationButton');
+                claimDailyBonusButton = document.getElementById('claimDailyBonusButton');
 
-        // Customize Inspiration Modal elements
-        const customizeInspirationModal = document.getElementById('customizeInspirationModal');
-        const inspirationTypeRadios = document.querySelectorAll('input[name="inspirationType"]');
-        const cancelCustomizeButton = document.getElementById('cancelCustomize');
-        const saveCustomizeButton = document.getElementById('saveCustomize');
+                // Customize Inspiration Modal elements
+                customizeInspirationModal = document.getElementById('customizeInspirationModal');
+                inspirationTypeRadios = document.querySelectorAll('input[name="inspirationType"]');
+                cancelCustomizeButton = document.getElementById('cancelCustomize');
+                saveCustomizeButton = document.getElementById('saveCustomize');
 
-        // Post Creation section elements
-        const postCreationSection = document.getElementById('postCreationSection');
-        const postContentInput = document.getElementById('postContent');
-        const postMediaUpload = document.getElementById('postMediaUpload');
-        const mediaImagePreview = document.getElementById('mediaImagePreview');
-        const mediaVideoPreview = document.getElementById('mediaVideoPreview');
-        const createPostButton = document.getElementById('createPostButton');
-        const postsFeed = document.getElementById('postsFeed');
-        const loadingPostsMessage = document.getElementById('loadingPostsMessage');
-        const postTypeFilter = document.getElementById('postTypeFilter');
-        const postSearchInput = document.getElementById('postSearchInput');
-        const postDateFromInput = document.getElementById('postDateFrom');
-        const postDateToInput = document.getElementById('postDateTo');
-        const exportPostsCsvButton = document.getElementById('exportPostsCsvButton');
-        const exportPostsJsonButton = document.getElementById('exportPostsJsonButton');
-        const showSavedOnlyCheckbox = document.getElementById('showSavedOnly');
-        const trendingHashtagsDiv = document.getElementById('trendingHashtags');
+                // Post Creation section elements
+                postCreationSection = document.getElementById('postCreationSection');
+                postContentInput = document.getElementById('postContent');
+                postMediaUpload = document.getElementById('postMediaUpload');
+                mediaImagePreview = document.getElementById('mediaImagePreview');
+                mediaVideoPreview = document.getElementById('mediaVideoPreview');
+                createPostButton = document.getElementById('createPostButton');
+                postsFeed = document.getElementById('postsFeed');
+                loadingPostsMessage = document.getElementById('loadingPostsMessage');
+                postTypeFilter = document.getElementById('postTypeFilter');
+                postSearchInput = document.getElementById('postSearchInput');
+                postDateFromInput = document.getElementById('postDateFrom');
+                postDateToInput = document.getElementById('postDateTo');
+                exportPostsCsvButton = document.getElementById('exportPostsCsvButton');
+                exportPostsJsonButton = document.getElementById('exportPostsJsonButton');
+                showSavedOnlyCheckbox = document.getElementById('showSavedOnly');
+                trendingHashtagsDiv = document.getElementById('trendingHashtags');
 
-        // Edit Post Modal elements
-        const editPostModal = document.getElementById('editPostModal');
-        const editPostContentInput = document.getElementById('editPostContent');
-        const editPostMediaUpload = document.getElementById('editPostMediaUpload');
-        const editMediaImagePreview = document.getElementById('editMediaImagePreview');
-        const editMediaVideoPreview = document.getElementById('editMediaVideoPreview');
-        const removeEditMediaButton = document.getElementById('removeEditMedia');
-        const cancelEditPostButton = document.getElementById('cancelEditPost');
-        const saveEditedPostButton = document.getElementById('saveEditedPost');
+                // Edit Post Modal elements
+                editPostModal = document.getElementById('editPostModal');
+                editPostContentInput = document.getElementById('editPostContent');
+                editPostMediaUpload = document.getElementById('editPostMediaUpload');
+                editMediaImagePreview = document.getElementById('editMediaImagePreview');
+                editMediaVideoPreview = document.getElementById('editMediaVideoPreview');
+                removeEditMediaButton = document.getElementById('removeEditMedia');
+                cancelEditPostButton = document.getElementById('cancelEditPost');
+                saveEditedPostButton = document.getElementById('saveEditedPost');
 
-        // Confirmation Modal elements
-        const confirmationModal = document.getElementById('confirmationModal');
-        const confirmationTitle = document.getElementById('confirmationTitle');
-        const confirmationMessage = document.getElementById('confirmationMessage');
-        const confirmCancelButton = document.getElementById('confirmCancelButton');
-        const confirmProceedButton = document.getElementById('confirmProceedButton');
+                // Additional elements
+                confirmationModal = document.getElementById('confirmationModal');
+                confirmationTitle = document.getElementById('confirmationTitle');
+                confirmationMessage = document.getElementById('confirmationMessage');
+                confirmCancelButton = document.getElementById('confirmCancelButton');
+                confirmProceedButton = document.getElementById('confirmProceedButton');
+                messageBox = document.getElementById('messageBox');
+                sidebarNav = document.getElementById('sidebarNav');
+                sidebarToggleFab = document.getElementById('sidebarToggleFab');
+                sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+                sidebarNavItems = document.querySelectorAll('.sidebar-nav-item');
+                sidebarLogoutLink = document.getElementById('sidebarLogoutLink');
+                chatLink = document.getElementById('chatLink');
+                findFriendsLink = document.getElementById('findFriendsLink');
+                friendsLink = document.getElementById('friendsLink');
+                groupsLink = document.getElementById('groupsLink');
+                jcoinShopLink = document.getElementById('jcoinShopLink');
+                maintenanceOverlay = document.getElementById('maintenanceOverlay');
+                maintenanceAnnouncementText = document.getElementById('maintenanceAnnouncementText');
+                callOverlay = document.getElementById('callOverlay');
+                callStatusIcon = document.getElementById('callStatusIcon');
+                callStatusText = document.getElementById('callStatusText');
+                callTimerDisplay = document.getElementById('callTimer');
+                callActions = document.getElementById('callActions');
+                acceptCallBtn = document.getElementById('acceptCallBtn');
+                declineCallBtn = document.getElementById('declineCallBtn');
+                endCallBtn = document.getElementById('endCallBtn');
+                localVideo = document.getElementById('localVideo');
+                remoteVideo = document.getElementById('remoteVideo');
+                toggleMuteBtn = document.getElementById('toggleMuteBtn');
+                toggleVideoBtn = document.getElementById('toggleVideoBtn');
 
-        // Message Box element for notifications
-        const messageBox = document.getElementById('messageBox');
+                console.log('JCHAT_DEBUG: DOM elements initialized successfully');
+            } catch (error) {
+                console.error('JCHAT_ERROR: Error initializing DOM elements:', error);
+            }
+        }
 
-        // Sidebar elements
-        const sidebarNav = document.getElementById('sidebarNav');
-        const sidebarToggleFab = document.getElementById('sidebarToggleFab');
-        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
-        const sidebarNavItems = document.querySelectorAll('.sidebar-nav-item');
-        const sidebarLogoutLink = document.getElementById('sidebarLogoutLink');
+        // Additional DOM elements - will be initialized in initializeDOMElements
+        let confirmationModal, confirmationTitle, confirmationMessage;
+        let confirmCancelButton, confirmProceedButton, messageBox;
 
-        // Feature toggle related sidebar links (for dynamic enabling/disabling)
-        const chatLink = document.getElementById('chatLink');
-        const findFriendsLink = document.getElementById('findFriendsLink');
-        const friendsLink = document.getElementById('friendsLink');
-        const groupsLink = document.getElementById('groupsLink');
-        const jcoinShopLink = document.getElementById('jcoinShopLink');
-
-        // Maintenance Overlay elements
-        const maintenanceOverlay = document.getElementById('maintenanceOverlay');
-        const maintenanceAnnouncementText = document.getElementById('maintenanceAnnouncementText');
-
-        // Call Overlay Elements (WebRTC)
-        const callOverlay = document.getElementById('callOverlay');
-        const callStatusIcon = document.getElementById('callStatusIcon');
-        const callStatusText = document.getElementById('callStatusText');
-        const callTimerDisplay = document.getElementById('callTimer');
-        const callActions = document.getElementById('callActions');
-        const acceptCallBtn = document.getElementById('acceptCallBtn');
-        const declineCallBtn = document.getElementById('declineCallBtn');
-        const endCallBtn = document.getElementById('endCallBtn');
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const toggleMuteBtn = document.getElementById('toggleMuteBtn');
-        const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+        // All DOM elements - will be initialized in initializeDOMElements  
+        let sidebarNav, sidebarToggleFab, sidebarCloseBtn, sidebarNavItems, sidebarLogoutLink;
+        let chatLink, findFriendsLink, friendsLink, groupsLink, jcoinShopLink;
+        let maintenanceOverlay, maintenanceAnnouncementText, callOverlay, callStatusIcon;
+        let callStatusText, callTimerDisplay, callActions, acceptCallBtn, declineCallBtn;
+        let endCallBtn, localVideo, remoteVideo, toggleMuteBtn, toggleVideoBtn;
 
 
         // --- Global State Variables ---
@@ -6426,6 +6447,9 @@
         if (nextStoryBtn) nextStoryBtn.addEventListener('click', ()=> openStory(currentStoryIndex+1));
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize DOM elements first
+            initializeDOMElements();
+            
             updateStreakAndQuestsUI();
             fetchStories();
             initializeNotificationSystem();
