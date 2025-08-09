@@ -2892,75 +2892,64 @@
          * @returns {object} An object containing level details.
          */
         function getLevelInfo(level) {
-            const levelData = [
-                { level: 1, name: "Novice", icon: "fas fa-leaf", jCoinReward: 50, timeEstimate: "3 days" },
-                { level: 2, name: "Beginner", icon: "fas fa-seedling", jCoinReward: 100, timeEstimate: "7 days" },
-                { level: 3, name: "Apprentice", icon: "fas fa-user-graduate", jCoinReward: 150, timeEstimate: "10 days" },
-                { level: 4, name: "Explorer", icon: "fas fa-map-marker-alt", jCoinReward: 200, timeEstimate: "2 weeks" },
-                { level: 5, name: "Pioneer", icon: "fas fa-compass", jCoinReward: 250, timeEstimate: "3 weeks" },
-                { level: 6, name: "Communicator", icon: "fas fa-comments", jCoinReward: 300, timeEstimate: "1 month" },
-                { level: 7, name: "Socialite", icon: "fas fa-users", jCoinReward: 350, timeEstimate: "1 month" },
-                { level: 8, name: "Networker", icon: "fas fa-share-alt", jCoinReward: 400, timeEstimate: "1 month" },
-                { level: 9, name: "Influencer", icon: "fas fa-star", jCoinReward: 450, timeEstimate: "1.5 months" },
-                { level: 10, name: "Trendsetter", icon: "fas fa-fire", jCoinReward: 500, timeEstimate: "1.5 months" },
-                { level: 11, name: "Innovator", icon: "fas fa-lightbulb", jCoinReward: 550, timeEstimate: "2 months" },
-                { level: 12, name: "Creator", icon: "fas fa-paint-brush", jCoinReward: 600, timeEstimate: "2 months" },
-                { level: 13, name: "Visionary", icon: "fas fa-eye", jCoinReward: 650, timeEstimate: "2 months" },
-                { level: 14, name: "Architect", icon: "fas fa-building", jCoinReward: 700, timeEstimate: "2.5 months" },
-                { level: 15, name: "Maestro", icon: "fas fa-music", jCoinReward: 750, timeEstimate: "2.5 months" },
-                { level: 16, name: "Strategist", icon: "fas fa-chess", jCoinReward: 800, timeEstimate: "3 months" },
-                { level: 17, name: "Guardian", icon: "fas fa-shield-alt", jCoinReward: 850, timeEstimate: "3 months" },
-                { level: 18, name: "Champion", icon: "fas fa-trophy", jCoinReward: 900, timeEstimate: "3 months" },
-                { level: 19, name: "Hero", icon: "fas fa-mask", jCoinReward: 950, timeEstimate: "3.5 months" },
-                { level: 20, name: "Legend", icon: "fas fa-dragon", jCoinReward: 1000, timeEstimate: "3.5 months" },
-                { level: 21, name: "Mythic", icon: "fas fa-meteor", jCoinReward: 1050, timeEstimate: "4 months" },
-                { level: 22, name: "Celestial", icon: "fas fa-galaxy", jCoinReward: 1100, timeEstimate: "4 months" },
-                { level: 23, name: "Divine", icon: "fas fa-hand-sparkles", jCoinReward: 1150, timeEstimate: "4.5 months" },
-                { level: 24, name: "Transcendent", icon: "fas fa-infinity", jCoinReward: 1200, timeEstimate: "4.5 months" },
-                { level: 25, name: "Cosmic Being", icon: "fas fa-atom", jCoinReward: 1250, timeEstimate: "5 months" },
-                { level: 26, name: "Universal Traveler", icon: "fas fa-globe-americas", jCoinReward: 1300, timeEstimate: "5 months" },
-                { level: 27, name: "Stellar Navigator", icon: "fas fa-space-shuttle", jCoinReward: 1350, timeEstimate: "5.5 months" },
-                { level: 28, name: "Galactic Conqueror", icon: "fas fa-rocket", jCoinReward: 1400, timeEstimate: "5.5 months" },
-                { level: 29, name: "Dimensional Shifter", icon: "fas fa-cube", jCoinReward: 1450, timeEstimate: "6 months" },
-                { level: 30, name: "Omni-Presence", icon: "fas fa-brain", jCoinReward: 1500, timeEstimate: "6 months" },
-            ];
+            // CHALLENGING SYSTEM - Dynamic calculation matching Profile.html
+            let jCoinReward = 0;
+            let gasReward = 0;
+            let otherRewards = [];
+            let name = "Unknown";
+            let icon = "fas fa-question-circle";
+            let timeEstimate = "Unknown";
+
+            if (level >= 1 && level <= 25) { // Tier 1: Early Explorer
+                jCoinReward = 10 + (level - 1) * 5; // Start 10, +5/level
+                gasReward = 5 + (level - 1) * 2;   // Start 5, +2/level
+                const levelNames = [
+                    "Novice", "Beginner", "Apprentice", "Explorer", "Pioneer",
+                    "Communicator", "Socialite", "Networker", "Influencer", "Trendsetter",
+                    "Innovator", "Creator", "Visionary", "Architect", "Maestro",
+                    "Strategist", "Guardian", "Champion", "Hero", "Legend",
+                    "Mythic", "Celestial", "Divine", "Transcendent", "Cosmic Being"
+                ];
+                const levelIcons = [
+                    "fas fa-leaf", "fas fa-seedling", "fas fa-user-graduate", "fas fa-map-marker-alt", "fas fa-compass",
+                    "fas fa-comments", "fas fa-users", "fas fa-share-alt", "fas fa-star", "fas fa-fire",
+                    "fas fa-lightbulb", "fas fa-paint-brush", "fas fa-eye", "fas fa-building", "fas fa-music",
+                    "fas fa-chess", "fas fa-shield-alt", "fas fa-trophy", "fas fa-mask", "fas fa-dragon",
+                    "fas fa-meteor", "fas fa-galaxy", "fas fa-hand-sparkles", "fas fa-infinity", "fas fa-atom"
+                ];
+                const timeEstimates = [
+                    "1 week", "2 weeks", "3 weeks", "1 month", "6 weeks",
+                    "2 months", "10 weeks", "3 months", "14 weeks", "4 months",
+                    "18 weeks", "5 months", "22 weeks", "6 months", "26 weeks",
+                    "7 months", "30 weeks", "8 months", "34 weeks", "9 months",
+                    "38 weeks", "10 months", "42 weeks", "11 months", "1 year"
+                ];
+                
+                name = levelNames[level - 1] || `Level ${level}`;
+                icon = levelIcons[level - 1] || "fas fa-star";
+                timeEstimate = timeEstimates[level - 1] || "Unknown";
+
+                // Specific rewards for challenging progression
+                if (level === 1) otherRewards.push("Badge: 'First Steps'");
+                if (level === 3) otherRewards.push("Unlock: 1-Hour XP Boost");
+                if (level === 5) otherRewards.push("Badge: 'Chat Starter'", "Unlock: Basic Profile Frame");
+                if (level === 10) otherRewards.push("Unlock: Custom Status Messages");
+                if (level === 15) otherRewards.push("Badge: 'Community Builder'");
+                if (level === 20) otherRewards.push("Unlock: Legendary Status", "Special Profile Effects");
+                if (level === 25) otherRewards.push("Badge: 'Cosmic Being'", "Ultimate Profile Customization");
+            }
 
             let xpToNextLevel;
-            let name;
-            let icon;
-            let jCoinReward;
-            let timeEstimate;
 
             if (level < 1) level = 1;
 
-            // XP Calculation Logic - Designed for "harder" progression
-            // This defines how much XP is needed to reach the next level.
-            if (level === 1) {
-                xpToNextLevel = 500;
-            } else if (level <= 5) {
-                xpToNextLevel = 500 + (level - 1) * 250;
-            } else if (level <= 10) {
-                xpToNextLevel = (500 + 4 * 250) + (level - 5) * 500;
-            } else if (level <= 20) {
-                xpToNextLevel = ((500 + 4 * 250) + (10 - 5) * 500) + (level - 10) * 1000;
-            } else if (level <= 50) {
-                xpToNextLevel = (((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (level - 20) * 2000;
-            } else if (level <= 100) {
-                xpToNextLevel = ((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 2000) + (50 - 20) * 2000) + (level - 50) * 5000;
-            } else if (level <= 500) {
-                xpToNextLevel = (((((500 + 4 * 250) + (10 - 5) * 500) + (20 - 10) * 1000) + (50 - 20) * 5000) + (100 - 50) * 5000) + (level - 100) * 10000;
-            } else {
-                xpToNextLevel = 10000000; // Very high XP for levels beyond 500
-            }
+            // XP Calculation Logic - CHALLENGING progression system
+            // Uses the same formula as Profile.html: 1500 * level * (level + 1) / 2
+            // This creates a more challenging and rewarding progression curve
+            xpToNextLevel = 1500 * level * (level + 1) / 2;
 
-            // Find specific level data or generate generic tier names
-            const specificLevel = levelData.find(l => l.level === level);
-            if (specificLevel) {
-                name = specificLevel.name;
-                icon = specificLevel.icon;
-                jCoinReward = specificLevel.jCoinReward;
-                timeEstimate = specificLevel.timeEstimate;
-            } else if (level > 30 && level <= 500) {
+            // Handle higher levels (26+) with generic tiers
+            if (level > 25 && level <= 500) {
                 // Tiered naming for higher levels
                 const tierNames = [
                     "Adept", "Master", "Grandmaster", "Exalted", "Ascendant",
@@ -2978,24 +2967,31 @@
                     "fas fa-mountain", "fas fa-trophy", "fas fa-shield-alt", "fas fa-infinity", "fas fa-brain"
                 ];
 
-                const baseLevelForTier = 30;
-                const levelsPerTierName = 10; // How many levels share the same tier name
-                const levelsPerTierIcon = 10; // How many levels share the same tier icon
+                const baseLevelForTier = 26;
+                const levelsPerTierName = 25; // Challenging system: bigger tier spans
+                const levelsPerTierIcon = 25;
 
-                const tierNameIndex = Math.floor((level - (baseLevelForTier + 1)) / levelsPerTierName);
-                const tierIconIndex = Math.floor((level - (baseLevelForTier + 1)) / levelsPerTierIcon);
+                const tierNameIndex = Math.floor((level - baseLevelForTier) / levelsPerTierName);
+                const tierIconIndex = Math.floor((level - baseLevelForTier) / levelsPerTierIcon);
 
                 name = `${tierNames[tierNameIndex % tierNames.length]} Lv. ${level}`;
                 icon = tierIcons[tierIconIndex % tierIcons.length];
-                jCoinReward = 1500 + (level - 30) * 100; // JCoin reward increases with level
+                jCoinReward = 130 + (level - 26) * 10; // Challenging: higher base, slower growth
+                gasReward = 50 + (level - 26) * 5;
+                timeEstimate = `${Math.ceil(level / 4)} months`;
             } else if (level > 500) {
-                name = `Master Lv. ${level}`;
-                icon = "fas fa-star";
-                jCoinReward = 1500 + (500 - 30) * 100 + (level - 500) * 200;
+                name = `Transcendent Lv. ${level}`;
+                icon = "fas fa-infinity";
+                jCoinReward = 130 + (500 - 26) * 10 + (level - 500) * 50;
+                gasReward = 50 + (500 - 26) * 5 + (level - 500) * 25;
+                timeEstimate = `${Math.ceil(level / 2)} months`;
             } else {
-                name = `Unknown Lv. ${level}`;
-                icon = "fas fa-question-circle";
-                jCoinReward = 0;
+                // Fallback for any edge cases
+                name = `Explorer Lv. ${level}`;
+                icon = "fas fa-compass";
+                jCoinReward = 10;
+                gasReward = 5;
+                timeEstimate = "Unknown";
             }
 
             return {
@@ -3003,8 +2999,10 @@
                 name: name,
                 icon: icon,
                 jCoinReward: jCoinReward,
+                gasReward: gasReward,
                 xpToNextLevel: xpToNextLevel,
-                timeEstimate: timeEstimate
+                timeEstimate: timeEstimate,
+                otherRewards: otherRewards
             };
         }
 
