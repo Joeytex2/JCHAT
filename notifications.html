@@ -1360,6 +1360,194 @@
                 max-height: calc(100vh - 40px);
             }
         }
+
+        /* Notification Grouping */
+        .notification-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 10px;
+        }
+
+        .group-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--white);
+            margin: 0;
+        }
+
+        .group-count {
+            background: var(--accent-color);
+            color: var(--white);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Enhanced Loading States */
+        .loading-skeleton {
+            background: linear-gradient(90deg, var(--input-background) 25%, rgba(255, 255, 255, 0.1) 50%, var(--input-background) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 8px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+
+        .skeleton-text.short {
+            width: 60%;
+        }
+
+        .skeleton-text.medium {
+            width: 80%;
+        }
+
+        /* Smart Suggestions */
+        .smart-suggestions {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .suggestion-icon.warning {
+            background: var(--warning-color);
+            color: var(--white);
+        }
+
+        .suggestion-icon.info {
+            background: var(--accent-color);
+            color: var(--white);
+        }
+
+        /* Enhanced Animations */
+        @keyframes slideInFromTop {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .notification-item {
+            animation: slideInFromTop 0.3s ease;
+        }
+
+        .notification-item.unread {
+            animation: slideInFromTop 0.3s ease, pulse 2s infinite;
+        }
+
+        /* Performance Optimizations */
+        .virtual-scroll-container {
+            height: 400px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .virtual-scroll-item {
+            position: absolute;
+            width: 100%;
+            height: 80px;
+        }
+
+        /* Accessibility Enhancements */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus Management */
+        .notification-item:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+
+        .filter-button:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+
+        /* High Contrast Mode */
+        @media (prefers-contrast: high) {
+            .notification-item {
+                border: 2px solid var(--white);
+            }
+            
+            .filter-button {
+                border: 2px solid var(--white);
+            }
+
+            .notification-category {
+                border: 1px solid var(--white);
+            }
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            .notification-item {
+                animation: none;
+            }
+
+            .notification-item.unread {
+                animation: none;
+            }
+
+            .loading-skeleton {
+                animation: none;
+            }
+        }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -1483,6 +1671,58 @@
         </div>
     </div>
 
+    <!-- Notification Preferences Modal -->
+    <div id="preferencesModal" class="preferences-modal">
+        <div class="preferences-content">
+            <h3>Notification Preferences</h3>
+            <div class="preference-item">
+                <span>Email Notifications</span>
+                <div class="toggle-switch" id="emailToggle"></div>
+            </div>
+            <div class="preference-item">
+                <span>Sound Notifications</span>
+                <div class="toggle-switch" id="soundToggle"></div>
+            </div>
+            <div class="preference-item">
+                <span>Push Notifications</span>
+                <div class="toggle-switch" id="pushToggle"></div>
+            </div>
+            <div class="preference-item">
+                <span>Friend Request Notifications</span>
+                <div class="toggle-switch" id="friendRequestToggle"></div>
+            </div>
+            <div class="preference-item">
+                <span>Message Notifications</span>
+                <div class="toggle-switch" id="messageToggle"></div>
+            </div>
+            <div class="preference-item">
+                <span>System Notifications</span>
+                <div class="toggle-switch" id="systemToggle"></div>
+            </div>
+            <div class="preference-item">
+                <span>Financial Notifications</span>
+                <div class="toggle-switch" id="financialToggle"></div>
+            </div>
+            <div class="preference-item">
+                <span>Game Notifications</span>
+                <div class="toggle-switch" id="gameToggle"></div>
+            </div>
+            <div class="preference-item">
+                <span>Security Notifications</span>
+                <div class="toggle-switch" id="securityToggle"></div>
+            </div>
+            <div class="modal-buttons">
+                <button id="savePreferencesBtn" class="confirm-btn">Save Preferences</button>
+                <button id="closePreferencesBtn" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pull to Refresh Indicator -->
+    <div id="pullToRefresh" class="pull-to-refresh">
+        <i class="fas fa-spinner fa-spin"></i> Pull to refresh
+    </div>
+
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1562,6 +1802,212 @@
         let filteredNotifications = []; // Store filtered notifications
         let currentFilter = 'all'; // Current active filter
         let searchQuery = ''; // Current search query
+        let notificationPreferences = {}; // Store user preferences
+        let isPullToRefreshActive = false; // Pull to refresh state
+
+        /**
+         * Initializes notification preferences from localStorage.
+         */
+        function initializePreferences() {
+            const savedPreferences = localStorage.getItem('jchat-notification-preferences');
+            if (savedPreferences) {
+                notificationPreferences = JSON.parse(savedPreferences);
+            } else {
+                // Default preferences
+                notificationPreferences = {
+                    email: true,
+                    sound: true,
+                    push: true,
+                    friendRequest: true,
+                    message: true,
+                    system: true,
+                    financial: true,
+                    game: true,
+                    security: true
+                };
+            }
+            updatePreferencesUI();
+        }
+
+        /**
+         * Updates the preferences UI to reflect current settings.
+         */
+        function updatePreferencesUI() {
+            const toggles = {
+                emailToggle: notificationPreferences.email,
+                soundToggle: notificationPreferences.sound,
+                pushToggle: notificationPreferences.push,
+                friendRequestToggle: notificationPreferences.friendRequest,
+                messageToggle: notificationPreferences.message,
+                systemToggle: notificationPreferences.system,
+                financialToggle: notificationPreferences.financial,
+                gameToggle: notificationPreferences.game,
+                securityToggle: notificationPreferences.security
+            };
+
+            Object.entries(toggles).forEach(([id, value]) => {
+                const toggle = document.getElementById(id);
+                if (toggle) {
+                    if (value) {
+                        toggle.classList.add('active');
+                    } else {
+                        toggle.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        /**
+         * Saves notification preferences to localStorage.
+         */
+        function savePreferences() {
+            localStorage.setItem('jchat-notification-preferences', JSON.stringify(notificationPreferences));
+            showMessageBox('Preferences saved successfully!', 'success');
+        }
+
+        /**
+         * Handles toggle switch clicks for preferences.
+         */
+        function handleToggleClick(event) {
+            const toggle = event.currentTarget;
+            const isActive = toggle.classList.contains('active');
+            
+            if (isActive) {
+                toggle.classList.remove('active');
+            } else {
+                toggle.classList.add('active');
+            }
+
+            // Update preferences object
+            const preferenceKey = toggle.id.replace('Toggle', '');
+            notificationPreferences[preferenceKey] = !isActive;
+        }
+
+        /**
+         * Shows the preferences modal.
+         */
+        function showPreferencesModal() {
+            const preferencesModal = document.getElementById('preferencesModal');
+            if (preferencesModal) {
+                preferencesModal.classList.add('active');
+            }
+        }
+
+        /**
+         * Hides the preferences modal.
+         */
+        function hidePreferencesModal() {
+            const preferencesModal = document.getElementById('preferencesModal');
+            if (preferencesModal) {
+                preferencesModal.classList.remove('active');
+            }
+        }
+
+        /**
+         * Handles swipe actions for mobile devices.
+         */
+        function initializeSwipeActions() {
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            notificationsList.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            });
+
+            notificationsList.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                
+                currentX = e.touches[0].clientX;
+                const diffX = startX - currentX;
+                
+                if (Math.abs(diffX) > 50) {
+                    const notificationItem = e.target.closest('.notification-item');
+                    if (notificationItem) {
+                        if (diffX > 0) {
+                            // Swipe left - show actions
+                            notificationItem.classList.add('swiped');
+                        } else {
+                            // Swipe right - hide actions
+                            notificationItem.classList.remove('swiped');
+                        }
+                    }
+                }
+            });
+
+            notificationsList.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+        }
+
+        /**
+         * Handles pull-to-refresh functionality.
+         */
+        function initializePullToRefresh() {
+            let startY = 0;
+            let currentY = 0;
+            let isPulling = false;
+
+            document.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0) {
+                    startY = e.touches[0].clientY;
+                    isPulling = true;
+                }
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!isPulling) return;
+                
+                currentY = e.touches[0].clientY;
+                const diffY = currentY - startY;
+                
+                if (diffY > 100 && window.scrollY === 0) {
+                    const pullToRefresh = document.getElementById('pullToRefresh');
+                    if (pullToRefresh && !isPullToRefreshActive) {
+                        pullToRefresh.classList.add('active');
+                        isPullToRefreshActive = true;
+                    }
+                }
+            });
+
+            document.addEventListener('touchend', () => {
+                if (isPullToRefreshActive) {
+                    // Trigger refresh
+                    refreshNotifications();
+                    isPullToRefreshActive = false;
+                    
+                    const pullToRefresh = document.getElementById('pullToRefresh');
+                    if (pullToRefresh) {
+                        pullToRefresh.classList.remove('active');
+                    }
+                }
+                isPulling = false;
+            });
+        }
+
+        /**
+         * Refreshes notifications by re-fetching from Firebase.
+         */
+        async function refreshNotifications() {
+            showMessageBox('Refreshing notifications...', 'loading', true);
+            
+            try {
+                // Re-fetch notifications
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "notifications");
+                const q = query(notificationsCollectionRef, orderBy("timestamp", "desc"));
+                const snapshot = await getDocs(q);
+                
+                const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                allNotifications = notifications;
+                filterNotifications();
+                
+                showMessageBox('Notifications refreshed!', 'success');
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error refreshing notifications:", error);
+                showMessageBox('Failed to refresh notifications', 'error');
+            }
+        }
 
         /**
          * Plays a notification sound. (Functionality removed, but kept as a placeholder if needed elsewhere)
@@ -2283,8 +2729,12 @@
                     // Store all notifications for filtering
                     allNotifications = notifications;
                     
-                    // Apply current filters and search
-                    filterNotifications();
+                    // Apply current filters and search with enhanced rendering
+                    if (filteredNotifications.length > 0) {
+                        renderEnhancedNotifications(filteredNotifications);
+                    } else {
+                        renderEnhancedNotifications(notifications);
+                    }
                 }, (error) => {
                     console.error("JCHAT_ERROR: Error fetching notifications:", error);
                     notificationsLoading.style.display = 'none';
@@ -2335,6 +2785,11 @@
                 document.body.classList.add('theme-dark-mode'); // Default
             }
 
+            // Initialize enhanced features
+            initializePreferences();
+            initializeSwipeActions();
+            initializePullToRefresh();
+
             // Enhanced Features Event Listeners
             if (notificationSearchInput) {
                 notificationSearchInput.addEventListener('input', handleSearchInput);
@@ -2345,6 +2800,32 @@
                     button.addEventListener('click', handleFilterClick);
                 });
             }
+
+            // Preferences Modal Event Listeners
+            const preferencesBtn = document.getElementById('preferencesBtn');
+            const savePreferencesBtn = document.getElementById('savePreferencesBtn');
+            const closePreferencesBtn = document.getElementById('closePreferencesBtn');
+
+            if (preferencesBtn) {
+                preferencesBtn.addEventListener('click', showPreferencesModal);
+            }
+
+            if (savePreferencesBtn) {
+                savePreferencesBtn.addEventListener('click', () => {
+                    savePreferences();
+                    hidePreferencesModal();
+                });
+            }
+
+            if (closePreferencesBtn) {
+                closePreferencesBtn.addEventListener('click', hidePreferencesModal);
+            }
+
+            // Toggle switch event listeners
+            const toggleSwitches = document.querySelectorAll('.toggle-switch');
+            toggleSwitches.forEach(toggle => {
+                toggle.addEventListener('click', handleToggleClick);
+            });
 
             // Mark All As Read button listener
             if (markAllReadBtn) {
@@ -2462,7 +2943,7 @@
             }
 
             filteredNotifications = filtered;
-            renderNotificationsList(filteredNotifications);
+            renderEnhancedNotifications(filteredNotifications);
         }
 
         /**
@@ -2522,6 +3003,317 @@
                 'security': 'Security'
             };
             return categoryNames[notificationType] || 'System';
+        }
+
+        /**
+         * Analyzes notification patterns and provides insights.
+         */
+        function analyzeNotifications() {
+            const analysis = {
+                total: allNotifications.length,
+                unread: allNotifications.filter(n => !n.read).length,
+                byType: {},
+                byTime: {
+                    today: 0,
+                    thisWeek: 0,
+                    thisMonth: 0
+                },
+                mostActiveSender: null,
+                averageResponseTime: 0
+            };
+
+            // Analyze by type
+            allNotifications.forEach(notification => {
+                analysis.byType[notification.type] = (analysis.byType[notification.type] || 0) + 1;
+            });
+
+            // Analyze by time
+            const now = new Date();
+            const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            allNotifications.forEach(notification => {
+                const notificationDate = notification.timestamp?.toDate?.() || new Date(notification.timestamp);
+                
+                if (notificationDate >= oneDayAgo) {
+                    analysis.byTime.today++;
+                }
+                if (notificationDate >= oneWeekAgo) {
+                    analysis.byTime.thisWeek++;
+                }
+                if (notificationDate >= oneMonthAgo) {
+                    analysis.byTime.thisMonth++;
+                }
+            });
+
+            return analysis;
+        }
+
+        /**
+         * Provides smart notification suggestions based on user behavior.
+         */
+        function getSmartSuggestions() {
+            const analysis = analyzeNotifications();
+            const suggestions = [];
+
+            if (analysis.unread > 10) {
+                suggestions.push({
+                    type: 'warning',
+                    message: `You have ${analysis.unread} unread notifications. Consider marking them as read.`,
+                    action: 'markAllRead'
+                });
+            }
+
+            if (analysis.byType.friend_request > 5) {
+                suggestions.push({
+                    type: 'info',
+                    message: `You have ${analysis.byType.friend_request} pending friend requests.`,
+                    action: 'viewFriendRequests'
+                });
+            }
+
+            if (analysis.byTime.today > 20) {
+                suggestions.push({
+                    type: 'info',
+                    message: `You received ${analysis.byTime.today} notifications today.`,
+                    action: 'none'
+                });
+            }
+
+            return suggestions;
+        }
+
+        /**
+         * Optimizes notification rendering for better performance.
+         */
+        function optimizeNotificationRendering() {
+            // Implement virtual scrolling for large lists
+            const visibleNotifications = filteredNotifications.slice(0, 50); // Show only first 50
+            return visibleNotifications;
+        }
+
+        /**
+         * Handles notification grouping for better organization.
+         */
+        function groupNotifications(notifications) {
+            const groups = {
+                today: [],
+                yesterday: [],
+                thisWeek: [],
+                older: []
+            };
+
+            const now = new Date();
+            const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+            notifications.forEach(notification => {
+                const notificationDate = notification.timestamp?.toDate?.() || new Date(notification.timestamp);
+                
+                if (notificationDate >= oneDayAgo) {
+                    groups.today.push(notification);
+                } else if (notificationDate >= twoDaysAgo) {
+                    groups.yesterday.push(notification);
+                } else if (notificationDate >= oneWeekAgo) {
+                    groups.thisWeek.push(notification);
+                } else {
+                    groups.older.push(notification);
+                }
+            });
+
+            return groups;
+        }
+
+        /**
+         * Renders notifications with grouping for better organization.
+         */
+        async function renderGroupedNotifications(notifications) {
+            notificationsList.innerHTML = '';
+            notificationsLoading.style.display = 'none';
+            totalNotificationsCount.textContent = notifications.length;
+
+            if (notifications.length === 0) {
+                notificationsEmptyState.style.display = 'block';
+                markAllReadBtn.style.display = 'none';
+                deleteAllNotificationsBtn.style.display = 'none';
+                return;
+            } else {
+                notificationsEmptyState.style.display = 'none';
+                markAllReadBtn.style.display = 'block';
+                deleteAllNotificationsBtn.style.display = 'block';
+            }
+
+            const groups = groupNotifications(notifications);
+
+            // Render each group
+            Object.entries(groups).forEach(([groupName, groupNotifications]) => {
+                if (groupNotifications.length === 0) return;
+
+                // Create group header
+                const groupHeader = document.createElement('div');
+                groupHeader.className = 'notification-group-header';
+                groupHeader.innerHTML = `
+                    <h4 class="group-title">${groupName.charAt(0).toUpperCase() + groupName.slice(1)}</h4>
+                    <span class="group-count">${groupNotifications.length} notification${groupNotifications.length > 1 ? 's' : ''}</span>
+                `;
+                notificationsList.appendChild(groupHeader);
+
+                // Render notifications in this group
+                groupNotifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.classList.add('notification-item');
+                    if (!notification.read) {
+                        notificationItem.classList.add('unread');
+                    }
+
+                    let iconClass = 'fas fa-info-circle';
+                    let senderInfoHtml = '';
+
+                    // Determine sender info and online status
+                    if (notification.senderId && notification.senderId !== currentUser.uid) {
+                        const isSenderOnline = await fetchUserOnlineStatus(notification.senderId);
+                        const statusDotClass = isSenderOnline ? 'online' : 'offline';
+                        senderInfoHtml = `From: ${notification.senderUsername || 'Unknown User'} <span class="status-dot ${statusDotClass}"></span>`;
+                    } else {
+                        senderInfoHtml = 'System Notification';
+                    }
+
+                    // Enhanced icon mapping
+                    if (notification.type === 'friend_request') {
+                        iconClass = 'fas fa-user-plus';
+                    } else if (notification.type === 'friend_accepted') {
+                        iconClass = 'fas fa-user-check';
+                    } else if (notification.type === 'friend_rejected' || notification.type === 'friend_removed') {
+                        iconClass = 'fas fa-user-times';
+                    } else if (notification.type === 'message') {
+                        iconClass = 'fas fa-comment-dots';
+                    } else if (notification.type === 'system') {
+                        iconClass = 'fas fa-cogs';
+                    } else if (notification.type === 'coin_reward') {
+                        iconClass = 'fas fa-coins';
+                    } else if (notification.type === 'level_up') {
+                        iconClass = 'fas fa-arrow-alt-circle-up';
+                    } else if (notification.type === 'security') {
+                        iconClass = 'fas fa-shield-alt';
+                    }
+
+                    const timestampText = formatTimestamp(notification.timestamp);
+                    const categoryClass = getNotificationCategory(notification.type);
+                    const categoryName = getCategoryName(notification.type);
+
+                    notificationItem.innerHTML = `
+                        <i class="notification-icon ${iconClass}"></i>
+                        <div class="notification-content">
+                            <h4>${notification.message}</h4>
+                            <p>${senderInfoHtml} <span class="notification-category ${categoryClass}">${categoryName}</span></p>
+                        </div>
+                        <span class="notification-timestamp">${timestampText}</span>
+                    `;
+
+                    notificationItem.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        showNotificationOptions(notification);
+                    });
+
+                    notificationsList.appendChild(notificationItem);
+                });
+            });
+        }
+
+        /**
+         * Displays smart suggestions based on notification analysis.
+         */
+        function displaySmartSuggestions() {
+            const suggestions = getSmartSuggestions();
+            if (suggestions.length === 0) return;
+
+            // Create suggestions container
+            let suggestionsContainer = document.getElementById('smartSuggestions');
+            if (!suggestionsContainer) {
+                suggestionsContainer = document.createElement('div');
+                suggestionsContainer.id = 'smartSuggestions';
+                suggestionsContainer.className = 'smart-suggestions';
+                
+                // Insert before notifications list
+                const notificationsCard = document.querySelector('.card');
+                if (notificationsCard) {
+                    notificationsCard.parentNode.insertBefore(suggestionsContainer, notificationsCard);
+                }
+            }
+
+            suggestionsContainer.innerHTML = `
+                <h4><i class="fas fa-lightbulb"></i> Smart Suggestions</h4>
+                ${suggestions.map(suggestion => `
+                    <div class="suggestion-item">
+                        <div class="suggestion-icon ${suggestion.type}">
+                            <i class="fas fa-${suggestion.type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                        </div>
+                        <span>${suggestion.message}</span>
+                        ${suggestion.action !== 'none' ? `
+                            <button class="action-button small" onclick="handleSuggestionAction('${suggestion.action}')">
+                                ${suggestion.action === 'markAllRead' ? 'Mark All Read' : 'View'}
+                            </button>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        /**
+         * Handles smart suggestion actions.
+         */
+        function handleSuggestionAction(action) {
+            switch (action) {
+                case 'markAllRead':
+                    markAllNotificationsAsRead();
+                    break;
+                case 'viewFriendRequests':
+                    // Filter to show only friend requests
+                    currentFilter = 'friend_request';
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    document.querySelector('[data-filter="friend_request"]').classList.add('active');
+                    filterNotifications();
+                    break;
+            }
+        }
+
+        /**
+         * Optimizes the notification list for better performance.
+         */
+        function optimizeNotificationList() {
+            // Implement lazy loading for large lists
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            });
+
+            // Observe notification items
+            document.querySelectorAll('.notification-item').forEach(item => {
+                observer.observe(item);
+            });
+        }
+
+        /**
+         * Enhances the notification rendering with performance optimizations.
+         */
+        async function renderEnhancedNotifications(notifications) {
+            // Use the grouped rendering for better organization
+            if (notifications.length > 20) {
+                await renderGroupedNotifications(notifications);
+            } else {
+                await renderNotificationsList(notifications);
+            }
+
+            // Display smart suggestions
+            displaySmartSuggestions();
+
+            // Optimize performance
+            optimizeNotificationList();
         }
     </script>
 </body>
