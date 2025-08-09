@@ -285,54 +285,131 @@
             gap: 10px;
         }
 
-        /* Notification Icon Styling */
+        /* Cool Notification Icon Styling */
         .notification-icon-wrapper {
             position: relative;
-            margin-right: 15px; /* Space between notification and profile */
+            margin-right: 15px;
         }
 
         .notification-icon-wrapper a {
-            text-decoration: none; /* Remove underline from link */
-            color: inherit; /* Inherit color from parent */
+            text-decoration: none;
+            color: inherit;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification-icon-wrapper a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .notification-icon-wrapper a:hover::before {
+            left: 100%;
+        }
+
+        .notification-icon-wrapper a:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 213, 255, 0.3);
+            border-color: var(--blue);
         }
 
         .notification-icon-wrapper i {
-            font-size: 1.5rem; /* Adjust size as needed */
-            /* Apply gradient to icons */
-            background-image: linear-gradient(90deg, #8A2BE2, #00FFFF); /* Blue Violet to Aqua */
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ff8e53);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback for browsers that don't support background-clip: text on icons */
-            cursor: pointer;
-            transition: transform 0.2s ease;
+            color: transparent;
+            transition: all 0.3s ease;
+            z-index: 1;
+            position: relative;
         }
 
-        .notification-icon-wrapper i:hover {
-            transform: scale(1.1);
+        .notification-icon-wrapper a:hover i {
+            transform: rotate(15deg) scale(1.1);
+            background: linear-gradient(45deg, #ff8e53, #ffd700, #ff6b35);
+            background-clip: text;
+            -webkit-background-clip: text;
         }
 
         .notification-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--notification-badge-color); /* Use pink for notifications */
-            color: var(--white);
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ff8e53);
+            color: #000;
             border-radius: 50%;
-            padding: 3px 7px;
+            padding: 4px 8px;
             font-size: 0.7rem;
-            font-weight: 700;
-            min-width: 20px;
+            font-weight: 800;
+            min-width: 22px;
+            height: 22px;
             text-align: center;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Hide if no notifications */
+            border: 2px solid var(--background-main);
+            animation: pulse-notification 2s infinite;
+            z-index: 2;
+        }
+
+        @keyframes pulse-notification {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .notification-badge:empty {
             display: none;
+        }
+
+        /* Additional cool effects for notification icon */
+        .notification-icon-wrapper a:active {
+            transform: scale(0.95);
+        }
+
+        /* Glow effect when there are notifications */
+        .notification-icon-wrapper.has-notifications a {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .notification-icon-wrapper.has-notifications a:hover {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        }
+
+        /* Shaking animation for notification bell when there are unread notifications */
+        .notification-icon-wrapper.has-notifications i {
+            animation: bell-shake 3s ease-in-out infinite;
+            transform-origin: top;
+        }
+
+        @keyframes bell-shake {
+            0%, 90%, 100% { transform: rotate(0deg); }
+            5%, 15%, 25%, 35% { transform: rotate(10deg); }
+            10%, 20%, 30% { transform: rotate(-10deg); }
+            40%, 50%, 60%, 70%, 80% { transform: rotate(0deg); }
+        }
+
+        /* Pause shaking on hover */
+        .notification-icon-wrapper.has-notifications a:hover i {
+            animation-play-state: paused;
         }
 
         .user-profile-header #profileLink {
@@ -526,19 +603,30 @@
             text-align: left;
         }
 
-        .chat-header .select-friend-btn {
+        .chat-header .select-friend-btn, .chat-header .find-friends-btn {
             background: none;
             border: none;
             color: var(--text-light);
             font-size: 1.5rem;
             cursor: pointer;
             transition: color 0.3s ease;
-            margin-left: auto; /* Push to the right */
             position: relative; /* For the badge positioning */
+        }
+
+        .chat-header .select-friend-btn {
+            margin-left: auto; /* Push to the right */
+        }
+
+        .chat-header .find-friends-btn {
+            margin-left: 10px; /* Space between buttons */
         }
 
         .chat-header .select-friend-btn:hover {
             color: var(--accent-color);
+        }
+
+        .chat-header .find-friends-btn:hover {
+            color: #4CAF50;
         }
 
         /* Badge for Select Friend Button */
@@ -1014,14 +1102,14 @@
             box-shadow: none;
         }
 
-        /* Call Status Overlay */
+        /* Enhanced Call Status Overlay */
         #callStatusOverlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -1031,6 +1119,7 @@
             visibility: hidden;
             transition: opacity 0.3s ease;
             color: var(--white);
+            backdrop-filter: blur(10px);
         }
         #callStatusOverlay.active {
             opacity: 1;
@@ -1038,47 +1127,955 @@
         }
         #callStatusOverlay h2 {
             font-family: 'Poppins', sans-serif;
-            font-size: 2rem;
+            font-size: 2.5rem;
             margin-bottom: 20px;
             background-clip: text;
             color: transparent;
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            text-align: center;
         }
         #callStatusOverlay p {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             margin-bottom: 30px;
+            text-align: center;
+            opacity: 0.9;
         }
         #callStatusOverlay .call-actions {
             display: flex;
-            gap: 20px;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         #callStatusOverlay .call-actions button {
             background: linear-gradient(90deg, var(--blue), var(--pink));
             color: var(--white);
             border: none;
-            border-radius: 50%; /* Circular buttons */
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        #callStatusOverlay .call-actions button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        #callStatusOverlay .call-actions button:hover::before {
+            left: 100%;
+        }
+        #callStatusOverlay .call-actions button.end-call-btn {
+            background: linear-gradient(45deg, #ff4757, #ff3742);
+        }
+        #callStatusOverlay .call-actions button.accept-call-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+        #callStatusOverlay .call-actions button.reject-call-btn {
+            background: linear-gradient(45deg, #6c757d, #5a6268);
+        }
+        #callStatusOverlay .call-actions button.mute-btn {
+            background: linear-gradient(45deg, #ffc107, #e0a800);
+        }
+        #callStatusOverlay .call-actions button.video-toggle-btn {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+        }
+        #callStatusOverlay .call-actions button:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        }
+        #callStatusOverlay .call-actions button:active {
+            transform: translateY(-4px) scale(0.98);
+        }
+
+        /* Video Call Interface */
+        .video-call-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 1003;
+            display: none;
+            flex-direction: column;
+        }
+        .video-call-container.active {
+            display: flex;
+        }
+        .video-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 20px;
+            position: relative;
+        }
+        .video-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-item.fullscreen {
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+        }
+        .video-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+        .video-item .video-label {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .video-item .connection-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            border: 2px solid white;
+        }
+        .video-item .connection-status.poor {
+            background: #ffc107;
+        }
+        .video-item .connection-status.disconnected {
+            background: #ff4757;
+        }
+        .video-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 30px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+        .video-controls button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
             width: 60px;
             height: 60px;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        #callStatusOverlay .call-actions button.end-call-btn {
-            background: var(--delete-button-color);
+        .video-controls button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
         }
-        #callStatusOverlay .call-actions button.accept-call-btn {
-            background: var(--status-online);
+        .video-controls button.active {
+            background: #4CAF50;
         }
-        #callStatusOverlay .call-actions button.reject-call-btn {
-            background: var(--status-offline);
+        .video-controls button.muted {
+            background: #ff4757;
         }
-        #callStatusOverlay .call-actions button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        .video-controls button.end-call {
+            background: #ff4757;
+        }
+        .video-controls button.end-call:hover {
+            background: #ff3742;
+            transform: scale(1.1);
+        }
+        .call-timer {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .call-quality-indicator {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            gap: 5px;
+        }
+        .quality-bar {
+            width: 4px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+        .quality-bar.active {
+            background: #4CAF50;
+        }
+        .quality-bar.poor {
+            background: #ffc107;
+        }
+        .quality-bar.bad {
+            background: #ff4757;
+        }
+
+        /* Voice Call Interface */
+        .voice-call-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1003;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .voice-call-container.active {
+            display: flex;
+        }
+        .voice-call-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .voice-call-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .voice-call-avatar i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .voice-call-avatar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: rotate 3s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .voice-call-info {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .voice-call-info h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        .voice-call-info p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            color: white;
+        }
+        .voice-controls {
+            display: flex;
+            gap: 20px;
+        }
+        .voice-controls button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        .voice-controls button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        .voice-controls button.active {
+            background: #4CAF50;
+        }
+        .voice-controls button.muted {
+            background: #ff4757;
+        }
+        .voice-controls button.end-call {
+            background: #ff4757;
+        }
+        .voice-controls button.end-call:hover {
+            background: #ff3742;
+        }
+
+        /* Call Loading Animation */
+        .call-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .call-loading .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .call-loading .pulse {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+        }
+
+        /* Notification Center Styling */
+        .notification-center {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            width: 400px;
+            max-height: 600px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .notification-center.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .notification-center-header {
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            padding: 20px 25px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .notification-center-header::before {
+            content: '🔔';
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .notification-center-header h3 {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0;
+            margin-left: 30px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification-center-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .notification-center-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification-center-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px) scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification-center-btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        .notifications-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .notifications-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notifications-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .notifications-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            border-radius: 3px;
+        }
+
+        .notifications-list::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+        }
+
+        .notification-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification-item.unread {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .notification-item.unread::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(45deg, #ffd700, #ff6b35);
+            border-radius: 50%;
+            animation: pulse-notification 2s infinite;
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            color: white;
+        }
+
+        .notification-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--white);
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .notification-message {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .notification-time {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .notification-item:hover .notification-actions {
+            opacity: 1;
+        }
+
+        .notification-action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            color: var(--white);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .notification-action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .notification-action-btn.delete {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+
+        .notification-action-btn.delete:hover {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .no-notifications {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .no-notifications i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .no-notifications p {
+            font-size: 1rem;
+            margin: 0;
+            opacity: 0.7;
+        }
+
+        /* Toast Notification Styling */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: var(--white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 350px;
+            border-left: 4px solid var(--blue);
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .toast-notification.success {
+            border-left-color: #4CAF50;
+        }
+
+        .toast-notification.error {
+            border-left-color: #ff4757;
+        }
+
+        .toast-notification.warning {
+            border-left-color: #ffc107;
+        }
+
+        .toast-notification.info {
+            border-left-color: var(--blue);
+        }
+
+        /* Responsive Design for Notification Center */
+        @media (max-width: 768px) {
+            .notification-center {
+                width: calc(100vw - 40px);
+                right: 20px;
+                left: 20px;
+                max-height: 70vh;
+            }
+
+            .notification-center-header {
+                padding: 15px 20px;
+            }
+
+            .notification-center-header h3 {
+                font-size: 1.1rem;
+            }
+
+            .notifications-list {
+                max-height: calc(70vh - 80px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .notification-center {
+                width: calc(100vw - 20px);
+                right: 10px;
+                left: 10px;
+            }
+
+            .notification-item {
+                padding: 12px;
+            }
+
+            .notification-content {
+                gap: 10px;
+            }
+
+            .notification-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Find Friends Modal Styling */
+        .find-friends-modal {
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-light);
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            border-radius: 20px 20px 0 0;
+        }
+
+        .modal-header h3 {
+            color: white;
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .close-modal-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .search-container {
+            position: relative;
+            margin: 20px 25px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid var(--border-light);
+            border-radius: 25px;
+            background: var(--input-background);
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 10px rgba(0, 213, 255, 0.3);
+        }
+
+        .search-container input::placeholder {
+            color: var(--text-light);
+        }
+
+        .user-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 25px 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .user-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .user-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .user-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            border-radius: 3px;
+        }
+
+        .user-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .user-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--blue);
+            flex-shrink: 0;
+        }
+
+        .user-card .default-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .user-card h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--white);
+            flex-grow: 1;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .add-friend-btn {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .add-friend-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .cancel-request-btn {
+            background: linear-gradient(45deg, #ffc107, #ff9800);
+            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+        }
+
+        .cancel-request-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .accept-request-btn {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .accept-request-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .reject-request-btn {
+            background: linear-gradient(45deg, #f44336, #e91e63);
+            box-shadow: 0 4px 10px rgba(244, 67, 54, 0.3);
+        }
+
+        .reject-request-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .unfriend-btn {
+            background: linear-gradient(45deg, #f44336, #e91e63);
+            box-shadow: 0 4px 10px rgba(244, 67, 54, 0.3);
+        }
+
+        .unfriend-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .chat-btn {
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+        }
+
+        .chat-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+
+        .loading-users-message, .no-users-message {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 1rem;
+            margin: 20px 0;
+        }
+
+        .button-loader {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .action-btn.loading .button-loader {
+            display: block;
+        }
+
+        .action-btn.loading .button-text {
+            display: none;
         }
 
 
@@ -1440,7 +2437,7 @@
                 </a>
                 <!-- Notification Icon with Badge -->
                 <div class="notification-icon-wrapper">
-                    <a href="/notifications.html" aria-label="Notifications">
+                    <a href="#" onclick="toggleNotificationCenter(); return false;" aria-label="Notifications">
                         <i class="fas fa-bell"></i>
                         <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
                     </a>
@@ -1468,6 +2465,9 @@
                 <button id="selectFriendBtn" class="select-friend-btn" title="Select Chat Partner">
                     <i class="fas fa-users"></i>
                     <span class="select-friend-badge" id="selectFriendBadge" style="display: none;">0</span>
+                </button>
+                <button id="findFriendsBtn" class="find-friends-btn" title="Find New Friends">
+                    <i class="fas fa-user-plus"></i>
                 </button>
             </div>
             <div class="messages-display" id="messagesDisplay">
@@ -1520,6 +2520,96 @@
         </div>
     </div>
 
+    <!-- Video Call Interface -->
+    <div id="videoCallContainer" class="video-call-container">
+        <div class="video-grid">
+            <div class="video-item" id="localVideoItem">
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div class="video-label">You</div>
+                <div class="connection-status" id="localConnectionStatus"></div>
+            </div>
+            <div class="video-item" id="remoteVideoItem">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div class="video-label" id="remoteVideoLabel">Partner</div>
+                <div class="connection-status" id="remoteConnectionStatus"></div>
+            </div>
+        </div>
+        <div class="call-timer" id="callTimer">00:00</div>
+        <div class="call-quality-indicator" id="callQualityIndicator">
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+        </div>
+        <div class="video-controls">
+            <button id="muteVideoBtn" title="Mute Audio">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button id="toggleVideoBtn" title="Toggle Video">
+                <i class="fas fa-video"></i>
+            </button>
+            <button id="switchCameraBtn" title="Switch Camera">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button id="fullscreenBtn" title="Fullscreen">
+                <i class="fas fa-expand"></i>
+            </button>
+            <button id="endVideoCallBtn" class="end-call" title="End Call">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Voice Call Interface -->
+    <div id="voiceCallContainer" class="voice-call-container">
+        <div class="voice-call-avatar" id="voiceCallAvatar">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="voice-call-info">
+            <h2 id="voiceCallPartnerName">Partner Name</h2>
+            <p id="voiceCallStatus">Connecting...</p>
+        </div>
+        <div class="voice-controls">
+            <button id="muteVoiceBtn" title="Mute">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button id="speakerBtn" title="Speaker">
+                <i class="fas fa-volume-up"></i>
+            </button>
+            <button id="endVoiceCallBtn" class="end-call" title="End Call">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Center -->
+    <div id="notificationCenter" class="notification-center">
+        <div class="notification-center-header">
+            <h3>Notifications</h3>
+            <div class="notification-center-actions">
+                <button class="notification-center-btn" onclick="markAllNotificationsAsRead()" title="Mark All as Read">
+                    <i class="fas fa-check-double"></i>
+                </button>
+                <button class="notification-center-btn" onclick="clearAllNotifications()" title="Clear All">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button class="notification-center-btn" onclick="toggleNotificationCenter()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="notifications-list" id="notificationsList">
+            <div class="no-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>No notifications yet</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="toast-notification"></div>
+
     <!-- Select Friend Modal -->
     <div id="selectFriendModal" class="modal-overlay">
         <div class="modal-content">
@@ -1535,11 +2625,31 @@
         </div>
     </div>
 
+    <!-- Find Friends Modal -->
+    <div id="findFriendsModal" class="modal-overlay">
+        <div class="modal-content find-friends-modal">
+            <div class="modal-header">
+                <h3>Find Friends</h3>
+                <button class="close-modal-btn" onclick="closeFindFriendsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="userSearchInput" placeholder="Search users by username...">
+            </div>
+            <div class="user-list" id="userList">
+                <p class="loading-users-message" id="loadingUsersMessage">Loading users...</p>
+                <p class="no-users-message" id="noUsersFoundMessage" style="display: none;">No users found.</p>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, getDocs, addDoc, serverTimestamp, orderBy, limit, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, getDocs, addDoc, serverTimestamp, orderBy, limit, updateDoc, deleteDoc, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         // --- Firebase & Canvas Environment Configuration ---
@@ -1670,22 +2780,42 @@
         incomingCallSynth.envelope.release = 0.8;
 
         /**
-         * Plays a notification sound.
-         * @param {string} type - 'success', 'error', 'info', 'incoming_call'.
+         * Plays notification sounds using ne.mp3 or Tone.js fallback
+         * @param {string} type - 'success', 'error', 'info', 'warning', 'friend_request', 'message', 'level_up', 'incoming_call'.
          */
         function playNotificationSound(type) {
-            if (!notificationSoundEnabled) return; // Check if sound is enabled
+            if (!notificationSoundEnabled) return;
 
-            Tone.start(); // Ensure audio context is started
-            if (type === 'success') {
-                successSynth.triggerAttackRelease("C5", "8n"); // C5 note, 8th note duration
-            } else if (type === 'error') {
-                errorSynth.triggerAttackRelease("C3", "8n"); // C3 note, 8th note duration
-            } else if (type === 'info') {
-                infoSynth.triggerAttackRelease("E4", "16n"); // E4 note, 16th note duration
-            } else if (type === 'incoming_call') {
-                incomingCallSynth.triggerAttackRelease("C4", "2n");
-                incomingCallSynth.triggerAttackRelease("G4", "2n", "+0.5");
+            try {
+                // Try to play ne.mp3 first
+                const audio = new Audio('ne.mp3');
+                audio.volume = 0.6;
+                audio.play().catch(() => {
+                    // Fallback to Tone.js if ne.mp3 fails
+                    console.log("JCHAT_DEBUG: Using Tone.js fallback for notification sound");
+                    
+                    Tone.start(); // Ensure audio context is started
+                    if (type === 'success') {
+                        successSynth.triggerAttackRelease("C5", "8n");
+                    } else if (type === 'error') {
+                        errorSynth.triggerAttackRelease("C3", "8n");
+                    } else if (type === 'info') {
+                        infoSynth.triggerAttackRelease("E4", "16n");
+                    } else if (type === 'warning') {
+                        errorSynth.triggerAttackRelease("A3", "4n");
+                    } else if (type === 'friend_request') {
+                        infoSynth.triggerAttackRelease("D5", "8n");
+                    } else if (type === 'message') {
+                        infoSynth.triggerAttackRelease("E4", "8n");
+                    } else if (type === 'level_up') {
+                        successSynth.triggerAttackRelease("C6", "4n");
+                    } else if (type === 'incoming_call') {
+                        incomingCallSynth.triggerAttackRelease("C4", "2n");
+                        incomingCallSynth.triggerAttackRelease("G4", "2n", "+0.5");
+                    }
+                });
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error playing notification sound:", error);
             }
         }
 
@@ -2684,10 +3814,834 @@
             }
         });
 
-        // --- Call Functionality (Simulated) ---
-        // Note: Real-time voice/video calls (WebRTC) require complex server-side signaling
-        // and STUN/TURN server infrastructure, which is beyond the scope of a single HTML file.
-        // This implementation simulates call status changes via Firestore.
+        // --- WebRTC Call Functionality ---
+        // Comprehensive voice and video call implementation using WebRTC
+
+        // WebRTC Configuration
+        const rtcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ]
+        };
+
+        // WebRTC State Management
+        let peerConnection = null;
+        let localStream = null;
+        let remoteStream = null;
+        let isInitiator = false;
+        let isCallActive = false;
+        let callType = null;
+        let callStartTime = null;
+        let callTimer = null;
+        let isMuted = false;
+        let isVideoEnabled = true;
+        let isSpeakerOn = false;
+        let currentCamera = 'front';
+        let availableCameras = [];
+
+        // Notification System State Management
+        let notifications = [];
+        let unreadNotificationCount = 0;
+        let notificationCenterOpen = false;
+
+        // Find Friends System State Management
+        let allUsersData = [];
+        let currentUsersFriends = new Set();
+        let sentRequests = new Set();
+        let receivedRequests = new Set();
+        let unsubscribeUsers = null;
+        let unsubscribeFriendStatus = null;
+
+        // DOM Elements for calls
+        const videoCallContainer = document.getElementById('videoCallContainer');
+        const voiceCallContainer = document.getElementById('voiceCallContainer');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const callTimerElement = document.getElementById('callTimer');
+        const voiceCallPartnerName = document.getElementById('voiceCallPartnerName');
+        const voiceCallStatus = document.getElementById('voiceCallStatus');
+        const voiceCallAvatar = document.getElementById('voiceCallAvatar');
+        const remoteVideoLabel = document.getElementById('remoteVideoLabel');
+
+        // Call control buttons
+        const muteVideoBtn = document.getElementById('muteVideoBtn');
+        const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const endVideoCallBtn = document.getElementById('endVideoCallBtn');
+        const muteVoiceBtn = document.getElementById('muteVoiceBtn');
+        const speakerBtn = document.getElementById('speakerBtn');
+        const endVoiceCallBtn = document.getElementById('endVoiceCallBtn');
+
+        // Notification System DOM Elements
+        const notificationCenter = document.getElementById('notificationCenter');
+        const notificationsList = document.getElementById('notificationsList');
+        const toastNotification = document.getElementById('toastNotification');
+
+        // Find Friends DOM Elements
+        const findFriendsModal = document.getElementById('findFriendsModal');
+        const findFriendsBtn = document.getElementById('findFriendsBtn');
+        const userSearchInput = document.getElementById('userSearchInput');
+        const userList = document.getElementById('userList');
+        const loadingUsersMessage = document.getElementById('loadingUsersMessage');
+        const noUsersFoundMessage = document.getElementById('noUsersFoundMessage');
+
+        // --- Notification System Functions ---
+        /**
+         * Create a new notification
+         * @param {string} type - Type of notification (success, error, info, warning, friend_request, message, level_up)
+         * @param {string} title - Notification title
+         * @param {string} message - Notification message
+         * @param {string} icon - Custom icon (optional)
+         * @param {boolean} persistent - Whether to persist in notification center
+         */
+        function createNotification(type, title, message, icon = null, persistent = true) {
+            const notification = {
+                id: Date.now() + Math.random(),
+                type: type,
+                title: title,
+                message: message,
+                icon: icon || getNotificationIcon(type),
+                timestamp: new Date(),
+                read: false,
+                persistent: persistent
+            };
+
+            notifications.unshift(notification);
+            if (!notification.read) {
+                unreadNotificationCount++;
+            }
+
+            updateNotificationBadge();
+            updateNotificationCenter();
+
+            if (persistent) {
+                saveNotificationsToStorage();
+            }
+
+            // Show toast notification
+            showToastNotification(notification);
+
+            // Play notification sound
+            if (notificationSoundEnabled) {
+                playNotificationSound(type);
+            }
+
+            console.log("JCHAT_DEBUG: Notification created:", notification);
+        }
+
+        /**
+         * Get appropriate icon for notification type
+         * @param {string} type - Notification type
+         * @returns {string} Icon class
+         */
+        function getNotificationIcon(type) {
+            const iconMap = {
+                success: 'fas fa-check-circle',
+                error: 'fas fa-exclamation-circle',
+                info: 'fas fa-info-circle',
+                warning: 'fas fa-exclamation-triangle',
+                friend_request: 'fas fa-user-plus',
+                message: 'fas fa-comment',
+                level_up: 'fas fa-star',
+                incoming_call: 'fas fa-phone',
+                default: 'fas fa-bell'
+            };
+            return iconMap[type] || iconMap.default;
+        }
+
+        /**
+         * Show toast notification
+         * @param {Object} notification - Notification object
+         */
+        function showToastNotification(notification) {
+            toastNotification.textContent = notification.message;
+            toastNotification.className = `toast-notification ${notification.type}`;
+            toastNotification.classList.add('show');
+
+            setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 4000);
+        }
+
+        /**
+         * Update notification badge count
+         */
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notificationCount');
+            const iconWrapper = document.querySelector('.notification-icon-wrapper');
+
+            if (unreadNotificationCount > 0) {
+                badge.textContent = unreadNotificationCount > 99 ? '99+' : unreadNotificationCount;
+                badge.style.display = 'flex';
+                iconWrapper.classList.add('has-notifications');
+            } else {
+                badge.style.display = 'none';
+                iconWrapper.classList.remove('has-notifications');
+            }
+        }
+
+        /**
+         * Update notification center display
+         */
+        function updateNotificationCenter() {
+            if (!notificationsList) return;
+
+            if (notifications.length === 0) {
+                notificationsList.innerHTML = `
+                    <div class="no-notifications">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>No notifications yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            notificationsList.innerHTML = notifications.map(notification => `
+                <div class="notification-item ${notification.read ? '' : 'unread'}" data-id="${notification.id}">
+                    <div class="notification-content">
+                        <div class="notification-icon">
+                            <i class="${notification.icon}"></i>
+                        </div>
+                        <div class="notification-details">
+                            <div class="notification-title">${notification.title}</div>
+                            <div class="notification-message">${notification.message}</div>
+                            <div class="notification-time">${formatNotificationTime(notification.timestamp)}</div>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        ${!notification.read ? `<button class="notification-action-btn" onclick="markNotificationAsRead('${notification.id}')">Mark Read</button>` : ''}
+                        <button class="notification-action-btn delete" onclick="removeNotification('${notification.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * Mark notification as read
+         * @param {string} id - Notification ID
+         */
+        function markNotificationAsRead(id) {
+            const notification = notifications.find(n => n.id == id);
+            if (notification && !notification.read) {
+                notification.read = true;
+                unreadNotificationCount--;
+                updateNotificationBadge();
+                updateNotificationCenter();
+                saveNotificationsToStorage();
+            }
+        }
+
+        /**
+         * Mark all notifications as read
+         */
+        function markAllNotificationsAsRead() {
+            notifications.forEach(notification => {
+                notification.read = true;
+            });
+            unreadNotificationCount = 0;
+            updateNotificationBadge();
+            updateNotificationCenter();
+            saveNotificationsToStorage();
+            showToastNotification({
+                type: 'success',
+                message: 'All notifications marked as read'
+            });
+        }
+
+        /**
+         * Remove notification
+         * @param {string} id - Notification ID
+         */
+        function removeNotification(id) {
+            const index = notifications.findIndex(n => n.id == id);
+            if (index !== -1) {
+                const notification = notifications[index];
+                if (!notification.read) {
+                    unreadNotificationCount--;
+                }
+                notifications.splice(index, 1);
+                updateNotificationBadge();
+                updateNotificationCenter();
+                saveNotificationsToStorage();
+            }
+        }
+
+        /**
+         * Clear all notifications
+         */
+        function clearAllNotifications() {
+            notifications = [];
+            unreadNotificationCount = 0;
+            updateNotificationBadge();
+            updateNotificationCenter();
+            saveNotificationsToStorage();
+            showToastNotification({
+                type: 'info',
+                message: 'All notifications cleared'
+            });
+        }
+
+        /**
+         * Format notification time
+         * @param {Date} timestamp - Notification timestamp
+         * @returns {string} Formatted time string
+         */
+        function formatNotificationTime(timestamp) {
+            const now = new Date();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            if (days < 7) return `${days}d ago`;
+            return timestamp.toLocaleDateString();
+        }
+
+        /**
+         * Save notifications to localStorage
+         */
+        function saveNotificationsToStorage() {
+            try {
+                localStorage.setItem('jchat-notifications', JSON.stringify(notifications));
+                localStorage.setItem('jchat-unread-count', unreadNotificationCount.toString());
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error saving notifications to storage:", error);
+            }
+        }
+
+        /**
+         * Load notifications from localStorage
+         */
+        function loadNotificationsFromStorage() {
+            try {
+                const savedNotifications = localStorage.getItem('jchat-notifications');
+                const savedCount = localStorage.getItem('jchat-unread-count');
+                
+                if (savedNotifications) {
+                    notifications = JSON.parse(savedNotifications);
+                    notifications.forEach(n => {
+                        n.timestamp = new Date(n.timestamp);
+                    });
+                }
+                
+                if (savedCount) {
+                    unreadNotificationCount = parseInt(savedCount);
+                }
+                
+                updateNotificationBadge();
+                updateNotificationCenter();
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error loading notifications from storage:", error);
+            }
+        }
+
+        /**
+         * Toggle notification center visibility
+         */
+        function toggleNotificationCenter() {
+            notificationCenterOpen = !notificationCenterOpen;
+            
+            if (notificationCenterOpen) {
+                notificationCenter.classList.add('active');
+                // Add click outside listener
+                setTimeout(() => {
+                    document.addEventListener('click', handleClickOutside);
+                }, 100);
+            } else {
+                notificationCenter.classList.remove('active');
+                document.removeEventListener('click', handleClickOutside);
+            }
+        }
+
+        /**
+         * Handle clicks outside notification center
+         * @param {Event} event - Click event
+         */
+        function handleClickOutside(event) {
+            if (!notificationCenter.contains(event.target) && 
+                !event.target.closest('.notification-icon-wrapper')) {
+                toggleNotificationCenter();
+            }
+        }
+
+        /**
+         * Initialize notification system
+         */
+        function initializeNotificationSystem() {
+            loadNotificationsFromStorage();
+        }
+
+        // --- Find Friends System Functions ---
+        /**
+         * Initialize Find Friends functionality
+         */
+        function initializeFindFriends() {
+            // Add event listeners
+            if (findFriendsBtn) {
+                findFriendsBtn.addEventListener('click', openFindFriendsModal);
+            }
+            if (userSearchInput) {
+                userSearchInput.addEventListener('input', (e) => {
+                    renderUserList(allUsersData, e.target.value);
+                });
+            }
+        }
+
+        /**
+         * Open Find Friends modal
+         */
+        function openFindFriendsModal() {
+            if (!currentUser) {
+                showMessageBox("Please log in to find friends.", 'warning');
+                return;
+            }
+            findFriendsModal.classList.add('active');
+            loadAllUsers();
+        }
+
+        /**
+         * Close Find Friends modal
+         */
+        function closeFindFriendsModal() {
+            findFriendsModal.classList.remove('active');
+            if (userSearchInput) {
+                userSearchInput.value = '';
+            }
+            if (unsubscribeUsers) {
+                unsubscribeUsers();
+                unsubscribeUsers = null;
+            }
+            if (unsubscribeFriendStatus) {
+                unsubscribeFriendStatus();
+                unsubscribeFriendStatus = null;
+            }
+        }
+
+        /**
+         * Load all users for the Find Friends feature
+         */
+        async function loadAllUsers() {
+            if (!currentUser) return;
+
+            try {
+                loadingUsersMessage.style.display = 'block';
+                noUsersFoundMessage.style.display = 'none';
+
+                // Get all public user profiles
+                const publicUsersRef = collection(db, "artifacts", appId, "public", "data", "users");
+                const usersSnapshot = await getDocs(publicUsersRef);
+                
+                const users = [];
+                usersSnapshot.forEach(doc => {
+                    if (doc.id !== currentUser.uid) {
+                        users.push({
+                            uid: doc.id,
+                            ...doc.data()
+                        });
+                    }
+                });
+
+                allUsersData = users;
+                await loadFriendStatuses();
+                renderUserList(users, '');
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error loading users:", error);
+                showMessageBox("Failed to load users: " + error.message, 'error');
+            } finally {
+                loadingUsersMessage.style.display = 'none';
+            }
+        }
+
+        /**
+         * Load friend statuses for all users
+         */
+        async function loadFriendStatuses() {
+            if (!currentUser) return;
+
+            try {
+                // Reset sets
+                currentUsersFriends.clear();
+                sentRequests.clear();
+                receivedRequests.clear();
+
+                // Get current user's friends
+                const friendsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
+                const friendsSnapshot = await getDocs(friendsRef);
+                friendsSnapshot.forEach(doc => {
+                    currentUsersFriends.add(doc.id);
+                });
+
+                // Get sent friend requests
+                const sentRequestsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "sent");
+                const sentRequestsSnapshot = await getDocs(sentRequestsRef);
+                sentRequestsSnapshot.forEach(doc => {
+                    sentRequests.add(doc.id);
+                });
+
+                // Get received friend requests
+                const receivedRequestsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "received");
+                const receivedRequestsSnapshot = await getDocs(receivedRequestsRef);
+                receivedRequestsSnapshot.forEach(doc => {
+                    receivedRequests.add(doc.id);
+                });
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error loading friend statuses:", error);
+            }
+        }
+
+        /**
+         * Render user list with search filtering
+         */
+        function renderUserList(usersToRender, searchQuery) {
+            if (!userList) return;
+
+            userList.innerHTML = '';
+            loadingUsersMessage.style.display = 'none';
+
+            let filteredUsers = usersToRender;
+
+            if (searchQuery) {
+                const lowerCaseQuery = searchQuery.toLowerCase();
+                filteredUsers = usersToRender.filter(user =>
+                    (user.username && user.username.toLowerCase().includes(lowerCaseQuery))
+                );
+            }
+
+            if (filteredUsers.length === 0) {
+                noUsersFoundMessage.style.display = 'block';
+                return;
+            }
+
+            noUsersFoundMessage.style.display = 'none';
+
+            filteredUsers.forEach(user => {
+                const userCard = createUserCard(user);
+                userList.appendChild(userCard);
+            });
+        }
+
+        /**
+         * Create user card element
+         */
+        function createUserCard(userData) {
+            const card = document.createElement('div');
+            card.className = 'user-card';
+            card.setAttribute('data-user-id', userData.uid);
+
+            const userId = userData.uid;
+            const username = userData.username || 'Anonymous User';
+            const isFriend = currentUsersFriends.has(userId);
+            const hasSentRequest = sentRequests.has(userId);
+            const hasReceivedRequest = receivedRequests.has(userId);
+
+            // Profile image
+            let profileImageHtml = '';
+            if (userData.profilePicId) {
+                profileImageHtml = `<img src="${userData.profilePicId}" alt="${username}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+            }
+            profileImageHtml += `<div class="default-avatar" style="display: ${userData.profilePicId ? 'none' : 'flex'}"><i class="fas fa-user"></i></div>`;
+
+            // Action buttons
+            let actionButtonsHtml = '';
+            if (isFriend) {
+                actionButtonsHtml = `
+                    <button class="action-btn chat-btn" onclick="startChatWithUser('${userId}')">
+                        <span class="button-text"><i class="fas fa-comment"></i> Chat</span>
+                        <div class="button-loader"></div>
+                    </button>
+                    <button class="action-btn unfriend-btn" onclick="unfriendUser('${userId}', this)">
+                        <span class="button-text"><i class="fas fa-user-minus"></i> Unfriend</span>
+                        <div class="button-loader"></div>
+                    </button>
+                `;
+            } else if (hasSentRequest) {
+                actionButtonsHtml = `
+                    <button class="action-btn cancel-request-btn" onclick="cancelFriendRequest('${userId}', this)">
+                        <span class="button-text"><i class="fas fa-times"></i> Cancel</span>
+                        <div class="button-loader"></div>
+                    </button>
+                `;
+            } else if (hasReceivedRequest) {
+                actionButtonsHtml = `
+                    <button class="action-btn accept-request-btn" onclick="acceptFriendRequest('${userId}', this)">
+                        <span class="button-text"><i class="fas fa-check"></i> Accept</span>
+                        <div class="button-loader"></div>
+                    </button>
+                    <button class="action-btn reject-request-btn" onclick="rejectFriendRequest('${userId}', this)">
+                        <span class="button-text"><i class="fas fa-times"></i> Reject</span>
+                        <div class="button-loader"></div>
+                    </button>
+                `;
+            } else {
+                actionButtonsHtml = `
+                    <button class="action-btn add-friend-btn" onclick="sendFriendRequest('${userId}', this)">
+                        <span class="button-text"><i class="fas fa-user-plus"></i> Add Friend</span>
+                        <div class="button-loader"></div>
+                    </button>
+                `;
+            }
+
+            card.innerHTML = `
+                ${profileImageHtml}
+                <h3>${userData.visibility?.displayName !== false ? username : 'Anonymous User'}</h3>
+                <div class="user-actions">
+                    ${actionButtonsHtml}
+                </div>
+            `;
+
+            return card;
+        }
+
+        /**
+         * Send friend request
+         */
+        async function sendFriendRequest(userId, buttonElement) {
+            if (!currentUser) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                const requestData = {
+                    senderId: currentUser.uid,
+                    receiverId: userId,
+                    senderUsername: currentUserProfileData?.username || 'Unknown User',
+                    receiverUsername: allUsersData.find(u => u.uid === userId)?.username || 'Unknown User',
+                    status: 'pending',
+                    timestamp: serverTimestamp()
+                };
+
+                // Add to sender's sent requests
+                await addDoc(collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "sent"), {
+                    ...requestData,
+                    id: userId
+                });
+
+                // Add to receiver's received requests
+                await addDoc(collection(db, "artifacts", appId, "users", userId, "friend_requests", "received"), {
+                    ...requestData,
+                    id: currentUser.uid
+                });
+
+                // Update local state
+                sentRequests.add(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("Friend request sent!", 'success');
+                createNotification('success', 'Friend Request Sent', `Friend request sent to ${requestData.receiverUsername}`, null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error sending friend request:", error);
+                showMessageBox("Failed to send friend request: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Cancel friend request
+         */
+        async function cancelFriendRequest(userId, buttonElement) {
+            if (!currentUser) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                // Remove from sender's sent requests
+                const sentRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "sent"),
+                    where("receiverId", "==", userId)
+                );
+                const sentRequestSnapshot = await getDocs(sentRequestQuery);
+                const batch = writeBatch(db);
+                sentRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                // Remove from receiver's received requests
+                const receivedRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", userId, "friend_requests", "received"),
+                    where("senderId", "==", currentUser.uid)
+                );
+                const receivedRequestSnapshot = await getDocs(receivedRequestQuery);
+                receivedRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+
+                // Update local state
+                sentRequests.delete(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("Friend request cancelled!", 'info');
+                createNotification('info', 'Friend Request Cancelled', 'Friend request has been cancelled', null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error cancelling friend request:", error);
+                showMessageBox("Failed to cancel friend request: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Accept friend request
+         */
+        async function acceptFriendRequest(userId, buttonElement) {
+            if (!currentUser) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                const batch = writeBatch(db);
+
+                // Add to both users' friends lists
+                batch.set(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", userId), {
+                    friendId: userId,
+                    addedAt: serverTimestamp()
+                });
+
+                batch.set(doc(db, "artifacts", appId, "users", userId, "friends", currentUser.uid), {
+                    friendId: currentUser.uid,
+                    addedAt: serverTimestamp()
+                });
+
+                // Remove the request from both users
+                const receivedRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "received"),
+                    where("senderId", "==", userId)
+                );
+                const receivedRequestSnapshot = await getDocs(receivedRequestQuery);
+                receivedRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                const sentRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", userId, "friend_requests", "sent"),
+                    where("receiverId", "==", currentUser.uid)
+                );
+                const sentRequestSnapshot = await getDocs(sentRequestQuery);
+                sentRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+
+                // Update local state
+                currentUsersFriends.add(userId);
+                receivedRequests.delete(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("Friend request accepted!", 'success');
+                createNotification('success', 'Friend Added', 'You are now friends!', null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error accepting friend request:", error);
+                showMessageBox("Failed to accept friend request: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Reject friend request
+         */
+        async function rejectFriendRequest(userId, buttonElement) {
+            if (!currentUser) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                const batch = writeBatch(db);
+
+                // Remove the request from both users
+                const receivedRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "received"),
+                    where("senderId", "==", userId)
+                );
+                const receivedRequestSnapshot = await getDocs(receivedRequestQuery);
+                receivedRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                const sentRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", userId, "friend_requests", "sent"),
+                    where("receiverId", "==", currentUser.uid)
+                );
+                const sentRequestSnapshot = await getDocs(sentRequestQuery);
+                sentRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+
+                // Update local state
+                receivedRequests.delete(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("Friend request rejected!", 'info');
+                createNotification('info', 'Friend Request Rejected', 'Friend request has been rejected', null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error rejecting friend request:", error);
+                showMessageBox("Failed to reject friend request: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Unfriend user
+         */
+        async function unfriendUser(userId, buttonElement) {
+            if (!currentUser) return;
+
+            const confirmed = await showCustomConfirm(`Are you sure you want to unfriend this user?`);
+            if (!confirmed) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                const batch = writeBatch(db);
+
+                // Remove from both users' friends lists
+                batch.delete(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", userId));
+                batch.delete(doc(db, "artifacts", appId, "users", userId, "friends", currentUser.uid));
+
+                await batch.commit();
+
+                // Update local state
+                currentUsersFriends.delete(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("User unfriended!", 'info');
+                createNotification('info', 'Friend Removed', 'User has been unfriended', null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error unfriending user:", error);
+                showMessageBox("Failed to unfriend user: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Start chat with user
+         */
+        function startChatWithUser(userId) {
+            closeFindFriendsModal();
+            window.location.href = `/chat.html?partnerId=${userId}`;
+        }
 
         /**
          * Displays the call status overlay.
@@ -2721,7 +4675,7 @@
         }
 
         /**
-         * Initiates a voice or video call.
+         * Initiates a voice or video call with WebRTC.
          * @param {string} callType - 'voice' or 'video'.
          */
         async function startCall(callType) {
@@ -2737,23 +4691,29 @@
             const confirmed = await showCustomConfirm(`Start a ${callType} call with ${partnerProfileData.username}?`);
             if (!confirmed) return;
 
-            showMessageBox(`Calling ${partnerProfileData.username}...`, 'info', true);
-            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
-            const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
-
             try {
-                await setDoc(callDocRef, {
-                    callerId: currentUser.uid,
-                    receiverId: partnerId,
-                    callType: callType,
-                    status: 'ringing',
-                    timestamp: serverTimestamp(),
-                    callerUsername: currentUserProfileData.username,
-                    receiverUsername: partnerProfileData.username
+                // Initialize WebRTC
+                await initializeWebRTC(callType);
+                isInitiator = true;
+                callType = callType;
+
+                // Get user media
+                await getUserMedia(callType);
+
+                // Create peer connection
+                createPeerConnection();
+
+                // Add local stream to peer connection
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
                 });
 
-                // Send a message to the chat indicating the call started
-                await sendMessage('call_status', `${currentUserProfileData.username} started a ${callType} call.`);
+                // Create and send offer
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                // Send call offer to partner
+                await sendCallOffer(offer, callType);
 
                 showCallStatusOverlay(
                     `Outgoing ${callType} Call`,
@@ -2771,8 +4731,9 @@
                     timestamp: serverTimestamp(),
                     read: false,
                     callType: callType,
-                    chatRoomId: chatRoomId
+                    chatRoomId: getChatRoomId(currentUser.uid, partnerId)
                 });
+
                 playNotificationSound('incoming_call');
 
             } catch (error) {
@@ -2780,31 +4741,172 @@
                 showMessageBox(`Failed to start call: ${error.message}`, 'error');
                 playNotificationSound('error');
                 hideCallStatusOverlay();
+                cleanupCall();
             }
         }
 
         /**
-         * Ends the current call.
-         * @param {string} reason - The reason for ending the call (e.g., 'caller_ended', 'receiver_ended', 'busy').
+         * Initialize WebRTC for calls
+         */
+        async function initializeWebRTC(callType) {
+            // Check if WebRTC is supported
+            if (!navigator.mediaDevices || !window.RTCPeerConnection) {
+                throw new Error('WebRTC is not supported in this browser');
+            }
+
+            // Check permissions
+            if (callType === 'video') {
+                const videoPermission = await navigator.permissions.query({ name: 'camera' });
+                if (videoPermission.state === 'denied') {
+                    throw new Error('Camera permission is required for video calls');
+                }
+            }
+
+            const audioPermission = await navigator.permissions.query({ name: 'microphone' });
+            if (audioPermission.state === 'denied') {
+                throw new Error('Microphone permission is required for calls');
+            }
+
+            console.log("JCHAT_DEBUG: WebRTC initialized for", callType, "call");
+        }
+
+        /**
+         * Get user media (camera/microphone)
+         */
+        async function getUserMedia(callType) {
+            const constraints = {
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                },
+                video: callType === 'video' ? {
+                    width: { ideal: 1280, min: 640 },
+                    height: { ideal: 720, min: 480 },
+                    facingMode: currentCamera
+                } : false
+            };
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                if (callType === 'video') {
+                    localVideo.srcObject = localStream;
+                    await localVideo.play();
+                }
+
+                console.log("JCHAT_DEBUG: User media obtained successfully");
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error getting user media:", error);
+                throw new Error(`Failed to access ${callType === 'video' ? 'camera/microphone' : 'microphone'}: ${error.message}`);
+            }
+        }
+
+        /**
+         * Create peer connection
+         */
+        function createPeerConnection() {
+            peerConnection = new RTCPeerConnection(rtcConfig);
+
+            // Handle incoming tracks
+            peerConnection.ontrack = (event) => {
+                console.log("JCHAT_DEBUG: Received remote track");
+                remoteStream = event.streams[0];
+                if (callType === 'video') {
+                    remoteVideo.srcObject = remoteStream;
+                    remoteVideo.play();
+                }
+            };
+
+            // Handle ICE candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    sendIceCandidate(event.candidate);
+                }
+            };
+
+            // Handle connection state changes
+            peerConnection.onconnectionstatechange = () => {
+                console.log("JCHAT_DEBUG: Connection state:", peerConnection.connectionState);
+                updateConnectionStatus(peerConnection.connectionState);
+            };
+
+            // Handle ICE connection state changes
+            peerConnection.oniceconnectionstatechange = () => {
+                console.log("JCHAT_DEBUG: ICE connection state:", peerConnection.iceConnectionState);
+                updateCallQuality(peerConnection.iceConnectionState);
+            };
+
+            console.log("JCHAT_DEBUG: Peer connection created");
+        }
+
+        /**
+         * Send call offer to partner
+         */
+        async function sendCallOffer(offer, callType) {
+            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+            const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
+
+            await setDoc(signalingRef, {
+                type: 'offer',
+                offer: offer,
+                callType: callType,
+                callerId: currentUser.uid,
+                receiverId: partnerId,
+                timestamp: serverTimestamp()
+            });
+        }
+
+        /**
+         * Send ICE candidate to partner
+         */
+        async function sendIceCandidate(candidate) {
+            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+            const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
+
+            await updateDoc(signalingRef, {
+                iceCandidate: candidate,
+                timestamp: serverTimestamp()
+            });
+        }
+
+        /**
+         * Ends the current call and cleans up WebRTC resources.
+         * @param {string} reason - The reason for ending the call.
          */
         async function endCall(reason) {
             if (!currentUser || !partnerId) return;
 
-            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
-            const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
-
             try {
+                // Stop call timer
+                if (callTimer) {
+                    clearInterval(callTimer);
+                    callTimer = null;
+                }
+
+                // Clean up WebRTC resources
+                cleanupCall();
+
+                // Hide call interfaces
+                hideCallInterfaces();
+
+                // Send call end signal to partner
+                await sendCallEndSignal(reason);
+
+                // Update call status in Firestore
+                const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
                 await updateDoc(callDocRef, { status: reason, endedAt: serverTimestamp() });
-                hideCallStatusOverlay(); // Hide overlay when call is officially ended
+
+                hideCallStatusOverlay();
                 showMessageBox("Call ended.", 'info');
 
+                // Send chat message about call end
                 let messageText = '';
                 if (reason === 'caller_ended') {
                     messageText = `${currentUserProfileData.username} ended the call.`;
                 } else if (reason === 'receiver_ended') {
                     messageText = `${partnerProfileData.username} ended the call.`;
-                } else if (reason === 'accepted') {
-                     messageText = "Call started."; // Should not happen here, but for completeness
                 } else if (reason === 'rejected') {
                     messageText = `${partnerProfileData.username} rejected the call.`;
                 } else if (reason === 'no_answer') {
@@ -2822,24 +4924,231 @@
         }
 
         /**
-         * Accepts an incoming call.
+         * Clean up WebRTC resources
+         */
+        function cleanupCall() {
+            // Stop all tracks
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            if (remoteStream) {
+                remoteStream.getTracks().forEach(track => track.stop());
+                remoteStream = null;
+            }
+
+            // Close peer connection
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            // Reset state
+            isCallActive = false;
+            isInitiator = false;
+            callType = null;
+            callStartTime = null;
+            isMuted = false;
+            isVideoEnabled = true;
+            isSpeakerOn = false;
+
+            console.log("JCHAT_DEBUG: WebRTC resources cleaned up");
+        }
+
+        /**
+         * Hide call interfaces
+         */
+        function hideCallInterfaces() {
+            videoCallContainer.classList.remove('active');
+            voiceCallContainer.classList.remove('active');
+        }
+
+        /**
+         * Send call end signal to partner
+         */
+        async function sendCallEndSignal(reason) {
+            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+            const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
+
+            await setDoc(signalingRef, {
+                type: 'end_call',
+                reason: reason,
+                timestamp: serverTimestamp()
+            });
+        }
+
+        /**
+         * Accepts an incoming call and establishes WebRTC connection.
          * @param {string} callType - The type of call ('voice' or 'video').
          */
         async function acceptCall(callType) {
             if (!currentUser || !partnerId) return;
 
-            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
-            const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
-
             try {
-                await updateDoc(callDocRef, { status: 'accepted', acceptedBy: currentUser.uid, startedAt: serverTimestamp() });
-                // Do NOT hide overlay here. The onSnapshot listener will update it to "Connected".
-                playNotificationSound('success');
-                await sendMessage('call_status', `${currentUserProfileData.username} accepted the ${callType} call.`);
+                // Initialize WebRTC
+                await initializeWebRTC(callType);
+                callType = callType;
+
+                // Get user media
+                await getUserMedia(callType);
+
+                // Create peer connection
+                createPeerConnection();
+
+                // Add local stream to peer connection
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+
+                // Get the offer from signaling data
+                const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
+                const signalingDoc = await getDoc(signalingRef);
+                
+                if (signalingDoc.exists() && signalingDoc.data().type === 'offer') {
+                    const offer = signalingDoc.data().offer;
+                    await peerConnection.setRemoteDescription(offer);
+
+                    // Create and send answer
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+
+                    // Send answer to caller
+                    await sendCallAnswer(answer);
+
+                    // Start the call
+                    startActiveCall(callType);
+
+                    // Update call status
+                    const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
+                    await updateDoc(callDocRef, { 
+                        status: 'accepted', 
+                        acceptedBy: currentUser.uid, 
+                        startedAt: serverTimestamp() 
+                    });
+
+                    playNotificationSound('success');
+                    await sendMessage('call_status', `${currentUserProfileData.username} accepted the ${callType} call.`);
+                }
+
             } catch (error) {
                 console.error("JCHAT_ERROR: Error accepting call:", error);
                 showMessageBox(`Failed to accept call: ${error.message}`, 'error');
                 playNotificationSound('error');
+                cleanupCall();
+            }
+        }
+
+        /**
+         * Send call answer to partner
+         */
+        async function sendCallAnswer(answer) {
+            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+            const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
+
+            await updateDoc(signalingRef, {
+                type: 'answer',
+                answer: answer,
+                timestamp: serverTimestamp()
+            });
+        }
+
+        /**
+         * Start active call interface
+         */
+        function startActiveCall(callType) {
+            isCallActive = true;
+            callStartTime = Date.now();
+            
+            // Start call timer
+            callTimer = setInterval(updateCallTimer, 1000);
+
+            // Show appropriate call interface
+            if (callType === 'video') {
+                videoCallContainer.classList.add('active');
+                remoteVideoLabel.textContent = partnerProfileData.username;
+            } else {
+                voiceCallContainer.classList.add('active');
+                voiceCallPartnerName.textContent = partnerProfileData.username;
+                voiceCallStatus.textContent = 'Connected';
+                
+                // Set partner avatar
+                if (partnerProfileData.profilePicId) {
+                    voiceCallAvatar.innerHTML = `<img src="${partnerProfileData.profilePicId}" alt="${partnerProfileData.username}">`;
+                } else {
+                    voiceCallAvatar.innerHTML = `<i class="fas fa-user-circle"></i>`;
+                }
+            }
+
+            hideCallStatusOverlay();
+            console.log("JCHAT_DEBUG: Active call started");
+        }
+
+        /**
+         * Update call timer display
+         */
+        function updateCallTimer() {
+            if (callStartTime) {
+                const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                callTimerElement.textContent = timeString;
+            }
+        }
+
+        /**
+         * Update connection status indicator
+         */
+        function updateConnectionStatus(state) {
+            const localStatus = document.getElementById('localConnectionStatus');
+            const remoteStatus = document.getElementById('remoteConnectionStatus');
+
+            if (state === 'connected') {
+                localStatus.className = 'connection-status';
+                remoteStatus.className = 'connection-status';
+            } else if (state === 'connecting') {
+                localStatus.className = 'connection-status poor';
+                remoteStatus.className = 'connection-status poor';
+            } else {
+                localStatus.className = 'connection-status disconnected';
+                remoteStatus.className = 'connection-status disconnected';
+            }
+        }
+
+        /**
+         * Update call quality indicator
+         */
+        function updateCallQuality(state) {
+            const qualityBars = document.querySelectorAll('.quality-bar');
+            
+            if (state === 'connected' || state === 'completed') {
+                qualityBars.forEach((bar, index) => {
+                    if (index < 4) {
+                        bar.className = 'quality-bar active';
+                    } else {
+                        bar.className = 'quality-bar poor';
+                    }
+                });
+            } else if (state === 'checking' || state === 'connected') {
+                qualityBars.forEach((bar, index) => {
+                    if (index < 3) {
+                        bar.className = 'quality-bar active';
+                    } else if (index < 4) {
+                        bar.className = 'quality-bar poor';
+                    } else {
+                        bar.className = 'quality-bar bad';
+                    }
+                });
+            } else {
+                qualityBars.forEach((bar, index) => {
+                    if (index < 2) {
+                        bar.className = 'quality-bar poor';
+                    } else {
+                        bar.className = 'quality-bar bad';
+                    }
+                });
             }
         }
 
@@ -2866,7 +5175,7 @@
         }
 
         /**
-         * Listens for incoming call status changes.
+         * Listens for incoming call status changes and WebRTC signaling.
          */
         function listenForCallStatus() {
             if (!currentUser || !partnerId) {
@@ -2880,10 +5189,12 @@
 
             const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
             const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
+            const signalingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "signaling", "call_data");
 
             if (unsubscribeCallStatus) unsubscribeCallStatus(); // Clean up previous listener
 
-            unsubscribeCallStatus = onSnapshot(callDocRef, async (docSnap) => {
+            // Listen for call status changes
+            const callStatusUnsubscribe = onSnapshot(callDocRef, async (docSnap) => {
                 if (docSnap.exists()) {
                     const callData = docSnap.data();
                     console.log("JCHAT_DEBUG: Call status update:", callData);
@@ -2920,16 +5231,73 @@
                     } else if (callData.status === 'rejected' || callData.status === 'caller_ended' || callData.status === 'receiver_ended' || callData.status === 'no_answer') {
                         // Call ended for any reason, hide overlay
                         hideCallStatusOverlay();
+                        cleanupCall();
                         // Message handled by sendMessage('call_status', ...) already
                     }
                 } else {
                     // Call document doesn't exist or was deleted, meaning call ended
                     hideCallStatusOverlay();
+                    cleanupCall();
                 }
             }, (error) => {
                 console.error("JCHAT_ERROR: Error listening to call status:", error);
                 showMessageBox(`Error listening to call status: ${error.message}`, 'error');
             });
+
+            // Listen for WebRTC signaling
+            const signalingUnsubscribe = onSnapshot(signalingRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    const signalingData = docSnap.data();
+                    console.log("JCHAT_DEBUG: Signaling data:", signalingData);
+
+                    if (signalingData.type === 'offer' && signalingData.callerId !== currentUser.uid) {
+                        // Received call offer
+                        try {
+                            await initializeWebRTC(signalingData.callType);
+                            callType = signalingData.callType;
+                            await getUserMedia(signalingData.callType);
+                            createPeerConnection();
+                            
+                            localStream.getTracks().forEach(track => {
+                                peerConnection.addTrack(track, localStream);
+                            });
+
+                            await peerConnection.setRemoteDescription(signalingData.offer);
+                            const answer = await peerConnection.createAnswer();
+                            await peerConnection.setLocalDescription(answer);
+                            await sendCallAnswer(answer);
+
+                        } catch (error) {
+                            console.error("JCHAT_ERROR: Error handling call offer:", error);
+                            rejectCall();
+                        }
+                    } else if (signalingData.type === 'answer' && signalingData.callerId === currentUser.uid) {
+                        // Received call answer
+                        if (peerConnection) {
+                            await peerConnection.setRemoteDescription(signalingData.answer);
+                            startActiveCall(callType);
+                        }
+                    } else if (signalingData.type === 'ice_candidate') {
+                        // Received ICE candidate
+                        if (peerConnection && signalingData.iceCandidate) {
+                            await peerConnection.addIceCandidate(signalingData.iceCandidate);
+                        }
+                    } else if (signalingData.type === 'end_call') {
+                        // Call ended by partner
+                        hideCallStatusOverlay();
+                        cleanupCall();
+                        showMessageBox("Call ended by partner", 'info');
+                    }
+                }
+            }, (error) => {
+                console.error("JCHAT_ERROR: Error listening to signaling:", error);
+            });
+
+            // Combine both unsubscribes
+            unsubscribeCallStatus = () => {
+                callStatusUnsubscribe();
+                signalingUnsubscribe();
+            };
         }
 
         /**
@@ -3253,6 +5621,128 @@
             }
         });
 
+        // --- Call Control Functions ---
+        /**
+         * Toggle mute/unmute
+         */
+        function toggleMute() {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    isMuted = !audioTrack.enabled;
+                    
+                    // Update button states
+                    muteVideoBtn.classList.toggle('muted', isMuted);
+                    muteVoiceBtn.classList.toggle('muted', isMuted);
+                    
+                    // Update button icons
+                    const muteIcon = isMuted ? 'fa-microphone-slash' : 'fa-microphone';
+                    muteVideoBtn.innerHTML = `<i class="fas ${muteIcon}"></i>`;
+                    muteVoiceBtn.innerHTML = `<i class="fas ${muteIcon}"></i>`;
+                }
+            }
+        }
+
+        /**
+         * Toggle video on/off
+         */
+        function toggleVideo() {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.enabled = !videoTrack.enabled;
+                    isVideoEnabled = videoTrack.enabled;
+                    
+                    // Update button state
+                    toggleVideoBtn.classList.toggle('muted', !isVideoEnabled);
+                    
+                    // Update button icon
+                    const videoIcon = isVideoEnabled ? 'fa-video' : 'fa-video-slash';
+                    toggleVideoBtn.innerHTML = `<i class="fas ${videoIcon}"></i>`;
+                }
+            }
+        }
+
+        /**
+         * Switch between front and back cameras
+         */
+        async function switchCamera() {
+            if (localStream && callType === 'video') {
+                try {
+                    // Stop current video track
+                    const currentVideoTrack = localStream.getVideoTracks()[0];
+                    if (currentVideoTrack) {
+                        currentVideoTrack.stop();
+                    }
+
+                    // Switch camera
+                    currentCamera = currentCamera === 'front' ? 'environment' : 'front';
+
+                    // Get new video stream
+                    const newVideoStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 1280, min: 640 },
+                            height: { ideal: 720, min: 480 },
+                            facingMode: currentCamera
+                        }
+                    });
+
+                    // Replace video track in local stream
+                    const newVideoTrack = newVideoStream.getVideoTracks()[0];
+                    const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                    if (sender) {
+                        sender.replaceTrack(newVideoTrack);
+                    }
+
+                    // Update local video
+                    localVideo.srcObject = localStream;
+                    await localVideo.play();
+
+                    console.log("JCHAT_DEBUG: Camera switched to", currentCamera);
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error switching camera:", error);
+                    showMessageBox("Failed to switch camera", 'error');
+                }
+            }
+        }
+
+        /**
+         * Toggle fullscreen mode
+         */
+        function toggleFullscreen() {
+            const videoItem = document.querySelector('.video-item.fullscreen');
+            if (videoItem) {
+                // Exit fullscreen
+                videoItem.classList.remove('fullscreen');
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                fullscreenBtn.title = 'Fullscreen';
+            } else {
+                // Enter fullscreen
+                const remoteVideoItem = document.getElementById('remoteVideoItem');
+                remoteVideoItem.classList.add('fullscreen');
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                fullscreenBtn.title = 'Exit Fullscreen';
+            }
+        }
+
+        /**
+         * Toggle speaker mode
+         */
+        function toggleSpeaker() {
+            if (remoteVideo) {
+                isSpeakerOn = !isSpeakerOn;
+                remoteVideo.muted = !isSpeakerOn;
+                
+                // Update button state
+                speakerBtn.classList.toggle('active', isSpeakerOn);
+                
+                // Update button icon
+                const speakerIcon = isSpeakerOn ? 'fa-volume-mute' : 'fa-volume-up';
+                speakerBtn.innerHTML = `<i class="fas ${speakerIcon}"></i>`;
+            }
+        }
+
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
             // Apply theme on load
@@ -3301,6 +5791,17 @@
             voiceCallBtn.addEventListener('click', () => startCall('voice'));
             videoCallBtn.addEventListener('click', () => startCall('video'));
 
+            // Call control event listeners
+            muteVideoBtn.addEventListener('click', toggleMute);
+            toggleVideoBtn.addEventListener('click', toggleVideo);
+            switchCameraBtn.addEventListener('click', switchCamera);
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+            endVideoCallBtn.addEventListener('click', () => endCall('caller_ended'));
+
+            muteVoiceBtn.addEventListener('click', toggleMute);
+            speakerBtn.addEventListener('click', toggleSpeaker);
+            endVoiceCallBtn.addEventListener('click', () => endCall('caller_ended'));
+
             // Sound toggle click listener
             if (soundToggleIcon) {
                 soundToggleIcon.addEventListener('click', () => {
@@ -3328,6 +5829,15 @@
                     renderSelectableFriends(e.target.value);
                 });
             }
+
+            // Find Friends Modal event listeners
+            if (findFriendsBtn) findFriendsBtn.addEventListener('click', openFindFriendsModal);
+
+            // Initialize notification system
+            initializeNotificationSystem();
+            
+            // Initialize find friends functionality
+            initializeFindFriends();
         });
 
         window.addEventListener('storage', (event) => {

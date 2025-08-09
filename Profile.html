@@ -306,6 +306,156 @@
             width: 100%;
         }
 
+        /* Cool Notification Icon Styling (from Home.html) */
+        .notification-icon-wrapper {
+            position: relative;
+            margin-right: 15px;
+        }
+
+        .notification-icon-wrapper a {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification-icon-wrapper a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .notification-icon-wrapper a:hover::before {
+            left: 100%;
+        }
+
+        .notification-icon-wrapper a:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 213, 255, 0.3);
+            border-color: var(--blue);
+        }
+
+        .notification-icon-wrapper i {
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            transition: all 0.3s ease;
+            z-index: 1;
+            position: relative;
+        }
+
+        .notification-icon-wrapper a:hover i {
+            transform: rotate(15deg) scale(1.1);
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(45deg, #ff4757, #ff3742);
+            color: var(--white);
+            border-radius: 50%;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            min-width: 22px;
+            height: 22px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--background-main);
+            animation: pulse-notification 2s infinite;
+            z-index: 2;
+        }
+
+        @keyframes pulse-notification {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .notification-badge:empty {
+            display: none;
+        }
+
+        /* Additional cool effects for notification icon */
+        .notification-icon-wrapper a:active {
+            transform: scale(0.95);
+        }
+
+        /* Glow effect when there are notifications */
+        .notification-icon-wrapper.has-notifications a {
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
+        }
+
+        .notification-icon-wrapper.has-notifications a:hover {
+            box-shadow: 0 0 30px rgba(255, 71, 87, 0.5);
+        }
+
+        /* Shaking animation for notification bell when there are unread notifications */
+        .notification-icon-wrapper.has-notifications i {
+            animation: bell-shake 2s ease-in-out infinite, subtle-shake 3s ease-in-out infinite 1s;
+            transform-origin: top;
+        }
+
+        @keyframes bell-shake {
+            0%, 100% { transform: rotate(0deg); }
+            5%, 15%, 25%, 35% { transform: rotate(8deg); }
+            10%, 20%, 30% { transform: rotate(-8deg); }
+            40%, 100% { transform: rotate(0deg); }
+        }
+
+        @keyframes subtle-shake {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(2deg); }
+        }
+
+        /* Pause shaking on hover */
+        .notification-icon-wrapper.has-notifications a:hover i {
+            animation-play-state: paused;
+        }
+
+        /* Admin Icon Styling */
+        #adminIconLink {
+            display: none; /* Hidden by default */
+            margin-right: 15px; /* Space it out from other icons */
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+            font-size: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        #adminIconLink:hover {
+            transform: scale(1.1);
+        }
+
         /* User Profile Header Styling (from Home.html) */
         .user-profile-header {
             display: flex;
@@ -484,7 +634,7 @@
             align-items: center;
         }
 
-        /* Profile Section (adapted from original Profile.html and settings-section) */
+        /* Enhanced Profile Section (adapted from original Profile.html and settings-section) */
         .profile-section {
             background: var(--card-background);
             border: 1px solid var(--glass-blue); /* Consistent border */
@@ -501,6 +651,24 @@
             gap: 1.5rem;
             text-align: center;
             position: relative;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .profile-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        .profile-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, .4);
         }
 
         .profile-header-area { /* New wrapper for top part of profile */
@@ -603,6 +771,12 @@
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
             margin: 0;
             text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .profile-name:hover {
+            background-image: linear-gradient(90deg, var(--pink), var(--blue));
+            transform: scale(1.02);
         }
 
         .profile-bio, .profile-location, .profile-email, .profile-info-item {
@@ -624,29 +798,63 @@
 
 
         .profile-stats {
-            display: flex;
-            justify-content: space-around;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
             width: 100%;
             margin-top: 1rem;
-            flex-wrap: wrap;
-            gap: 15px;
-            background: rgba(0, 0, 0, 0.2); /* Consistent with old profile, but blended */
-            border-radius: 10px;
-            padding: 10px 0;
-            border: 1px solid var(--border-light); /* Consistent border */
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid var(--border-light);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .profile-stats:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
         .stat-item {
             text-align: center;
-            color: var(--white); /* Use --white for main text */
-            flex: 1 1 30%; /* Allow items to grow/shrink, 3 items per row on wider screens */
-            min-width: 100px; /* Minimum width to prevent squishing */
+            color: var(--white);
+            padding: 15px 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .stat-value {
             font-size: 1.4rem;
             font-weight: 700;
-            color: var(--white);
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover .stat-value {
+            background: linear-gradient(45deg, var(--pink), var(--blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            transform: scale(1.1);
         }
 
         .stat-label {
@@ -714,22 +922,70 @@
 
         .progress-bar-container {
             width: 80%; /* Adjust width as needed */
-            height: 10px;
+            height: 12px;
             background-color: rgba(255, 255, 255, 0.1); /* Lighter background for the bar */
-            border-radius: 5px;
+            border-radius: 6px;
             overflow: hidden;
-            margin-top: 5px; /* Space between level name and bar */
+            margin-top: 8px; /* Space between level name and bar */
             box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+            position: relative;
         }
 
         .progress-bar-fill {
             height: 100%;
             width: 100%; /* Always 100% width, the gradient moves */
-            background-image: linear-gradient(90deg, var(--pink), var(--blue)); /* Pink to blue gradient */
+            background-image: linear-gradient(90deg, 
+                #ff4757 0%,    /* Red */
+                #ff6b35 25%,   /* Orange-Red */
+                #ffa726 50%,   /* Orange */
+                #ffd700 75%,   /* Yellow */
+                #4caf50 100%   /* Green */
+            );
             background-size: 200% 100%; /* Make gradient twice as wide */
-            background-position: right; /* Start with blue showing */
-            border-radius: 5px; /* Match container border-radius */
-            transition: background-position 0.5s ease-out; /* Smooth transition for position */
+            background-position: right; /* Start with red showing */
+            border-radius: 6px; /* Match container border-radius */
+            transition: background-position 0.8s ease-out; /* Smooth transition for position */
+            position: relative;
+        }
+
+        /* Progress percentage display */
+        .progress-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #000;
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+            z-index: 2;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Progress bar glow effect */
+        .progress-bar-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                rgba(255, 71, 87, 0.3) 0%,    /* Red glow */
+                rgba(255, 107, 53, 0.3) 25%,  /* Orange-Red glow */
+                rgba(255, 167, 38, 0.3) 50%,  /* Orange glow */
+                rgba(255, 215, 0, 0.3) 75%,   /* Yellow glow */
+                rgba(76, 175, 80, 0.3) 100%   /* Green glow */
+            );
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .progress-bar-container:hover::after {
+            opacity: 1;
         }
 
         /* Hide the "XP Level" label as requested */
@@ -797,13 +1053,30 @@
             font-weight: 700;
             cursor: pointer;
             box-shadow: var(--button-shadow);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-action-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .profile-action-button:hover::before {
+            left: 100%;
         }
 
         .profile-action-button:hover {
@@ -1261,6 +1534,66 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Enhanced Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes loading-shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Loading Skeleton Animation */
+        .loading-skeleton {
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                rgba(255, 255, 255, 0.1) 75%);
+            background-size: 200px 100%;
+            animation: loading-shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        .skeleton-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+        }
+
+        .skeleton-text {
+            height: 20px;
+            margin: 8px 0;
+        }
+
+        .skeleton-text.short {
+            width: 60%;
+        }
+
+        .skeleton-text.medium {
+            width: 80%;
+        }
+
         /* Custom Confirmation Modal */
         .modal-overlay {
             position: fixed;
@@ -1591,6 +1924,131 @@
 
 
 
+        /* Enhanced Responsive Design */
+        @media (max-width: 768px) {
+            .profile-section {
+                width: 95%;
+                padding: 1.5rem;
+                margin: 15px auto;
+            }
+
+            .profile-pic-wrapper {
+                width: 100px;
+                height: 100px;
+            }
+
+            .profile-name {
+                font-size: 1.8rem;
+            }
+
+            .profile-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .stat-item {
+                padding: 12px 8px;
+                min-height: 70px;
+            }
+
+            .profile-action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .profile-action-button {
+                width: 100%;
+                padding: 1rem 1.5rem;
+            }
+
+            /* Enhanced mobile header */
+            .header-content {
+                padding: 0 15px;
+            }
+
+            .notification-icon-wrapper {
+                margin-right: 10px;
+            }
+
+            .notification-icon-wrapper a {
+                width: 35px;
+                height: 35px;
+            }
+
+            .notification-icon-wrapper i {
+                font-size: 1.1rem;
+            }
+
+            .user-profile-header span {
+                font-size: 0.9rem;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profile-section {
+                width: 98%;
+                padding: 1rem;
+                margin: 10px auto;
+            }
+
+            .profile-pic-wrapper {
+                width: 80px;
+                height: 80px;
+            }
+
+            .profile-name {
+                font-size: 1.5rem;
+            }
+
+            .profile-stats {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .stat-item {
+                padding: 10px 6px;
+                min-height: 60px;
+            }
+
+            .stat-value {
+                font-size: 1.2rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            .profile-action-button {
+                padding: 0.8rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            /* Mobile header adjustments */
+            .header-content {
+                padding: 0 10px;
+            }
+
+            .notification-icon-wrapper a {
+                width: 32px;
+                height: 32px;
+            }
+
+            .notification-icon-wrapper i {
+                font-size: 1rem;
+            }
+
+            .user-profile-header span {
+                font-size: 0.8rem;
+                max-width: 100px;
+            }
+        }
+
         /* Responsive Adjustments (from Home.html / privacy_settings.html) */
         @media (max-width: 600px) {
             header .header-content-wrapper {
@@ -1783,9 +2241,10 @@
                         <i id="xpLevelIcon" class="fas fa-question-circle profile-level-icon"></i>
                         <span id="xpLevelName" class="profile-level-name">Loading Level...</span>
                     </div>
-                    <div class="progress-bar-container" id="progressBarContainer">
-                        <div id="xpProgressBarFill" class="progress-bar-fill" style="background-position: right;"></div>
-                    </div>
+                                    <div class="progress-bar-container" id="progressBarContainer">
+                    <div id="xpProgressBarFill" class="progress-bar-fill" style="background-position: right;"></div>
+                    <div id="progressPercentage" class="progress-percentage">0%</div>
+                </div>
                     <!-- End NEW: Level Info Display -->
 
                 </div>
@@ -2287,6 +2746,24 @@
         const profileEmail = document.getElementById('profileEmail'); // P element container
         const emailText = document.getElementById('emailText'); // Span inside profileEmail
 
+        // --- Notification Badge Management ---
+        function updateNotificationBadge(count) {
+            const notificationWrapper = document.querySelector('.notification-icon-wrapper');
+            const badge = document.getElementById('notificationCount');
+            if (badge && notificationWrapper) {
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count.toString();
+                    badge.style.display = 'flex';
+                    notificationWrapper.classList.add('has-notifications');
+                    console.log('🔔 Notification badge updated:', count, 'notifications');
+                } else {
+                    badge.style.display = 'none';
+                    notificationWrapper.classList.remove('has-notifications');
+                    console.log('🔕 No notifications, badge hidden');
+                }
+            }
+        }
+
         // NEW: User Info Display Elements
         const profileSchool = document.getElementById('profileSchool');
         const schoolText = document.getElementById('schoolText');
@@ -2454,13 +2931,35 @@
         infoSynth.envelope.release = 0.3;
 
         function playNotificationSound(type) {
-            Tone.start();
-            if (type === 'success') {
-                successSynth.triggerAttackRelease("C5", "8n");
-            } else if (type === 'error') {
-                errorSynth.triggerAttackRelease("C3", "8n");
-            } else if (type === 'info') {
-                infoSynth.triggerAttackRelease("E4", "16n");
+            try {
+                // Create audio element for the new notification sound
+                const audio = new Audio('ne.mp3');
+                audio.volume = 0.6; // Set volume to 60%
+                
+                // Play the notification sound
+                audio.play().catch(error => {
+                    console.log('JCHAT_DEBUG: Could not play notification sound:', error);
+                    // Fallback to Tone.js if audio file fails
+                    Tone.start();
+                    if (type === 'success') {
+                        successSynth.triggerAttackRelease("C5", "8n");
+                    } else if (type === 'error') {
+                        errorSynth.triggerAttackRelease("C3", "8n");
+                    } else if (type === 'info') {
+                        infoSynth.triggerAttackRelease("E4", "16n");
+                    }
+                });
+            } catch (error) {
+                console.log('JCHAT_DEBUG: Error playing notification sound:', error);
+                // Fallback to Tone.js
+                Tone.start();
+                if (type === 'success') {
+                    successSynth.triggerAttackRelease("C5", "8n");
+                } else if (type === 'error') {
+                    errorSynth.triggerAttackRelease("C3", "8n");
+                } else if (type === 'info') {
+                    infoSynth.triggerAttackRelease("E4", "16n");
+                }
             }
         }
 
@@ -4272,8 +4771,16 @@
             if (gasValue) gasValue.textContent = "0"; // Reset Gas (XP)
             if (xpLevelIcon) xpLevelIcon.className = "fas fa-question-circle profile-level-icon"; // Reset icon
             if (xpLevelName) xpLevelName.textContent = "Loading Level..."; // Reset level name
-            if (xpProgressBarFill) xpProgressBarFill.style.width = "0%"; // Reset progress bar
-            if (xpProgressBarFill) xpProgressBarFill.style.backgroundPosition = "right"; // Reset gradient position
+                    if (xpProgressBarFill) xpProgressBarFill.style.width = "0%"; // Reset progress bar
+        if (xpProgressBarFill) xpProgressBarFill.style.backgroundPosition = "right"; // Reset gradient position
+        
+        // Reset percentage display
+        const progressPercentageElement = document.getElementById('progressPercentage');
+        if (progressPercentageElement) {
+            progressPercentageElement.textContent = "0%";
+            progressPercentageElement.style.color = '#fff';
+            progressPercentageElement.style.textShadow = '0 0 3px rgba(0, 0, 0, 0.8)';
+        }
 
 
             if (profilePagePic) profilePagePic.style.display = 'none';
@@ -4500,6 +5007,24 @@
                     if (xpProgressBarFill) {
                         xpProgressBarFill.style.backgroundPosition = `${backgroundPosition}% 0`; // Set background-position
                         xpProgressBarFill.style.width = `100%`; // Ensure width is always 100%
+                    }
+
+                    // Update percentage display
+                    const progressPercentageElement = document.getElementById('progressPercentage');
+                    if (progressPercentageElement) {
+                        progressPercentageElement.textContent = `${Math.round(progressPercentage)}%`;
+                        
+                        // Update text color based on progress percentage for better visibility
+                        if (progressPercentage < 30) {
+                            progressPercentageElement.style.color = '#fff'; // White for low progress
+                            progressPercentageElement.style.textShadow = '0 0 3px rgba(0, 0, 0, 0.8)';
+                        } else if (progressPercentage < 70) {
+                            progressPercentageElement.style.color = '#000'; // Black for medium progress
+                            progressPercentageElement.style.textShadow = '0 0 2px rgba(255, 255, 255, 0.8)';
+                        } else {
+                            progressPercentageElement.style.color = '#000'; // Black for high progress
+                            progressPercentageElement.style.textShadow = '0 0 2px rgba(255, 255, 255, 0.8)';
+                        }
                     }
 
 

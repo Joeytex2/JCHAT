@@ -279,56 +279,319 @@
             gap: 10px;
         }
 
-        /* Notification Icon Styling */
+        /* Cool Notification Icon Styling */
         .notification-icon-wrapper {
             position: relative;
-            margin-right: 15px; /* Space between notification and profile */
+            margin-right: 15px;
         }
 
         .notification-icon-wrapper a {
-            text-decoration: none; /* Remove underline from link */
-            color: inherit; /* Inherit color from parent */
+            text-decoration: none;
+            color: inherit;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification-icon-wrapper a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .notification-icon-wrapper a:hover::before {
+            left: 100%;
+        }
+
+        .notification-icon-wrapper a:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 213, 255, 0.3);
+            border-color: var(--blue);
         }
 
         .notification-icon-wrapper i {
-    font-size: 1.5rem; /* Adjust size as needed */
-    color: var(--white) !important; /* Force icon color to white */
-    /* Remove gradient to ensure color is visible */
-    background-image: none !important;
-    background-clip: initial !important;
-    -webkit-background-clip: initial !important;
-    -webkit-text-fill-color: initial !important;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ff8e53);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            transition: all 0.3s ease;
+            z-index: 1;
+            position: relative;
+        }
 
-        .notification-icon-wrapper i:hover {
-            transform: scale(1.1);
+        .notification-icon-wrapper a:hover i {
+            transform: rotate(15deg) scale(1.1);
+            background: linear-gradient(45deg, #ff8e53, #ffd700, #ff6b35);
+            background-clip: text;
+            -webkit-background-clip: text;
         }
 
         .notification-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background-color: red !important; /* Force count background to red */
-    background-image: none !important; /* Remove any overriding gradient */
-    color: var(--white);
-    border-radius: 50%;
-    padding: 3px 7px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    min-width: 20px;
-    text-align: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Hide if no notifications */
-    display: none;
-}
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ff8e53);
+            color: #000;
+            border-radius: 50%;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            min-width: 22px;
+            height: 22px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--background-main);
+            animation: pulse-notification 2s infinite;
+            z-index: 2;
+        }
+
+        @keyframes pulse-notification {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .notification-badge:empty {
+            display: none;
+        }
+
+        /* Additional cool effects for notification icon */
+        .notification-icon-wrapper a:active {
+            transform: scale(0.95);
+        }
+
+        /* Glow effect when there are notifications */
+        .notification-icon-wrapper.has-notifications a {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .notification-icon-wrapper.has-notifications a:hover {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        }
+
+        /* Enhanced shaking animation for notification bell - shakes every 3 seconds */
+        .notification-icon-wrapper.has-notifications i {
+            animation: bell-shake 3s ease-in-out infinite;
+            transform-origin: top;
+        }
+
+        @keyframes bell-shake {
+            0%, 90%, 100% { transform: rotate(0deg); }
+            5%, 15%, 25%, 35% { transform: rotate(10deg); }
+            10%, 20%, 30% { transform: rotate(-10deg); }
+            40%, 50%, 60%, 70%, 80% { transform: rotate(0deg); }
+        }
+
+        /* Pause shaking on hover */
+        .notification-icon-wrapper.has-notifications a:hover i {
+            animation-play-state: paused;
+        }
+
+        /* --- Comprehensive Notification System CSS --- */
+        
+        /* Toast Notifications */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 350px;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast-notification.show {
+            transform: translateX(0);
+        }
+
+        .toast-notification.toast-success {
+            border-left: 4px solid #4caf50;
+        }
+
+        .toast-notification.toast-error {
+            border-left: 4px solid #f44336;
+        }
+
+        .toast-notification.toast-info {
+            border-left: 4px solid #2196f3;
+        }
+
+        .toast-notification.toast-warning {
+            border-left: 4px solid #ff9800;
+        }
+
+        .toast-notification.toast-friend_request {
+            border-left: 4px solid #9c27b0;
+        }
+
+        .toast-notification.toast-message {
+            border-left: 4px solid #00bcd4;
+        }
+
+        .toast-notification.toast-level_up {
+            border-left: 4px solid #ffd700;
+        }
+
+        .toast-icon {
+            font-size: 1.2rem;
+            color: var(--white);
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--white);
+            margin-bottom: 2px;
+        }
+
+        .toast-message {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            line-height: 1.3;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .toast-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+
+
+
+            position: relative;
+        }
+
+
+            color: var(--white);
+            transform: scale(1.1);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .no-notifications {
+            text-align: center;
+            padding: 60px 30px;
+            color: var(--text-light);
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.03) 0%, 
+                rgba(255, 255, 255, 0.01) 100%);
+            border-radius: 15px;
+            margin: 20px;
+        }
+
+        .no-notifications i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.6;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .no-notifications p {
+            font-size: 1rem;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        /* Beautiful Notification Center Scrollbar */
+        .notifications-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .notifications-list::-webkit-scrollbar-track {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+
+        .notifications-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.3) 0%, 
+                rgba(255, 255, 255, 0.1) 100%);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .notifications-list::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.4) 0%, 
+                rgba(255, 255, 255, 0.2) 100%);
+            transform: scale(1.1);
+        }
+
+        /* Add a subtle continuous shake for persistent attention */
+        .notification-icon-wrapper.has-notifications i {
+            animation: bell-shake 3s ease-in-out infinite, subtle-shake 3s ease-in-out infinite 1.5s;
+        }
+
+        @keyframes subtle-shake {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(3deg); }
+        }
+
+        /* Admin Icon Styling */
+        #adminIconLink {
+            display: none; /* Hidden by default */
+            margin-right: 15px; /* Space it out from other icons */
+            /* Apply gradient to icons */
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent; /* Fallback */
+            font-size: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        #adminIconLink:hover {
+            transform: scale(1.1);
+        }
 
         .user-profile-header #profileLink {
             display: flex;
@@ -370,9 +633,9 @@
             font-weight: 600;
             font-size: 1rem;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 120px;
+            overflow: visible;
+            text-overflow: unset;
+            max-width: none;
             /* Apply gradient to names */
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
@@ -381,23 +644,7 @@
             color: transparent; /* Fallback */
         }
 
-        /* Admin Icon Styling */
-        #adminIconLink {
-            display: none; /* Hidden by default */
-            margin-right: 15px; /* Space it out from other icons */
-            /* Apply gradient to icons */
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent; /* Fallback */
-            font-size: 1.5rem;
-            transition: transform 0.2s ease;
-        }
 
-        #adminIconLink:hover {
-            transform: scale(1.1);
-        }
 
         /* Main Content Area */
         main {
@@ -1649,12 +1896,28 @@
                 font-size: 1rem;
                 margin-right: 10px;
             }
-            .notification-icon-wrapper i, #adminIconLink {
-                font-size: 1.3rem;
+            .notification-icon-wrapper a {
+                width: 35px;
+                height: 35px;
+            }
+            .notification-icon-wrapper i {
+                font-size: 1.1rem;
             }
             .notification-badge {
-                padding: 2px 5px;
+                padding: 3px 6px;
                 font-size: 0.6rem;
+                min-width: 18px;
+                height: 18px;
+            }
+            #adminIconLink {
+                font-size: 1.3rem;
+                margin-right: 10px;
+            }
+            .user-profile-header span {
+                font-size: 0.9rem;
+                max-width: 150px;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             .daily-inspiration-section {
                 padding: 1.5rem;
@@ -1786,6 +2049,73 @@
                 right: 10px;
             }
         }
+
+        /* Posts Controls */
+        .post-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .post-controls select,
+        .post-controls input[type="text"],
+        .post-controls input[type="date"] {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: var(--input-background);
+            color: var(--white);
+        }
+        .post-control-button {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: var(--button-background);
+            color: var(--white);
+            cursor: pointer;
+        }
+        .post-control-button:hover { opacity: .95; }
+
+        /* Stories Bar */
+        .stories-bar { display:flex; gap:10px; padding:8px 0; overflow-x:auto; }
+        .story-item { display:flex; flex-direction:column; align-items:center; gap:6px; }
+        .story-avatar { width:56px; height:56px; border-radius:50%; border:2px solid var(--blue); background:#333; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+        .story-avatar img { width:100%; height:100%; object-fit:cover; }
+        .add-story-button { background: var(--button-background); color: var(--white); border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+
+        /* Engagement Panel */
+        .engagement-panel { display:grid; grid-template-columns: 1fr; gap: 12px; margin: 10px 0; }
+        .engage-card { background: var(--card-background); border:1px solid var(--glass-blue); border-radius: 15px; padding: 12px; }
+        .engage-title { font-weight:600; margin-bottom:6px; }
+        .quests-list { display:flex; flex-direction:column; gap:8px; }
+        .quest-item { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+        .quest-progress { flex:1; height:8px; background:rgba(255,255,255,0.1); border-radius:6px; overflow:hidden; margin:0 8px; }
+        .quest-progress > div { height:100%; background: var(--blue); }
+        .spin-button { background: linear-gradient(90deg, var(--blue), var(--pink)); color:#fff; border:none; border-radius:10px; padding:8px 12px; cursor:pointer; }
+
+        /* Theme Switcher */
+        .theme-switcher { display:flex; gap:8px; align-items:center; }
+        .theme-switcher select { padding:6px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--input-background); color:var(--white); }
+
+        /* Story Viewer (compact) */
+        #storyViewer { position: fixed; right: 16px; bottom: 16px; z-index: 1200; display: none; }
+        #storyViewer.active { display: block; }
+        #storyViewer .viewer-card {
+            width: 300px; height: 520px; border-radius: 16px; overflow: hidden;
+            background: var(--card-background); border: 1px solid var(--glass-blue);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5); position: relative; display: flex; flex-direction: column;
+        }
+        #storyViewer .viewer-header { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; }
+        #storyViewer .viewer-title { color: var(--white); font-weight: 600; font-size: 0.95rem; }
+        #storyViewer .viewer-close { background: transparent; border:none; color: var(--white); cursor:pointer; }
+        #storyViewer .viewer-media { flex:1; display:flex; align-items:center; justify-content:center; background:#000; }
+        #storyImage, #storyVideo { max-width:100%; max-height:100%; display:none; }
+        #storyViewer .viewer-footer { display:flex; align-items:center; justify-content:space-between; padding:6px 10px; }
+        #prevStoryBtn, #nextStoryBtn { background: rgba(255,255,255,0.1); color: var(--white); border: 1px solid var(--border-light); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+    #smartScrollBtn { position: fixed; right: 16px; bottom: 90px; z-index: 1100; border: 1px solid var(--border-light); border-radius: 999px; background: var(--button-background); color: #fff; padding: 10px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); cursor: pointer; }
+        #smartScrollBtn .label { font-weight: 600; }
+    .icon-btn { background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 10px; padding: 6px 8px; margin-right: 8px; cursor: pointer; }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -1798,22 +2128,22 @@
             </button>
             <a href="/home.html" class="logo">JCHAT</a>
             <!-- Removed Header Navigation (Home, Profile) -->
-            <div class="user-profile-header">
+            <div class="user-profile-header" style="display:flex;align-items:center;gap:10px;">
                 <!-- Admin Icon Link (visible only to admin) -->
                 <a href="/Admin.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
                     <i class="fas fa-user-cog"></i>
                 </a>
                 <!-- Notification Icon with Badge -->
-                <div class="notification-icon-wrapper">
-                    <a href="/notifications.html" aria-label="Notifications">
+                <div class="notification-icon-wrapper" style="position:relative;">
+                    <a href="/Notification.html" aria-label="Notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span> <!-- Notification count, initially hidden -->
+                        <span class="notification-badge" id="notificationCount">0</span>
                     </a>
                 </div>
-                <!-- Profile Link with Picture and Name (kept as per request) -->
-                <a href="/profile.html" id="profileLink" aria-label="View Profile">
-                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
-                    <i id="headerAvatarIcon" class="fas fa-user-circle" role="img" aria-label="User Avatar"></i>
+                <!-- Profile Link with Picture and Name -->
+                <a href="/profile.html" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;">
+                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display:none;width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);">
+                    <i id="headerAvatarIcon" class="fas fa-user-circle" role="img" aria-label="User Avatar" style="font-size:28px;"></i>
                     <span id="headerDisplayName">Loading...</span>
                 </a>
             </div>
@@ -1854,11 +2184,49 @@
                     <img id="mediaImagePreview" class="media-preview" src="" alt="Image Preview" style="display: none;">
                     <video id="mediaVideoPreview" class="media-preview" src="" controls style="display: none;"></video>
                 </div>
+                <div style="margin:8px 0; display:flex; align-items:center; gap:10px;">
+                    <label style="display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" id="addPollCheckbox"> Add Poll
+                    </label>
+                    <div id="pollComposer" style="display:none; flex-direction:column; gap:6px; width:100%;">
+                        <input type="text" class="poll-option-input" placeholder="Option 1" maxlength="100">
+                        <input type="text" class="poll-option-input" placeholder="Option 2" maxlength="100">
+                        <button id="addPollOptionBtn" class="post-control-button" type="button" style="width:max-content;">Add Option</button>
+                    </div>
+                </div>
                 <div class="post-actions">
                     <button id="createPostButton" class="post-button" disabled aria-label="Create Post">
                         <span class="button-text">Post</span>
                         <div class="button-loader" role="status" aria-label="Loading"></div>
                     </button>
+                </div>
+            </div>
+
+
+            <div id="trendingHashtags" style="margin:8px 0;color:var(--text-light);font-size:0.9rem;"></div>
+
+            <!-- Engagement Panel -->
+            <div class="engagement-panel" style="display:none;" id="engagementPanel">
+                <div class="engage-card" id="streakCard">
+                    <div class="engage-title">Daily Streak</div>
+                    <div id="streakInfo" style="color:var(--text-light);">Loading streak...</div>
+                </div>
+                <div class="engage-card" id="questsCard">
+                    <div class="engage-title">Weekly Quests</div>
+                    <div class="quests-list" id="questsList"></div>
+                </div>
+                <div class="engage-card" id="spinCard">
+                    <div class="engage-title">Daily Spin</div>
+                    <button class="spin-button" id="spinNowButton"><i class="fas fa-sync"></i> Spin Now</button>
+                    <div id="spinStatus" style="color:var(--text-light); margin-top:6px;"></div>
+                </div>
+                <div class="engage-card" id="storiesCard">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <div class="engage-title">Stories</div>
+                        <button class="add-story-button" id="addStoryButton"><i class="fas fa-plus"></i> Add Story</button>
+                        <input type="file" id="storyUploadInput" accept="image/*,video/*" style="display:none;">
+                    </div>
+                    <div class="stories-bar" id="storiesBar"></div>
                 </div>
             </div>
 
@@ -1869,6 +2237,8 @@
             </div>
         </div>
     </main>
+
+
 
     <!-- Customization Modal -->
     <div id="customizeInspirationModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="customizeInspirationModalTitle">
@@ -1895,6 +2265,28 @@
             <div class="button-group">
                 <button id="cancelCustomize" class="modal-button cancel-button" aria-label="Cancel Customization">Cancel</button>
                 <button id="saveCustomize" class="modal-button save-button" aria-label="Save Customization">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Modal -->
+    <div id="filtersModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="filtersModalTitle" style="display:none;">
+        <div class="modal-content">
+            <h3 id="filtersModalTitle">Feed Filters</h3>
+            <div class="input-group" style="display:flex;gap:8px;flex-wrap:wrap;">
+                <label><input type="radio" name="filterType" value="all" checked> All</label>
+                <label><input type="radio" name="filterType" value="text"> Text</label>
+                <label><input type="radio" name="filterType" value="image"> Images</label>
+                <label><input type="radio" name="filterType" value="video"> Videos</label>
+            </div>
+            <div class="input-group" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="filterSavedOnly"> Saved only</label>
+                <input type="date" id="filterDateFrom" placeholder="From">
+                <input type="date" id="filterDateTo" placeholder="To">
+            </div>
+            <div class="button-group" style="display:flex;gap:10px;justify-content:flex-end;">
+                <button id="resetFiltersBtn" class="modal-button cancel-button">Reset</button>
+                <button id="applyFiltersBtn" class="modal-button confirm-button">Apply</button>
             </div>
         </div>
     </div>
@@ -2033,6 +2425,27 @@
         </div>
     </aside>
 
+    <!-- Smart Scroll Button -->
+    <button id="smartScrollBtn" aria-label="Smart Scroll"><i class="fas fa-arrow-down"></i><span class="label">Bottom</span></button>
+
+    <!-- Compact Story Viewer -->
+    <div id="storyViewer" aria-live="polite">
+        <div class="viewer-card">
+            <div class="viewer-header">
+                <div class="viewer-title" id="storyViewerTitle">Story</div>
+                <button class="viewer-close" id="closeStoryViewer" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="viewer-media">
+                <img id="storyImage" alt="story image" />
+                <video id="storyVideo" controls playsinline></video>
+            </div>
+            <div class="viewer-footer">
+                <button id="prevStoryBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+                <button id="nextStoryBtn">Next <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         console.log("JCHAT_DEBUG: Home.html script started.");
 
@@ -2104,6 +2517,14 @@
         const createPostButton = document.getElementById('createPostButton');
         const postsFeed = document.getElementById('postsFeed');
         const loadingPostsMessage = document.getElementById('loadingPostsMessage');
+        const postTypeFilter = document.getElementById('postTypeFilter');
+        const postSearchInput = document.getElementById('postSearchInput');
+        const postDateFromInput = document.getElementById('postDateFrom');
+        const postDateToInput = document.getElementById('postDateTo');
+        const exportPostsCsvButton = document.getElementById('exportPostsCsvButton');
+        const exportPostsJsonButton = document.getElementById('exportPostsJsonButton');
+        const showSavedOnlyCheckbox = document.getElementById('showSavedOnly');
+        const trendingHashtagsDiv = document.getElementById('trendingHashtags');
 
         // Edit Post Modal elements
         const editPostModal = document.getElementById('editPostModal');
@@ -2171,6 +2592,25 @@
         let isAuthReady = false; // Flag indicating if Firebase authentication state has been determined.
         let unsubscribeListeners = []; // Array to store all onSnapshot unsubscribe functions for cleanup.
         let currentSystemSettings = {}; // Stores global system settings fetched from Firestore.
+
+        // --- Notification Badge Management ---
+        function updateNotificationBadge(count) {
+            const notificationWrapper = document.querySelector('.notification-icon-wrapper');
+            const badge = document.getElementById('notificationCount');
+            
+            if (badge && notificationWrapper) {
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count.toString();
+                    badge.style.display = 'flex';
+                    notificationWrapper.classList.add('has-notifications');
+                    console.log("JCHAT_DEBUG: Notification bell is now shaking with", count, "unread notifications");
+                } else {
+                    badge.style.display = 'none';
+                    notificationWrapper.classList.remove('has-notifications');
+                    console.log("JCHAT_DEBUG: Notification bell stopped shaking - no unread notifications");
+                }
+            }
+        }
 
         // WebRTC Call State Variables
         let localStream; // Local media stream (audio/video).
@@ -2583,18 +3023,141 @@
         ringingPattern.loop = true;
         ringingPattern.autostart = false; // Will be started manually.
 
+        // --- Comprehensive Notification System ---
+        let notifications = [];
+        let unreadNotificationCount = 0;
+        let notificationSoundEnabled = true;
+
+
+        /**
+         * Creates a new notification
+         * @param {string} type - 'success', 'error', 'info', 'warning', 'friend_request', 'message', 'level_up'
+         * @param {string} title - Notification title
+         * @param {string} message - Notification message
+         * @param {string} icon - FontAwesome icon class (optional, will auto-select based on type)
+         * @param {boolean} persistent - Whether notification should persist
+         */
+        function createNotification(type, title, message, icon = null, persistent = false) {
+            // Auto-select icon based on type if not provided
+            if (!icon) {
+                switch (type) {
+                    case 'success':
+                        icon = 'fas fa-check-circle';
+                        break;
+                    case 'error':
+                        icon = 'fas fa-exclamation-circle';
+                        break;
+                    case 'info':
+                        icon = 'fas fa-info-circle';
+                        break;
+                    case 'warning':
+                        icon = 'fas fa-exclamation-triangle';
+                        break;
+                    case 'friend_request':
+                        icon = 'fas fa-user-plus';
+                        break;
+                    case 'message':
+                        icon = 'fas fa-comment';
+                        break;
+                    case 'level_up':
+                        icon = 'fas fa-star';
+                        break;
+                    default:
+                        icon = 'fas fa-bell';
+                }
+            }
+            const notification = {
+                id: Date.now() + Math.random(),
+                type: type,
+                title: title,
+                message: message,
+                icon: icon,
+                timestamp: new Date(),
+                read: false,
+                persistent: persistent
+            };
+
+            notifications.unshift(notification);
+            if (!notification.read) {
+                unreadNotificationCount++;
+            }
+
+            // Limit notifications to 50
+            if (notifications.length > 50) {
+                notifications = notifications.slice(0, 50);
+            }
+
+            updateNotificationBadge(unreadNotificationCount);
+
+            showToastNotification(notification);
+            
+            // Play sound if enabled
+            if (notificationSoundEnabled) {
+                playNotificationSound(type);
+            }
+
+            // Save to localStorage
+            saveNotificationsToStorage();
+
+            return notification;
+        }
+
+
+
+
+
+
+
         /**
          * Plays a notification sound based on type.
-         * @param {string} type - 'success', 'error', or 'info'.
+         * @param {string} type - 'success', 'error', 'info', 'warning', 'friend_request', 'message', 'level_up'.
          */
         function playNotificationSound(type) {
-            Tone.start(); // Ensure audio context is started.
-            if (type === 'success') {
-                successSynth.triggerAttackRelease("C5", "8n");
-            } else if (type === 'error') {
-                errorSynth.triggerAttackRelease("C3", "8n");
-            } else if (type === 'info') {
-                infoSynth.triggerAttackRelease("E4", "16n");
+            try {
+                // Create audio element for the new notification sound
+                const audio = new Audio('ne.mp3');
+                audio.volume = 0.6; // Set volume to 60%
+                
+                // Play the notification sound
+                audio.play().catch(error => {
+                    console.log('JCHAT_DEBUG: Could not play notification sound:', error);
+                    // Fallback to Tone.js if audio file fails
+                    Tone.start();
+                    if (type === 'success') {
+                        successSynth.triggerAttackRelease("C5", "8n");
+                    } else if (type === 'error') {
+                        errorSynth.triggerAttackRelease("C3", "8n");
+                    } else if (type === 'info') {
+                        infoSynth.triggerAttackRelease("E4", "16n");
+                    } else if (type === 'warning') {
+                        errorSynth.triggerAttackRelease("A3", "8n");
+                    } else if (type === 'friend_request') {
+                        infoSynth.triggerAttackRelease("G4", "8n");
+                    } else if (type === 'message') {
+                        infoSynth.triggerAttackRelease("D4", "8n");
+                    } else if (type === 'level_up') {
+                        successSynth.triggerAttackRelease("C6", "4n");
+                    }
+                });
+            } catch (error) {
+                console.log('JCHAT_DEBUG: Error playing notification sound:', error);
+                // Fallback to Tone.js
+                Tone.start();
+                if (type === 'success') {
+                    successSynth.triggerAttackRelease("C5", "8n");
+                } else if (type === 'error') {
+                    errorSynth.triggerAttackRelease("C3", "8n");
+                } else if (type === 'info') {
+                    infoSynth.triggerAttackRelease("E4", "16n");
+                } else if (type === 'warning') {
+                    errorSynth.triggerAttackRelease("A3", "8n");
+                } else if (type === 'friend_request') {
+                    infoSynth.triggerAttackRelease("G4", "8n");
+                } else if (type === 'message') {
+                    infoSynth.triggerAttackRelease("D4", "8n");
+                } else if (type === 'level_up') {
+                    successSynth.triggerAttackRelease("C6", "4n");
+                }
             }
         }
 
@@ -2631,7 +3194,7 @@
             }
 
             // Set inner HTML with icon and text elements.
-            messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
+            messageBox.innerHTML = `<i id=\"messageBoxIcon\"></i><span id=\"messageBoxText\"></span><button id=\"messageBoxClose\" aria-label=\"Close\" style=\"margin-left:8px;border:none;background:transparent;color:inherit;cursor:pointer;\"><i class=\"fas fa-times\"></i></button>`;
             const messageBoxIcon = document.getElementById('messageBoxIcon');
             const messageBoxText = document.getElementById('messageBoxText');
 
@@ -2665,6 +3228,19 @@
             // Make the message box visible.
             messageBox.style.display = 'flex';
             messageBox.style.opacity = '1';
+
+            // Manual close handler
+            const messageBoxClose = document.getElementById('messageBoxClose');
+            if (messageBoxClose) {
+                messageBoxClose.onclick = () => {
+                    messageBox.style.opacity = '0';
+                    messageBox.addEventListener('transitionend', function handler() {
+                        messageBox.style.display = 'none';
+                        messageBox.removeEventListener('transitionend', handler);
+                        messageBox.classList.remove('loading-pulse');
+                    }, { once: true });
+                };
+            }
 
             // Set auto-hide timeout if not persistent.
             if (!isPersistent) {
@@ -3220,18 +3796,12 @@
                 const querySnapshot = await getDocs(q);
                 const unreadCount = querySnapshot.size;
 
-                if (notificationCountElement) {
-                    if (unreadCount > 0) {
-                        notificationCountElement.textContent = unreadCount;
-                        notificationCountElement.style.display = 'flex'; // Show badge.
-                    } else {
-                        notificationCountElement.style.display = 'none'; // Hide badge.
-                    }
-                }
+                // Use the new updateNotificationBadge function
+                updateNotificationBadge(unreadCount);
             }
             catch (error) {
                 console.error("JCHAT_ERROR: Error fetching notification count:", error);
-                if (notificationCountElement) notificationCountElement.style.display = 'none';
+                updateNotificationBadge(0);
             }
         }
 
@@ -3405,22 +3975,34 @@
                     }
                 }
 
+                // Poll handling
+                const pollEnabled = !!document.getElementById('addPollCheckbox')?.checked;
+                let poll = null;
+                if (pollEnabled) {
+                    const optionEls = [...document.querySelectorAll('#pollComposer .poll-option-input')];
+                    const options = optionEls.map(o => o.value.trim()).filter(Boolean).slice(0,6);
+                    if (options.length >= 2) {
+                        poll = { options: options.map(o => ({ text:o, votes:0 })), allowMultiple:false };
+                    }
+                }
+
                 const postData = {
                     authorId: currentUser.uid,
                     username: currentUserProfileData.username || "JCHAT User",
                     profilePhoto: currentUserProfileData.profilePicId || null,
                     content: content,
                     timestamp: serverTimestamp(),
-                    likesCount: 0, // Initial likes count
-                    commentsCount: 0, // Initial comments count
+                    likesCount: 0,
+                    commentsCount: 0,
                     isEdited: false,
                     status: 'active',
-                    reactions: { like: 0, love: 0, haha: 0 }, // Detailed reactions
+                    reactions: { like: 0, love: 0, haha: 0 },
                     mediaUrl: mediaUrl,
                     mediaType: mediaType,
                     visibility: 'public',
                     tags: [],
-                    location: {}
+                    location: {},
+                    poll: poll
                 };
 
                 let postId = null; // To store the ID of the newly created post.
@@ -3983,14 +4565,16 @@
                         <p class="post-timestamp">${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}</p>
                     </div>
                     ${isAuthor || (currentUser && currentUser.uid === ADMIN_UID) ? `
-                    <button class="post-options-button" data-post-id="${postId}" data-author-id="${post.authorId}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Post Options">
+                    <button class="post-options-button" data-post-id="${postId}" data-author-id="${post.authorId}" data-timestamp="${post.timestamp ? post.timestamp.toDate().getTime() : 0}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Post Options">
                         <i class="fas fa-ellipsis-h"></i>
                     </button>
                     <div class="post-options-dropdown" id="dropdown-${postId}">
                         <button class="edit-post-button" data-post-id="${postId}" data-content="${post.content}" data-media-url="${post.mediaUrl || ''}" data-media-type="${post.mediaType || 'text'}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) || (!isAuthor && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Edit Post">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <!-- Delete button removed as per user request -->
+                        <button class="delete-post-button" data-post-id="${postId}" data-author-id="${post.authorId}" style="display:none;" aria-label="Delete Post">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
                         <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Share Post">
                             <i class="fas fa-share"></i> Share
                         </button>
@@ -4000,6 +4584,10 @@
                 <div class="post-content-text">
                     <p>${post.content}</p>
                 </div>
+                ${post.poll && post.poll.options ? `
+                <div class="post-poll" data-post-id="${postId}">
+                    ${post.poll.options.map((opt, i)=>`<button class=\"poll-vote-button\" data-post-id=\"${postId}\" data-index=\"${i}\">${opt.text} — <span class=\"poll-votes\">${opt.votes||0}</span></button>`).join('')}
+                </div>` : ''}
                 ${post.mediaUrl ? `
                 <div class="post-media">
                     ${post.mediaType === 'image' ?
@@ -4016,6 +4604,9 @@
                     <span><span class="comments-count">${post.commentsCount || 0}</span> Comments</span>
                 </div>
                 <div class="post-actions-row">
+                    <button class="post-action-button save-post-button" data-post-id="${postId}" aria-label="Save Post">
+                        <i class="fas fa-bookmark"></i> Save
+                    </button>
                     <button class="post-action-button react-button" data-post-id="${postId}" data-reaction-type="like" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Like Post">
                         <i class="fas fa-thumbs-up"></i> Like
                     </button>
@@ -4115,10 +4706,33 @@
                         currentPostElements.set(card.dataset.postId, card);
                     });
 
+                    // Read filters
+                    const typeFilter = postTypeFilter?.value || 'all';
+                    const textSearch = (postSearchInput?.value || '').toLowerCase();
+                    const fromDate = postDateFromInput?.value ? new Date(postDateFromInput.value + 'T00:00:00') : null;
+                    const toDate = postDateToInput?.value ? new Date(postDateToInput.value + 'T23:59:59.999') : null;
+                    const savedOnly = !!(showSavedOnlyCheckbox && showSavedOnlyCheckbox.checked);
+
                     const newOrderedPostIds = []; // To maintain the correct order of posts in the DOM.
+
                     querySnapshot.forEach(docSnapshot => {
                         const post = docSnapshot.data();
                         const postId = docSnapshot.id;
+
+                        // Client-side filter
+                        if (typeFilter !== 'all') {
+                            const pType = post.mediaType ? post.mediaType : 'text';
+                            if (pType !== typeFilter) return;
+                        }
+                        if (textSearch && !(post.content || '').toLowerCase().includes(textSearch)) return;
+                        const ts = post.timestamp ? post.timestamp.toDate() : null;
+                        if (fromDate && (!ts || ts < fromDate)) return;
+                        if (toDate && (!ts || ts > toDate)) return;
+                        if (savedOnly) {
+                            const savedState = localStorage.getItem(`saved-post-${postId}`) === '1';
+                            if (!savedState) return;
+                        }
+
                         newOrderedPostIds.push(postId);
 
                         if (!postId) {
@@ -4297,6 +4911,13 @@
                 const reactionType = button.dataset.reactionType;
                 handleReaction(postId, reactionType);
             }
+            // Handle Poll Vote
+            else if (event.target.closest('.poll-vote-button')) {
+                const btn = event.target.closest('.poll-vote-button');
+                const postId = btn.dataset.postId;
+                const index = parseInt(btn.dataset.index, 10);
+                votePoll(postId, index);
+            }
             // Handle Comment Toggle Buttons
             else if (event.target.closest('.comment-toggle-button')) {
                 const button = event.target.closest('.comment-toggle-button');
@@ -4330,9 +4951,32 @@
                     }
                 });
                 if (dropdown) dropdown.classList.toggle('active'); // Toggle visibility of the clicked dropdown.
+                // Show delete if author and post older than 5 minutes
+                const postCard = button.closest('.post-card');
+                const createdText = postCard?.querySelector('.post-timestamp')?.textContent || '';
+                // We rely on dataset we set later; fallback: always show for author to avoid parsing date strings
+                const delBtn = dropdown?.querySelector('.delete-post-button');
+                const isOwner = (currentUser && button.dataset.authorId === currentUser.uid);
+                if (delBtn && isOwner) delBtn.style.display = '';
                 event.stopPropagation(); // Prevent document click from closing it immediately.
             }
             // Handle Edit Post Button
+            else if (event.target.closest('.delete-post-button')) {
+                const btn = event.target.closest('.delete-post-button');
+                const postId = btn.dataset.postId;
+                const authorId = btn.dataset.authorId;
+                if (!currentUser || currentUser.uid !== authorId) { showMessageBox('You can only delete your own post.', 'warning'); return; }
+                // Check age
+                const triggerBtn = document.querySelector(`.post-options-button[data-post-id="${postId}"]`);
+                const ts = parseInt(triggerBtn?.dataset.timestamp || '0', 10);
+                if (Date.now() - ts < 5*60*1000) { showMessageBox('Delete becomes available 5 minutes after posting.', 'info'); return; }
+                (async ()=>{
+                    try {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId));
+                        showMessageBox('Post deleted.', 'success');
+                    } catch(e) { console.error(e); showMessageBox('Failed to delete post.', 'error'); }
+                })();
+            }
             else if (event.target.closest('.edit-post-button')) {
                 const button = event.target.closest('.edit-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to edit posts.", 'error'); return; }
@@ -5084,6 +5728,7 @@
                     if (headerProfilePic) headerProfilePic.style.display = 'none';
                     if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
                     if (adminIconLink) adminIconLink.style.display = 'none'; // Ensure admin icon is hidden for guests.
+
                     if (postsFeed) postsFeed.innerHTML = '<p style="text-align: center; color: var(--text-light);">Please log in to see posts and interact.</p>';
                     if (loadingPostsMessage) loadingPostsMessage.style.display = 'none';
                     if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Please log in to get your daily inspiration.";
@@ -5233,6 +5878,443 @@
         if (sidebarToggleFab) sidebarToggleFab.addEventListener('click', toggleSidebar);
         if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleSidebar);
         if (sidebarLogoutLink) sidebarLogoutLink.addEventListener('click', handleLogout); // Add logout to sidebar.
+
+        // Export helpers (CSV/JSON) for posts
+        function toCsv(rows) {
+            if (!rows.length) return '';
+            const headers = Object.keys(rows[0]);
+            const escape = (v) => {
+                if (v == null) return '';
+                const s = String(v).replace(/"/g, '""');
+                return /[",\n]/.test(s) ? `"${s}"` : s;
+            };
+            const lines = [headers.join(',')];
+            for (const r of rows) lines.push(headers.map(h => escape(r[h])).join(','));
+            return lines.join('\n');
+        }
+
+        async function fetchAllPostsForExport(filters) {
+            const postsCollectionRef = collection(db, "artifacts", appId, "public", "data", "posts");
+            const qAll = query(postsCollectionRef, orderBy("timestamp", "desc"));
+            const snap = await getDocs(qAll);
+            const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            return items.filter(p => {
+                const pType = p.mediaType ? p.mediaType : 'text';
+                if (filters.type && filters.type !== 'all' && pType !== filters.type) return false;
+                if (filters.search && !(p.content || '').toLowerCase().includes(filters.search)) return false;
+                if (filters.from || filters.to) {
+                    const ts = p.timestamp ? p.timestamp.toDate() : null;
+                    if (!ts) return false;
+                    if (filters.from && ts < filters.from) return false;
+                    if (filters.to && ts > filters.to) return false;
+                }
+                return true;
+            });
+        }
+
+        function getPostFilterState() {
+            const type = postTypeFilter?.value || 'all';
+            const search = (postSearchInput?.value || '').toLowerCase();
+            let from = null, to = null;
+            if (postDateFromInput?.value) from = new Date(postDateFromInput.value + 'T00:00:00');
+            if (postDateToInput?.value) to = new Date(postDateToInput.value + 'T23:59:59.999');
+            return { type, search, from, to };
+        }
+
+        // Wire controls
+        document.addEventListener('DOMContentLoaded', () => {
+            if (postTypeFilter) postTypeFilter.addEventListener('change', fetchAndDisplayPosts);
+            if (postSearchInput) postSearchInput.addEventListener('input', fetchAndDisplayPosts);
+            if (postDateFromInput) postDateFromInput.addEventListener('change', fetchAndDisplayPosts);
+            if (postDateToInput) postDateToInput.addEventListener('change', fetchAndDisplayPosts);
+            if (exportPostsCsvButton) exportPostsCsvButton.addEventListener('click', async () => {
+                if (!currentUser && !isAuthReady) return showMessageBox('Please log in.', 'warning');
+                showMessageBox('Preparing CSV export...', 'loading', true);
+                try {
+                    const filters = getPostFilterState();
+                    const items = await fetchAllPostsForExport(filters);
+                    const rows = items.map(p => ({
+                        id: p.id,
+                        type: p.mediaType ? p.mediaType : 'text',
+                        content: p.content || '',
+                        authorId: p.authorId || '',
+                        timestamp: p.timestamp ? p.timestamp.toDate().toISOString() : ''
+                    }));
+                    const csv = toCsv(rows);
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `jchat-posts-${Date.now()}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showMessageBox('CSV downloaded.', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showMessageBox('Failed to export CSV.', 'error');
+                }
+            });
+            if (exportPostsJsonButton) exportPostsJsonButton.addEventListener('click', async () => {
+                if (!currentUser && !isAuthReady) return showMessageBox('Please log in.', 'warning');
+                showMessageBox('Preparing JSON export...', 'loading', true);
+                try {
+                    const filters = getPostFilterState();
+                    const items = await fetchAllPostsForExport(filters);
+                    const json = JSON.stringify(items.map(p => ({
+                        id: p.id,
+                        type: p.mediaType ? p.mediaType : 'text',
+                        content: p.content || '',
+                        authorId: p.authorId || '',
+                        timestamp: p.timestamp ? p.timestamp.toDate().toISOString() : ''
+                    })), null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `jchat-posts-${Date.now()}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showMessageBox('JSON downloaded.', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showMessageBox('Failed to export JSON.', 'error');
+                }
+            });
+        });
+
+        // Save/Unsave post helper
+        async function toggleSavePost(postId, shouldSave) {
+            if (!isAuthReady || !currentUser) { showMessageBox('Please log in.', 'warning'); return; }
+            const savedRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'saved_posts', postId);
+            if (shouldSave) {
+                await setDoc(savedRef, { savedAt: serverTimestamp() }).catch(e => console.error('Save failed', e));
+                showMessageBox('Post saved.', 'success');
+            } else {
+                await deleteDoc(savedRef).catch(e => console.error('Unsave failed', e));
+                showMessageBox('Removed from saved.', 'info');
+            }
+        }
+
+        // Enhance post content: link hashtags
+        function linkHashtags(text) {
+            if (!text) return '';
+            return text.replace(/(^|\s)#(\w{2,30})/g, (m, p1, tag) => `${p1}<a href="#" class="hashtag-link" data-tag="${tag}">#${tag}</a>`);
+        }
+
+        // Track hashtags for trending display
+        function updateTrendingHashtags(allPosts) {
+            const counts = new Map();
+            allPosts.forEach(p => {
+                const content = p.content || '';
+                const matches = content.match(/#\w{2,30}/g) || [];
+                matches.forEach(tag => {
+                    counts.set(tag, (counts.get(tag) || 0) + 1);
+                });
+            });
+            const top = [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+            if (trendingHashtagsDiv) {
+                if (top.length === 0) { trendingHashtagsDiv.textContent = ''; return; }
+                trendingHashtagsDiv.innerHTML = 'Trending: ' + top.map(([tag]) => `<a href="#" class="hashtag-link" data-tag="${tag.substring(1)}">${tag}</a>`).join(' • ');
+            }
+        }
+
+        // Extend renderPost to link hashtags
+        const _origRenderPost = renderPost;
+        renderPost = function(post, postId) {
+            const el = _origRenderPost(post, postId);
+            const textDiv = el.querySelector('.post-content-text p');
+            if (textDiv) {
+                textDiv.innerHTML = linkHashtags(post.content);
+            }
+            return el;
+        }
+
+        // Hook into document click for save and hashtag
+        document.addEventListener('click', (ev) => {
+            const saveBtn = ev.target.closest('.save-post-button');
+            if (saveBtn) {
+                const pid = saveBtn.dataset.postId;
+                const saved = saveBtn.classList.toggle('saved');
+                localStorage.setItem(`saved-post-${pid}`, saved ? '1' : '0');
+                toggleSavePost(pid, saved);
+            }
+            const tagLink = ev.target.closest('.hashtag-link');
+            if (tagLink) {
+                const tag = tagLink.dataset.tag;
+                if (postSearchInput) postSearchInput.value = `#${tag}`;
+                fetchAndDisplayPosts();
+            }
+        });
+
+        // Modify posts onSnapshot to compute trending + filter saved only
+        const _origFetchAndDisplayPosts = fetchAndDisplayPosts;
+        fetchAndDisplayPosts = async function() {
+            await _origFetchAndDisplayPosts();
+            // After initial render, we cannot easily intercept onSnapshot pipeline; recompute trending client-side from DOM
+            const cards = [...(postsFeed?.querySelectorAll('.post-card') || [])];
+            const posts = cards.map(c => ({
+                id: c.dataset.postId,
+                content: (c.querySelector('.post-content-text p')?.textContent) || ''
+            }));
+            updateTrendingHashtags(posts);
+        }
+
+        // Re-trigger fetch when toggling saved only
+        document.addEventListener('DOMContentLoaded', () => {
+            if (showSavedOnlyCheckbox) showSavedOnlyCheckbox.addEventListener('change', fetchAndDisplayPosts);
+        });
+
+        // Theme selector
+        const themeSelect = document.getElementById('themeSelect');
+        if (themeSelect) {
+            const saved = localStorage.getItem('jchat-theme');
+            if (saved && [...themeSelect.options].some(o => o.value === saved)) {
+                themeSelect.value = saved;
+            }
+            themeSelect.addEventListener('change', () => applyTheme(themeSelect.value));
+        }
+
+        // Streaks & Quests basic implementation
+        const streakInfo = document.getElementById('streakInfo');
+        const questsList = document.getElementById('questsList');
+        async function updateStreakAndQuestsUI() {
+            if (!currentUser || !currentUserProfileData) { if (streakInfo) streakInfo.textContent = 'Login to start a streak.'; return; }
+            try {
+                const streakDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'engagement', 'streak');
+                const streakSnap = await getDoc(streakDocRef);
+                const today = new Date(); today.setHours(0,0,0,0);
+                let streakCount = 0; let lastDate = null;
+                if (streakSnap.exists()) {
+                    const d = streakSnap.data();
+                    streakCount = d.count || 0;
+                    lastDate = d.lastDate ? d.lastDate.toDate() : null;
+                }
+                // Increment if lastDate is before today
+                const needIncrement = !lastDate || (new Date(lastDate.setHours(0,0,0,0)) < today);
+                if (needIncrement) {
+                    await setDoc(streakDocRef, { count: streakCount + 1, lastDate: serverTimestamp() }, { merge: true });
+                    streakCount += 1;
+                }
+                if (streakInfo) streakInfo.textContent = `Current streak: ${streakCount} day${streakCount===1?'':'s'}`;
+            } catch (e) { console.error('Streak update failed', e); }
+
+            // Quests (static weekly set)
+            const weekQuests = [
+                { id:'q1', title:'React 10 times', target:10 },
+                { id:'q2', title:'Comment 5 times', target:5 },
+                { id:'q3', title:'Create 2 posts', target:2 },
+            ];
+            if (questsList) {
+                questsList.innerHTML = '';
+                weekQuests.forEach(q => {
+                    const progress = 0; // placeholder; wire to activity logs later
+                    const pct = Math.min(100, Math.round((progress / q.target) * 100));
+                    const row = document.createElement('div');
+                    row.className = 'quest-item';
+                    row.innerHTML = `<span>${q.title}</span><div class="quest-progress"><div style="width:${pct}%"></div></div><span>${progress}/${q.target}</span>`;
+                    questsList.appendChild(row);
+                });
+            }
+        }
+
+        // Daily Spin
+        const spinNowButton = document.getElementById('spinNowButton');
+        const spinStatus = document.getElementById('spinStatus');
+        if (spinNowButton) {
+            spinNowButton.addEventListener('click', async () => {
+                if (!currentUser) { showMessageBox('Login to spin.', 'warning'); return; }
+                const spinRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'engagement', 'daily_spin');
+                const snap = await getDoc(spinRef);
+                const now = new Date();
+                if (snap.exists()) {
+                    const last = snap.data().lastSpinAt?.toDate();
+                    if (last) {
+                        const since = now - last;
+                        if (since < 24*60*60*1000) {
+                            const hrs = Math.ceil((24*60*60*1000 - since)/3600000);
+                            if (spinStatus) spinStatus.textContent = `Come back in ~${hrs}h.`;
+                            return;
+                        }
+                    }
+                }
+                // Weighted rewards
+                const rewards = [ {j:5, w:40}, {j:10, w:30}, {j:20, w:20}, {j:50, w:8}, {j:100, w:2} ];
+                const totalW = rewards.reduce((a,b)=>a+b.w,0);
+                let r = Math.random()*totalW, pick = rewards[0];
+                for (const it of rewards) { if (r < it.w) { pick = it; break; } r -= it.w; }
+                // Credit user
+                try {
+                    const profileRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
+                    await runTransaction(db, async (trx) => {
+                        const ps = await trx.get(profileRef);
+                        const cur = ps.exists()? (ps.data().jCoins||0):0;
+                        trx.update(profileRef, { jCoins: cur + pick.j, updatedAt: serverTimestamp() });
+                    });
+                    await setDoc(spinRef, { lastSpinAt: serverTimestamp() }, { merge: true });
+                    if (spinStatus) spinStatus.textContent = `You won ${pick.j} JCoins!`;
+                } catch(e) { console.error(e); showMessageBox('Spin failed.', 'error'); }
+            });
+        }
+
+        // Stories
+        const addStoryButton = document.getElementById('addStoryButton');
+        const storyUploadInput = document.getElementById('storyUploadInput');
+        const storiesBar = document.getElementById('storiesBar');
+        let currentStories = [];
+        if (addStoryButton && storyUploadInput) {
+            addStoryButton.addEventListener('click', ()=> storyUploadInput.click());
+            storyUploadInput.addEventListener('change', async (e)=>{
+                const file = e.target.files[0]; if (!file || !currentUser) return;
+                showMessageBox('Uploading story...', 'loading', true);
+                const url = await uploadMediaToCloudinary(file);
+                if (!url) { showMessageBox('Story upload failed.', 'error'); return; }
+                const storiesRef = collection(db, 'artifacts', appId, 'public', 'data', 'stories');
+                await addDoc(storiesRef, { userId: currentUser.uid, username: currentUserProfileData?.username||'User', mediaUrl: url, mediaType: file.type.startsWith('image/')?'image':'video', viewCount: 0, createdAt: serverTimestamp() });
+                showMessageBox('Story posted!', 'success');
+                fetchStories();
+            });
+        }
+        async function fetchStories() {
+            if (!storiesBar) return;
+            storiesBar.innerHTML = '';
+            const storiesRef = collection(db, 'artifacts', appId, 'public', 'data', 'stories');
+            const qStories = query(storiesRef, orderBy('createdAt','desc'));
+            const snap = await getDocs(qStories);
+            const now = Date.now();
+            currentStories = snap.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(s => (now - (s.createdAt?.toDate()?.getTime() || 0)) <= 24*60*60*1000);
+            currentStories.forEach((s, idx) => {
+                const item = document.createElement('div');
+                item.className = 'story-item';
+                const avatar = document.createElement('div');
+                avatar.className = 'story-avatar';
+                if (s.mediaType==='image') {
+                    avatar.innerHTML = `<img src="${s.mediaUrl}" alt="story">`;
+                } else {
+                    avatar.innerHTML = `<i class=\"fas fa-video\"></i>`;
+                }
+                const name = document.createElement('span');
+                name.style.color='var(--text-light)'; name.style.fontSize='0.8rem';
+                name.textContent = s.username?.split(' ')[0] || 'User';
+                item.appendChild(avatar); item.appendChild(name);
+                item.addEventListener('click', ()=> openStory(idx));
+                storiesBar.appendChild(item);
+            });
+        }
+
+        // Story viewer refs/state
+        const storyViewer = document.getElementById('storyViewer');
+        const storyImageEl = document.getElementById('storyImage');
+        const storyVideoEl = document.getElementById('storyVideo');
+        const storyViewerTitle = document.getElementById('storyViewerTitle');
+        const closeStoryViewerBtn = document.getElementById('closeStoryViewer');
+        const prevStoryBtn = document.getElementById('prevStoryBtn');
+        const nextStoryBtn = document.getElementById('nextStoryBtn');
+        let currentStoryIndex = 0;
+        const viewedStoryIds = new Set();
+
+        async function openStory(index) {
+            if (!currentStories || !currentStories.length) return;
+            currentStoryIndex = Math.max(0, Math.min(index, currentStories.length-1));
+            const s = currentStories[currentStoryIndex];
+            if (!s) return;
+            if (storyViewerTitle) storyViewerTitle.textContent = `${s.username || 'Story'}`;
+            if (s.mediaType === 'image') {
+                if (storyVideoEl) { try { storyVideoEl.pause(); } catch{} storyVideoEl.style.display = 'none'; storyVideoEl.src=''; }
+                if (storyImageEl) { storyImageEl.src = s.mediaUrl; storyImageEl.style.display = 'block'; }
+            } else {
+                if (storyImageEl) { storyImageEl.style.display = 'none'; storyImageEl.src=''; }
+                if (storyVideoEl) { storyVideoEl.src = s.mediaUrl; storyVideoEl.style.display = 'block'; storyVideoEl.play().catch(()=>{}); }
+            }
+            if (storyViewer) storyViewer.classList.add('active');
+            if (!viewedStoryIds.has(s.id)) {
+                viewedStoryIds.add(s.id);
+                try {
+                    const storyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'stories', s.id);
+                    await updateDoc(storyDocRef, { viewCount: (s.viewCount || 0) + 1 });
+                    s.viewCount = (s.viewCount || 0) + 1;
+                } catch (e) { console.error('Failed to update viewCount', e); }
+            }
+            if (prevStoryBtn) prevStoryBtn.disabled = currentStoryIndex <= 0;
+            if (nextStoryBtn) nextStoryBtn.disabled = currentStoryIndex >= currentStories.length-1;
+        }
+        function closeStoryViewer() {
+            if (storyViewer) storyViewer.classList.remove('active');
+            if (storyImageEl) { storyImageEl.style.display = 'none'; storyImageEl.src=''; }
+            if (storyVideoEl) { try { storyVideoEl.pause(); } catch{} storyVideoEl.style.display = 'none'; storyVideoEl.src=''; }
+        }
+        if (closeStoryViewerBtn) closeStoryViewerBtn.addEventListener('click', closeStoryViewer);
+        if (prevStoryBtn) prevStoryBtn.addEventListener('click', ()=> openStory(currentStoryIndex-1));
+        if (nextStoryBtn) nextStoryBtn.addEventListener('click', ()=> openStory(currentStoryIndex+1));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStreakAndQuestsUI();
+            fetchStories();
+            initializeNotificationSystem();
+        });
+
+        // Initialize notification system
+        function initializeNotificationSystem() {
+            loadNotificationsFromStorage();
+        }
+
+        /**
+         * Saves notifications to localStorage
+         */
+        function saveNotificationsToStorage() {
+            try {
+                localStorage.setItem('jchat_notifications', JSON.stringify(notifications));
+                localStorage.setItem('jchat_unread_count', unreadNotificationCount.toString());
+            } catch (error) {
+                console.log('JCHAT_DEBUG: Could not save notifications to storage:', error);
+            }
+        }
+
+        /**
+         * Loads notifications from localStorage
+         */
+        function loadNotificationsFromStorage() {
+            try {
+                const savedNotifications = localStorage.getItem('jchat_notifications');
+                const savedCount = localStorage.getItem('jchat_unread_count');
+                
+                if (savedNotifications) {
+                    notifications = JSON.parse(savedNotifications);
+                    notifications.forEach(n => n.timestamp = new Date(n.timestamp));
+                }
+                
+                if (savedCount) {
+                    unreadNotificationCount = parseInt(savedCount);
+                }
+                
+                updateNotificationBadge(unreadNotificationCount);
+            } catch (error) {
+                console.log('JCHAT_DEBUG: Could not load notifications from storage:', error);
+            }
+        }
+
+        // Smart Scroll logic
+        const smartScrollBtn = document.getElementById('smartScrollBtn');
+        let scrollTarget = 'bottom';
+        function updateSmartScrollState() {
+            const nearTop = window.scrollY < 50;
+            const nearBottom = (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 50);
+            if (nearBottom) { scrollTarget = 'top'; if (smartScrollBtn) { smartScrollBtn.querySelector('i').className='fas fa-arrow-up'; smartScrollBtn.querySelector('.label').textContent='Top'; } }
+            else { scrollTarget = 'bottom'; if (smartScrollBtn) { smartScrollBtn.querySelector('i').className='fas fa-arrow-down'; smartScrollBtn.querySelector('.label').textContent='Bottom'; } }
+        }
+        if (smartScrollBtn) {
+            smartScrollBtn.addEventListener('click', ()=> {
+                if (scrollTarget === 'bottom') {
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+            window.addEventListener('scroll', updateSmartScrollState, { passive: true });
+            window.addEventListener('resize', updateSmartScrollState);
+            document.addEventListener('DOMContentLoaded', updateSmartScrollState);
+        }
     </script>
 </body>
 </html>
