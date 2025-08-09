@@ -388,6 +388,34 @@
             box-shadow: 0 0 30px rgba(255, 71, 87, 0.5);
         }
 
+        /* Shaking animation for notification bell when there are unread notifications */
+        .notification-icon-wrapper.has-notifications i {
+            animation: bell-shake 2s ease-in-out infinite;
+            transform-origin: top;
+        }
+
+        @keyframes bell-shake {
+            0%, 100% { transform: rotate(0deg); }
+            5%, 15%, 25%, 35% { transform: rotate(8deg); }
+            10%, 20%, 30% { transform: rotate(-8deg); }
+            40%, 100% { transform: rotate(0deg); }
+        }
+
+        /* Pause shaking on hover */
+        .notification-icon-wrapper.has-notifications a:hover i {
+            animation-play-state: paused;
+        }
+
+        /* Add a subtle continuous shake for persistent attention */
+        .notification-icon-wrapper.has-notifications i {
+            animation: bell-shake 2s ease-in-out infinite, subtle-shake 3s ease-in-out infinite 1s;
+        }
+
+        @keyframes subtle-shake {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(2deg); }
+        }
+
         /* Admin Icon Styling */
         #adminIconLink {
             display: none; /* Hidden by default */
@@ -2414,9 +2442,11 @@
                     badge.textContent = count > 99 ? '99+' : count.toString();
                     badge.style.display = 'flex';
                     notificationWrapper.classList.add('has-notifications');
+                    console.log("JCHAT_DEBUG: Notification bell is now shaking with", count, "unread notifications");
                 } else {
                     badge.style.display = 'none';
                     notificationWrapper.classList.remove('has-notifications');
+                    console.log("JCHAT_DEBUG: Notification bell stopped shaking - no unread notifications");
                 }
             }
         }
