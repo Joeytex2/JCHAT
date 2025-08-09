@@ -897,6 +897,10 @@
                         <button id="toggleBanBtn" class="btn btn-secondary" disabled>Toggle Ban Status</button>
                         <button id="resetLevelXpBtn" class="btn btn-secondary" disabled>Reset Level & XP</button>
                         <button id="deleteUserBtn" class="btn btn-danger" disabled>Delete User</button>
+                        <button id="grantProBtn" class="btn" disabled>Grant Pro</button>
+                        <button id="revokeProBtn" class="btn" disabled>Revoke Pro</button>
+                        <button id="grantAdFreeBtn" class="btn" disabled>Grant Ad‑Free</button>
+                        <button id="revokeAdFreeBtn" class="btn" disabled>Revoke Ad‑Free</button>
                     </div>
                 </div>
             </div>
@@ -932,7 +936,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, runTransaction, collection, query, where, getDocs, deleteDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, runTransaction, collection, query, where, getDocs, deleteDoc, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -989,6 +993,10 @@
         const toggleBanBtn = document.getElementById('toggleBanBtn');
         const resetLevelXpBtn = document.getElementById('resetLevelXpBtn');
         const deleteUserBtn = document.getElementById('deleteUserBtn');
+        const grantProBtn = document.getElementById('grantProBtn');
+        const revokeProBtn = document.getElementById('revokeProBtn');
+        const grantAdFreeBtn = document.getElementById('grantAdFreeBtn');
+        const revokeAdFreeBtn = document.getElementById('revokeAdFreeBtn');
         const messageBox = document.getElementById('messageBox');
         const accessDeniedOverlay = document.getElementById('accessDeniedOverlay');
 
@@ -1213,6 +1221,10 @@
             toggleBanBtn.disabled = true;
             resetLevelXpBtn.disabled = true;
             deleteUserBtn.disabled = true;
+            grantProBtn.disabled = true;
+            revokeProBtn.disabled = true;
+            grantAdFreeBtn.disabled = true;
+            revokeAdFreeBtn.disabled = true;
 
             selectedUserUid = null;
             selectedUserData = null;
@@ -1402,6 +1414,10 @@
             toggleBanBtn.disabled = false;
             resetLevelXpBtn.disabled = false;
             deleteUserBtn.disabled = false;
+            grantProBtn.disabled = false;
+            revokeProBtn.disabled = false;
+            grantAdFreeBtn.disabled = false;
+            revokeAdFreeBtn.disabled = false;
 
             // Render friends list
             await renderFriendsList(selectedUserData.friends);
@@ -1779,6 +1795,20 @@
             }
         }
 
+        async function updateEntitlement(flag, value) {
+            if (!currentUser || currentUser.uid !== ADMIN_UID || !selectedUserUid) {
+                showMessageBox("Admin only or no user selected.", "error");
+                return;
+            }
+            try {
+                const settingsDocRef = doc(db, "artifacts", appId, "users", selectedUserUid, "profiles", "user_settings");
+                await setDoc(settingsDocRef, { entitlements: { [flag]: value } }, { merge: true });
+                showMessageBox(`${flag === 'pro' ? 'Pro' : 'Ad‑Free'} ${value ? 'granted' : 'revoked'} for user.`, 'success');
+            } catch (e) {
+                console.error('JCHAT_ERROR: updateEntitlement failed:', e);
+                showMessageBox(`Failed to update entitlement: ${e.message}`, 'error');
+            }
+        }
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
@@ -1807,6 +1837,10 @@
                     toggleBanBtn.disabled = true;
                     resetLevelXpBtn.disabled = true;
                     deleteUserBtn.disabled = true;
+                    grantProBtn.disabled = true;
+                    revokeProBtn.disabled = true;
+                    grantAdFreeBtn.disabled = true;
+                    revokeAdFreeBtn.disabled = true;
                     userListContainer.innerHTML = '<p class="no-users-message">Access denied. Please log in as an administrator.</p>';
                 }
             } else {
@@ -1836,6 +1870,10 @@
                 toggleBanBtn.disabled = true;
                 resetLevelXpBtn.disabled = true;
                 deleteUserBtn.disabled = true;
+                grantProBtn.disabled = true;
+                revokeProBtn.disabled = true;
+                grantAdFreeBtn.disabled = true;
+                revokeAdFreeBtn.disabled = true;
                 userListContainer.innerHTML = '<p class="no-users-message">Please log in to view this page.</p>';
             }
         });
@@ -1859,6 +1897,10 @@
             resetLevelXpBtn.addEventListener('click', resetLevelAndXp);
             deleteUserBtn.addEventListener('click', deleteUserAccount);
             copyUserIdBtn.addEventListener('click', copySelectedUserId);
+            grantProBtn.addEventListener('click', () => updateEntitlement('pro', true));
+            revokeProBtn.addEventListener('click', () => updateEntitlement('pro', false));
+            grantAdFreeBtn.addEventListener('click', () => updateEntitlement('adFree', true));
+            revokeAdFreeBtn.addEventListener('click', () => updateEntitlement('adFree', false));
 
 
             // Initially disable inputs and buttons until admin access is confirmed
@@ -1870,6 +1912,10 @@
             toggleBanBtn.disabled = true;
             resetLevelXpBtn.disabled = true;
             deleteUserBtn.disabled = true;
+            grantProBtn.disabled = true;
+            revokeProBtn.disabled = true;
+            grantAdFreeBtn.disabled = true;
+            revokeAdFreeBtn.disabled = true;
         });
 
         // Listen for theme changes from other tabs/windows
