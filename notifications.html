@@ -1400,7 +1400,38 @@
     </header>
 
     <main>
-        <h1 class="section-title">Notifications</h1>
+        <h1 class="section-title">Enhanced Notifications</h1>
+
+        <!-- Notification Search -->
+        <div class="notification-search">
+            <input type="text" id="notificationSearchInput" placeholder="Search notifications..." aria-label="Search notifications">
+            <i class="fas fa-search"></i>
+        </div>
+
+        <!-- Notification Filters -->
+        <div class="notification-filters">
+            <button class="filter-button active" data-filter="all">
+                <i class="fas fa-list"></i> All
+            </button>
+            <button class="filter-button" data-filter="unread">
+                <i class="fas fa-circle"></i> Unread
+            </button>
+            <button class="filter-button" data-filter="friend_request">
+                <i class="fas fa-user-plus"></i> Friend Requests
+            </button>
+            <button class="filter-button" data-filter="message">
+                <i class="fas fa-comment"></i> Messages
+            </button>
+            <button class="filter-button" data-filter="system">
+                <i class="fas fa-cogs"></i> System
+            </button>
+            <button class="filter-button" data-filter="financial">
+                <i class="fas fa-coins"></i> Financial
+            </button>
+            <button class="filter-button" data-filter="game">
+                <i class="fas fa-gamepad"></i> Games
+            </button>
+        </div>
 
         <!-- Notifications List Section -->
         <div class="card">
@@ -1418,7 +1449,6 @@
                 </button>
             </div>
         </div>
-
     </main>
 
     <!-- Custom Message Box -->
@@ -1497,7 +1527,11 @@
         const notificationsEmptyState = document.getElementById('notificationsEmptyState');
         const notificationsLoading = document.getElementById('notificationsLoading');
         const markAllReadBtn = document.getElementById('markAllReadBtn');
-        const deleteAllNotificationsBtn = document.getElementById('deleteAllNotificationsBtn'); // New button
+        const deleteAllNotificationsBtn = document.getElementById('deleteAllNotificationsBtn');
+
+        // New Enhanced Features DOM Elements
+        const notificationSearchInput = document.getElementById('notificationSearchInput');
+        const filterButtons = document.querySelectorAll('.filter-button');
 
         // Custom Confirmation Modal elements
         const customConfirmModal = document.getElementById('customConfirmModal');
@@ -1513,16 +1547,21 @@
         const viewProfileOptionBtn = document.getElementById('viewProfileOptionBtn');
         const markAsReadOptionBtn = document.getElementById('markAsReadOptionBtn');
         const closeNotificationOptionsBtn = document.getElementById('closeNotificationOptionsBtn');
-        const acceptFriendRequestOptionBtn = document.getElementById('acceptFriendRequestOptionBtn'); // New
-        const rejectFriendRequestOptionBtn = document.getElementById('rejectFriendRequestOptionBtn'); // New
+        const acceptFriendRequestOptionBtn = document.getElementById('acceptFriendRequestOptionBtn');
+        const rejectFriendRequestOptionBtn = document.getElementById('rejectFriendRequestOptionBtn');
 
         // --- Global State ---
-        let isAuthReady = false; // Flag to indicate if auth state has been checked
-        let currentUser = null; // The currently authenticated user (Firebase Auth object)
-        let currentUserProfileData = null; // Store the current user's profile data
-        let unsubscribeNotifications = null; // Listener for notifications
-
-        let currentNotificationData = null; // To store the notification data for the options modal
+        let isAuthReady = false;
+        let currentUser = null;
+        let currentUserProfileData = null;
+        let unsubscribeNotifications = null;
+        let currentNotificationData = null;
+        
+        // New Enhanced Features State
+        let allNotifications = []; // Store all notifications
+        let filteredNotifications = []; // Store filtered notifications
+        let currentFilter = 'all'; // Current active filter
+        let searchQuery = ''; // Current search query
 
         /**
          * Plays a notification sound. (Functionality removed, but kept as a placeholder if needed elsewhere)
@@ -1868,7 +1907,7 @@
         }
 
         /**
-         * Renders the list of notifications.
+         * Renders the list of notifications with enhanced features.
          * @param {Array<Object>} notifications - Array of notification data.
          */
         async function renderNotificationsList(notifications) {
@@ -1906,7 +1945,7 @@
                     senderInfoHtml = 'System Notification';
                 }
 
-
+                // Enhanced icon mapping
                 if (notification.type === 'friend_request') {
                     iconClass = 'fas fa-user-plus';
                 } else if (notification.type === 'friend_accepted') {
@@ -1921,23 +1960,27 @@
                     iconClass = 'fas fa-coins';
                 } else if (notification.type === 'level_up') {
                     iconClass = 'fas fa-arrow-alt-circle-up';
+                } else if (notification.type === 'security') {
+                    iconClass = 'fas fa-shield-alt';
                 }
 
                 const timestampText = formatTimestamp(notification.timestamp);
+                const categoryClass = getNotificationCategory(notification.type);
+                const categoryName = getCategoryName(notification.type);
 
                 notificationItem.innerHTML = `
                     <i class="notification-icon ${iconClass}"></i>
                     <div class="notification-content">
                         <h4>${notification.message}</h4>
-                        <p>${senderInfoHtml}</p>
+                        <p>${senderInfoHtml} <span class="notification-category ${categoryClass}">${categoryName}</span></p>
                     </div>
                     <span class="notification-timestamp">${timestampText}</span>
                 `;
 
                 // All notification items are now clickable to open the options modal
                 notificationItem.addEventListener('click', (event) => {
-                    event.stopPropagation(); // Prevent duplicate clicks if parent also has listener
-                    showNotificationOptions(notification); // Pass the full notification object
+                    event.stopPropagation();
+                    showNotificationOptions(notification);
                 });
 
                 notificationsList.appendChild(notificationItem);
@@ -2236,7 +2279,12 @@
                 onSnapshot(q, (snapshot) => {
                     notificationsLoading.style.display = 'none';
                     const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderNotificationsList(notifications);
+                    
+                    // Store all notifications for filtering
+                    allNotifications = notifications;
+                    
+                    // Apply current filters and search
+                    filterNotifications();
                 }, (error) => {
                     console.error("JCHAT_ERROR: Error fetching notifications:", error);
                     notificationsLoading.style.display = 'none';
@@ -2285,6 +2333,17 @@
                 document.body.classList.add(savedTheme);
             } else {
                 document.body.classList.add('theme-dark-mode'); // Default
+            }
+
+            // Enhanced Features Event Listeners
+            if (notificationSearchInput) {
+                notificationSearchInput.addEventListener('input', handleSearchInput);
+            }
+
+            if (filterButtons.length > 0) {
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', handleFilterClick);
+                });
             }
 
             // Mark All As Read button listener
@@ -2376,6 +2435,94 @@
         window.addEventListener('beforeunload', () => {
             if (unsubscribeNotifications) unsubscribeNotifications();
         });
+
+        /**
+         * Filters notifications based on current filter and search query.
+         */
+        function filterNotifications() {
+            let filtered = [...allNotifications];
+
+            // Apply search filter
+            if (searchQuery.trim()) {
+                const query = searchQuery.toLowerCase();
+                filtered = filtered.filter(notification => 
+                    notification.message.toLowerCase().includes(query) ||
+                    (notification.senderUsername && notification.senderUsername.toLowerCase().includes(query)) ||
+                    notification.type.toLowerCase().includes(query)
+                );
+            }
+
+            // Apply type filter
+            if (currentFilter !== 'all') {
+                if (currentFilter === 'unread') {
+                    filtered = filtered.filter(notification => !notification.read);
+                } else {
+                    filtered = filtered.filter(notification => notification.type === currentFilter);
+                }
+            }
+
+            filteredNotifications = filtered;
+            renderNotificationsList(filteredNotifications);
+        }
+
+        /**
+         * Handles search input changes.
+         */
+        function handleSearchInput(event) {
+            searchQuery = event.target.value;
+            filterNotifications();
+        }
+
+        /**
+         * Handles filter button clicks.
+         */
+        function handleFilterClick(event) {
+            const button = event.currentTarget;
+            const filter = button.dataset.filter;
+
+            // Update active filter button
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            currentFilter = filter;
+            filterNotifications();
+        }
+
+        /**
+         * Gets the category class for a notification type.
+         */
+        function getNotificationCategory(notificationType) {
+            const categoryMap = {
+                'friend_request': 'category-social',
+                'friend_accepted': 'category-social',
+                'friend_rejected': 'category-social',
+                'friend_removed': 'category-social',
+                'message': 'category-social',
+                'system': 'category-system',
+                'coin_reward': 'category-financial',
+                'level_up': 'category-game',
+                'security': 'category-security'
+            };
+            return categoryMap[notificationType] || 'category-system';
+        }
+
+        /**
+         * Gets the category name for display.
+         */
+        function getCategoryName(notificationType) {
+            const categoryNames = {
+                'friend_request': 'Social',
+                'friend_accepted': 'Social',
+                'friend_rejected': 'Social',
+                'friend_removed': 'Social',
+                'message': 'Social',
+                'system': 'System',
+                'coin_reward': 'Financial',
+                'level_up': 'Game',
+                'security': 'Security'
+            };
+            return categoryNames[notificationType] || 'System';
+        }
     </script>
 </body>
 </html>
