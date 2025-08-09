@@ -1259,7 +1259,7 @@
 
     <header>
         <div class="header-content-wrapper">
-            <a href="/home.html" class="logo">JCHAT</a>
+            <a href="/Home.html" class="logo">JCHAT</a>
             <nav>
                 <!-- Navigation links removed as per user request -->
                 <ul>
@@ -1272,7 +1272,7 @@
             </nav>
             <div class="user-profile-header">
                 <!-- Admin Icon Link (visible only to admin) -->
-                <a href="/coin_management.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
+                <a href="/Coin_management.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
                     <i class="fas fa-user-cog"></i>
                 </a>
                 <!-- Notification Icon with Badge -->
@@ -1283,7 +1283,7 @@
                     </a>
                 </div>
                 <!-- Sound Toggle removed as per user request -->
-                <a href="/profile.html" id="profileLink">
+                <a href="/Profile.html" id="profileLink">
                     <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
                     <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
                     <span id="headerDisplayName">Loading...</span>
@@ -1697,7 +1697,7 @@
 
                 // Safely set href for profileLink if it exists
                 if (profileLink) {
-                    profileLink.href = `/profile.html?userId=${user.uid}`;
+                    profileLink.href = `/Profile.html?userId=${user.uid}`;
                 }
 
                 // Show Admin Icon only if the current user is the ADMIN_UID
@@ -1988,11 +1988,16 @@
                     return;
                 }
 
-                const batch = writeBatch(db);
-                unreadSnapshot.docs.forEach(docSnap => {
-                    batch.update(docSnap.ref, { read: true });
-                });
-                await batch.commit();
+                const docs = unreadSnapshot.docs;
+                const CHUNK_SIZE = 450; // below Firestore's 500 limit
+                for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
+                    const chunk = docs.slice(i, i + CHUNK_SIZE);
+                    const batch = writeBatch(db);
+                    chunk.forEach(docSnap => {
+                        batch.update(docSnap.ref, { read: true });
+                    });
+                    await batch.commit();
+                }
 
                 showMessageBox("All notifications marked as read!", 'success');
             } catch (error) {
@@ -2025,11 +2030,16 @@
                     return;
                 }
 
-                const batch = writeBatch(db);
-                allNotificationsSnapshot.docs.forEach(docSnap => {
-                    batch.delete(docSnap.ref);
-                });
-                await batch.commit();
+                const docs = allNotificationsSnapshot.docs;
+                const CHUNK_SIZE = 450; // below Firestore's 500 limit
+                for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
+                    const chunk = docs.slice(i, i + CHUNK_SIZE);
+                    const batch = writeBatch(db);
+                    chunk.forEach(docSnap => {
+                        batch.delete(docSnap.ref);
+                    });
+                    await batch.commit();
+                }
 
                 showMessageBox("All notifications deleted!", 'success');
             } catch (error) {
@@ -2209,7 +2219,7 @@
                         if (adminIconLink) adminIconLink.style.display = 'none';
                         showMessageBox("You must be logged in to access this page.", 'error', true);
                         setTimeout(() => {
-                            window.location.href = '/login.html';
+                            window.location.href = '/Login.html';
                         }, 2000);
                     }
                 }
@@ -2258,7 +2268,7 @@
                     if (currentNotificationData && currentNotificationData.senderId) {
                         markNotificationAsRead(currentNotificationData.id);
                         hideNotificationOptions();
-                        window.location.href = `/chat.html?partnerId=${currentNotificationData.senderId}`;
+                        window.location.href = `/Chat.html?partnerId=${currentNotificationData.senderId}`;
                     } else {
                         showMessageBox("Cannot send message: sender not found.", 'error');
                     }
@@ -2269,7 +2279,7 @@
                     if (currentNotificationData && currentNotificationData.senderId) {
                         markNotificationAsRead(currentNotificationData.id);
                         hideNotificationOptions();
-                        window.location.href = `/profile.html?userId=${currentNotificationData.senderId}`;
+                        window.location.href = `/Profile.html?userId=${currentNotificationData.senderId}`;
                     } else {
                         showMessageBox("Cannot view profile: sender not found.", 'error');
                     }
@@ -2308,6 +2318,12 @@
             if (notificationOptionsModal) {
                 notificationOptionsModal.addEventListener('click', (event) => {
                     if (event.target === notificationOptionsModal) {
+                        hideNotificationOptions();
+                    }
+                });
+                // Close with Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && notificationOptionsModal.classList.contains('active')) {
                         hideNotificationOptions();
                     }
                 });
