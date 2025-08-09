@@ -2010,7 +2010,7 @@
                 return;
             }
 
-            const confirmed = await showCustomConfirm("Are you sure you want to delete ALL your notifications? This action cannot be undone.");
+            const confirmed = await showCustomConfirm("Delete all notifications? This cannot be undone.");
             if (!confirmed) return;
 
             showMessageBox("Deleting all notifications...", 'loading', true);
@@ -2038,6 +2038,43 @@
             }
         }
 
+        // --- Friend Request Helpers ---
+        async function isAlreadyFriends(userIdA, userIdB) {
+            try {
+                const friendDocRef = doc(db, "artifacts", appId, "users", userIdA, "friends", userIdB);
+                const friendSnap = await getDoc(friendDocRef);
+                return friendSnap.exists();
+            } catch (e) {
+                console.error("JCHAT_ERROR: isAlreadyFriends check failed:", e);
+                return false;
+            }
+        }
+
+        async function setFriendRequestStatus(senderId, receiverId, status) {
+            try {
+                const friendRequestsRef = collection(db, 'friendRequests');
+                const q = query(friendRequestsRef, where('senderId', '==', senderId), where('receiverId', '==', receiverId), where('status', '==', 'pending'));
+                const snap = await getDocs(q);
+                if (snap.empty) return;
+                const batch = writeBatch(db);
+                snap.forEach(docSnap => {
+                    batch.update(docSnap.ref, { status, handledAt: serverTimestamp() });
+                });
+                await batch.commit();
+            } catch (e) {
+                console.warn('JCHAT_WARN: Could not update friendRequests status:', e?.message || e);
+            }
+        }
+
+        async function ensureBidirectionalFriendship(userIdA, userIdB) {
+            const batch = writeBatch(db);
+            const aToBRef = doc(db, "artifacts", appId, "users", userIdA, "friends", userIdB);
+            const bToARef = doc(db, "artifacts", appId, "users", userIdB, "friends", userIdA);
+            batch.set(aToBRef, { userId: userIdB, addedAt: serverTimestamp() }, { merge: true });
+            batch.set(bToARef, { userId: userIdA, addedAt: serverTimestamp() }, { merge: true });
+            await batch.commit();
+        }
+
         /**
          * Accepts a friend request.
          * @param {string} notificationId - The ID of the friend request notification.
@@ -2055,43 +2092,40 @@
             // Disable all action buttons in the modal during processing
             document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = true);
 
-            showMessageBox(`Accepting friend request from ${senderUsername}...`, 'loading', true);
-
-            const batch = writeBatch(db);
+            showMessageBox(`Accepting friend request from ${senderUsername || 'user'}...`, 'loading', true);
 
             try {
-                // 1. Add sender to current user's friends list
-                const currentUserFriendDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "friends", senderId);
-                batch.set(currentUserFriendDocRef, {
-                    userId: senderId,
-                    addedAt: serverTimestamp()
-                });
+                // 0. If already friends, just mark as read and exit
+                if (await isAlreadyFriends(currentUser.uid, senderId)) {
+                    await updateDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId), { read: true });
+                    await setFriendRequestStatus(senderId, currentUser.uid, 'accepted');
+                    showMessageBox(`You are already friends with ${senderUsername || 'this user'}.`, 'info');
+                    hideNotificationOptions();
+                    return;
+                }
 
-                // 2. Add current user to sender's friends list
-                const senderFriendDocRef = doc(db, "artifacts", appId, "users", senderId, "friends", currentUser.uid);
-                batch.set(senderFriendDocRef, {
-                    userId: currentUser.uid,
-                    addedAt: serverTimestamp()
-                });
+                // 1-2. Create friendship docs in both directions
+                await ensureBidirectionalFriendship(currentUser.uid, senderId);
 
                 // 3. Mark the friend request notification as read
                 const notificationDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
-                batch.update(notificationDocRef, { read: true });
+                await updateDoc(notificationDocRef, { read: true });
 
-                // 4. Send a "friend_accepted" notification back to the sender
+                // 4. Update friendRequests status (if present)
+                await setFriendRequestStatus(senderId, currentUser.uid, 'accepted');
+
+                // 5. Send a "friend_accepted" notification back to the sender
                 await addDoc(collection(db, "artifacts", appId, "users", senderId, "notifications"), {
                     type: 'friend_accepted',
-                    message: `${currentUserProfileData.username} accepted your friend request!`,
+                    message: `${currentUserProfileData?.username || 'Someone'} accepted your friend request!`,
                     senderId: currentUser.uid,
                     recipientId: senderId,
                     timestamp: serverTimestamp(),
                     read: false,
-                    senderUsername: currentUserProfileData.username
+                    senderUsername: currentUserProfileData?.username || ''
                 });
 
-                await batch.commit();
-
-                showMessageBox(`You are now friends with ${senderUsername}!`, 'success');
+                showMessageBox(`You are now friends with ${senderUsername || 'this user'}!`, 'success');
                 hideNotificationOptions(); // Close modal on success
             } catch (error) {
                 console.error("JCHAT_ERROR: Error accepting friend request:", error);
@@ -2119,7 +2153,7 @@
             // Disable all action buttons in the modal during processing
             document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = true);
 
-            showMessageBox(`Rejecting friend request from ${senderUsername}...`, 'loading', true);
+            showMessageBox(`Rejecting friend request from ${senderUsername || 'user'}...`, 'loading', true);
 
             const batch = writeBatch(db);
 
@@ -2128,20 +2162,23 @@
                 const notificationDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
                 batch.update(notificationDocRef, { read: true });
 
+                // 1b. Update friendRequests status (if present)
+                await setFriendRequestStatus(senderId, currentUser.uid, 'rejected');
+
                 // 2. Optionally, send a "friend_rejected" notification back to the sender
                 await addDoc(collection(db, "artifacts", appId, "users", senderId, "notifications"), {
                     type: 'friend_rejected',
-                    message: `${currentUserProfileData.username} rejected your friend request.`,
+                    message: `${currentUserProfileData?.username || 'User'} rejected your friend request.`,
                     senderId: currentUser.uid,
                     recipientId: senderId,
                     timestamp: serverTimestamp(),
                     read: false,
-                    senderUsername: currentUserProfileData.username
+                    senderUsername: currentUserProfileData?.username || ''
                 });
 
                 await batch.commit();
 
-                showMessageBox(`Friend request from ${senderUsername} rejected.`, 'info');
+                showMessageBox(`Friend request from ${senderUsername || 'this user'} rejected.`, 'info');
                 hideNotificationOptions(); // Close modal on success
             } catch (error) {
                 console.error("JCHAT_ERROR: Error rejecting friend request:", error);
@@ -2151,7 +2188,6 @@
                 document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = false);
             }
         }
-
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
