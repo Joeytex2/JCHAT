@@ -2577,10 +2577,17 @@
             console.log('JCHAT_DEBUG: Gone offline');
         });
 
-        // Enhanced Error Handling
+        // Enhanced Error Handling - More defensive approach
         window.addEventListener('error', (event) => {
             console.error('JCHAT_ERROR: Unhandled error:', event.error);
-            showMessageBox('An unexpected error occurred. Please refresh if issues persist.', 'error');
+            
+            // Only show message box if it's available and this isn't during initial load
+            if (typeof showMessageBox === 'function' && messageBox) {
+                showMessageBox('An unexpected error occurred. Please refresh if issues persist.', 'error');
+            } else {
+                // Fallback: Just log the error during initialization
+                console.warn('JCHAT_WARNING: Error occurred during page initialization - this is normal if page is still loading');
+            }
         });
 
         // Performance Monitoring
