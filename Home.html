@@ -2554,13 +2554,13 @@
         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
         const headerDisplayName = document.getElementById('headerDisplayName');
         // Theme switcher functionality
-        let currentTheme = 'dark'; // Default theme
-        const themeSwitcherThemes = ['dark', 'light', 'sunset'];
+        let currentTheme = 'theme-dark-mode'; // Default theme
+        const themeSwitcherThemes = ['theme-dark-mode', 'theme-light-mode', 'theme-sunset-mode'];
 
         // Initialize theme switcher
         function initializeThemeSwitcher() {
             // Load saved theme from localStorage
-            const savedTheme = localStorage.getItem('jchat-theme') || 'dark';
+            const savedTheme = localStorage.getItem('jchat-theme') || 'theme-dark-mode';
             setTheme(savedTheme);
             
             // Add event listener to theme switcher button
@@ -2585,7 +2585,7 @@
             body.classList.remove('theme-dark-mode', 'theme-light-mode', 'theme-sunset-mode');
             
             // Add the new theme class
-            body.classList.add(`theme-${theme}-mode`);
+            body.classList.add(theme);
             
             // Update current theme
             currentTheme = theme;
@@ -2598,13 +2598,13 @@
                 const icon = themeSwitcherBtn.querySelector('i');
                 if (icon) {
                     switch (theme) {
-                        case 'light':
+                        case 'theme-light-mode':
                             icon.className = 'fas fa-sun';
                             break;
-                        case 'sunset':
+                        case 'theme-sunset-mode':
                             icon.className = 'fas fa-moon';
                             break;
-                        case 'dark':
+                        case 'theme-dark-mode':
                         default:
                             icon.className = 'fas fa-palette';
                             break;
@@ -2613,7 +2613,8 @@
             }
             
             // Show theme change notification
-            showMessageBox(`Theme changed to ${theme} mode`, 'success');
+            const themeName = theme.replace('theme-', '').replace('-mode', '');
+            showMessageBox(`Theme changed to ${themeName} mode`, 'success');
         }
         const notificationCountElement = document.getElementById('notificationCount');
         const adminIconLink = document.getElementById('adminIconLink');
@@ -5886,12 +5887,6 @@
             // Initialize theme switcher
             initializeThemeSwitcher();
             console.log("JCHAT_DEBUG: DOMContentLoaded fired.");
-            // Apply saved theme or default.
-            const savedTheme = localStorage.getItem('jchat-theme');
-            if (savedTheme && themes.includes(savedTheme)) {
-                applyTheme(savedTheme);
-            } else {
-                applyTheme('theme-dark-mode');
             }
             // Initially disable interactive elements until authentication state is confirmed.
             toggleInteractiveElements(false, false);
