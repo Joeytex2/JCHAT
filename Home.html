@@ -3170,26 +3170,43 @@
             try {
                 const userProfileDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
 
-                // Update the lastLoginBonusClaimed timestamp in the user's private profile.
-                await updateDoc(userProfileDocRef, {
-                    lastLoginBonusClaimed: serverTimestamp(),
-                    updatedAt: serverTimestamp()
+                // Award immediately: increment XP and JCoins, update lastLoginBonusClaimed, and handle level-ups.
+                await runTransaction(db, async (tx) => {
+                    const snap = await tx.get(userProfileDocRef);
+                    const data = snap.exists() ? snap.data() : {};
+                    const dailyXp = 10;
+                    const dailyCoins = 3;
+                    let level = data.level || 1;
+                    let currentXp = data.currentXp || 0;
+                    let xpToNextLevel = data.xpToNextLevel || getLevelInfo(level).xpToNextLevel;
+                    let jCoins = data.jCoins || 0;
+
+                    currentXp += dailyXp;
+                    jCoins += dailyCoins;
+                    // Level up loop
+                    while (currentXp >= xpToNextLevel) {
+                        currentXp -= xpToNextLevel;
+                        level += 1;
+                        xpToNextLevel = getLevelInfo(level).xpToNextLevel;
+                    }
+
+                    tx.set(userProfileDocRef, {
+                        lastLoginBonusClaimed: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
+                        level,
+                        currentXp,
+                        xpToNextLevel,
+                        jCoins
+                    }, { merge: true });
                 });
 
-                // Create a pending reward for admin review instead of directly awarding.
-                await createPendingActivityReward(
-                    currentUser.uid,
-                    currentUserProfileData.username,
-                    'daily_login',
-                    10, // Suggested XP reward for daily login
-                    3  // Suggested JCoin reward for daily login
-                );
-
-                showMessageBox(`Daily bonus claimed! 10 XP and 3 JCoins are pending admin review.`, 'success');
+                showMessageBox(`Daily bonus claimed! +10 XP and +3 JCoins.`, 'success');
                 playNotificationSound('success');
 
                 // Update local profile data immediately for UI consistency (especially for the timer).
                 currentUserProfileData.lastLoginBonusClaimed = { toDate: () => new Date() };
+                currentUserProfileData.currentXp = (currentUserProfileData.currentXp || 0) + 10;
+                currentUserProfileData.jCoins = (currentUserProfileData.jCoins || 0) + 3;
                 checkAndStartDailyBonusTimer(); // Re-evaluate status and start/stop timer.
             } catch (error) {
                 console.error("JCHAT_ERROR: Error claiming daily bonus:", error);
