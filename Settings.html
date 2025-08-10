@@ -1003,6 +1003,28 @@
                     <i class="fas fa-trash-alt"></i> Delete Account
                 </button>
 
+                <h2>Redeem Code</h2>
+                <div class="form-group" style="display:flex;gap:10px;align-items:center;">
+                    <input id="redeemCodeInput" type="text" placeholder="Enter your code" style="flex:1; padding:10px 12px; border-radius:10px; border:1px solid var(--border-light); background: var(--input-background); color: var(--white);">
+                    <button id="redeemCodeButton" class="action-button" aria-label="Redeem Code">
+                        <span class="button-text">Redeem</span>
+                        <div class="button-loader"></div>
+                    </button>
+                </div>
+                <div id="entitlementsDisplay" style="margin-top:10px; color: var(--text-light);"></div>
+
+                <div class="form-actions">
+                    <button id="contactSupportButton" class="action-button" aria-label="Contact Support">
+                        <i class="fas fa-headset"></i> Contact Support
+                    </button>
+                    <button id="changePasswordButton" class="action-button" aria-label="Change Password">
+                        <i class="fas fa-key"></i> Change Password
+                    </button>
+                    <button id="deleteAccountButton" class="action-button danger" aria-label="Delete Account">
+                        <i class="fas fa-trash-alt"></i> Delete Account
+                    </button>
+                </div>
+
                 <button id="saveSettingsButton" aria-label="Save Settings">
                     <span class="button-text">Save All Settings</span>
                     <div class="button-loader"></div>
@@ -1029,7 +1051,7 @@
         // Import Firebase modules (Updated to v11.6.1)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1140,6 +1162,11 @@
         const confirmModalMessage = document.getElementById('confirmModalMessage');
         const confirmYesBtn = document.getElementById('confirmYesBtn');
         const confirmNoBtn = document.getElementById('confirmNoBtn');
+
+        // Redeem Code
+        const redeemCodeInput = document.getElementById('redeemCodeInput');
+        const redeemCodeButton = document.getElementById('redeemCodeButton');
+        const entitlementsDisplay = document.getElementById('entitlementsDisplay');
 
         // --- Global State ---
         let currentUser = null;
@@ -1388,7 +1415,11 @@
                             language: "en",
                             hapticFeedback: true,
                         },
-                        lastUpdated: serverTimestamp()
+                        entitlements: {
+                            pro: false,
+                            adFree: false,
+                            themes: []
+                        }
                     };
                     // Create the document with default settings
                     await setDoc(settingsDocRef, currentSettings);
@@ -1440,6 +1471,8 @@
                 languageSelect.value = advancedSettings.language || "en";
                 hapticFeedbackCheckbox.checked = advancedSettings.hapticFeedback ?? true;
 
+                // Entitlements display
+                renderEntitlements();
 
                 showMessageBox("Settings loaded!", 'success');
 
@@ -1848,6 +1881,9 @@
                 contactSupportButton.disabled = false;
                 reportBugButton.disabled = false;
 
+                if (redeemCodeButton) {
+                    redeemCodeButton.addEventListener('click', redeemCode);
+                }
 
             } else {
                 console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
@@ -1907,6 +1943,84 @@
                 reportBugButton.disabled = false;
             }
         });
+
+        function renderEntitlements() {
+            if (!entitlementsDisplay) return;
+            const ent = currentSettings.entitlements || {};
+            const themes = Array.isArray(ent.themes) ? ent.themes : [];
+            entitlementsDisplay.textContent = `Pro: ${ent.pro ? 'ON' : 'OFF'} | Ad-Free: ${ent.adFree ? 'ON' : 'OFF'} | Themes: ${themes.length ? themes.join(', ') : 'None'}`;
+        }
+
+        async function redeemCode() {
+            if (!currentUser) {
+                showMessageBox('Please log in to redeem a code.', 'error');
+                return;
+            }
+            const raw = (redeemCodeInput?.value || '').trim();
+            if (!raw) {
+                showMessageBox('Enter a valid code.', 'warning');
+                return;
+            }
+            toggleButtonLoading(redeemCodeButton, true);
+            const code = raw.toUpperCase();
+            try {
+                const licenseRef = doc(db, 'licenses', code);
+                const settingsRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_settings');
+                await runTransaction(db, async (tx) => {
+                    const licSnap = await tx.get(licenseRef);
+                    if (!licSnap.exists()) {
+                        throw new Error('Code not found.');
+                    }
+                    const lic = licSnap.data();
+                    if (lic.claimed) {
+                        throw new Error('This code has already been claimed.');
+                    }
+                    const setSnap = await tx.get(settingsRef);
+                    const existing = setSnap.exists() ? (setSnap.data().entitlements || {}) : {};
+                    const next = { ...existing };
+                    // Map license to entitlements
+                    const type = (lic.type || '').toLowerCase();
+                    if (type === 'pro') next.pro = true;
+                    else if (type === 'adfree' || type === 'ad_free') next.adFree = true;
+                    else if (type === 'theme_pack') {
+                        const themes = Array.isArray(lic.themes) ? lic.themes : (lic.theme ? [lic.theme] : []);
+                        const currentThemes = Array.isArray(existing.themes) ? existing.themes : [];
+                        next.themes = Array.from(new Set([ ...currentThemes, ...themes ]));
+                    } else {
+                        // Generic flag
+                        next.pro = true;
+                    }
+                    tx.update(licenseRef, { claimed: true, claimedBy: currentUser.uid, claimedAt: serverTimestamp() });
+                    if (setSnap.exists()) {
+                        tx.update(settingsRef, { entitlements: next });
+                    } else {
+                        tx.set(settingsRef, { entitlements: next }, { merge: true });
+                    }
+                });
+                // Update local state and UI
+                currentSettings.entitlements = currentSettings.entitlements || {};
+                const ent = currentSettings.entitlements;
+                const licDoc = await getDoc(doc(db, 'licenses', code));
+                const type = (licDoc.data()?.type || '').toLowerCase();
+                if (type === 'pro') ent.pro = true;
+                else if (type === 'adfree' || type === 'ad_free') ent.adFree = true;
+                else if (type === 'theme_pack') {
+                    const themes = Array.isArray(licDoc.data()?.themes) ? licDoc.data().themes : (licDoc.data()?.theme ? [licDoc.data().theme] : []);
+                    const currentThemes = Array.isArray(ent.themes) ? ent.themes : [];
+                    ent.themes = Array.from(new Set([ ...currentThemes, ...themes ]));
+                } else { ent.pro = true; }
+                renderEntitlements();
+                redeemCodeInput.value = '';
+                successSynth.triggerAttackRelease('C5', '8n');
+                showMessageBox('Code redeemed! Your perks are unlocked.', 'success');
+            } catch (e) {
+                console.error('JCHAT_ERROR: Redeem failed:', e);
+                errorSynth.triggerAttackRelease('A3', '8n');
+                showMessageBox(e.message || 'Redeem failed. Try again.', 'error');
+            } finally {
+                toggleButtonLoading(redeemCodeButton, false);
+            }
+        }
     </script>
 </body>
 </html>

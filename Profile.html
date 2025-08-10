@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JCHAT - Profile</title>
+    
+    <!-- Security Meta Tags -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="JCHAT - User Profile with levels, achievements, and customization">
+    <meta name="keywords" content="profile, user, levels, achievements, customization, JCHAT">
+    <meta name="author" content="JCHAT Team">
 
     <!-- Google Fonts: Poppins for headings, Inter for body text -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,14 +22,17 @@
     <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://firebaseio.com" crossorigin>
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+    <link rel="preconnect" href="https://api.cloudinary.com" crossorigin>
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Tone.js for audio notifications (if used) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -46,7 +60,7 @@
             --border-light: rgba(255, 255, 255, .05);
             --input-background: rgba(255, 255, 255, 0.05);
             --button-background: linear-gradient(90deg, var(--blue), var(--pink));
-            --button-shadow: 0 4px 15px var(--blue), 0 44px 15px var(--pink);
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
 
             /* New variables for consistent theming */
             --background-color-primary: #1a1a2e;
@@ -2691,13 +2705,13 @@
     </div>
 
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, updateProfile, updateEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, runTransaction, writeBatch, serverTimestamp, orderBy, addDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        // Import Firebase modules (Updated to v11.8.0 - Latest Stable)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, updateProfile, updateEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, runTransaction, writeBatch, serverTimestamp, orderBy, addDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-storage.js";
         // Import Timestamp for scheduled announcements
-        import { Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { Timestamp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
 
         // --- Firebase & Canvas Environment Configuration ---
@@ -4310,8 +4324,48 @@
             }
         }
 
+        // --- NEW: Pending Activity Reward Creation Function ---
+        /**
+         * Creates a pending activity reward document for admin review.
+         * This system allows for manual approval of XP/JCoin rewards, preventing abuse.
+         * @param {string} userId - The ID of the user who performed the activity.
+         * @param {string} username - The username of the user.
+         * @param {string} activityType - The type of activity (e.g., 'daily_login', 'profile_complete').
+         * @param {number} suggestedXpReward - The suggested XP amount to award (can be negative for deductions).
+         * @param {number} suggestedJCoinReward - The suggested JCoin amount to award (can be negative for deductions).
+         * @param {string} [activityId=null] - Optional: ID of the specific activity.
+         */
+        async function createPendingActivityReward(
+            userId,
+            username,
+            activityType,
+            suggestedXpReward,
+            suggestedJCoinReward,
+            activityId = null
+        ) {
+            try {
+                const pendingRewardsCollectionRef = collection(db, "artifacts", appId, "public", "data", "pending_activity_rewards");
+
+                const newRewardDocRef = await addDoc(pendingRewardsCollectionRef, {
+                    userId: userId,
+                    username: username,
+                    activityType: activityType,
+                    suggestedXpReward: suggestedXpReward,
+                    suggestedJCoinReward: suggestedJCoinReward,
+                    status: 'pending', // Always pending for admin review
+                    timestamp: serverTimestamp(),
+                    activityId: activityId
+                });
+
+                console.log(`JCHAT_DEBUG: Pending activity reward created with ID: ${newRewardDocRef.id}`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error creating pending activity reward:", error);
+            }
+        }
+
         /**
          * Handles claiming the daily JCoin bonus.
+         * Now creates a pending reward for admin approval instead of directly awarding.
          */
         async function claimDailyBonus() {
             if (!currentUser || !currentUserProfileData) {
@@ -4362,28 +4416,27 @@
                         throw new Error("Daily bonus already claimed.");
                     }
 
-                    const updatedJCoins = (currentProfileData.jCoins || 0) + dailyBonusAmount;
+                    // Update only the lastDailyBonusClaimDate to prevent multiple claims
                     transaction.update(userProfileDocRef, {
-                        jCoins: updatedJCoins,
                         lastDailyBonusClaimDate: serverTimestamp(),
                         updatedAt: serverTimestamp()
                     });
-
-                    // Log activity
-                    const activityLogRef = collection(db, "artifacts", appId, "users", currentUser.uid, "activity_logs");
-                    transaction.add(activityLogRef, {
-                        type: "daily_bonus_claimed",
-                        timestamp: serverTimestamp(),
-                        jCoinsEarned: dailyBonusAmount
-                    });
                 });
 
-                showMessageBox(`Successfully claimed ${dailyBonusAmount} JCoins!`, 'success');
+                // Create a pending reward for admin review instead of directly awarding
+                await createPendingActivityReward(
+                    currentUser.uid,
+                    currentUserProfileData.username,
+                    'daily_login',
+                    10, // Suggested XP reward for daily login
+                    dailyBonusAmount  // Suggested JCoin reward for daily login
+                );
+
+                showMessageBox(`Daily bonus claim submitted! ${dailyBonusAmount} JCoins and 10 XP are pending admin approval.`, 'success');
                 playNotificationSound('success');
-                // Update UI immediately (onSnapshot will also trigger, but this is faster)
-                currentUserProfileData.jCoins += dailyBonusAmount;
-                currentUserProfileData.lastDailyBonusClaimDate = Timestamp.fromDate(new Date()); // Update local data
-                if (jCoinsSpan) jCoinsSpan.textContent = currentUserProfileData.jCoins.toLocaleString();
+                
+                // Update local data for UI (without actually adding the coins yet)
+                currentUserProfileData.lastDailyBonusClaimDate = Timestamp.fromDate(new Date());
                 updateDailyBonusUI(); // Update button and countdown
             } catch (error) {
                 console.error("JCHAT_ERROR: Error claiming daily bonus:", error);
