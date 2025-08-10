@@ -3049,7 +3049,7 @@
 
             // Tabs behavior
             if (tabsContainer) {
-                tabsContainer.addEventListener('click', (e) => {
+                if (tabsContainer) tabsContainer.addEventListener('click', (e) => {
                     const btn = e.target.closest('button[data-tab]');
                     if (!btn) return;
                     const tab = btn.getAttribute('data-tab');
@@ -3281,7 +3281,7 @@
 
                 // Dragging
                 let isDragging = false, startX = 0, startY = 0, startPos = {x:0,y:0};
-                cropBox.addEventListener('mousedown', (e) => {
+                if (cropBox) cropBox.addEventListener('mousedown', (e) => {
                     isDragging = true; startX = e.clientX; startY = e.clientY; startPos = { x: cropState.x, y: cropState.y };
                 });
                 window.addEventListener('mouseup', () => { isDragging = false; });
@@ -3292,10 +3292,10 @@
                     cropState.y = Math.max(0, startPos.y + dy);
                     renderCropBox();
                 });
-                cropAspectSelect.addEventListener('change', initCropBox);
-                cropZoom.addEventListener('input', () => { cropState.zoom = parseFloat(cropZoom.value || '1'); renderCropBox(); });
+                if (cropAspectSelect) cropAspectSelect.addEventListener('change', initCropBox);
+                if (cropZoom) cropZoom.addEventListener('input', () => { cropState.zoom = parseFloat(cropZoom.value || '1'); renderCropBox(); });
 
-                profileCoverUploadInput.addEventListener('change', async (ev) => {
+                if (profileCoverUploadInput) profileCoverUploadInput.addEventListener('change', async (ev) => {
                     const file = ev.target.files?.[0];
                     if (!file) return;
                     openCropModal(file);
