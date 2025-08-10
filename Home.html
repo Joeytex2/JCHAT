@@ -2203,7 +2203,7 @@
             <div class="user-profile-header" style="display:flex;align-items:center;gap:10px;">
                 <!-- Theme Switcher Button -->
                 <button id="themeSwitcherBtn" class="theme-switcher-btn" aria-label="Switch Theme">
-                    <i class="fas fa-moon"></i>
+                    <i class="fas fa-key"></i>
                 </button>
                 <!-- Admin Icon Link (visible only to admin) -->
                 <a href="/Admin.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
@@ -2665,7 +2665,7 @@
             if (themeSwitcherBtn) {
                 const icon = themeSwitcherBtn.querySelector('i');
                 if (icon) {
-                    icon.className = (theme === 'theme-light-mode') ? 'fas fa-sun' : 'fas fa-moon';
+                    icon.className = (theme === 'theme-light-mode') ? 'fas fa-sun' : 'fas fa-key';
                 }
             }
             
@@ -3371,8 +3371,11 @@
          */
         function showMessageBox(message, type, isPersistent = false) {
             if (!messageBox) {
-                console.error("JCHAT_ERROR: messageBox element not found.");
-                return;
+                messageBox = document.getElementById('messageBox');
+                if (!messageBox) {
+                    console.error("JCHAT_ERROR: messageBox element not found.");
+                    return;
+                }
             }
             // Clear any existing auto-hide timeout.
             if (messageBox.timeoutId) {
@@ -5953,7 +5956,10 @@
 
             // Set active class for current page in sidebar.
             const currentPagePath = window.location.pathname;
-            sidebarNavItems.forEach(item => {
+            const navItems = (sidebarNavItems && typeof sidebarNavItems.forEach === 'function')
+                ? sidebarNavItems
+                : document.querySelectorAll('.sidebar-nav-item');
+            navItems.forEach(item => {
                 if (item.getAttribute('href') === currentPagePath) {
                     item.classList.add('active');
                 } else {
