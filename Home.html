@@ -2245,10 +2245,29 @@
                         <span class="button-text"><i class="fas fa-calendar-check"></i> Claim Daily Bonus</span>
                         <div class="button-loader" role="status" aria-label="Loading"></div>
                     </button>
+                            </div>
+            
+            <!-- Share Inspiration Modal -->
+            <div id="shareInspirationModal" class="modal-overlay share-modal" role="dialog" aria-modal="true" aria-labelledby="shareInspirationTitle" style="display:none;">
+                <div class="modal-content">
+                    <h3 id="shareInspirationTitle">Share Inspiration</h3>
+                    <div id="sharePreview" style="padding:10px;border:1px dashed var(--border-light);border-radius:10px;color:var(--white);">
+                        <div id="sharePreviewQuote" style="font-style:italic"></div>
+                        <div id="sharePreviewAuthor" style="opacity:0.8;margin-top:6px"></div>
+                    </div>
+                    <div class="share-options" style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+                        <button id="copyInspirationBtn" class="share-option-btn" style="display:flex;align-items:center;gap:10px; padding:10px 12px; border-radius:10px; border:1px solid var(--border-light); background: var(--button-background); color:#fff; cursor:pointer;"><i class="fas fa-copy"></i> Copy to Clipboard</button>
+                        <button id="sendToFriendBtn" class="share-option-btn" style="display:flex;align-items:center;gap:10px; padding:10px 12px; border-radius:10px; border:1px solid var(--border-light); background: var(--button-background); color:#fff; cursor:pointer;"><i class="fas fa-paper-plane"></i> Send to Friend</button>
+                        <button id="postInspirationBtn" class="share-option-btn" style="display:flex;align-items:center;gap:10px; padding:10px 12px; border-radius:10px; border:1px solid var(--border-light); background: var(--button-background); color:#fff; cursor:pointer;"><i class="fas fa-feather-alt"></i> Post It</button>
+                    </div>
+                    <div class="button-group" style="margin-top:12px;">
+                        <button id="closeShareModalBtn" class="modal-button cancel-button">Close</button>
+                    </div>
                 </div>
             </div>
-
-            <!-- Post Creation Section -->
+            </div>
+ 
+             <!-- Post Creation Section -->
             <div class="post-creation-section" id="postCreationSection">
                 <h3>Create New Post</h3>
                 <textarea id="postContent" placeholder="What's on your mind?" maxlength="50000" disabled aria-label="Post Content"></textarea>
@@ -6088,10 +6107,7 @@
         if (sharePostInspirationButton) {
             sharePostInspirationButton.addEventListener('click', () => {
                 if (!isAuthReady) { showMessageBox("Please log in to share inspiration.", 'error'); return; }
-                if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post creation is currently disabled by administrators, so sharing as a post is not possible.", 'warning'); return; }
-                const currentQuote = inspirationQuoteElement.textContent;
-                const currentAuthor = inspirationAuthorElement.textContent;
-                showMessageBox(`You can share/post this: ${currentQuote} ${currentAuthor}`, 'info');
+                openShareInspirationModal();
             });
         }
         if (customizeInspirationButton) customizeInspirationButton.addEventListener('click', openCustomizeModal);
@@ -6107,6 +6123,68 @@
                 }
             });
         }
+        // Share modal handlers
+        function openShareInspirationModal() {
+            const modal = document.getElementById('shareInspirationModal');
+            if (!modal) return;
+            const q = inspirationQuoteElement ? inspirationQuoteElement.textContent : '';
+            const a = inspirationAuthorElement ? inspirationAuthorElement.textContent : '';
+            const prevQ = document.getElementById('sharePreviewQuote');
+            const prevA = document.getElementById('sharePreviewAuthor');
+            if (prevQ) prevQ.textContent = q;
+            if (prevA) prevA.textContent = a;
+            modal.style.display = 'flex';
+            setTimeout(()=> modal.classList.add('active'), 0);
+        }
+        function closeShareInspirationModal() {
+            const modal = document.getElementById('shareInspirationModal');
+            if (!modal) return;
+            modal.classList.remove('active');
+            setTimeout(()=> modal.style.display = 'none', 200);
+        }
+        async function copyCurrentInspirationToClipboard() {
+            const text = `${inspirationQuoteElement ? inspirationQuoteElement.textContent : ''} ${inspirationAuthorElement ? inspirationAuthorElement.textContent : ''}`.trim();
+            try { await navigator.clipboard.writeText(text); showMessageBox('Copied to clipboard!', 'success'); }
+            catch { showMessageBox('Copy failed. Select and copy manually.', 'warning'); }
+        }
+        function navigateToChatWithPrefill(partnerUid, messageText) {
+            const url = new URL('/Chat.html', window.location.origin);
+            url.searchParams.set('partner', partnerUid);
+            url.searchParams.set('prefill', messageText);
+            window.location.href = url.toString();
+        }
+        function openFriendPickerAndSend() {
+            if (!isAuthReady || !currentUser) { showMessageBox('Please log in.', 'warning'); return; }
+            const partnerUid = prompt('Enter friend UID to send to:');
+            if (!partnerUid) return;
+            const msg = `${inspirationQuoteElement ? inspirationQuoteElement.textContent : ''} ${inspirationAuthorElement ? inspirationAuthorElement.textContent : ''}`.trim();
+            navigateToChatWithPrefill(partnerUid, msg);
+        }
+        function openPostComposerWithPrefill() {
+            if (!isAuthReady || !currentUser) { showMessageBox('Please log in to post.', 'warning'); return; }
+            if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox('Post creation is disabled by administrators.', 'warning'); return; }
+            if (postCreationSection && postContentInput) {
+                const text = `${inspirationQuoteElement ? inspirationQuoteElement.textContent : ''} ${inspirationAuthorElement ? inspirationAuthorElement.textContent : ''}`.trim();
+                postCreationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                postContentInput.value = text;
+                const addImg = confirm('Add an image to this post?');
+                if (addImg && postMediaUpload) postMediaUpload.click();
+                closeShareInspirationModal();
+                showMessageBox('Composer prefilled. You can edit and post now.', 'info');
+            } else {
+                showMessageBox('Post composer not available on this page.', 'warning');
+            }
+        }
+        const copyInspirationBtn = document.getElementById('copyInspirationBtn');
+        const sendToFriendBtn = document.getElementById('sendToFriendBtn');
+        const postInspirationBtn = document.getElementById('postInspirationBtn');
+        const closeShareModalBtn = document.getElementById('closeShareModalBtn');
+        const shareModal = document.getElementById('shareInspirationModal');
+        if (copyInspirationBtn) copyInspirationBtn.addEventListener('click', copyCurrentInspirationToClipboard);
+        if (sendToFriendBtn) sendToFriendBtn.addEventListener('click', openFriendPickerAndSend);
+        if (postInspirationBtn) postInspirationBtn.addEventListener('click', openPostComposerWithPrefill);
+        if (closeShareModalBtn) closeShareModalBtn.addEventListener('click', closeShareInspirationModal);
+        if (shareModal) shareModal.addEventListener('click', (evt)=> { if (evt.target === shareModal) closeShareInspirationModal(); });
 
         if (createPostButton) createPostButton.addEventListener('click', createNewPost);
 
