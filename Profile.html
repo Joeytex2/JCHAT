@@ -2229,7 +2229,12 @@
 
     <main>
         <div class="content-wrapper">
-            <div class="profile-section">
+                            <div class="profile-section">
+                <div id="profileCoverWrapper" style="width:100%;height:180px;border-radius:14px;overflow:hidden;position:relative;margin-bottom:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border-light);">
+                    <img id="profileCoverImg" alt="Cover" style="width:100%;height:100%;object-fit:cover;display:none;">
+                    <input type="file" id="profileCoverUploadInput" accept="image/*" style="display:none;">
+                    <label for="profileCoverUploadInput" id="editCoverOverlay" style="position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,0.5);padding:6px 10px;border-radius:8px;cursor:pointer;display:none;"><i class="fas fa-camera"></i> Edit Cover</label>
+                </div>
                 <div class="profile-header-area">
                     <div class="profile-pic-wrapper" id="profilePicWrapper">
                         <img id="profilePagePic" src="" alt="Profile Picture" class="profile-pic" style="display: none;">
@@ -2325,6 +2330,16 @@
                     <!-- Removed Add Friend and Message buttons as requested -->
                 </div>
 
+                <!-- Tabs: About, Posts, Media, Saved, Activity -->
+                <div id="profileTabs" style="display:flex;gap:8px;margin:14px 0;flex-wrap:wrap;">
+                    <button class="profile-action-button secondary" data-tab="about">About</button>
+                    <button class="profile-action-button secondary" data-tab="posts">Posts</button>
+                    <button class="profile-action-button secondary" data-tab="media">Media</button>
+                    <button class="profile-action-button secondary" data-tab="saved">Saved</button>
+                    <button class="profile-action-button secondary" data-tab="activity">Activity</button>
+                </div>
+                <!-- About Panel -->
+                <div id="tabPanelAbout">
                 <!-- Inline Profile Details and Account Settings -->
                 <div class="profile-details-section">
                     <label for="displayName">Display Name</label>
@@ -2466,6 +2481,38 @@
                         <span class="button-text">Save Customization</span>
                         <div class="button-loader"></div>
                     </button>
+                </div>
+                </div> <!-- End Tab About -->
+
+                <!-- Posts Panel -->
+                <div id="tabPanelPosts" style="display:none;">
+                    <div class="posts-feed-section" id="userPostsFeed" style="display:block;">
+                        <h3>Posts by <span id="postsFeedUsername"></span></h3>
+                        <p style="text-align: center; color: var(--text-light);" id="loadingUserPostsMessage">Loading posts...</p>
+                        <div id="userPostsList" style="display:flex;flex-direction:column;gap:10px;"></div>
+                    </div>
+                </div>
+
+                <!-- Media Panel -->
+                <div id="tabPanelMedia" style="display:none;">
+                    <div id="userMediaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;"></div>
+                </div>
+
+                <!-- Saved Panel -->
+                <div id="tabPanelSaved" style="display:none;">
+                    <div id="savedPostsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+                    <div id="savedInspirationsList" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;"></div>
+                </div>
+
+                <!-- Activity Panel -->
+                <div id="tabPanelActivity" style="display:none;">
+                    <div class="recent-activity-section" id="recentActivitySection" style="display:block;">
+                        <h3>Recent Activity</h3>
+                        <ul class="activity-list" id="recentActivityList">
+                            <p class="no-activity-message">No recent activity.</p>
+                        </ul>
+                    </div>
+                </div>
 
 
                     <!-- Toggle for Account Settings (Email/Password) -->
@@ -2826,8 +2873,26 @@
 
         const saveProfileChanges = document.getElementById('saveProfileChanges'); // Renamed from saveProfileChangesButton
 
-        // NEW: Privacy Settings Toggles
-        const toggleEmailVisibility = document.getElementById('toggleEmailVisibility');
+                    // Cover image wiring
+            const profileCoverWrapper = document.getElementById('profileCoverWrapper');
+            const profileCoverImg = document.getElementById('profileCoverImg');
+            const profileCoverUploadInput = document.getElementById('profileCoverUploadInput');
+            const editCoverOverlay = document.getElementById('editCoverOverlay');
+
+            // Tabs wiring
+            const tabsContainer = document.getElementById('profileTabs');
+            const tabPanelAbout = document.getElementById('tabPanelAbout');
+            const tabPanelPosts = document.getElementById('tabPanelPosts');
+            const tabPanelMedia = document.getElementById('tabPanelMedia');
+            const tabPanelSaved = document.getElementById('tabPanelSaved');
+            const tabPanelActivity = document.getElementById('tabPanelActivity');
+            const userPostsList = document.getElementById('userPostsList');
+            const userMediaGrid = document.getElementById('userMediaGrid');
+            const savedPostsList = document.getElementById('savedPostsList');
+            const savedInspirationsList = document.getElementById('savedInspirationsList');
+
+            // NEW: Privacy Settings Toggles
+            const toggleEmailVisibility = document.getElementById('toggleEmailVisibility');
         const toggleLocationVisibility = document.getElementById('toggleLocationVisibility');
         const toggleOnlineStatusVisibility = document.getElementById('toggleOnlineStatusVisibility');
         const toggleFriendRequests = document.getElementById('toggleFriendRequests');
@@ -2895,10 +2960,153 @@
         const friendsSnippetGrid = document.getElementById('friendsSnippetGrid');
         const noFriendsMessage = document.getElementById('noFriendsMessage');
 
-        // NEW: Recent Activity Section
-        const recentActivitySection = document.getElementById('recentActivitySection');
-        const recentActivityList = document.getElementById('recentActivityList');
-        const noActivityMessage = document.getElementById('noActivityMessage');
+                    // NEW: Recent Activity Section
+            const recentActivitySection = document.getElementById('recentActivitySection');
+            const recentActivityList = document.getElementById('recentActivityList');
+            const noActivityMessage = document.getElementById('noActivityMessage');
+
+            // Tabs behavior
+            if (tabsContainer) {
+                tabsContainer.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button[data-tab]');
+                    if (!btn) return;
+                    const tab = btn.getAttribute('data-tab');
+                    [tabPanelAbout, tabPanelPosts, tabPanelMedia, tabPanelSaved, tabPanelActivity].forEach(p => p && (p.style.display = 'none'));
+                    if (tab === 'about') tabPanelAbout.style.display = 'block';
+                    if (tab === 'posts') { tabPanelPosts.style.display = 'block'; ensureUserPostsLoaded(); }
+                    if (tab === 'media') { tabPanelMedia.style.display = 'block'; ensureUserMediaLoaded(); }
+                    if (tab === 'saved') { tabPanelSaved.style.display = 'block'; ensureSavedLoaded(); }
+                    if (tab === 'activity') { tabPanelActivity.style.display = 'block'; ensureActivityLoaded(); }
+                });
+            }
+
+            async function ensureUserPostsLoaded() {
+                if (!userPostsList) return;
+                if (userPostsList.dataset.loaded === '1') return;
+                userPostsList.innerHTML = '<div style="opacity:0.8;">Loading posts...</div>';
+                try {
+                    const postsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+                    const qy = query(postsCollectionRef, where('authorId', '==', displayedUserId), orderBy('createdAt', 'desc'));
+                    const snap = await getDocs(qy);
+                    userPostsList.innerHTML = '';
+                    if (snap.empty) {
+                        userPostsList.innerHTML = '<div style="opacity:0.8;">No posts yet.</div>';
+                    } else {
+                        snap.forEach(docSnap => {
+                            const p = docSnap.data();
+                            const row = document.createElement('div');
+                            row.style.cssText = 'padding:10px;border:1px solid var(--border-light);border-radius:10px;background:rgba(255,255,255,0.03);';
+                            row.textContent = p.content || '(no text)';
+                            userPostsList.appendChild(row);
+                        });
+                    }
+                    userPostsList.dataset.loaded = '1';
+                } catch (e) {
+                    userPostsList.innerHTML = '<div style="color:salmon;">Failed to load posts.</div>';
+                }
+            }
+
+            async function ensureUserMediaLoaded() {
+                if (!userMediaGrid) return;
+                if (userMediaGrid.dataset.loaded === '1') return;
+                userMediaGrid.innerHTML = '<div style="opacity:0.8;">Loading media...</div>';
+                try {
+                    const postsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+                    const qy = query(postsCollectionRef, where('authorId', '==', displayedUserId), orderBy('createdAt', 'desc'));
+                    const snap = await getDocs(qy);
+                    userMediaGrid.innerHTML = '';
+                    let count = 0;
+                    snap.forEach(docSnap => {
+                        const p = docSnap.data();
+                        if (p.mediaUrl && p.mediaType) {
+                            const cell = document.createElement('div');
+                            cell.style.cssText = 'position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border-light);background:rgba(255,255,255,0.03);';
+                            if (p.mediaType === 'image') {
+                                cell.innerHTML = `<img src="${getCloudinaryImageUrl(p.mediaUrl,'w_320,h_320,c_fill,q_auto')}" alt="media" style="width:100%;height:100%;object-fit:cover;">`;
+                            } else if (p.mediaType === 'video') {
+                                cell.innerHTML = `<video src="${p.mediaUrl}" style="width:100%;height:100%;object-fit:cover;" controls muted></video>`;
+                            }
+                            userMediaGrid.appendChild(cell);
+                            count++;
+                        }
+                    });
+                    if (count === 0) userMediaGrid.innerHTML = '<div style="opacity:0.8;">No media yet.</div>';
+                    userMediaGrid.dataset.loaded = '1';
+                } catch (e) {
+                    userMediaGrid.innerHTML = '<div style="color:salmon;">Failed to load media.</div>';
+                }
+            }
+
+            async function ensureSavedLoaded() {
+                if (!savedPostsList || !savedInspirationsList) return;
+                if (savedPostsList.dataset.loaded === '1' && savedInspirationsList.dataset.loaded === '1') return;
+                savedPostsList.innerHTML = '<div style="opacity:0.8;">Loading saved posts...</div>';
+                savedInspirationsList.innerHTML = '<div style="opacity:0.8;">Loading saved inspirations...</div>';
+                try {
+                    const savedPostsRef = collection(db, 'artifacts', appId, 'users', displayedUserId, 'saved_posts');
+                    const savedSnap = await getDocs(savedPostsRef);
+                    savedPostsList.innerHTML = '';
+                    if (savedSnap.empty) {
+                        savedPostsList.innerHTML = '<div style="opacity:0.8;">No saved posts.</div>';
+                    } else {
+                        savedSnap.forEach(d => {
+                            const pid = d.id;
+                            const row = document.createElement('div');
+                            row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border:1px solid var(--border-light);border-radius:10px;background:rgba(255,255,255,0.03);';
+                            row.innerHTML = `<span>Post: ${pid}</span>`;
+                            savedPostsList.appendChild(row);
+                        });
+                    }
+                    savedPostsList.dataset.loaded = '1';
+                } catch (e) {
+                    savedPostsList.innerHTML = '<div style="color:salmon;">Failed to load saved posts.</div>';
+                }
+                try {
+                    const savedInspRef = collection(db, 'artifacts', appId, 'users', displayedUserId, 'saved_inspirations');
+                    const inspSnap = await getDocs(savedInspRef);
+                    savedInspirationsList.innerHTML = '';
+                    if (inspSnap.empty) {
+                        savedInspirationsList.innerHTML = '<div style="opacity:0.8;">No saved inspirations.</div>';
+                    } else {
+                        inspSnap.forEach(d => {
+                            const data = d.data() || {};
+                            const text = data.text || '(no text)';
+                            const row = document.createElement('div');
+                            row.style.cssText = 'padding:8px 10px;border:1px solid var(--border-light);border-radius:10px;background:rgba(255,255,255,0.03);';
+                            row.textContent = text;
+                            savedInspirationsList.appendChild(row);
+                        });
+                    }
+                    savedInspirationsList.dataset.loaded = '1';
+                } catch (e) {
+                    savedInspirationsList.innerHTML = '<div style="color:salmon;">Failed to load saved inspirations.</div>';
+                }
+            }
+
+            function ensureActivityLoaded() {
+                if (!recentActivitySection) return;
+                recentActivitySection.style.display = 'block';
+            }
+
+            // Cover upload handling (owner only)
+            if (profileCoverUploadInput) {
+                profileCoverUploadInput.addEventListener('change', async (ev) => {
+                    const file = ev.target.files?.[0];
+                    if (!file) return;
+                    try {
+                        const resized = await resizeImage(file, 1200, 300, 0.85);
+                        const url = await uploadMediaToCloudinary(resized);
+                        if (!url) throw new Error('Upload failed');
+                        profileCoverImg.src = getCloudinaryImageUrl(url, 'w_1600,h_400,c_fill,q_auto');
+                        profileCoverImg.style.display = 'block';
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile'), { coverPicId: url, updatedAt: serverTimestamp() });
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid), { coverPicId: url, updatedAt: serverTimestamp() });
+                        showMessageBox('Cover updated!', 'success');
+                    } catch (e) {
+                        showMessageBox('Failed to update cover.', 'error');
+                    }
+                });
+            }
 
 
         // --- Global State ---
@@ -4910,6 +5118,15 @@
 
                     // Apply visibility settings if it's another user's profile
                     const visibility = displayedUserProfileData.visibility || {};
+
+                    // Cover image display (respect visibility if added later)
+                    if (profileCoverImg && displayedUserProfileData.coverPicId) {
+                        profileCoverImg.src = getCloudinaryImageUrl(displayedUserProfileData.coverPicId, 'w_1600,h_400,c_fill,q_auto');
+                        profileCoverImg.style.display = 'block';
+                    }
+                    if (editCoverOverlay) {
+                        editCoverOverlay.style.display = (currentUser && isCurrentUserProfile) ? 'block' : 'none';
+                    }
 
                     if (profileUsername) profileUsername.textContent = displayedUserProfileData.username || "JCHAT User"; // Null check
                     const usernameInitial = (displayedUserProfileData.username || "J").charAt(0).toUpperCase();
