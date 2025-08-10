@@ -647,7 +647,6 @@
             gap: 20px;
             align-items: center;
         }
-
         /* Enhanced Profile Section (adapted from original Profile.html and settings-section) */
         .profile-section {
             background: var(--card-background);
@@ -1935,9 +1934,6 @@
         .wallet-guide-section .guide-item .gradient-text {
             font-weight: 600;
         }
-
-
-
         /* Enhanced Responsive Design */
         @media (max-width: 768px) {
             .profile-section {
@@ -2335,6 +2331,7 @@
                     <button class="profile-action-button secondary" data-tab="about">About</button>
                     <button class="profile-action-button secondary" data-tab="posts">Posts</button>
                     <button class="profile-action-button secondary" data-tab="media">Media</button>
+                    <button class="profile-action-button secondary" data-tab="highlights">Highlights</button>
                     <button class="profile-action-button secondary" data-tab="saved">Saved</button>
                     <button class="profile-action-button secondary" data-tab="activity">Activity</button>
                 </div>
@@ -2495,7 +2492,23 @@
 
                 <!-- Media Panel -->
                 <div id="tabPanelMedia" style="display:none;">
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                        <label>Filter:</label>
+                        <select id="mediaFilterSelect" class="profile-action-button secondary" style="padding:6px 10px;">
+                            <option value="all">All</option>
+                            <option value="image">Images</option>
+                            <option value="video">Videos</option>
+                        </select>
+                    </div>
                     <div id="userMediaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;"></div>
+                </div>
+
+                <!-- Highlights Panel -->
+                <div id="tabPanelHighlights" style="display:none;">
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                        <button id="addHighlightBtn" class="profile-action-button"><i class="fas fa-plus"></i> New Highlight</button>
+                    </div>
+                    <div id="highlightsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;"></div>
                 </div>
 
                 <!-- Saved Panel -->
@@ -2886,10 +2899,14 @@
             const tabPanelMedia = document.getElementById('tabPanelMedia');
             const tabPanelSaved = document.getElementById('tabPanelSaved');
             const tabPanelActivity = document.getElementById('tabPanelActivity');
+            const tabPanelHighlights = document.getElementById('tabPanelHighlights');
             const userPostsList = document.getElementById('userPostsList');
             const userMediaGrid = document.getElementById('userMediaGrid');
+            const mediaFilterSelect = document.getElementById('mediaFilterSelect');
             const savedPostsList = document.getElementById('savedPostsList');
             const savedInspirationsList = document.getElementById('savedInspirationsList');
+            const highlightsGrid = document.getElementById('highlightsGrid');
+            const addHighlightBtn = document.getElementById('addHighlightBtn');
 
             // NEW: Privacy Settings Toggles
             const toggleEmailVisibility = document.getElementById('toggleEmailVisibility');
@@ -2971,10 +2988,11 @@
                     const btn = e.target.closest('button[data-tab]');
                     if (!btn) return;
                     const tab = btn.getAttribute('data-tab');
-                    [tabPanelAbout, tabPanelPosts, tabPanelMedia, tabPanelSaved, tabPanelActivity].forEach(p => p && (p.style.display = 'none'));
+                    [tabPanelAbout, tabPanelPosts, tabPanelMedia, tabPanelSaved, tabPanelActivity, tabPanelHighlights].forEach(p => p && (p.style.display = 'none'));
                     if (tab === 'about') tabPanelAbout.style.display = 'block';
                     if (tab === 'posts') { tabPanelPosts.style.display = 'block'; ensureUserPostsLoaded(); }
                     if (tab === 'media') { tabPanelMedia.style.display = 'block'; ensureUserMediaLoaded(); }
+                    if (tab === 'highlights') { tabPanelHighlights.style.display = 'block'; ensureHighlightsLoaded(); }
                     if (tab === 'saved') { tabPanelSaved.style.display = 'block'; ensureSavedLoaded(); }
                     if (tab === 'activity') { tabPanelActivity.style.display = 'block'; ensureActivityLoaded(); }
                 });
@@ -3008,9 +3026,9 @@
 
             async function ensureUserMediaLoaded() {
                 if (!userMediaGrid) return;
-                if (userMediaGrid.dataset.loaded === '1') return;
                 userMediaGrid.innerHTML = '<div style="opacity:0.8;">Loading media...</div>';
                 try {
+                    const filter = mediaFilterSelect ? mediaFilterSelect.value : 'all';
                     const postsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
                     const qy = query(postsCollectionRef, where('authorId', '==', displayedUserId), orderBy('createdAt', 'desc'));
                     const snap = await getDocs(qy);
@@ -3018,7 +3036,7 @@
                     let count = 0;
                     snap.forEach(docSnap => {
                         const p = docSnap.data();
-                        if (p.mediaUrl && p.mediaType) {
+                        if (p.mediaUrl && p.mediaType && (filter === 'all' || p.mediaType === filter)) {
                             const cell = document.createElement('div');
                             cell.style.cssText = 'position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border-light);background:rgba(255,255,255,0.03);';
                             if (p.mediaType === 'image') {
@@ -3036,6 +3054,45 @@
                     userMediaGrid.innerHTML = '<div style="color:salmon;">Failed to load media.</div>';
                 }
             }
+            if (mediaFilterSelect) mediaFilterSelect.addEventListener('change', () => { userMediaGrid.dataset.loaded = '0'; ensureUserMediaLoaded(); });
+
+            async function ensureHighlightsLoaded() {
+                if (!highlightsGrid) return;
+                if (highlightsGrid.dataset.loaded === '1') return;
+                highlightsGrid.innerHTML = '<div style="opacity:0.8;">Loading highlights...</div>';
+                try {
+                    const ref = collection(db, 'artifacts', appId, 'users', displayedUserId, 'highlights');
+                    const snap = await getDocs(ref);
+                    highlightsGrid.innerHTML = '';
+                    if (snap.empty) {
+                        highlightsGrid.innerHTML = '<div style="opacity:0.8;">No highlights yet.</div>';
+                    } else {
+                        snap.forEach(d => {
+                            const h = d.data() || {};
+                            const card = document.createElement('div');
+                            card.style.cssText = 'border:1px solid var(--border-light);border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.03);';
+                            const cover = h.coverPicId ? `<img src="${getCloudinaryImageUrl(h.coverPicId,'w_600,h_240,c_fill,q_auto')}" alt="cover" style="width:100%;height:140px;object-fit:cover;">` : '';
+                            card.innerHTML = `${cover}<div style="padding:10px;"><div style="font-weight:600;">${h.title || 'Untitled'}</div><div style="opacity:0.8;">${h.description || ''}</div></div>`;
+                            highlightsGrid.appendChild(card);
+                        });
+                    }
+                    highlightsGrid.dataset.loaded = '1';
+                } catch (e) {
+                    highlightsGrid.innerHTML = '<div style="color:salmon;">Failed to load highlights.</div>';
+                }
+            }
+            if (addHighlightBtn) addHighlightBtn.addEventListener('click', async () => {
+                if (!currentUser || displayedUserId !== currentUser.uid) { showMessageBox('Only the owner can add highlights.', 'warning'); return; }
+                const title = prompt('Title for highlight?');
+                if (!title) return;
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'highlights'), { title, createdAt: serverTimestamp() });
+                    highlightsGrid.dataset.loaded = '0';
+                    ensureHighlightsLoaded();
+                } catch (e) {
+                    showMessageBox('Failed to add highlight.', 'error');
+                }
+            });
 
             async function ensureSavedLoaded() {
                 if (!savedPostsList || !savedInspirationsList) return;
@@ -3184,7 +3241,6 @@
                 }
             }
         }
-
         /**
          * Displays a temporary message box with a given message and type.
          * @param {string} message - The message to display.
@@ -3801,8 +3857,6 @@
                 toggleButtonLoading(saveCustomizationButton, false);
             }
         }
-
-
         /**
          * Handles changing user's email address.
          */
@@ -4084,7 +4138,7 @@
                 const tierNames = ["The Unrivaled", "Cosmic Creator", "JCHAT Deity", "Apex Being"];
                 const tierIcons = ["fas fa-infinity", "fas fa-solar-system", "fas fa-hand-holding-heart", "fas fa-star-and-crescent"];
                 const tierIndex = Math.floor((level - 401) / 25); // Cycle every 25 levels for 4 names
-                name = `${tierNames[tierIndex % tierIcons.length]} Lv. ${level}`;
+                name = `${tierNames[tierIndex % tierNames.length]} Lv. ${level}`;
                 icon = tierIcons[tierIndex % tierIcons.length];
 
                 // Specific other rewards for Tier 5
@@ -4453,7 +4507,6 @@
         function hideJCoinRequestModal() {
             if (jcoinRequestModal) jcoinRequestModal.classList.remove('active'); // Null check
         }
-
         /**
          * Calculates the JCoins based on Naira amount and bonus.
          * @param {number} nairaAmount - The Naira amount entered by the user.
@@ -5042,8 +5095,6 @@
             progressPercentageElement.style.color = '#fff';
             progressPercentageElement.style.textShadow = '0 0 3px rgba(0, 0, 0, 0.8)';
         }
-
-
             if (profilePagePic) profilePagePic.style.display = 'none';
             if (profilePageAvatarIcon) profilePageAvatarIcon.style.display = 'block';
             
@@ -5666,7 +5717,6 @@
                 }
             }
         });
-
         // --- Event Listeners (moved to DOMContentLoaded for safety) ---
         document.addEventListener('DOMContentLoaded', () => {
             // Apply theme on load
