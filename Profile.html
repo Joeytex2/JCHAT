@@ -2833,7 +2833,7 @@
         // Import Firebase modules (Updated to v11.8.0 - Latest Stable)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, updateProfile, updateEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, runTransaction, writeBatch, serverTimestamp, orderBy, addDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, runTransaction, writeBatch, serverTimestamp, orderBy, addDoc, arrayUnion, documentId } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-storage.js";
         // Import Timestamp for scheduled announcements
         import { Timestamp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
@@ -5103,7 +5103,7 @@
                 // In a real app, you'd have a 'friends' subcollection for each user.
                 // For example: collection(db, "artifacts", appId, "users", displayedUserId, "friends")
                 const publicUsersRef = collection(db, "artifacts", appId, "public", "data", "users");
-                const q = query(publicUsersRef, where(document.id, '!=', displayedUserId)); // Exclude current user
+                const q = query(publicUsersRef, where(documentId(), '!=', displayedUserId)); // Exclude current user
                 const querySnapshot = await getDocs(q);
 
                 let availableUsers = [];
