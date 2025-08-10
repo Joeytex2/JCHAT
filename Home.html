@@ -6454,9 +6454,47 @@
         if (prevStoryBtn) prevStoryBtn.addEventListener('click', ()=> openStory(currentStoryIndex-1));
         if (nextStoryBtn) nextStoryBtn.addEventListener('click', ()=> openStory(currentStoryIndex+1));
 
+        function attachInspirationEventListeners() {
+            if (sharePostInspirationButton && !sharePostInspirationButton.dataset.bound) {
+                sharePostInspirationButton.addEventListener('click', () => {
+                    if (!isAuthReady) { showMessageBox("Please log in to share inspiration.", 'error'); return; }
+                    if (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) { showMessageBox("Post creation is currently disabled by administrators, so sharing as a post is not possible.", 'warning'); return; }
+                    const currentQuote = inspirationQuoteElement ? inspirationQuoteElement.textContent : '';
+                    const currentAuthor = inspirationAuthorElement ? inspirationAuthorElement.textContent : '';
+                    showMessageBox(`You can share/post this: ${currentQuote} ${currentAuthor}`, 'info');
+                });
+                sharePostInspirationButton.dataset.bound = '1';
+            }
+            if (customizeInspirationButton && !customizeInspirationButton.dataset.bound) {
+                customizeInspirationButton.addEventListener('click', openCustomizeModal);
+                customizeInspirationButton.dataset.bound = '1';
+            }
+            if (cancelCustomizeButton && !cancelCustomizeButton.dataset.bound) {
+                cancelCustomizeButton.addEventListener('click', closeCustomizeModal);
+                cancelCustomizeButton.dataset.bound = '1';
+            }
+            if (saveCustomizeButton && !saveCustomizeButton.dataset.bound) {
+                saveCustomizeButton.addEventListener('click', saveInspirationType);
+                saveCustomizeButton.dataset.bound = '1';
+            }
+            if (claimDailyBonusButton && !claimDailyBonusButton.dataset.bound) {
+                claimDailyBonusButton.addEventListener('click', handleClaimDailyBonusClick);
+                claimDailyBonusButton.dataset.bound = '1';
+            }
+            if (customizeInspirationModal && !customizeInspirationModal.dataset.boundOutsideClick) {
+                customizeInspirationModal.addEventListener('click', (event) => {
+                    if (event.target === customizeInspirationModal) closeCustomizeModal();
+                });
+                customizeInspirationModal.dataset.boundOutsideClick = '1';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize DOM elements first
             initializeDOMElements();
+
+            // Ensure inspiration section listeners are attached after elements exist
+            attachInspirationEventListeners();
             
             updateStreakAndQuestsUI();
             fetchStories();
