@@ -2257,8 +2257,10 @@
                     </div>
                     <div class="share-options" style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
                         <button id="copyInspirationBtn" class="share-option-btn" style="display:flex;align-items:center;gap:10px; padding:10px 12px; border-radius:10px; border:1px solid var(--border-light); background: var(--button-background); color:#fff; cursor:pointer;"><i class="fas fa-copy"></i> Copy to Clipboard</button>
+                        <div id="friendPicker" style="border:1px solid var(--border-light);border-radius:10px;padding:8px;display:none;max-height:200px;overflow:auto;"></div>
                         <button id="sendToFriendBtn" class="share-option-btn" style="display:flex;align-items:center;gap:10px; padding:10px 12px; border-radius:10px; border:1px solid var(--border-light); background: var(--button-background); color:#fff; cursor:pointer;"><i class="fas fa-paper-plane"></i> Send to Friend</button>
                         <button id="postInspirationBtn" class="share-option-btn" style="display:flex;align-items:center;gap:10px; padding:10px 12px; border-radius:10px; border:1px solid var(--border-light); background: var(--button-background); color:#fff; cursor:pointer;"><i class="fas fa-feather-alt"></i> Post It</button>
+                        <button id="saveInspirationBtn" class="share-option-btn" style="display:flex;align-items:center;gap:10px; padding:10px 12px; border-radius:10px; border:1px solid var(--border-light); background: var(--button-background); color:#fff; cursor:pointer;"><i class="fas fa-bookmark"></i> Save Inspiration</button>
                     </div>
                     <div class="button-group" style="margin-top:12px;">
                         <button id="closeShareModalBtn" class="modal-button cancel-button">Close</button>
@@ -6178,11 +6180,54 @@
         const copyInspirationBtn = document.getElementById('copyInspirationBtn');
         const sendToFriendBtn = document.getElementById('sendToFriendBtn');
         const postInspirationBtn = document.getElementById('postInspirationBtn');
+        const saveInspirationBtn = document.getElementById('saveInspirationBtn');
         const closeShareModalBtn = document.getElementById('closeShareModalBtn');
         const shareModal = document.getElementById('shareInspirationModal');
+        const friendPicker = document.getElementById('friendPicker');
         if (copyInspirationBtn) copyInspirationBtn.addEventListener('click', copyCurrentInspirationToClipboard);
-        if (sendToFriendBtn) sendToFriendBtn.addEventListener('click', openFriendPickerAndSend);
+        if (sendToFriendBtn) sendToFriendBtn.addEventListener('click', async () => {
+            if (!isAuthReady || !currentUser) { showMessageBox('Please log in.', 'warning'); return; }
+            // Populate friend picker
+            if (friendPicker) {
+                friendPicker.innerHTML = '<div style="opacity:0.8;">Loading friends...</div>';
+                friendPicker.style.display = 'block';
+                try {
+                    const friendsCollectionRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'friends');
+                    const friendsSnapshot = await getDocs(friendsCollectionRef);
+                    if (friendsSnapshot.empty) {
+                        friendPicker.innerHTML = '<div style="opacity:0.8;">No friends yet.</div>';
+                    } else {
+                        friendPicker.innerHTML = '';
+                        friendsSnapshot.forEach(d => {
+                            const fid = d.id;
+                            const row = document.createElement('div');
+                            row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:6px;';
+                            row.innerHTML = `<span>${fid}</span><button class="btn" data-fid="${fid}">Send</button>`;
+                            row.querySelector('button').addEventListener('click', () => {
+                                const msg = `${inspirationQuoteElement ? inspirationQuoteElement.textContent : ''} ${inspirationAuthorElement ? inspirationAuthorElement.textContent : ''}`.trim();
+                                navigateToChatWithPrefill(fid, msg);
+                            });
+                            friendPicker.appendChild(row);
+                        });
+                    }
+                } catch (e) {
+                    friendPicker.innerHTML = '<div style="color:salmon;">Failed to load friends.</div>';
+                    console.error('Friend picker load failed', e);
+                }
+            }
+        });
         if (postInspirationBtn) postInspirationBtn.addEventListener('click', openPostComposerWithPrefill);
+        if (saveInspirationBtn) saveInspirationBtn.addEventListener('click', async () => {
+            if (!isAuthReady || !currentUser) { showMessageBox('Please log in.', 'warning'); return; }
+            try {
+                const text = `${inspirationQuoteElement ? inspirationQuoteElement.textContent : ''} ${inspirationAuthorElement ? inspirationAuthorElement.textContent : ''}`.trim();
+                const savedRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'saved_inspirations', `${Date.now()}`);
+                await setDoc(savedRef, { text, createdAt: serverTimestamp() });
+                showMessageBox('Inspiration saved.', 'success');
+            } catch (e) {
+                showMessageBox('Failed to save inspiration.', 'error');
+            }
+        });
         if (closeShareModalBtn) closeShareModalBtn.addEventListener('click', closeShareInspirationModal);
         if (shareModal) shareModal.addEventListener('click', (evt)=> { if (evt.target === shareModal) closeShareInspirationModal(); });
 
