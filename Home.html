@@ -4050,11 +4050,8 @@
          * Displays a randomly selected inspiration quote on the page.
          */
         async function displayInspiration() {
-            const section = document.querySelector('.daily-inspiration-section');
-            const currentType = (currentUserProfileData?.inspirationType || currentSystemSettings?.defaultInspirationType || 'motivational');
-            if (currentType === 'off') { if (section) section.style.display = 'none'; return; }
-            if (section) section.style.display = 'block';
-            const quoteData = getGeneratedQuote(currentType);
+            const currentType = currentUserProfileData?.inspirationType || "motivational";
+            const quoteData = getRandomQuote(currentType);
             if (inspirationQuoteElement) inspirationQuoteElement.textContent = `"${quoteData.quote}"`;
             if (inspirationAuthorElement) inspirationAuthorElement.textContent = `- ${quoteData.author}`;
         }
@@ -4067,14 +4064,11 @@
             if (inspirationIntervalId) {
                 clearInterval(inspirationIntervalId); // Clear any existing interval.
             }
-            const section = document.querySelector('.daily-inspiration-section');
             if (currentUserProfileData) {
                 currentUserProfileData.inspirationType = type; // Update local profile data.
             }
-            if (type === 'off') { if (section) section.style.display = 'none'; return; }
-            if (section) section.style.display = 'block';
             displayInspiration(); // Display initial quote immediately.
-            inspirationIntervalId = setInterval(displayInspiration, 60 * 1000); // Refresh every 60 seconds.
+            inspirationIntervalId = setInterval(displayInspiration, 3 * 60 * 1000); // Refresh every 3 minutes.
         }
 
         /**
