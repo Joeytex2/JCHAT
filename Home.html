@@ -6155,12 +6155,51 @@
             url.searchParams.set('prefill', messageText);
             window.location.href = url.toString();
         }
-        function openFriendPickerAndSend() {
+        async function openFriendPickerAndSend() {
             if (!isAuthReady || !currentUser) { showMessageBox('Please log in.', 'warning'); return; }
-            const partnerUid = prompt('Enter friend UID to send to:');
-            if (!partnerUid) return;
-            const msg = `${inspirationQuoteElement ? inspirationQuoteElement.textContent : ''} ${inspirationAuthorElement ? inspirationAuthorElement.textContent : ''}`.trim();
-            navigateToChatWithPrefill(partnerUid, msg);
+            const friendPicker = document.getElementById('friendPicker');
+            if (!friendPicker) { showMessageBox('Friend picker UI not found.', 'error'); return; }
+            friendPicker.innerHTML = '<div style="opacity:0.8;">Loading friends...</div>';
+            friendPicker.style.display = 'block';
+            try {
+                const friendsCollectionRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'friends');
+                const friendsSnapshot = await getDocs(friendsCollectionRef);
+                const rows = [];
+                for (const d of friendsSnapshot.docs) {
+                    const fid = d.id;
+                    const pubRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', fid);
+                    const pubSnap = await getDoc(pubRef);
+                    const username = pubSnap.exists() ? (pubSnap.data().username || fid) : fid;
+                    const profilePicId = pubSnap.exists() ? (pubSnap.data().profilePicId || null) : null;
+                    const usernameInitial = (username || 'U').charAt(0).toUpperCase();
+                    const imgUrl = profilePicId ? getCloudinaryImageUrl(profilePicId, 'w_60,h_60,c_fill,g_face,r_max') : `https://placehold.co/40x40/CCCCCC/000000?text=${usernameInitial}`;
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:6px;gap:10px;';
+                    row.innerHTML = `<div style=\"display:flex;align-items:center;gap:10px;\"><img src=\"${imgUrl}\" alt=\"${username}\" style=\"width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);\"><span>${username}</span></div><button class=\"btn\" data-fid=\"${fid}\">Send</button>`;
+                    row.querySelector('button').addEventListener('click', () => {
+                        const msg = `${inspirationQuoteElement ? inspirationQuoteElement.textContent : ''} ${inspirationAuthorElement ? inspirationAuthorElement.textContent : ''}`.trim();
+                        navigateToChatWithPrefill(fid, msg);
+                    });
+                    rows.push(row);
+                }
+                friendPicker.innerHTML = '';
+                const search = document.createElement('input');
+                search.type = 'text';
+                search.placeholder = 'Search friends';
+                search.style.cssText = 'width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border-light);margin-bottom:6px;background:var(--input-background);color:var(--white)';
+                friendPicker.appendChild(search);
+                const listWrap = document.createElement('div');
+                friendPicker.appendChild(listWrap);
+                function renderList(filter='') {
+                    listWrap.innerHTML = '';
+                    rows.filter(row => row.innerText.toLowerCase().includes(filter.toLowerCase())).forEach(r => listWrap.appendChild(r));
+                }
+                renderList('');
+                search.addEventListener('input', () => renderList(search.value));
+            } catch (e) {
+                friendPicker.innerHTML = '<div style="color:salmon;">Failed to load friends.</div>';
+                console.error('Friend picker load failed', e);
+            }
         }
         function openPostComposerWithPrefill() {
             if (!isAuthReady || !currentUser) { showMessageBox('Please log in to post.', 'warning'); return; }
