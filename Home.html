@@ -4030,11 +4030,55 @@
         }
 
         /**
-         * Displays a randomly selected inspiration quote on the page.
+         * Deterministic, time-based inspiration (no randomness).
+         * Varies by weekday, month, and part of day. Updates every minute.
+         */
+        function pickDeterministic(arr, seed) {
+            if (!arr || arr.length === 0) return '';
+            const idx = Math.abs(seed) % arr.length;
+            return arr[idx];
+        }
+        function getPartOfDay(h) {
+            if (h >= 5 && h < 12) return 'morning';
+            if (h >= 12 && h < 17) return 'afternoon';
+            if (h >= 17 && h < 21) return 'evening';
+            return 'night';
+        }
+        function selectTypeByTime() {
+            const now = new Date();
+            const weekday = now.getDay(); // 0-6
+            const hour = now.getHours();
+            const part = getPartOfDay(hour);
+            if (part === 'evening' && (weekday === 5 || weekday === 6)) return 'love';
+            if ((weekday === 0 && (part === 'evening' || part === 'night'))) return 'peaceful';
+            const map = ['motivational','wisdom','love','peaceful','funny','motivational','funny'];
+            return map[weekday] || 'motivational';
+        }
+        function generateTimeBasedQuote(preferredType) {
+            const now = new Date();
+            const weekday = now.getDay();
+            const month = now.getMonth();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const seed = (weekday + 1) * 10000 + (month + 1) * 100 + hour * 10 + Math.floor(minute / 5);
+            const type = preferredType && preferredType !== 'off' ? preferredType : selectTypeByTime();
+            const t = quoteTemplates[type] || quoteTemplates.motivational;
+            const open = pickDeterministic(t.openers, seed + 17);
+            const bridge = pickDeterministic(t.bridges, seed + 31);
+            const end = pickDeterministic(t.endings, seed + 53);
+            return { quote: `${open}${bridge}${end}`, author: 'JCHAT' };
+        }
+        /**
+         * Displays the time-based inspiration quote.
          */
         async function displayInspiration() {
-            const currentType = currentUserProfileData?.inspirationType || "motivational";
-            const quoteData = getRandomQuote(currentType);
+            const chosen = (currentUserProfileData?.inspirationType) || null;
+            if (chosen === 'off') {
+                if (inspirationQuoteElement) inspirationQuoteElement.textContent = "Inspiration is turned off.";
+                if (inspirationAuthorElement) inspirationAuthorElement.textContent = "";
+                return;
+            }
+            const quoteData = generateTimeBasedQuote(chosen);
             if (inspirationQuoteElement) inspirationQuoteElement.textContent = `"${quoteData.quote}"`;
             if (inspirationAuthorElement) inspirationAuthorElement.textContent = `- ${quoteData.author}`;
         }
@@ -4051,7 +4095,7 @@
                 currentUserProfileData.inspirationType = type; // Update local profile data.
             }
             displayInspiration(); // Display initial quote immediately.
-            inspirationIntervalId = setInterval(displayInspiration, 3 * 60 * 1000); // Refresh every 3 minutes.
+            inspirationIntervalId = setInterval(displayInspiration, 60 * 1000); // Refresh every minute for time-based updates.
         }
 
         /**
