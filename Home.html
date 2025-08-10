@@ -2337,6 +2337,14 @@
                     <input type="radio" name="inspirationType" value="wisdom" aria-label="Wisdom Inspiration">
                     Wisdom
                 </label>
+                <label class="radio-option">
+                    <input type="radio" name="inspirationType" value="love" aria-label="Love Inspiration">
+                    Love
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="inspirationType" value="off" aria-label="Turn Off Inspiration">
+                    Off
+                </label>
             </div>
             <div class="button-group">
                 <button id="cancelCustomize" class="modal-button cancel-button" aria-label="Cancel Customization">Cancel</button>
@@ -2835,6 +2843,15 @@
 
         // --- Inspiration Quotes Data (Local Fallback) ---
         // These are used as the primary source of inspiration quotes.
+        const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+        const quoteTemplates = {
+            motivational: { openers:["Keep going","Start small","Believe in yourself","Stay consistent","Trust the process"], bridges:["—"," because ",": ",", and ","; "], endings:["every step counts.","tomorrow thanks you for today’s effort.","progress loves momentum.","you’re closer than you think.","discipline builds destiny."] },
+            peaceful: { openers:["Breathe","Slow down","Be gentle","Find quiet","Let go"], bridges:["—"," and ",", then "," as ",": "], endings:["clarity will meet you.","peace finds its way in.","the heart softens.","the mind untangles.","you return to yourself."] },
+            funny: { openers:["Reminder","Breaking news","Pro tip","True story","PSA"], bridges:[": "," — "," — ",": "], endings:["motivation will arrive after snacks.","I’m on a seafood diet—I see food and I code.","sleep is a patch we never apply.","tomorrow is just today with a wig.","coffee is my personality driver."] },
+            wisdom: { openers:["Growth","Curiosity","Patience","Listening","Kindness"], bridges:[" reveals that "," teaches that "," reminds us "," shows that ",": "], endings:["there’s more to learn than to prove.","small habits shape great outcomes.","the quietest lessons echo the longest.","consistency outlives talent.","clarity follows attention."] },
+            love: { openers:["Love","Compassion","Care","Gratitude","Warmth"], bridges:[" grows where "," lives when "," begins when "," multiplies when ",": "], endings:["we show up for each other.","we choose patience.","we listen before we speak.","small gestures carry big meaning.","we forgive and rebuild."] }
+        };
+        function generateProceduralQuote(type) { const t = quoteTemplates[type] || quoteTemplates.motivational; return { quote: `${pick(t.openers)}${pick(t.bridges)}${pick(t.endings)}`, author: 'JCHAT' }; }
         const inspirationalQuotes = {
             motivational: [
                 { quote: "Every sunrise is an invitation to brighten your world.", author: "JCHAT" },
@@ -2863,6 +2880,12 @@
                 { quote: "A mind stretched by new experiences never returns to its old dimensions.", author: "JCHAT" },
                 { quote: "Listen more than you speak; learn more than you teach.", author: "JCHAT" },
                 { quote: "The only true wisdom is in knowing you know nothing.", author: "JCHAT" },
+            ],
+            love: [
+                { quote: "Kindness is love’s simplest language.", author: "JCHAT" },
+                { quote: "Love grows in the space between patience and care.", author: "JCHAT" },
+                { quote: "Where gratitude lives, love multiplies.", author: "JCHAT" },
+                { quote: "Choose love, even on the small days.", author: "JCHAT" },
             ]
         };
 
@@ -4000,18 +4023,21 @@
          * @param {string} type - The category of inspiration (e.g., "motivational").
          * @returns {object} A quote object with 'quote' and 'author' properties.
          */
-        function getRandomQuote(type = "motivational") {
-            const quotesOfType = inspirationalQuotes[type] || inspirationalQuotes.motivational; // Fallback to motivational.
-            const randomIndex = Math.floor(Math.random() * quotesOfType.length);
-            return quotesOfType[randomIndex];
+        function getGeneratedQuote(type = "motivational") {
+            if (Math.random() < 0.8) return generateProceduralQuote(type);
+            const list = inspirationalQuotes[type] || inspirationalQuotes.motivational;
+            return list[Math.floor(Math.random() * list.length)];
         }
 
         /**
          * Displays a randomly selected inspiration quote on the page.
          */
         async function displayInspiration() {
-            const currentType = currentUserProfileData?.inspirationType || "motivational";
-            const quoteData = getRandomQuote(currentType); // Directly use local quotes.
+            const section = document.querySelector('.daily-inspiration-section');
+            const currentType = (currentUserProfileData?.inspirationType || currentSystemSettings?.defaultInspirationType || 'motivational');
+            if (currentType === 'off') { if (section) section.style.display = 'none'; return; }
+            if (section) section.style.display = 'block';
+            const quoteData = getGeneratedQuote(currentType);
             if (inspirationQuoteElement) inspirationQuoteElement.textContent = `"${quoteData.quote}"`;
             if (inspirationAuthorElement) inspirationAuthorElement.textContent = `- ${quoteData.author}`;
         }
@@ -4024,11 +4050,14 @@
             if (inspirationIntervalId) {
                 clearInterval(inspirationIntervalId); // Clear any existing interval.
             }
+            const section = document.querySelector('.daily-inspiration-section');
             if (currentUserProfileData) {
                 currentUserProfileData.inspirationType = type; // Update local profile data.
             }
+            if (type === 'off') { if (section) section.style.display = 'none'; return; }
+            if (section) section.style.display = 'block';
             displayInspiration(); // Display initial quote immediately.
-            inspirationIntervalId = setInterval(displayInspiration, 3 * 60 * 1000); // Refresh every 3 minutes.
+            inspirationIntervalId = setInterval(displayInspiration, 60 * 1000); // Refresh every 60 seconds.
         }
 
         /**
@@ -4041,9 +4070,11 @@
             }
             const currentType = currentUserProfileData?.inspirationType || "motivational";
             // Set the radio button corresponding to the current inspiration type.
-            inspirationTypeRadios.forEach(radio => {
-                radio.checked = (radio.value === currentType);
-            });
+            if (inspirationTypeRadios && typeof inspirationTypeRadios.forEach === 'function') {
+                inspirationTypeRadios.forEach(radio => {
+                    radio.checked = (radio.value === currentType);
+                });
+            }
             if (customizeInspirationModal) customizeInspirationModal.classList.add('active'); // Show modal.
         }
 
