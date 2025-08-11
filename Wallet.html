@@ -2503,15 +2503,23 @@
          */
         async function handleTwoFAConfirmation() {
             if (!currentUser || !twoFAPinInput) {
-                showMessageBox("PIN error: No user or input.", 'error');
+                showMessageBox("PIN verification error. Please try again.", 'error');
                 hideTwoFAModal();
                 return;
             }
+            
             const pin = (twoFAPinInput.value || '').trim();
-            if (!/^\d{4}$/.test(pin)) {
-                showMessageBox("Enter a valid 4-digit PIN.", 'warning');
+            
+            if (!pin) {
+                showMessageBox("Please enter your PIN.", 'warning');
                 return;
             }
+            
+            if (!/^\d{4}$/.test(pin)) {
+                showMessageBox("PIN must be exactly 4 digits.", 'warning');
+                return;
+            }
+            
             try {
                 const enc = new TextEncoder();
                 const data = enc.encode(pin);
@@ -2519,22 +2527,29 @@
                 const arr = Array.from(new Uint8Array(buf));
                 const hex = arr.map(b => b.toString(16).padStart(2,'0')).join('');
                 const stored = currentUserProfile?.transactionPinHash || null;
+                
                 if (!stored) {
-                    showMessageBox("No PIN set. Please set your Transaction PIN first.", 'error');
+                    showMessageBox("No transaction PIN found. Please set your PIN first.", 'error');
                     hideTwoFAModal();
                     return;
                 }
+                
                 if (hex !== stored) {
-                    showMessageBox("Incorrect PIN.", 'error');
+                    showMessageBox("Incorrect PIN. Please try again.", 'error');
+                    // Clear the input but don't close modal for retry
+                    twoFAPinInput.value = '';
+                    twoFAPinInput.focus();
                     return;
                 }
+                
+                // PIN is correct, proceed with action
                 hideTwoFAModal();
                 const args = Array.isArray(twoFAArgs) ? twoFAArgs : [];
                 const fn = (typeof twoFAAction === 'function') ? twoFAAction : (() => {});
                 await fn(...args);
             } catch (e) {
                 console.error('JCHAT_ERROR: PIN verification failed:', e);
-                showMessageBox('PIN verification failed.', 'error');
+                showMessageBox('PIN verification failed. Please try again.', 'error');
                 hideTwoFAModal();
             }
         }
@@ -2795,10 +2810,18 @@
                 showMessageBox("Please log in to send JCoins.", "warning");
                 return;
             }
+            
+            // Check if user has sufficient JCoins
+            const currentJCoins = currentUserProfile.jCoins || 0;
+            if (currentJCoins <= 0) {
+                showMessageBox("You need JCoins to send. Purchase JCoins first.", "warning");
+                return;
+            }
+            
             if (sendJCoinsModal) sendJCoinsModal.classList.add('active'); // Null check
             if (recipientIdInput) recipientIdInput.value = ''; // Null check
             if (sendAmountInput) sendAmountInput.value = ''; // Null check
-            if (yourJCoinsBalanceSpan) yourJCoinsBalanceSpan.textContent = (currentUserProfile.jCoins || 0).toLocaleString(); // Null check
+            if (yourJCoinsBalanceSpan) yourJCoinsBalanceSpan.textContent = currentJCoins.toLocaleString(); // Null check
         }
 
         /**
@@ -2817,23 +2840,40 @@
                 return;
             }
 
-            const recipientId = recipientIdInput.value.trim();
-            const amount = parseInt(sendAmountInput.value);
+            const recipientId = (recipientIdInput?.value || '').trim();
+            const amountValue = sendAmountInput?.value || '';
+            const amount = parseInt(amountValue);
 
+            // Enhanced validation
             if (!recipientId) {
                 showMessageBox("Please enter a recipient User ID.", 'error');
                 return;
             }
+            
+            // Validate recipient ID format (Firebase UID format)
+            if (recipientId.length < 10) {
+                showMessageBox("Invalid recipient User ID format.", 'error');
+                return;
+            }
+            
             if (recipientId === currentUser.uid) {
                 showMessageBox("You cannot send JCoins to yourself.", 'warning');
                 return;
             }
-            if (isNaN(amount) || amount <= 0) {
+            
+            if (!amountValue || isNaN(amount) || amount <= 0) {
                 showMessageBox("Please enter a valid positive amount to send.", 'error');
                 return;
             }
-            if (amount > (currentUserProfile.jCoins || 0)) {
-                showMessageBox("Insufficient JCoins balance.", 'error');
+            
+            if (amount < 1) {
+                showMessageBox("Minimum transfer amount is 1 JCoin.", 'error');
+                return;
+            }
+            
+            const currentJCoins = currentUserProfile.jCoins || 0;
+            if (amount > currentJCoins) {
+                showMessageBox(`Insufficient JCoins. You have ${currentJCoins.toLocaleString()} JCoins.`, 'error');
                 return;
             }
 
@@ -3503,6 +3543,18 @@
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
             console.log('JCHAT_DEBUG: DOMContentLoaded - Wallet init');
+            
+            // Check if essential elements are present
+            const essentialElements = [
+                'sendJCoinsButton', 'sendJCoinsModal', 'confirmSendJCoins', 'cancelSendJCoins',
+                'pinSetInput', 'pinConfirmInput', 'savePinButton', 'resetPinButton',
+                'twoFAModal', 'twoFAPinInput', 'confirmTwoFA', 'cancelTwoFA'
+            ];
+            
+            const missingElements = essentialElements.filter(id => !document.getElementById(id));
+            if (missingElements.length > 0) {
+                console.warn('JCHAT_WARNING: Missing essential elements:', missingElements);
+            }
             // Generate random logos for bank icons
             const bankLogos = document.querySelectorAll('img.bank-logo');
             bankLogos.forEach(img => {
@@ -3559,8 +3611,17 @@
             if (sendJCoinsButton) sendJCoinsButton.addEventListener('click', showSendJCoinsModal); // Null check
             if (cancelSendJCoinsButton) cancelSendJCoinsButton.addEventListener('click', hideSendJCoinsModal); // Null check
             if (confirmSendJCoinsButton) confirmSendJCoinsButton.addEventListener('click', () => {
-                if (currentUser && currentUser.email) {
+                // Ensure user is authenticated before proceeding
+                if (!currentUser) {
+                    showMessageBox("Please wait for authentication to complete and try again.", 'warning');
+                    return;
+                }
+                
+                if (currentUser.email && currentUserProfile && currentUserProfile.transactionPinHash) {
                     showTwoFAModal("Enter your 4-digit PIN to confirm JCoin transfer:", sendJCoinsConfirmed, []);
+                } else if (!currentUserProfile || !currentUserProfile.transactionPinHash) {
+                    showMessageBox("Please set up your transaction PIN first.", 'warning');
+                    return;
                 } else {
                     sendJCoinsConfirmed(); // Allow anonymous if no email is set
                 }
@@ -3574,8 +3635,16 @@
 
             // Withdrawal button listener
             if (withdrawalButton) withdrawalButton.addEventListener('click', () => {
-                if (currentUser && currentUser.email) {
+                if (!currentUser) {
+                    showMessageBox("Please wait for authentication to complete and try again.", 'warning');
+                    return;
+                }
+                
+                if (currentUser.email && currentUserProfile && currentUserProfile.transactionPinHash) {
                     showTwoFAModal("Enter your 4-digit PIN to confirm withdrawal:", sendWithdrawalRequestConfirmed, []);
+                } else if (!currentUserProfile || !currentUserProfile.transactionPinHash) {
+                    showMessageBox("Please set up your transaction PIN first.", 'warning');
+                    return;
                 } else {
                     sendWithdrawalRequestConfirmed(); // Allow anonymous if no email is set
                 }
@@ -3669,6 +3738,32 @@
                 if (pinSetInput) pinSetInput.value = '';
                 if (pinConfirmInput) pinConfirmInput.value = '';
             });
+            
+            // Add input validation for PIN fields
+            function validatePinInput(input) {
+                if (input) {
+                    input.addEventListener('input', (e) => {
+                        // Only allow digits
+                        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                        // Limit to 4 digits
+                        if (e.target.value.length > 4) {
+                            e.target.value = e.target.value.slice(0, 4);
+                        }
+                    });
+                    
+                    input.addEventListener('paste', (e) => {
+                        e.preventDefault();
+                        const paste = (e.clipboardData || window.clipboardData).getData('text');
+                        const numericPaste = paste.replace(/[^0-9]/g, '').slice(0, 4);
+                        e.target.value = numericPaste;
+                    });
+                }
+            }
+            
+            // Apply PIN validation to all PIN inputs
+            validatePinInput(pinSetInput);
+            validatePinInput(pinConfirmInput);
+            validatePinInput(twoFAPinInput);
         });
 
         function getCurrentFilterState() {
@@ -3781,11 +3876,42 @@
         }
 
         async function saveTransactionPin() {
-            if (!currentUser) { showMessageBox('Please log in.', 'error'); return; }
-            const p1 = (pinSetInput?.value || '').trim();
-            const p2 = (pinConfirmInput?.value || '').trim();
-            if (!/^\d{4}$/.test(p1) || !/^\d{4}$/.test(p2)) { showMessageBox('PIN must be 4 digits.', 'warning'); return; }
-            if (p1 !== p2) { showMessageBox('PINs do not match.', 'error'); return; }
+            if (!currentUser) { 
+                showMessageBox('Please log in to set your PIN.', 'error'); 
+                return; 
+            }
+            
+            if (!pinSetInput || !pinConfirmInput) {
+                showMessageBox('PIN input fields not found.', 'error');
+                return;
+            }
+            
+            const p1 = (pinSetInput.value || '').trim();
+            const p2 = (pinConfirmInput.value || '').trim();
+            
+            // Enhanced PIN validation
+            if (!p1 || !p2) {
+                showMessageBox('Please fill in both PIN fields.', 'warning');
+                return;
+            }
+            
+            if (!/^\d{4}$/.test(p1) || !/^\d{4}$/.test(p2)) { 
+                showMessageBox('PIN must be exactly 4 digits.', 'warning'); 
+                return; 
+            }
+            
+            if (p1 !== p2) { 
+                showMessageBox('PINs do not match. Please try again.', 'error'); 
+                return; 
+            }
+            
+            // Check for weak PINs
+            const weakPins = ['0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999', '1234', '4321', '0123'];
+            if (weakPins.includes(p1)) {
+                showMessageBox('Please choose a stronger PIN. Avoid sequential or repeated digits.', 'warning');
+                return;
+            }
+            
             try {
                 const enc = new TextEncoder();
                 const data = enc.encode(p1);
@@ -3795,35 +3921,66 @@
                 const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
                 await setDoc(ref, { transactionPinHash: hex, updatedAt: serverTimestamp() }, { merge: true });
                 if (currentUserProfile) currentUserProfile.transactionPinHash = hex;
+                
+                // Clear the input fields
+                pinSetInput.value = '';
+                pinConfirmInput.value = '';
+                
                 showMessageBox('Transaction PIN saved successfully!', 'success', true);
                 showSuccessTick('PIN saved');
                 applyPinUIState();
             } catch (e) {
                 console.error('JCHAT_ERROR: saving PIN failed:', e);
-                showMessageBox('Failed to save PIN.', 'error');
+                showMessageBox('Failed to save PIN. Please try again.', 'error');
             }
         }
 
         async function resetTransactionPinViaEmail() {
-            if (!currentUser) { showMessageBox('Please log in.', 'error'); return; }
+            if (!currentUser) { 
+                showMessageBox('Please log in to reset your PIN.', 'error'); 
+                return; 
+            }
+            
+            // Check if user has a PIN set first
+            if (!currentUserProfile || !currentUserProfile.transactionPinHash) {
+                showMessageBox('No PIN is currently set.', 'warning');
+                return;
+            }
+            
             try {
                 if (!currentUser.email) {
-                    showMessageBox('No email linked to this account. Add an email to reset PIN.', 'error');
+                    showMessageBox('No email linked to this account. Add an email in Settings to reset PIN.', 'error');
                     return;
                 }
+                
                 if (currentUser.emailVerified) {
+                    // Show confirmation dialog
+                    const confirmed = confirm('Are you sure you want to reset your transaction PIN? This action cannot be undone.');
+                    if (!confirmed) {
+                        return;
+                    }
+                    
+                    showMessageBox('Resetting PIN...', 'loading', true);
+                    
                     const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
                     await setDoc(ref, { transactionPinHash: null, updatedAt: serverTimestamp() }, { merge: true });
                     if (currentUserProfile) currentUserProfile.transactionPinHash = null;
-                    showMessageBox('PIN cleared. Please set a new PIN.', 'success');
+                    
+                    showMessageBox('PIN successfully reset. Please set a new PIN below.', 'success');
                     applyPinUIState();
+                    
+                    // Focus on the PIN input field
+                    if (pinSetInput) {
+                        pinSetInput.focus();
+                    }
                 } else {
+                    showMessageBox('Sending verification email...', 'loading', true);
                     await sendEmailVerification(currentUser);
-                    showMessageBox('Verification email sent. Verify your email, then tap Reset via Email again to clear your PIN.', 'info');
+                    showMessageBox('Verification email sent to ' + currentUser.email + '. Please verify your email, then try Reset via Email again.', 'info');
                 }
             } catch (e) {
                 console.error('JCHAT_ERROR: reset PIN via email failed:', e);
-                showMessageBox('Failed to process PIN reset.', 'error');
+                showMessageBox('Failed to process PIN reset. Please try again.', 'error');
             }
         }
 
