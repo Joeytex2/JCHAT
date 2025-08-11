@@ -2241,20 +2241,9 @@
                     <button id="stickersBtn" class="gated-btn" title="Stickers">
                         <i class="fas fa-face-smile"></i> Stickers <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
                     </button>
-                    <button id="reactionsBtn" class="gated-btn" title="Reactions">
-                        <i class="fas fa-bolt"></i> Reactions <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
-                    </button>
-                    <button id="effectsBtn" class="gated-btn" title="Message Effects">
-                        <i class="fas fa-wand-magic-sparkles"></i> Effects <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
-                    </button>
-                    <button id="quickRepliesBtn" class="gated-btn" title="Quick Replies">
-                        <i class="fas fa-reply"></i> Quick Replies <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
-                    </button>
+                    
                 </div>
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
-                    <div id="quickRepliesRow" class="quick-replies" style="display:none; gap:8px; flex-wrap:wrap; margin:8px 0;"></div>
-                    <button id="toggleQuickReplies" class="gated-btn" style="margin-left:8px;" title="Show/Hide Quick Replies"><i class="fas fa-list"></i></button>
-                </div>
+
                 <div id="featurePanels" class="feature-panels">
                     <div id="panelMedia" class="feature-panel">
                         <h4>Share Media</h4>
@@ -5627,10 +5616,6 @@
         });
 
         const stickersBtn = document.getElementById('stickersBtn');
-        const reactionsBtn = document.getElementById('reactionsBtn');
-        const effectsBtn = document.getElementById('effectsBtn');
-        const quickRepliesBtn = document.getElementById('quickRepliesBtn');
-        const quickRepliesRow = document.getElementById('quickRepliesRow');
         const unlockModal = document.getElementById('unlockModal');
         const unlockTitle = document.getElementById('unlockTitle');
         const unlockDescription = document.getElementById('unlockDescription');
@@ -5695,173 +5680,13 @@
                 if (badge) badge.style.display = unlocked ? 'none' : 'inline-flex';
                 btn.dataset.locked = unlocked ? '0' : '1';
                 btn.style.opacity = unlocked ? '1' : '0.85';
-                
             };
             setBtn(stickersBtn, isUnlocked('stickers'));
-            setBtn(reactionsBtn, isUnlocked('reactions'));
-            setBtn(effectsBtn, isUnlocked('effects'));
-            setBtn(quickRepliesBtn, isUnlocked('quickReplies'));
-
-            // Quick replies row
-            if (quickRepliesRow) {
-                if (isUnlocked('quickReplies')) {
-                    quickRepliesRow.style.display = 'flex';
-                    renderQuickReplies();
-                } else {
-                    quickRepliesRow.style.display = 'none';
-                    quickRepliesRow.innerHTML = '';
-                }
-            }
         }
-        function renderQuickReplies() {
-            const replies = ['On my way', 'Thanks!', 'Call me?', 'Let\'s talk later', '👍', '😊'];
-            quickRepliesRow.innerHTML = '';
-            for (const text of replies) {
-                const btn = document.createElement('button');
-                btn.className = 'icon-btn';
-                btn.textContent = text;
-                btn.addEventListener('click', () => {
-                    if (!messageInput) return;
-                    messageInput.value = text;
-                    sendMessageBtn?.click();
-                });
-                quickRepliesRow.appendChild(btn);
-            }
-        }
-
-        function openUnlock(featureKey) {
-            const meta = FEATURE_META[featureKey];
-            if (!meta) return;
-            unlockTitle.textContent = `Unlock ${meta.title}`;
-            unlockDescription.textContent = meta.desc;
-            orderAmountText.textContent = meta.amount;
-            const oid = `ORD-${Date.now()}`;
-            orderIdText.textContent = oid;
-            unlockReceiptInput.value = '';
-            unlockError.style.display = 'none';
-            unlockSubmitBtn.disabled = false;
-            unlockModal.style.display = 'flex';
-            unlockModal.dataset.featureKey = featureKey;
-            unlockModal.dataset.orderId = oid;
-        }
-
-        function closeUnlock() {
-            unlockModal.style.display = 'none';
-            unlockModal.dataset.featureKey = '';
-            unlockModal.dataset.orderId = '';
-        }
-
-        async function submitUnlockReceipt() {
-            try {
-                if (!auth.currentUser) { showMessageBox('Please log in.', 'warning'); return; }
-                const f = unlockReceiptInput.files?.[0];
-                if (!f) { unlockError.textContent = 'Please attach a receipt.'; unlockError.style.display = 'block'; return; }
-                const featureKey = unlockModal.dataset.featureKey;
-                const orderId = unlockModal.dataset.orderId;
-                const meta = FEATURE_META[featureKey];
-                if (!featureKey || !orderId || !meta) { showMessageBox('Invalid order.', 'error'); return; }
-
-                toggleButtonLoading(unlockSubmitBtn, true);
-
-                // Upload receipt
-                const path = `orders/${auth.currentUser.uid}/${orderId}/${encodeURIComponent(f.name)}`;
-                const storageRef = ref(storage, path);
-                await uploadBytes(storageRef, f);
-                const receiptUrl = await getDownloadURL(storageRef);
-
-                // Create pending order doc
-                const orderDocRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'));
-                await setDoc(orderDocRef, {
-                    orderId,
-                    userId: auth.currentUser.uid,
-                    itemId: meta.itemId,
-                    itemType: featureKey,
-                    amount: meta.amount,
-                    currency: 'NGN',
-                    receiptUrl,
-                    status: 'pending',
-                    createdAt: serverTimestamp(),
-                });
-
-                showMessageBox('Receipt submitted. Awaiting admin approval.', 'success');
-                closeUnlock();
-            } catch (e) {
-                console.error(e);
-                unlockError.textContent = e?.message || 'Failed to submit receipt';
-                unlockError.style.display = 'block';
-            } finally {
-                toggleButtonLoading(unlockSubmitBtn, false);
-            }
-        }
-
-        // JChat original generative sticker set (100+), no external assets
-        function hsl(h, s, l) { return `hsl(${h} ${s}% ${l}%)`; }
-        function seededRandom(seed) { let x = Math.sin(seed) * 10000; return x - Math.floor(x); }
-        function pickPalette(i) {
-            const base = Math.floor(seededRandom(i+1) * 360);
-            return [
-                hsl((base+0)%360, 85, 60),
-                hsl((base+25)%360, 85, 55),
-                hsl((base+50)%360, 85, 65)
-            ];
-        }
-        function drawStickerToCanvas(i, size=64) {
-            const c = document.createElement('canvas'); c.width = size; c.height = size; const ctx = c.getContext('2d');
-            const [c1,c2,c3] = pickPalette(i);
-            // background gradient
-            const grad = ctx.createLinearGradient(0,0,size,size); grad.addColorStop(0, c1); grad.addColorStop(1, c2); ctx.fillStyle = grad; ctx.fillRect(0,0,size,size);
-            // soft blob
-            ctx.fillStyle = c3; ctx.globalAlpha = 0.35;
-            const cx = size*0.5, cy = size*0.5, r = size*0.36;
-            ctx.beginPath();
-            for (let a=0; a<Math.PI*2; a+=Math.PI/6){ const rr = r*(0.8 + seededRandom(i*13+a)*0.4); ctx.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr);} ctx.closePath(); ctx.fill();
-            ctx.globalAlpha = 1;
-            // subtle inner circle
-            ctx.beginPath(); ctx.arc(cx, cy, size*0.28, 0, Math.PI*2); ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = size*0.06; ctx.stroke();
-            // center motif (original symbol)
-            ctx.save(); ctx.translate(cx, cy); ctx.rotate(seededRandom(i*29)*Math.PI*2);
-            ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.beginPath();
-            for (let k=0;k<5;k++){ const a = (k/5)*Math.PI*2; const R = size*0.18; const r2=size*0.08; ctx.lineTo(Math.cos(a)*R, Math.sin(a)*R); ctx.lineTo(Math.cos(a+Math.PI/5)*r2, Math.sin(a+Math.PI/5)*r2);} ctx.closePath(); ctx.fill();
-            ctx.restore();
-            // border
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1; ctx.strokeRect(0.5,0.5,size-1,size-1);
-            return c.toDataURL('image/png');
-        }
-        const APP_STICKERS = Array.from({length: 120}, (_,i)=> drawStickerToCanvas(i, 64));
 
         function openStickerPicker() {
-            stickerGrid.innerHTML = '';
-            for (let i=0; i<APP_STICKERS.length; i++) {
-                const url = APP_STICKERS[i];
-                const img = document.createElement('img');
-                img.src = url;
-                img.alt = 'sticker';
-                img.loading = 'lazy';
-                img.style.cssText = 'width:56px;height:56px;object-fit:contain;cursor:pointer;background:transparent;border-radius:8px;';
-                img.addEventListener('click', async () => {
-                    if (!auth.currentUser || !partnerId) return;
-                    try {
-                        toggleButtonLoading(sendMessageBtn, true);
-                        const chatRoomId = getChatRoomId(auth.currentUser.uid, partnerId);
-                        const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', chatRoomId, 'messages');
-                        await addDoc(messagesCollectionRef, {
-                            senderId: auth.currentUser.uid,
-                            receiverId: partnerId,
-                            type: 'image',
-                            mediaUrl: url,
-                            timestamp: serverTimestamp(),
-                        });
-                        stickerPicker.style.display = 'none';
-                    } catch (e) {
-                        console.error(e);
-                        showMessageBox('Failed to send sticker', 'error');
-                    } finally {
-                        toggleButtonLoading(sendMessageBtn, false);
-                    }
-                });
-                stickerGrid.appendChild(img);
-            }
+            // Build pack tabs + grid content
+            buildStickerPackTabs(stickerPicker, stickerGrid);
             stickerPicker.style.display = 'block';
         }
 
@@ -5877,23 +5702,6 @@
             } else {
                 openUnlock('stickers');
             }
-        });
-        reactionsBtn?.addEventListener('click', () => {
-            if (isUnlocked('reactions')) {
-                showMessageBox('Reactions enabled. Long-press any message to react.', 'success');
-            } else { openUnlock('reactions'); }
-        });
-        effectsBtn?.addEventListener('click', () => {
-            if (isUnlocked('effects')) {
-                showMessageBox('Effects on. Your next message will animate.', 'success');
-                effectsBtn.dataset.active = effectsBtn.dataset.active === '1' ? '0' : '1';
-                effectsBtn.classList.toggle('active');
-            } else { openUnlock('effects'); }
-        });
-        quickRepliesBtn?.addEventListener('click', () => {
-            if (isUnlocked('quickReplies')) {
-                showMessageBox('Quick replies are active below the composer.', 'info');
-            } else { openUnlock('quickReplies'); }
         });
 
         document.addEventListener('click', (ev) => {
@@ -5917,18 +5725,6 @@
         const _origSendMessage = sendMessage;
         async function sendMessageWithEffects(type, content) {
             await _origSendMessage(type, content);
-            try {
-                if (effectsBtn?.dataset.active === '1' && isUnlocked('effects')) {
-                    // Briefly animate last message bubble you sent
-                    const last = [...document.querySelectorAll('.message-bubble.sent')].pop();
-                    if (last) {
-                        last.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
-                        last.style.transform = 'scale(1.03)';
-                        last.style.boxShadow = '0 8px 24px rgba(0,213,255,0.25)';
-                        setTimeout(()=>{ last.style.transform = 'scale(1)'; last.style.boxShadow = ''; }, 500);
-                    }
-                }
-            } catch {}
         }
         window.sendMessage = sendMessageWithEffects; // replace
 
@@ -6216,15 +6012,6 @@
                 reactionBar.style.display = 'none';
             } catch (e) { console.error('Reaction apply failed', e); }
         }
-
-        const toggleQuickReplies = document.getElementById('toggleQuickReplies');
-
-        toggleQuickReplies?.addEventListener('click', () => {
-            if (!isUnlocked('quickReplies')) { openUnlock('quickReplies'); return; }
-            const isVisible = quickRepliesRow.style.display !== 'none';
-            quickRepliesRow.style.display = isVisible ? 'none' : 'flex';
-            if (!isVisible) renderQuickReplies();
-        });
 
         // Feature panels logic
         function hideAllFeaturePanels() { [panelMedia, panelStickers, panelEmoji].forEach(p => { if (p) p.style.display = 'none'; }); }
