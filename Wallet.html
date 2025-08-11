@@ -1939,19 +1939,7 @@
             } catch(_){}
             return null;
         };
-        (async () => {
-            try {
-                const mod = await import('/currency.js');
-                userCurrency = mod.userCurrency || userCurrency; window.userCurrency = userCurrency;
-                setUserCurrencyFromProfile = mod.setUserCurrencyFromProfile || setUserCurrencyFromProfile;
-                formatLocalCurrency = mod.formatLocalCurrency || formatLocalCurrency;
-                applyCurrencyDisplayForWallet = mod.applyCurrencyDisplayForWallet || applyCurrencyDisplayForWallet;
-                inferCountryCodeFromProfileOrLocale = mod.inferCountryCodeFromProfileOrLocale || inferCountryCodeFromProfileOrLocale;
-                console.log('JCHAT_DEBUG: currency.js loaded in Wallet');
-            } catch(e) {
-                console.warn('JCHAT_WARN: currency.js failed in Wallet, using fallback.', e);
-            }
-        })();
+        // Removed dynamic import; using inline fallbacks for reliability on static hosting
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -2459,7 +2447,7 @@
          * Handles the 2FA confirmation logic.
          */
         async function handleTwoFAConfirmation() {
-            if (!currentUser || !twoFAPasswordInput || !twoFAAction) {
+            if (!currentUser || !twoFAPasswordInput) {
                 showMessageBox("2FA error: No action or user.", 'error');
                 hideTwoFAModal();
                 return;
