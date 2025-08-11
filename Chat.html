@@ -2157,8 +2157,9 @@
         #emojiGrid button { font-size:20px; padding:6px; border-radius:8px; background:transparent; border:1px solid var(--border-light); cursor:pointer; }
         #emojiGrid button:hover { background: rgba(255,255,255,0.05); }
 
-        #reactionBar { display:none; position:fixed; background:var(--card-background); border:1px solid var(--border-light); border-radius:999px; padding:6px; box-shadow:0 6px 16px rgba(0,0,0,0.35); z-index:1200; }
-        #reactionBar button { font-size:20px; margin:0 4px; width:36px; height:36px; border-radius:50%; border:1px solid var(--border-light); background:transparent; cursor:pointer; }
+        #reactionBar { display:none; position:fixed; background:var(--card-background); border:1px solid var(--border-light); border-radius:12px; padding:8px; box-shadow:0 6px 16px rgba(0,0,0,0.35); z-index:1200; max-height: 260px; width: 320px; overflow: auto; }
+        #reactionBar .grid { display:grid; grid-template-columns: repeat(8, 1fr); gap:6px; }
+        #reactionBar button { font-size:20px; padding:6px; border-radius:8px; border:1px solid var(--border-light); background:transparent; cursor:pointer; }
         #reactionBar button:hover { background: rgba(255,255,255,0.08); }
         .reactions-row { display:flex; gap:6px; align-items:center; margin-top:4px; flex-wrap:wrap; }
         .reaction-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border:1px solid var(--border-light); border-radius:999px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
@@ -5832,7 +5833,7 @@
         });
         reactionsBtn?.addEventListener('click', () => {
             if (isUnlocked('reactions')) {
-                showMessageBox('Reactions pack enabled. Tap and hold a message to react (coming soon).', 'info');
+                showMessageBox('Reactions enabled. Long-press any message to react.', 'success');
             } else { openUnlock('reactions'); }
         });
         effectsBtn?.addEventListener('click', () => {
@@ -6101,7 +6102,7 @@
 
         // ---- Reactions ----
         const reactionBar = document.getElementById('reactionBar');
-        const REACTIONS = ['👍','❤️','😂','😮','😢','🙏','🔥','💯'];
+        const REACTIONS = ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','😘','🥰','😗','😙','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','🙄','😏','😣','😥','😮','🤐','😯','😪','😫','🥱','😴','😌','😛','😜','😝','🤤','😒','😓','😔','😕','🙃','🫠','🫥','😲','☹️','🙁','😖','😞','😟','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰','😱','🥵','🥶','😳','🤪','😵','🥴','😠','😡','🤬','😷','🤒','🤕','🤢','🤮','🤧','🥹','🥲','😇','🥳','🤠','🤡','👻','💀','👽','🤖','💩','😺','😸','😹','😻','😼','😽','🙀','😿','😾','👍','👎','👏','🙌','👐','🤝','🙏','💪','🫶','❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💔','❣️','💖','💗','💓','💞','💕','💘','💝','🔥','💯','✨','⭐','🌟','🎉','🎊','🎈'];
 
         function updateReactionsRow(container, message) {
             const counts = message.reactions || {};
@@ -6134,17 +6135,20 @@
         function openReactionBar(ev, bubbleEl, message) {
             const rect = bubbleEl.getBoundingClientRect();
             reactionBar.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.className = 'grid';
             for (const r of REACTIONS) {
                 const b = document.createElement('button');
                 b.type = 'button';
                 b.textContent = r;
                 b.addEventListener('click', () => applyReaction(message, r));
-                reactionBar.appendChild(b);
+                grid.appendChild(b);
             }
+            reactionBar.appendChild(grid);
             reactionBar.style.display = 'block';
-            const x = rect.left + rect.width / 2 - reactionBar.offsetWidth / 2;
+            const x = rect.left + rect.width / 2 - 160;
             reactionBar.style.left = `${Math.max(8, x)}px`;
-            reactionBar.style.top = `${Math.max(8, rect.top - 48)}px`;
+            reactionBar.style.top = `${Math.max(8, rect.top - reactionBar.offsetHeight - 8)}px`;
             const close = (e) => {
                 if (!reactionBar.contains(e.target)) {
                     reactionBar.style.display = 'none';
