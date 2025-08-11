@@ -1520,6 +1520,122 @@
             transform: translateY(-1px);
         }
 
+        /* NEW: Custom Confirmation Modal */
+        #customConfirmModal.modal-overlay {
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        #customConfirmModal.modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        #customConfirmModal .modal-content {
+            max-width: 450px;
+            min-width: 350px;
+            text-align: center;
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 20px;
+            width: calc(100% - 40px);
+            gap: 1.5rem;
+            transform: translateY(20px) scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        #customConfirmModal.modal-overlay.active .modal-content {
+            transform: translateY(0) scale(1);
+        }
+        #customConfirmModal .modal-content .confirm-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ff6b6b, #ffa726);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+        #customConfirmModal .modal-content h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        #customConfirmModal .modal-content p {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        #customConfirmModal .modal-content .warning-text {
+            color: #ffa726;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            padding: 12px;
+            background: rgba(255, 167, 38, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #ffa726;
+        }
+        #customConfirmModal .modal-content .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        #customConfirmModal .modal-content .modal-button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 120px;
+        }
+        #customConfirmModal .modal-content .modal-button.confirm-button {
+            background: linear-gradient(135deg, #ff6b6b, #ff4757);
+            color: white;
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        #customConfirmModal .modal-content .modal-button.confirm-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+        }
+        #customConfirmModal .modal-content .modal-button.cancel-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        #customConfirmModal .modal-content .modal-button.cancel-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
         /* NEW: Transaction Details Modal */
         #transactionDetailsModal.modal-overlay {
             background-color: rgba(0, 0, 0, 0.6);
@@ -1929,6 +2045,28 @@
         </div>
     </div>
 
+    <!-- NEW: Custom Confirmation Modal -->
+    <div id="customConfirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="confirm-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 id="confirmTitle">Reset Transaction PIN</h3>
+            <p id="confirmMessage">Are you sure you want to reset your transaction PIN?</p>
+            <div class="warning-text" id="confirmWarning">
+                ⚠️ This action will permanently delete your current PIN. You will need to set up a new PIN after this action.
+            </div>
+            <div class="button-group">
+                <button id="cancelConfirm" class="modal-button cancel-button">
+                    <i class="fas fa-times"></i> Keep Current PIN
+                </button>
+                <button id="confirmConfirm" class="modal-button confirm-button">
+                    <i class="fas fa-trash-alt"></i> Reset PIN
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- NEW: Transaction Details Modal -->
     <div id="transactionDetailsModal" class="modal-overlay">
         <div class="modal-content">
@@ -2085,6 +2223,14 @@
         const cancelTwoFAButton = document.getElementById('cancelTwoFA');
         const confirmTwoFAButton = document.getElementById('confirmTwoFA');
 
+        // Custom Confirmation Modal Elements (NEW)
+        const customConfirmModal = document.getElementById('customConfirmModal');
+        const confirmTitle = document.getElementById('confirmTitle');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmWarning = document.getElementById('confirmWarning');
+        const cancelConfirmButton = document.getElementById('cancelConfirm');
+        const confirmConfirmButton = document.getElementById('confirmConfirm');
+        
         // Transaction Details Modal Elements (NEW)
         const transactionDetailsModal = document.getElementById('transactionDetailsModal');
         const detailType = document.getElementById('detailType');
@@ -2132,6 +2278,10 @@
 
         let twoFAAction = null; // Stores the function to execute after 2FA
         let twoFAArgs = null; // Stores arguments for the 2FA action
+        
+        // Custom confirmation modal variables
+        let confirmAction = null; // Stores the function to execute after confirmation
+        let confirmArgs = null; // Stores arguments for the confirmation action
 
         // --- Constants ---
         // JCoin Rates
@@ -2469,6 +2619,45 @@
                 buttonElement.classList.remove('loading');
                 if (loader) loader.classList.remove('active');
                 if (text) text.style.display = 'block';
+            }
+        }
+
+        /**
+         * Shows the custom confirmation modal with beautiful UI.
+         * @param {string} title - Title for the confirmation modal.
+         * @param {string} message - Message to display in the modal.
+         * @param {string} warning - Warning text to display.
+         * @param {Function} actionCallback - The function to call if confirmed.
+         * @param {Array} args - Arguments to pass to the actionCallback.
+         */
+        function showCustomConfirmModal(title, message, warning, actionCallback, args) {
+            if (!customConfirmModal || !confirmTitle || !confirmMessage || !confirmWarning) return;
+            
+            confirmTitle.textContent = title;
+            confirmMessage.textContent = message;
+            confirmWarning.textContent = warning;
+            confirmAction = actionCallback;
+            confirmArgs = args;
+            customConfirmModal.classList.add('active');
+        }
+
+        /**
+         * Hides the custom confirmation modal.
+         */
+        function hideCustomConfirmModal() {
+            if (customConfirmModal) customConfirmModal.classList.remove('active');
+            confirmAction = null;
+            confirmArgs = null;
+        }
+
+        /**
+         * Handles the confirmation action.
+         */
+        async function handleCustomConfirmation() {
+            hideCustomConfirmModal();
+            if (typeof confirmAction === 'function') {
+                const args = Array.isArray(confirmArgs) ? confirmArgs : [];
+                await confirmAction(...args);
             }
         }
 
@@ -3548,7 +3737,8 @@
             const essentialElements = [
                 'sendJCoinsButton', 'sendJCoinsModal', 'confirmSendJCoins', 'cancelSendJCoins',
                 'pinSetInput', 'pinConfirmInput', 'savePinButton', 'resetPinButton',
-                'twoFAModal', 'twoFAPinInput', 'confirmTwoFA', 'cancelTwoFA'
+                'twoFAModal', 'twoFAPinInput', 'confirmTwoFA', 'cancelTwoFA',
+                'customConfirmModal', 'confirmConfirm', 'cancelConfirm'
             ];
             
             const missingElements = essentialElements.filter(id => !document.getElementById(id));
@@ -3655,6 +3845,10 @@
 
             // Daily Bonus button listener
             if (claimDailyBonusButton) claimDailyBonusButton.addEventListener('click', claimDailyBonus); // Null check
+
+            // Custom Confirmation Modal listeners
+            if (cancelConfirmButton) cancelConfirmButton.addEventListener('click', hideCustomConfirmModal);
+            if (confirmConfirmButton) confirmConfirmButton.addEventListener('click', handleCustomConfirmation);
 
             // 2FA Modal listeners
             if (cancelTwoFAButton) cancelTwoFAButton.addEventListener('click', hideTwoFAModal);
@@ -3954,25 +4148,34 @@
                 }
                 
                 if (currentUser.emailVerified) {
-                    // Show confirmation dialog
-                    const confirmed = confirm('Are you sure you want to reset your transaction PIN? This action cannot be undone.');
-                    if (!confirmed) {
-                        return;
-                    }
-                    
-                    showMessageBox('Resetting PIN...', 'loading', true);
-                    
-                    const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
-                    await setDoc(ref, { transactionPinHash: null, updatedAt: serverTimestamp() }, { merge: true });
-                    if (currentUserProfile) currentUserProfile.transactionPinHash = null;
-                    
-                    showMessageBox('PIN successfully reset. Please set a new PIN below.', 'success');
-                    applyPinUIState();
-                    
-                    // Focus on the PIN input field
-                    if (pinSetInput) {
-                        pinSetInput.focus();
-                    }
+                    // Show beautiful custom confirmation dialog
+                    showCustomConfirmModal(
+                        '🔑 Reset Transaction PIN',
+                        'This will permanently delete your current PIN and you\'ll need to create a new one.',
+                        '⚠️ This action cannot be undone. Your current PIN will be completely removed from your account.',
+                        async () => {
+                            try {
+                                showMessageBox('Resetting PIN...', 'loading', true);
+                                
+                                const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
+                                await setDoc(ref, { transactionPinHash: null, updatedAt: serverTimestamp() }, { merge: true });
+                                if (currentUserProfile) currentUserProfile.transactionPinHash = null;
+                                
+                                showMessageBox('✅ PIN successfully reset! Please set a new PIN below.', 'success');
+                                applyPinUIState();
+                                
+                                // Focus on the PIN input field
+                                if (pinSetInput) {
+                                    pinSetInput.focus();
+                                }
+                            } catch (error) {
+                                console.error('JCHAT_ERROR: PIN reset failed:', error);
+                                showMessageBox('Failed to reset PIN. Please try again.', 'error');
+                            }
+                        },
+                        []
+                    );
+                    return; // Exit the function here since the confirmation is now async
                 } else {
                     showMessageBox('Sending verification email...', 'loading', true);
                     await sendEmailVerification(currentUser);
