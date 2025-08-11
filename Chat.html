@@ -799,7 +799,6 @@
             background: var(--accent-color);
             cursor: pointer;
         }
-
         .audio-player-wrapper .progress-bar::-moz-range-track {
             background: linear-gradient(to right, var(--accent-color) var(--progress, 0%), rgba(255, 255, 255, 0.3) var(--progress, 0%));
             border-radius: 2px;
@@ -1600,7 +1599,6 @@
             text-decoration: none;
             color: inherit;
         }
-
         .user-card:hover {
             background: rgba(255, 255, 255, 0.12);
             transform: translateY(-2px);
@@ -2163,7 +2161,16 @@
         #reactionBar button:hover { background: rgba(255,255,255,0.08); }
         .reactions-row { display:flex; gap:6px; align-items:center; margin-top:4px; flex-wrap:wrap; }
         .reaction-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border:1px solid var(--border-light); border-radius:999px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
-    </style>
++        /* Inline feature panels (toggles) */
++        .feature-panels { margin-top: 8px; display: grid; gap: 8px; }
++        .feature-panel { display: none; padding: 8px; border:1px solid var(--border-light); border-radius: 10px; background: rgba(255,255,255,0.03); }
++        .feature-panel h4 { margin: 0 0 6px 0; color: var(--white); font-size: 0.95rem; }
++        #stickersPanelGrid, #emojiPanelGrid { display:grid; grid-template-columns: repeat(8, 1fr); gap:6px; }
++        #emojiPanelGrid button { font-size:20px; padding:6px; border-radius:8px; background:transparent; border:1px solid var(--border-light); cursor:pointer; }
++        #emojiPanelGrid button:hover { background: rgba(255,255,255,0.05); }
++        #mediaPanelDrop { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:2px dashed var(--border-light); border-radius:10px; cursor:pointer; }
++        #mediaPanelDrop:hover { background: rgba(255,255,255,0.04); }
+     </style>
 </head>
 <body class="theme-dark-mode">
 
@@ -2247,6 +2254,20 @@
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
                     <div id="quickRepliesRow" class="quick-replies" style="display:none; gap:8px; flex-wrap:wrap; margin:8px 0;"></div>
                     <button id="toggleQuickReplies" class="gated-btn" style="margin-left:8px;" title="Show/Hide Quick Replies"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="featurePanels" class="feature-panels">
+                    <div id="panelMedia" class="feature-panel">
+                        <h4>Share Media</h4>
+                        <div id="mediaPanelDrop"><span>Select image or video</span><span id="mediaPanelName" style="color:var(--text-light)">No file chosen</span></div>
+                    </div>
+                    <div id="panelStickers" class="feature-panel">
+                        <h4>Stickers</h4>
+                        <div id="stickersPanelGrid"></div>
+                    </div>
+                    <div id="panelEmoji" class="feature-panel">
+                        <h4>Emoji</h4>
+                        <div id="emojiPanelGrid"></div>
+                    </div>
                 </div>
                 <div class="chat-input-row">
                     <textarea id="messageInput" placeholder="Type your message..." rows="1"></textarea>
@@ -2550,10 +2571,8 @@
         </div>
         <div id="emojiGrid"></div>
     </div>
-
     <!-- Reaction bar -->
     <div id="reactionBar"></div>
-
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -3334,8 +3353,6 @@
             document.body.removeChild(a);
             showMessageBox(`Downloading ${filename}...`, 'info');
         }
-
-
         /**
          * Fetches and displays messages for the current chat.
          */
@@ -4117,7 +4134,6 @@
 
             return card;
         }
-
         /**
          * Send friend request
          */
@@ -4889,7 +4905,6 @@
                 playNotificationSound('error');
             }
         }
-
         /**
          * Listens for incoming call status changes and WebRTC signaling.
          */
@@ -5630,6 +5645,15 @@
         const stickerPicker = document.getElementById('stickerPicker');
         const stickerPickerClose = document.getElementById('stickerPickerClose');
         const stickerGrid = document.getElementById('stickerGrid');
+        // Feature panels
+        const featurePanels = document.getElementById('featurePanels');
+        const panelMedia = document.getElementById('panelMedia');
+        const panelStickers = document.getElementById('panelStickers');
+        const panelEmoji = document.getElementById('panelEmoji');
+        const stickersPanelGrid = document.getElementById('stickersPanelGrid');
+        const emojiPanelGrid = document.getElementById('emojiPanelGrid');
+        const mediaPanelDrop = document.getElementById('mediaPanelDrop');
+        const mediaPanelName = document.getElementById('mediaPanelName');
 
         // --- Entitlements ---
         let userEntitlements = {
@@ -5663,7 +5687,6 @@
                 default: return false;
             }
         }
-
         function setGatedUI() {
             // Lock badges
             const setBtn = (btn, unlocked) => {
@@ -5690,7 +5713,6 @@
                 }
             }
         }
-
         function renderQuickReplies() {
             const replies = ['On my way', 'Thanks!', 'Call me?', 'Let\'s talk later', '👍', '😊'];
             quickRepliesRow.innerHTML = '';
@@ -6181,6 +6203,61 @@
             quickRepliesRow.style.display = isVisible ? 'none' : 'flex';
             if (!isVisible) renderQuickReplies();
         });
+
+        // Feature panels logic
+        function hideAllFeaturePanels() { [panelMedia, panelStickers, panelEmoji].forEach(p => { if (p) p.style.display = 'none'; }); }
+        function togglePanel(panel) {
+            if (!panel) return;
+            const willShow = panel.style.display === 'none' || panel.style.display === '';
+            hideAllFeaturePanels();
+            panel.style.display = willShow ? 'block' : 'none';
+        }
+        // Stickers button opens inline panel
+        stickersBtn?.addEventListener('click', () => {
+            if (!isUnlocked('stickers')) { openUnlock('stickers'); return; }
+            if (stickersPanelGrid && !stickersPanelGrid.hasChildNodes()) {
+                for (const emoji of STICKER_EMOJIS) {
+                    const url = getTwemojiUrl(emoji);
+                    const img = document.createElement('img');
+                    img.src = url; img.alt = 'sticker'; img.loading = 'lazy';
+                    img.style.cssText = 'width:42px;height:42px;object-fit:contain;cursor:pointer;border-radius:8px;';
+                    img.addEventListener('click', async () => {
+                        if (!auth.currentUser || !partnerId) return;
+                        try {
+                            toggleButtonLoading(sendMessageBtn, true);
+                            const chatRoomId = getChatRoomId(auth.currentUser.uid, partnerId);
+                            const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', chatRoomId, 'messages');
+                            await addDoc(messagesCollectionRef, { senderId: auth.currentUser.uid, receiverId: partnerId, type: 'image', mediaUrl: url, timestamp: serverTimestamp() });
+                        } catch (e) { console.error(e); showMessageBox('Failed to send sticker', 'error'); }
+                        finally { toggleButtonLoading(sendMessageBtn, false); }
+                    });
+                    stickersPanelGrid.appendChild(img);
+                }
+            }
+            togglePanel(panelStickers);
+        });
+        // Emoji panel: build and toggle via right-click or reaction button
+        function buildEmojiPanelGrid() {
+            if (!emojiPanelGrid || emojiPanelGrid.hasChildNodes()) return;
+            for (const e of EMOJI_SET) {
+                const b = document.createElement('button');
+                b.type = 'button'; b.textContent = e;
+                b.addEventListener('click', () => {
+                    if (!messageInput) return;
+                    const start = messageInput.selectionStart || messageInput.value.length;
+                    const end = messageInput.selectionEnd || messageInput.value.length;
+                    const v = messageInput.value;
+                    messageInput.value = v.slice(0, start) + e + v.slice(end);
+                    messageInput.focus();
+                });
+                emojiPanelGrid.appendChild(b);
+            }
+        }
+        messageInput?.addEventListener('contextmenu', (e) => { e.preventDefault(); buildEmojiPanelGrid(); togglePanel(panelEmoji); });
+        // Media panel
+        mediaPanelDrop?.addEventListener('click', () => mediaInput?.click());
+        mediaInput?.addEventListener('change', () => { const f = mediaInput.files?.[0]; if (mediaPanelName) mediaPanelName.textContent = f ? f.name : 'No file chosen'; });
+        mediaShareBtn?.addEventListener('click', () => { togglePanel(panelMedia); });
     </script>
 </body>
 </html>
