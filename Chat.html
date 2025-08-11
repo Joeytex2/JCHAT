@@ -2140,6 +2140,12 @@
         #unlockStore .feature-preview { background: rgba(255,255,255,0.03); border: 1px solid var(--border-light); border-radius: 12px; padding: 10px; margin-bottom: 10px; }
         #unlockStore .feature-preview h4 { margin: 0 0 4px 0; color: var(--white); }
         #unlockStore .feature-preview p { margin: 0; color: var(--text-light); font-size: .95rem; }
+        #unlockStore .section-title { margin: 12px 0 8px; color: var(--white); font-weight: 800; font-size: 1rem; }
+        #unlockStore .info-card { margin:10px 0; padding:10px; border:1px dashed var(--border-light); border-radius:10px; }
+        #unlockStore .upload-card { margin-top:12px; padding:10px; border:1px solid var(--border-light); border-radius:12px; background: rgba(255,255,255,0.03); }
+        #unlockStore .dropzone { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:2px dashed var(--border-light); border-radius:10px; cursor:pointer; }
+        #unlockStore .dropzone:hover { background: rgba(255,255,255,0.04); }
+        #unlockStore .file-name { color: var(--text-light); font-size: .9rem; margin-left: 6px; }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -2460,10 +2466,12 @@
                         <p id="featurePreviewDesc"></p>
                     </div>
                     <div id="storeSelection" style="margin-bottom:12px; color:var(--text-light)">Select a feature to see amount and Order ID</div>
-                    <div style="margin:10px 0; padding:10px; border:1px dashed var(--border-light); border-radius:10px;">
+                    <div class="section-title">Selected Feature & Amount</div>
+                    <div class="info-card">
                         <div><strong>Order ID:</strong> <span id="storeOrderId"></span> <button id="storeCopyOrder" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-copy"></i></button></div>
                         <div style="margin-top:8px"><span class="price-chip"><i class="fas fa-tag"></i> <span id="storeAmount"></span></span></div>
                     </div>
+                    <div class="section-title">Bank Accounts</div>
                     <div style="display:grid; gap:10px;">
                         <div style="padding:8px; border:1px solid var(--border-light); border-radius:10px;">
                             <div style="display:flex;align-items:center;gap:8px;"><i class="fas fa-university" style="font-size:16px;color:#ffd700;"></i><span><strong>Bank:</strong> OPay</span></div>
@@ -2476,30 +2484,44 @@
                             <div><strong>Account Number:</strong> <span id="storeKeystone">6042862356</span> <button id="storeCopyKeystone" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 3px 8px; cursor: pointer;">Copy</button></div>
                         </div>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px; padding:10px; border:1px solid var(--border-light); border-radius:12px; background: rgba(255,255,255,0.03);">
+                    <div class="section-title">Payment Steps</div>
+                    <div style="display:flex; flex-direction:column; gap:10px; padding:10px; border:1px solid var(--border-light); border-radius:12px; background: rgba(255,255,255,0.03);">
                         <div class="step"><div class="num">1</div><div><strong>Transfer</strong> the amount above to any of the bank accounts.</div></div>
                         <div class="step"><div class="num">2</div><div><strong>Use the Order ID</strong> as your transfer reference/memo.</div></div>
                         <div class="step"><div class="num">3</div><div><strong>Upload the receipt</strong> and submit for approval.</div></div>
-                        <div>
-                            <label for="storeReceipt" style="display:block; font-weight:800; color:var(--white); margin-bottom:6px;">I've paid — upload receipt</label>
-                            <input id="storeReceipt" type="file" accept="image/*,.pdf" style="width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--border-light); background:var(--input-background); color:var(--white);" />
-                            <img id="storeReceiptPreview" class="receipt-preview" alt="Receipt Preview" />
-                        </div>
-                        <div style="margin-top:12px; padding:10px; border:1px solid var(--border-light); border-radius:12px; background: rgba(255,255,255,0.03);">
-                            <div class="step"><div class="num">4</div><div><strong>Send receipt to Admin</strong> for manual review.</div></div>
-                            <label for="adminReceipt" style="display:block; font-weight:800; color:var(--white); margin:8px 0 6px;">Upload receipt for Admin</label>
-                            <input id="adminReceipt" type="file" accept="image/*,.pdf" style="width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--border-light); background:var(--input-background); color:var(--white);" />
-                            <img id="adminReceiptPreview" class="receipt-preview" alt="Admin Receipt Preview" />
-                            <div id="adminReceiptError" style="color:#ff6b6b; margin-top:8px; display:none"></div>
-                            <div style="display:flex;gap:8px;margin-top:10px;">
-                                <button id="adminReceiptSubmit" class="admin-button"><span class="button-text">Send to Admin</span><div class="button-loader"></div></button>
+                    </div>
+                    <div class="section-title">Payment Receipt Upload</div>
+                    <div class="upload-card">
+                        <div id="storeReceiptDrop" class="dropzone">
+                            <div>
+                                <i class="fas fa-file-upload" style="color:#ffd700"></i>
+                                <span>Click to choose or drop a file here</span>
                             </div>
+                            <span id="storeReceiptName" class="file-name">No file chosen</span>
                         </div>
+                        <input id="storeReceipt" type="file" accept="image/*,.pdf" style="display:none;" />
+                        <img id="storeReceiptPreview" class="receipt-preview" alt="Receipt Preview" />
                     </div>
                     <div id="storeError" style="color:#ff6b6b; margin-top:8px; display:none"></div>
                     <div style="display:flex;gap:8px;margin-top:12px;">
                         <button id="storeSubmit" class="admin-button"><span class="button-text">Submit Receipt</span><div class="button-loader"></div></button>
                         <button id="storeCancel" class="admin-button secondary"><span class="button-text">Cancel</span><div class="button-loader"></div></button>
+                    </div>
+                    <div class="section-title">Send Receipt to Admin</div>
+                    <div class="upload-card">
+                        <div id="adminReceiptDrop" class="dropzone">
+                            <div>
+                                <i class="fas fa-paper-plane" style="color:#ffd700"></i>
+                                <span>Click to choose or drop a file to send to Admin</span>
+                            </div>
+                            <span id="adminReceiptName" class="file-name">No file chosen</span>
+                        </div>
+                        <input id="adminReceipt" type="file" accept="image/*,.pdf" style="display:none;" />
+                        <img id="adminReceiptPreview" class="receipt-preview" alt="Admin Receipt Preview" />
+                        <div id="adminReceiptError" style="color:#ff6b6b; margin-top:8px; display:none"></div>
+                        <div style="display:flex;gap:8px;margin-top:10px;">
+                            <button id="adminReceiptSubmit" class="admin-button"><span class="button-text">Send to Admin</span><div class="button-loader"></div></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -5819,6 +5841,8 @@
         const storeAmount = document.getElementById('storeAmount');
         const storeCopyOrder = document.getElementById('storeCopyOrder');
         const storeReceipt = document.getElementById('storeReceipt');
+        const storeReceiptDrop = document.getElementById('storeReceiptDrop');
+        const storeReceiptName = document.getElementById('storeReceiptName');
         const storeSubmit = document.getElementById('storeSubmit');
         const storeCancel = document.getElementById('storeCancel');
         const storeError = document.getElementById('storeError');
@@ -5889,6 +5913,28 @@
         }
         storeSubmit?.addEventListener('click', submitStoreReceipt);
 
+        // Dropzone interactions for Store Receipt
+        function wireDropzone(zoneEl, inputEl, nameEl) {
+            if (!zoneEl || !inputEl) return;
+            zoneEl.addEventListener('click', () => inputEl.click());
+            zoneEl.addEventListener('dragover', (e) => { e.preventDefault(); zoneEl.style.background = 'rgba(255,255,255,0.06)'; });
+            zoneEl.addEventListener('dragleave', () => { zoneEl.style.background = ''; });
+            zoneEl.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zoneEl.style.background = '';
+                if (e.dataTransfer?.files?.length) {
+                    inputEl.files = e.dataTransfer.files;
+                    inputEl.dispatchEvent(new Event('change'));
+                }
+            });
+            inputEl.addEventListener('change', () => {
+                const file = inputEl.files?.[0];
+                if (nameEl) nameEl.textContent = file ? file.name : 'No file chosen';
+            });
+        }
+
+        wireDropzone(storeReceiptDrop, storeReceipt, storeReceiptName);
+
         // Show receipt preview if image
         storeReceipt?.addEventListener('change', () => {
             const file = storeReceipt.files?.[0];
@@ -5948,6 +5994,9 @@
             }
         }
         adminReceiptSubmit?.addEventListener('click', submitAdminReceipt);
+
+        // Dropzone for Admin Receipt
+        wireDropzone(adminReceiptDrop, adminReceipt, adminReceiptName);
 
         // Show admin receipt preview if image
         adminReceipt?.addEventListener('change', () => {
