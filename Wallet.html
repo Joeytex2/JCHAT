@@ -1412,7 +1412,7 @@
             transform: translateY(-1px);
         }
 
-        /* NEW: 2FA Confirmation Modal Styles */
+        /* NEW: PIN Confirmation Modal Styles */
         #twoFAModal.modal-overlay {
             background-color: rgba(0, 0, 0, 0.7);
             position: fixed;
@@ -1423,7 +1423,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1001; /* Higher than other modals */
+            z-index: 9999;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -1437,12 +1437,10 @@
             text-align: center;
             background: var(--card-background);
             border: 1px solid var(--glass-blue);
-            backdrop-filter: blur(10px) saturate(180%);
-            border-radius: var(--radius);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
+            border-radius: 15px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: calc(100% - 40px);
             gap: 1.5rem;
             transform: translateY(20px);
             transition: transform 0.3s ease;
@@ -1465,19 +1463,20 @@
             font-size: 0.95rem;
             margin-bottom: 1rem;
         }
-        #twoFAModal .modal-content input[type="password"] {
+        #twoFAModal .modal-content input[type="tel"] {
             width: 100%;
             padding: 12px 15px;
             border: 1px solid var(--border-light);
             border-radius: 8px;
-            background-color: var(--input-background);
+            background: rgba(255,255,255,0.05);
             color: var(--white);
-            font-size: 1rem;
+            font-size: 1.2rem;
+            letter-spacing: 6px;
             outline: none;
             text-align: center;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        #twoFAModal .modal-content input[type="password"]:focus {
+        #twoFAModal .modal-content input[type="tel"]:focus {
             border-color: var(--blue);
             box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
         }
@@ -1492,12 +1491,11 @@
             padding: 10px 20px;
             border: none;
             border-radius: 15px;
-            font-weight: 700;
+            background: rgba(255,255,255,0.08);
+            color: var(--white);
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: flex;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -1773,6 +1771,22 @@
                     <p style="font-size:0.9rem;color:var(--text-light);">After payment, upload your receipt below and tap "Send Purchase Request".</p>
                 </div>
 
+                <!-- Transaction PIN Settings -->
+                <div class="bank-details-section" style="margin-top:12px;">
+                    <h3><i class="fas fa-key"></i> Transaction PIN</h3>
+                    <p>Set a 4-digit PIN to confirm transfers and withdrawals.</p>
+                    <div class="input-group">
+                        <label for="pinSetInput">New PIN (4 digits)</label>
+                        <input type="tel" id="pinSetInput" inputmode="numeric" maxlength="4" placeholder="••••">
+                    </div>
+                    <div class="input-group">
+                        <label for="pinConfirmInput">Confirm PIN</label>
+                        <input type="tel" id="pinConfirmInput" inputmode="numeric" maxlength="4" placeholder="••••">
+                    </div>
+                    <button id="savePinButton" class="wallet-action-button"><i class="fas fa-save"></i> Save PIN</button>
+                    <button id="resetPinButton" class="wallet-action-button secondary" style="margin-left:8px;"><i class="fas fa-envelope"></i> Reset via Email</button>
+                </div>
+
                 <!-- Manual Buy Section -->
                 <div class="manual-buy-section">
                     <h3>Submit Receipt</h3>
@@ -1846,20 +1860,19 @@
         </div>
     </div>
 
-    <!-- NEW: 2FA Confirmation Modal -->
+    <!-- NEW: PIN Confirmation Modal -->
     <div id="twoFAModal" class="modal-overlay">
         <div class="modal-content">
-            <h3>Confirm Action</h3>
-            <p id="twoFAModalMessage">Please confirm your action.</p>
+            <h3>Enter 4-digit PIN</h3>
+            <p id="twoFAModalMessage">Please enter your Transaction PIN to confirm.</p>
             <div class="input-group">
-                <label for="twoFAPasswordInput">Enter your JCHAT password:</label>
-                <input type="password" id="twoFAPasswordInput" placeholder="Your password" autocomplete="current-password">
+                <label for="twoFAPinInput">Transaction PIN (4 digits)</label>
+                <input type="tel" id="twoFAPinInput" placeholder="••••" inputmode="numeric" maxlength="4" pattern="\d{4}">
             </div>
             <div class="button-group">
                 <button id="cancelTwoFA" class="modal-button cancel-button">Cancel</button>
                 <button id="confirmTwoFA" class="modal-button confirm-button">
-                    <span class="button-text">Confirm</span>
-                    <div class="button-loader"></div>
+                    <i class="fas fa-check-circle"></i> Confirm
                 </button>
             </div>
         </div>
@@ -1911,7 +1924,7 @@
     </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, runTransaction, limit, startAfter, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
@@ -2035,7 +2048,7 @@
         // 2FA Modal Elements (NEW)
         const twoFAModal = document.getElementById('twoFAModal');
         const twoFAModalMessage = document.getElementById('twoFAModalMessage');
-        const twoFAPasswordInput = document.getElementById('twoFAPasswordInput');
+        const twoFAPinInput = document.getElementById('twoFAPinInput');
         const cancelTwoFAButton = document.getElementById('cancelTwoFA');
         const confirmTwoFAButton = document.getElementById('confirmTwoFA');
 
@@ -2060,6 +2073,11 @@
         const downloadQrPngBtn = document.getElementById('downloadQrPng');
         const closeReceiveModalBtn = document.getElementById('closeReceiveModal');
 
+        // PIN Settings Elements
+        const pinSetInput = document.getElementById('pinSetInput');
+        const pinConfirmInput = document.getElementById('pinConfirmInput');
+        const savePinButton = document.getElementById('savePinButton');
+        const resetPinButton = document.getElementById('resetPinButton');
 
         // --- Global State ---
         let isAuthReady = false;
@@ -2418,52 +2436,68 @@
         }
 
         /**
-         * Shows the 2FA confirmation modal.
+         * Shows the PIN confirmation modal.
          * @param {string} message - Message to display in the modal.
-         * @param {Function} actionCallback - The function to call if 2FA is confirmed.
+         * @param {Function} actionCallback - The function to call if PIN is confirmed.
          * @param {Array} args - Arguments to pass to the actionCallback.
          */
         function showTwoFAModal(message, actionCallback, args) {
-            if (!twoFAModal || !twoFAModalMessage || !twoFAPasswordInput) return;
+            if (!twoFAModal || !twoFAModalMessage || !twoFAPinInput) return;
             twoFAModalMessage.textContent = message;
-            twoFAPasswordInput.value = ''; // Clear previous input
+            twoFAPinInput.value = ''; // Clear previous input
             twoFAAction = actionCallback;
             twoFAArgs = args;
             twoFAModal.classList.add('active');
-            twoFAPasswordInput.focus();
+            twoFAPinInput.focus();
         }
 
         /**
-         * Hides the 2FA confirmation modal.
+         * Hides the PIN confirmation modal.
          */
         function hideTwoFAModal() {
             if (twoFAModal) twoFAModal.classList.remove('active');
             twoFAAction = null;
             twoFAArgs = null;
-            if (twoFAPasswordInput) twoFAPasswordInput.value = '';
+            if (twoFAPinInput) twoFAPinInput.value = '';
         }
 
         /**
-         * Handles the 2FA confirmation logic.
+         * Handles the PIN confirmation logic.
          */
         async function handleTwoFAConfirmation() {
-            if (!currentUser || !twoFAPasswordInput) {
-                showMessageBox("2FA error: No action or user.", 'error');
+            if (!currentUser || !twoFAPinInput) {
+                showMessageBox("PIN error: No user or input.", 'error');
                 hideTwoFAModal();
                 return;
             }
+            const pin = (twoFAPinInput.value || '').trim();
+            if (!/^\d{4}$/.test(pin)) {
+                showMessageBox("Enter a valid 4-digit PIN.", 'warning');
+                return;
+            }
             try {
-                const credential = EmailAuthProvider.credential(currentUser.email, twoFAPasswordInput.value);
-                await reauthenticateWithCredential(currentUser, credential);
-                showMessageBox("Authentication successful. Proceeding with action...", 'info');
+                const enc = new TextEncoder();
+                const data = enc.encode(pin);
+                const buf = await crypto.subtle.digest('SHA-256', data);
+                const arr = Array.from(new Uint8Array(buf));
+                const hex = arr.map(b => b.toString(16).padStart(2,'0')).join('');
+                const stored = currentUserProfile?.transactionPinHash || null;
+                if (!stored) {
+                    showMessageBox("No PIN set. Please set your Transaction PIN first.", 'error');
+                    hideTwoFAModal();
+                    return;
+                }
+                if (hex !== stored) {
+                    showMessageBox("Incorrect PIN.", 'error');
+                    return;
+                }
                 hideTwoFAModal();
-                // Execute the stored action with its arguments
                 const args = Array.isArray(twoFAArgs) ? twoFAArgs : [];
                 const fn = (typeof twoFAAction === 'function') ? twoFAAction : (() => {});
                 await fn(...args);
-            } catch (error) {
-                console.error("JCHAT_ERROR: 2FA re-authentication failed:", error);
-                showMessageBox(error.message || "2FA failed.", 'error');
+            } catch (e) {
+                console.error('JCHAT_ERROR: PIN verification failed:', e);
+                showMessageBox('PIN verification failed.', 'error');
                 hideTwoFAModal();
             }
         }
@@ -3476,7 +3510,7 @@
             if (sendManualBuyRequestButton) { // Null check
                 sendManualBuyRequestButton.addEventListener('click', () => {
                     if (currentUser && currentUser.email) {
-                        showTwoFAModal("Enter your password to confirm JCoin purchase request:", sendBuyJCoinsRequest, []);
+                        showTwoFAModal("Enter your 4-digit PIN to confirm purchase request:", sendBuyJCoinsRequest, []);
                     } else {
                         sendBuyJCoinsRequest(); // Allow anonymous if no email is set
                     }
@@ -3488,7 +3522,7 @@
             if (cancelSendJCoinsButton) cancelSendJCoinsButton.addEventListener('click', hideSendJCoinsModal); // Null check
             if (confirmSendJCoinsButton) confirmSendJCoinsButton.addEventListener('click', () => {
                 if (currentUser && currentUser.email) {
-                    showTwoFAModal("Enter your password to confirm JCoin transfer:", sendJCoinsConfirmed, []);
+                    showTwoFAModal("Enter your 4-digit PIN to confirm JCoin transfer:", sendJCoinsConfirmed, []);
                 } else {
                     sendJCoinsConfirmed(); // Allow anonymous if no email is set
                 }
@@ -3503,7 +3537,7 @@
             // Withdrawal button listener
             if (withdrawalButton) withdrawalButton.addEventListener('click', () => {
                 if (currentUser && currentUser.email) {
-                    showTwoFAModal("Enter your password to confirm JCoin withdrawal:", sendWithdrawalRequestConfirmed, []);
+                    showTwoFAModal("Enter your 4-digit PIN to confirm withdrawal:", sendWithdrawalRequestConfirmed, []);
                 } else {
                     sendWithdrawalRequestConfirmed(); // Allow anonymous if no email is set
                 }
@@ -3518,8 +3552,8 @@
             // 2FA Modal listeners
             if (cancelTwoFAButton) cancelTwoFAButton.addEventListener('click', hideTwoFAModal);
             if (confirmTwoFAButton) confirmTwoFAButton.addEventListener('click', handleTwoFAConfirmation);
-            if (twoFAPasswordInput) {
-                twoFAPasswordInput.addEventListener('keypress', (e) => {
+            if (twoFAPinInput) {
+                twoFAPinInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         handleTwoFAConfirmation();
                     }
@@ -3696,6 +3730,39 @@
                 return /[",\n]/.test(s) ? `"${s}"` : s;
             };
             return rows.map(row => headers.map(fieldName => escape(row[fieldName])).join(',')).join('\n');
+        }
+
+        async function saveTransactionPin() {
+            if (!currentUser) { showMessageBox('Please log in.', 'error'); return; }
+            const p1 = (pinSetInput?.value || '').trim();
+            const p2 = (pinConfirmInput?.value || '').trim();
+            if (!/^\d{4}$/.test(p1) || !/^\d{4}$/.test(p2)) { showMessageBox('PIN must be 4 digits.', 'warning'); return; }
+            if (p1 !== p2) { showMessageBox('PINs do not match.', 'error'); return; }
+            try {
+                const enc = new TextEncoder();
+                const data = enc.encode(p1);
+                const buf = await crypto.subtle.digest('SHA-256', data);
+                const arr = Array.from(new Uint8Array(buf));
+                const hex = arr.map(b => b.toString(16).padStart(2,'0')).join('');
+                const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
+                await updateDoc(ref, { transactionPinHash: hex, updatedAt: serverTimestamp() });
+                if (currentUserProfile) currentUserProfile.transactionPinHash = hex;
+                showMessageBox('Transaction PIN saved.', 'success');
+            } catch (e) {
+                console.error('JCHAT_ERROR: saving PIN failed:', e);
+                showMessageBox('Failed to save PIN.', 'error');
+            }
+        }
+
+        async function resetTransactionPinViaEmail() {
+            if (!currentUser) { showMessageBox('Please log in.', 'error'); return; }
+            try {
+                await sendEmailVerification(currentUser);
+                showMessageBox('Verification email sent. After verifying, a PIN reset option will appear.', 'info');
+            } catch (e) {
+                console.error('JCHAT_ERROR: send verification email failed:', e);
+                showMessageBox('Failed to send verification email.', 'error');
+            }
         }
     </script>
 </body>
