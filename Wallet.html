@@ -1914,7 +1914,7 @@
         };
         (async () => {
             try {
-                const mod = await import('./currency.js');
+                const mod = await import('/currency.js');
                 userCurrency = mod.userCurrency || userCurrency; window.userCurrency = userCurrency;
                 setUserCurrencyFromProfile = mod.setUserCurrencyFromProfile || setUserCurrencyFromProfile;
                 formatLocalCurrency = mod.formatLocalCurrency || formatLocalCurrency;
@@ -3243,8 +3243,8 @@
             // Build transaction query with filters and pagination
             let qTransactions = query(transactionsCollectionRef, orderBy("timestamp", "desc"), limit(TRANSACTIONS_PER_PAGE));
 
-            const filterType = transactionTypeFilter.value;
-            const searchTerm = transactionSearchInput.value.toLowerCase();
+            const filterType = transactionTypeFilter ? transactionTypeFilter.value : 'all';
+            const searchTerm = transactionSearchInput ? transactionSearchInput.value.toLowerCase() : '';
             // Date filter inputs
             let fromDate = null, toDate = null;
             if (transactionDateFromInput && transactionDateFromInput.value) {
