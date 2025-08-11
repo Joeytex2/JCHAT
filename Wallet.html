@@ -2464,36 +2464,18 @@
                 hideTwoFAModal();
                 return;
             }
-
-            const password = twoFAPasswordInput.value;
-            if (!password) {
-                showMessageBox("Please enter your password.", 'warning');
-                return;
-            }
-
-            toggleButtonLoading(confirmTwoFAButton, true);
-
             try {
-                // Reauthenticate user with their password
-                const credential = EmailAuthProvider.credential(currentUser.email, password);
+                const credential = EmailAuthProvider.credential(currentUser.email, twoFAPasswordInput.value);
                 await reauthenticateWithCredential(currentUser, credential);
-
                 showMessageBox("Authentication successful. Proceeding with action...", 'info');
                 hideTwoFAModal();
                 // Execute the stored action with its arguments
-                await twoFAAction(...twoFAArgs);
-
+                const args = Array.isArray(twoFAArgs) ? twoFAArgs : [];
+                await twoFAAction(...args);
             } catch (error) {
                 console.error("JCHAT_ERROR: 2FA re-authentication failed:", error);
-                if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    showMessageBox("Incorrect password. Please try again.", 'error');
-                } else if (error.code === 'auth/user-disabled') {
-                    showMessageBox("Your account has been disabled.", 'error');
-                } else {
-                    showMessageBox(`Authentication failed: ${error.message}`, 'error');
-                }
-            } finally {
-                toggleButtonLoading(confirmTwoFAButton, false);
+                showMessageBox(error.message || "2FA failed.", 'error');
+                hideTwoFAModal();
             }
         }
 
@@ -3325,7 +3307,7 @@
                             <div class="transaction-header">
                                 <span class="transaction-description">${transaction.description}</span>
                                 <span class="transaction-amount ${transaction.type === 'credit' ? 'positive' : 'negative'}">
-                                    ${transaction.type === 'credit' ? '+' : '-'}${transaction.amount.toLocaleString()} JCoins
+                                    ${transaction.type === 'credit' ? '+' : '-'}${(Number(transaction.amount)||0).toLocaleString()} JCoins
                                 </span>
                             </div>
                             <span class="transaction-timestamp">${timestamp}</span>
@@ -3371,10 +3353,18 @@
 
             // Check for existing pending WITHDRAWAL requests from this user
             if (unsubscribePendingWithdrawalRequests) unsubscribePendingWithdrawalRequests();
-            const qPendingWithdrawalRequests = query(withdrawalRequestsCollectionRef,
-                where("userId", "==", currentUser.uid),
-                orderBy("timestamp", "desc") // Order for display in history
-            );
+            let qPendingWithdrawalRequests;
+            try {
+                qPendingWithdrawalRequests = query(withdrawalRequestsCollectionRef,
+                    where("userId", "==", currentUser.uid),
+                    orderBy("timestamp", "desc") // Order for display in history
+                );
+            } catch (_) {
+                // Fallback without orderBy if index missing
+                qPendingWithdrawalRequests = query(withdrawalRequestsCollectionRef,
+                    where("userId", "==", currentUser.uid)
+                );
+            }
             unsubscribePendingWithdrawalRequests = onSnapshot(qPendingWithdrawalRequests, (snapshot) => {
                 const withdrawals = [];
                 let pendingFound = false;
