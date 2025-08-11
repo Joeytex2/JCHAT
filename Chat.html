@@ -2186,9 +2186,17 @@
                         <span class="button-text">Voice Note</span>
                         <span class="recording-timer" style="display: none;">00:00</span>
                     </button>
-                    <button id="voiceCallBtn" title="Start Voice Call"><i class="fas fa-phone"></i> Call</button>
-                    <button id="videoCallBtn" title="Start Video Call"><i class="fas fa-video"></i> Video</button>
+                    <button id="stickersBtn" class="gated-btn" title="Stickers">
+                        <i class="fas fa-face-smile"></i> Stickers <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
+                    </button>
+                    <button id="reactionsBtn" class="gated-btn" title="Reactions">
+                        <i class="fas fa-bolt"></i> Reactions <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
+                    </button>
+                    <button id="effectsBtn" class="gated-btn" title="Message Effects">
+                        <i class="fas fa-wand-magic-sparkles"></i> Effects <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
+                    </button>
                 </div>
+                <div id="quickRepliesRow" class="quick-replies" style="display:none; gap:8px; flex-wrap:wrap; margin:8px 0;"></div>
                 <div class="chat-input-row">
                     <textarea id="messageInput" placeholder="Type your message..." rows="1"></textarea>
                     <button id="sendMessageBtn"><i class="fas fa-paper-plane"></i> Send</button>
@@ -2322,6 +2330,49 @@
         </div>
     </div>
 
+    <!-- Unlock Feature Modal -->
+    <div id="unlockModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; z-index:1000;">
+        <div class="modal-content" style="background: var(--card-background); border:1px solid var(--border-light); border-radius:16px; padding:16px; width:90%; max-width:460px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                <h3 id="unlockTitle" style="margin:0; color:var(--white); font-family:Poppins, sans-serif;">Unlock</h3>
+                <button id="unlockCloseBtn" style="background:transparent;border:none;color:var(--white);cursor:pointer"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="color:var(--text-light); font-size:0.95rem; line-height:1.5;">
+                <p id="unlockDescription" style="margin-top:0"></p>
+                <div style="margin:10px 0; padding:10px; border:1px dashed var(--border-light); border-radius:10px;">
+                    <div><strong>Order ID:</strong> <span id="orderIdText"></span> <button id="copyOrderIdBtn" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-copy"></i></button></div>
+                    <div style="margin-top:6px"><strong>Amount:</strong> <span id="orderAmountText"></span></div>
+                    <div style="margin-top:6px"><strong>Bank details:</strong>
+                        <div style="font-size:0.9rem; opacity:0.9; margin-top:4px">
+                            Account Name: JCHAT LTD<br>
+                            Account Number: 0123456789<br>
+                            Bank: Example Bank<br>
+                            Reference: Use your Order ID above
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                    <label for="unlockReceiptInput" style="font-weight:600; color:var(--white)">Upload payment receipt (image or PDF)</label>
+                    <input id="unlockReceiptInput" type="file" accept="image/*,.pdf" />
+                </div>
+                <div id="unlockError" style="color:#ff6b6b; margin-top:8px; display:none"></div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px;">
+                <button id="unlockCancelBtn" class="modal-button cancel-button">Cancel</button>
+                <button id="unlockSubmitBtn" class="modal-button save-button"><span class="button-text">Submit Receipt</span><div class="button-loader" style="margin-left:8px"></div></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Sticker Picker (shown only if unlocked) -->
+    <div id="stickerPicker" style="display:none; position:fixed; bottom:84px; right:16px; width:260px; max-height:260px; overflow:auto; background:var(--card-background); border:1px solid var(--border-light); border-radius:12px; padding:8px; box-shadow:0 8px 20px rgba(0,0,0,0.4); z-index:900;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <span style="font-weight:700; color:var(--white)">Stickers</span>
+            <button id="stickerPickerClose" style="background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="stickerGrid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;"></div>
+    </div>
+
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -2380,8 +2431,6 @@
         const mediaShareBtn = document.getElementById('mediaShareBtn');
         const voiceNoteBtn = document.getElementById('voiceNoteBtn');
         const voiceNoteTimer = voiceNoteBtn.querySelector('.recording-timer'); // Get the timer span
-        const voiceCallBtn = document.getElementById('voiceCallBtn');
-        const videoCallBtn = document.getElementById('videoCallBtn');
         const callStatusOverlay = document.getElementById('callStatusOverlay');
         const callStatusTitle = document.getElementById('callStatusTitle');
         const callStatusMessage = document.getElementById('callStatusMessage');
@@ -2402,7 +2451,6 @@
         const friendListContainer = document.getElementById('friendListContainer');
         const loadingFriendsModal = friendListContainer.querySelector('.loading-friends-modal');
         const noFriendsModal = friendListContainer.querySelector('.no-friends-modal');
-
 
         // --- Global State ---
         let isAuthReady = false; // Flag to indicate if auth state has been checked
@@ -5052,6 +5100,17 @@
                 fetchNotificationCount(user.uid); // For the bell icon
                 setupFriendUnreadCountListeners(); // For friend message badges
 
+                // Load entitlements
+                try {
+                    const entRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profiles', 'user_entitlements');
+                    const entSnap = await getDoc(entRef);
+                    if (entSnap.exists()) {
+                        const data = entSnap.data();
+                        userEntitlements = { ...userEntitlements, ...data };
+                    }
+                } catch (e) { console.warn('Entitlements load failed', e); }
+                setGatedUI();
+
             } else {
                 console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
                 try {
@@ -5249,8 +5308,7 @@
             });
 
             mediaShareBtn.addEventListener('click', handleMediaShare);
-            voiceCallBtn.addEventListener('click', () => startCall('voice'));
-            videoCallBtn.addEventListener('click', () => startCall('video'));
+            
 
             // Call control event listeners
             muteVideoBtn.addEventListener('click', toggleMute);
@@ -5345,6 +5403,272 @@
                 clearInterval(recordingInterval); // Clear timer on unload
             }
         });
+
+        const stickersBtn = document.getElementById('stickersBtn');
+        const reactionsBtn = document.getElementById('reactionsBtn');
+        const effectsBtn = document.getElementById('effectsBtn');
+        const quickRepliesRow = document.getElementById('quickRepliesRow');
+        const unlockModal = document.getElementById('unlockModal');
+        const unlockTitle = document.getElementById('unlockTitle');
+        const unlockDescription = document.getElementById('unlockDescription');
+        const orderIdText = document.getElementById('orderIdText');
+        const orderAmountText = document.getElementById('orderAmountText');
+        const unlockReceiptInput = document.getElementById('unlockReceiptInput');
+        const unlockSubmitBtn = document.getElementById('unlockSubmitBtn');
+        const unlockCancelBtn = document.getElementById('unlockCancelBtn');
+        const unlockCloseBtn = document.getElementById('unlockCloseBtn');
+        const copyOrderIdBtn = document.getElementById('copyOrderIdBtn');
+        const unlockError = document.getElementById('unlockError');
+        const stickerPicker = document.getElementById('stickerPicker');
+        const stickerPickerClose = document.getElementById('stickerPickerClose');
+        const stickerGrid = document.getElementById('stickerGrid');
+
+        // --- Entitlements ---
+        let userEntitlements = {
+            stickersUnlocked: false,
+            reactionsUnlocked: false,
+            effectsUnlocked: false,
+            quickRepliesUnlocked: false,
+            mediaTier: 'basic',
+            packs: []
+        };
+
+        const FEATURE_META = {
+            stickers: { title: 'Stickers Pack', desc: 'Unlock sticker packs to use in chat.', amount: '₦1,500', itemId: 'stickers_basic' },
+            reactions: { title: 'Reactions Pack', desc: 'Unlock extra reactions to send in chat.', amount: '₦1,200', itemId: 'reactions_basic' },
+            effects: { title: 'Message Effects', desc: 'Add animations/effects when you send messages.', amount: '₦1,000', itemId: 'effects_basic' },
+            quickReplies: { title: 'Quick Replies', desc: 'One-tap replies (like "On my way", "Thanks").', amount: '₦800', itemId: 'quickreplies_basic' },
+            mediaPro: { title: 'Longer Voice Notes + HD', desc: 'Extend voice notes and enable higher-quality media.', amount: '₦2,000', itemId: 'media_pro' },
+        };
+
+        function isUnlocked(feature) {
+            switch (feature) {
+                case 'stickers': return !!(userEntitlements.stickersUnlocked || userEntitlements.packs?.some(p=>p.startsWith('stickers:')));
+                case 'reactions': return !!(userEntitlements.reactionsUnlocked || userEntitlements.packs?.some(p=>p.startsWith('reactions:')));
+                case 'effects': return !!userEntitlements.effectsUnlocked;
+                case 'quickReplies': return !!userEntitlements.quickRepliesUnlocked;
+                case 'mediaPro': return userEntitlements.mediaTier === 'pro';
+                default: return false;
+            }
+        }
+
+        function setGatedUI() {
+            // Lock badges
+            const setBtn = (btn, unlocked) => {
+                if (!btn) return;
+                const badge = btn.querySelector('.lock-badge');
+                if (badge) badge.style.display = unlocked ? 'none' : 'inline-flex';
+                btn.dataset.locked = unlocked ? '0' : '1';
+                btn.style.opacity = unlocked ? '1' : '0.85';
+            };
+            setBtn(stickersBtn, isUnlocked('stickers'));
+            setBtn(reactionsBtn, isUnlocked('reactions'));
+            setBtn(effectsBtn, isUnlocked('effects'));
+
+            // Quick replies row
+            if (quickRepliesRow) {
+                if (isUnlocked('quickReplies')) {
+                    quickRepliesRow.style.display = 'flex';
+                    renderQuickReplies();
+                } else {
+                    quickRepliesRow.style.display = 'none';
+                    quickRepliesRow.innerHTML = '';
+                }
+            }
+        }
+
+        function renderQuickReplies() {
+            const replies = ['On my way', 'Thanks!', 'Call me?', 'Let\'s talk later', '👍', '😊'];
+            quickRepliesRow.innerHTML = '';
+            for (const text of replies) {
+                const btn = document.createElement('button');
+                btn.className = 'icon-btn';
+                btn.textContent = text;
+                btn.addEventListener('click', () => {
+                    if (!messageInput) return;
+                    messageInput.value = text;
+                    sendMessageBtn?.click();
+                });
+                quickRepliesRow.appendChild(btn);
+            }
+        }
+
+        function openUnlock(featureKey) {
+            const meta = FEATURE_META[featureKey];
+            if (!meta) return;
+            unlockTitle.textContent = `Unlock ${meta.title}`;
+            unlockDescription.textContent = meta.desc;
+            orderAmountText.textContent = meta.amount;
+            const oid = `ORD-${Date.now()}`;
+            orderIdText.textContent = oid;
+            unlockReceiptInput.value = '';
+            unlockError.style.display = 'none';
+            unlockSubmitBtn.disabled = false;
+            unlockModal.style.display = 'flex';
+            unlockModal.dataset.featureKey = featureKey;
+            unlockModal.dataset.orderId = oid;
+        }
+
+        function closeUnlock() {
+            unlockModal.style.display = 'none';
+            unlockModal.dataset.featureKey = '';
+            unlockModal.dataset.orderId = '';
+        }
+
+        async function submitUnlockReceipt() {
+            try {
+                if (!auth.currentUser) { showMessageBox('Please log in.', 'warning'); return; }
+                const f = unlockReceiptInput.files?.[0];
+                if (!f) { unlockError.textContent = 'Please attach a receipt.'; unlockError.style.display = 'block'; return; }
+                const featureKey = unlockModal.dataset.featureKey;
+                const orderId = unlockModal.dataset.orderId;
+                const meta = FEATURE_META[featureKey];
+                if (!featureKey || !orderId || !meta) { showMessageBox('Invalid order.', 'error'); return; }
+
+                toggleButtonLoading(unlockSubmitBtn, true);
+
+                // Upload receipt
+                const path = `orders/${auth.currentUser.uid}/${orderId}/${encodeURIComponent(f.name)}`;
+                const storageRef = ref(storage, path);
+                await uploadBytes(storageRef, f);
+                const receiptUrl = await getDownloadURL(storageRef);
+
+                // Create pending order doc
+                const orderDocRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'));
+                await setDoc(orderDocRef, {
+                    orderId,
+                    userId: auth.currentUser.uid,
+                    itemId: meta.itemId,
+                    itemType: featureKey,
+                    amount: meta.amount,
+                    currency: 'NGN',
+                    receiptUrl,
+                    status: 'pending',
+                    createdAt: serverTimestamp(),
+                });
+
+                showMessageBox('Receipt submitted. Awaiting admin approval.', 'success');
+                closeUnlock();
+            } catch (e) {
+                console.error(e);
+                unlockError.textContent = e?.message || 'Failed to submit receipt';
+                unlockError.style.display = 'block';
+            } finally {
+                toggleButtonLoading(unlockSubmitBtn, false);
+            }
+        }
+
+        // Simple sticker picker content
+        const SAMPLE_STICKERS = [
+            'https://i.imgur.com/0Z8FQ.png',
+            'https://i.imgur.com/7V9bY.png',
+            'https://i.imgur.com/2x0k1.png',
+            'https://i.imgur.com/3y9Qh.png',
+            'https://i.imgur.com/uh9Ts.png',
+            'https://i.imgur.com/qp8xW.png',
+            'https://i.imgur.com/PG7eN.png',
+            'https://i.imgur.com/3D0oQ.png'
+        ];
+
+        function openStickerPicker() {
+            stickerGrid.innerHTML = '';
+            for (const url of SAMPLE_STICKERS) {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'sticker';
+                img.style.cssText = 'width:56px;height:56px;object-fit:contain;cursor:pointer;background:#0002;border-radius:8px;';
+                img.addEventListener('click', async () => {
+                    // Send as image message
+                    if (!auth.currentUser || !partnerId) return;
+                    try {
+                        toggleButtonLoading(sendMessageBtn, true);
+                        const chatRoomId = getChatRoomId(auth.currentUser.uid, partnerId);
+                        const messagesCollectionRef = collection(db, 'artifacts', appId, 'users', chatRoomId, 'messages');
+                        await addDoc(messagesCollectionRef, {
+                            senderId: auth.currentUser.uid,
+                            content: '',
+                            mediaUrl: url,
+                            mediaType: 'image',
+                            timestamp: serverTimestamp(),
+                            isEdited: false
+                        });
+                        stickerPicker.style.display = 'none';
+                    } catch (e) {
+                        console.error(e);
+                        showMessageBox('Failed to send sticker', 'error');
+                    } finally {
+                        toggleButtonLoading(sendMessageBtn, false);
+                    }
+                });
+                stickerGrid.appendChild(img);
+            }
+            stickerPicker.style.display = 'block';
+        }
+
+        // Voice note length gating
+        function getMaxVoiceSeconds() {
+            return isUnlocked('mediaPro') ? 180 : 60; // pro: 3min, basic: 1min
+        }
+
+        // Button events
+        stickersBtn?.addEventListener('click', () => {
+            if (isUnlocked('stickers')) {
+                openStickerPicker();
+            } else {
+                openUnlock('stickers');
+            }
+        });
+        reactionsBtn?.addEventListener('click', () => {
+            if (isUnlocked('reactions')) {
+                showMessageBox('Reactions pack enabled. Tap and hold a message to react (coming soon).', 'info');
+            } else { openUnlock('reactions'); }
+        });
+        effectsBtn?.addEventListener('click', () => {
+            if (isUnlocked('effects')) {
+                showMessageBox('Effects on. Your next message will animate.', 'success');
+                effectsBtn.dataset.active = effectsBtn.dataset.active === '1' ? '0' : '1';
+                effectsBtn.classList.toggle('active');
+            } else { openUnlock('effects'); }
+        });
+
+        document.addEventListener('click', (ev) => {
+            if (!stickerPicker.contains(ev.target) && ev.target !== stickersBtn) {
+                stickerPicker.style.display = 'none';
+            }
+        });
+        stickerPickerClose?.addEventListener('click', ()=> stickerPicker.style.display = 'none');
+
+        unlockCloseBtn?.addEventListener('click', closeUnlock);
+        unlockCancelBtn?.addEventListener('click', closeUnlock);
+        copyOrderIdBtn?.addEventListener('click', () => {
+            const t = orderIdText.textContent || '';
+            navigator.clipboard.writeText(t).then(()=> showMessageBox('Order ID copied', 'success'));
+        });
+        unlockSubmitBtn?.addEventListener('click', submitUnlockReceipt);
+
+        // Hook send to apply local effect preview when effects active
+        const _origSendMessage = sendMessage;
+        async function sendMessage() {
+            await _origSendMessage();
+            try {
+                if (effectsBtn?.dataset.active === '1' && isUnlocked('effects')) {
+                    // Briefly animate last message bubble you sent
+                    const last = [...document.querySelectorAll('.message-bubble.sent')].pop();
+                    if (last) {
+                        last.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+                        last.style.transform = 'scale(1.03)';
+                        last.style.boxShadow = '0 8px 24px rgba(0,213,255,0.25)';
+                        setTimeout(()=>{ last.style.transform = 'scale(1)'; last.style.boxShadow = ''; }, 500);
+                    }
+                }
+            } catch {}
+        }
+        window.sendMessage = sendMessage; // replace
+
+        // When starting/limiting recording, use getMaxVoiceSeconds()
+        // Example guard where you handle recording duration (place in your recorder loop):
+        // if (elapsedSeconds >= getMaxVoiceSeconds()) { stopRecording(); }
+
     </script>
 </body>
 </html>
