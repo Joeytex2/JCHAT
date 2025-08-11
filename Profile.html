@@ -3209,138 +3209,61 @@
             }
             // Cover upload handling (owner only)
             if (profileCoverUploadInput) {
-                const coverCropModal = document.getElementById('coverCropModal');
-                const cropImage = document.getElementById('cropImage');
-                const cropBox = document.getElementById('cropBox');
-                const cropAspectSelect = document.getElementById('cropAspectSelect');
-                const cropZoom = document.getElementById('cropZoom');
-                const applyCropBtn = document.getElementById('applyCropBtn');
-                const cancelCropBtn = document.getElementById('cancelCropBtn');
-                const cropCanvasWrap = document.getElementById('cropCanvasWrap');
-
                 let originalImage = null;
                 let imageNaturalWidth = 0;
                 let imageNaturalHeight = 0;
                 let cropState = { x: 0, y: 0, w: 0, h: 0, zoom: 1 };
 
-                function openCropModal(file) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        if (cropImage) {
-                            cropImage.onload = () => {
-                                if (cropCanvasWrap && cropImage) {
-                                    const ih = cropImage.naturalHeight || cropImage.clientHeight || 200;
-                                    cropCanvasWrap.style.height = ih + 'px';
-                                }
-                                initCropBox();
-                            };
-                            cropImage.src = reader.result;
-                        }
-                        originalImage = new Image();
-                        originalImage.onload = () => {
-                            imageNaturalWidth = originalImage.width;
-                            imageNaturalHeight = originalImage.height;
-                        };
-                        originalImage.src = reader.result;
-                        if (coverCropModal) {
-                            coverCropModal.style.display = 'flex';
-                            setTimeout(()=> coverCropModal.classList.add('active'), 0);
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
-
-                function closeCropModal() {
-                    coverCropModal.classList.remove('active');
-                    setTimeout(()=> coverCropModal.style.display = 'none', 200);
-                }
-
-                function getAspect() {
-                    const val = (cropAspectSelect && cropAspectSelect.value) || '4:1';
-                    const [w, h] = val.split(':').map(Number);
-                    return w / h;
-                }
-
-                function initCropBox() {
-                    const wrapRect = cropCanvasWrap ? cropCanvasWrap.getBoundingClientRect() : { width: (cropImage?.clientWidth||800), height: (cropImage?.clientHeight||200) };
-                    const aspect = getAspect();
-                    const targetW = Math.min(wrapRect.width - 20, wrapRect.width);
-                    const targetH = targetW / aspect;
-                    const maxH = wrapRect.height || targetH;
-                    const finalH = Math.min(targetH, maxH - 20);
-                    const finalW = finalH * aspect;
-                    cropState.w = finalW; cropState.h = finalH;
-                    cropState.x = (wrapRect.width - finalW) / 2;
-                    cropState.y = (maxH - finalH) / 2;
-                    cropState.zoom = parseFloat(cropZoom.value || '1');
-                    renderCropBox();
-                }
-
-                function renderCropBox() {
-                    if (!cropBox || !cropImage) return;
-                    cropBox.style.left = `${cropState.x}px`;
-                    cropBox.style.top = `${cropState.y}px`;
-                    cropBox.style.width = `${cropState.w}px`;
-                    cropBox.style.height = `${cropState.h}px`;
-                    cropImage.style.transformOrigin = 'center center';
-                    cropImage.style.transform = `scale(${cropState.zoom})`;
-                }
-
-                // Dragging
-                let isDragging = false, startX = 0, startY = 0, startPos = {x:0,y:0};
-                if (cropBox) cropBox.addEventListener('mousedown', (e) => {
-                    isDragging = true; startX = e.clientX; startY = e.clientY; startPos = { x: cropState.x, y: cropState.y };
-                });
-                window.addEventListener('mouseup', () => { isDragging = false; });
-                window.addEventListener('mousemove', (e) => {
-                    if (!isDragging) return;
-                    const dx = e.clientX - startX; const dy = e.clientY - startY;
-                    cropState.x = Math.max(0, startPos.x + dx);
-                    cropState.y = Math.max(0, startPos.y + dy);
-                    renderCropBox();
-                });
-                if (cropAspectSelect) cropAspectSelect.addEventListener('change', initCropBox);
-                if (cropZoom) cropZoom.addEventListener('input', () => { cropState.zoom = parseFloat(cropZoom.value || '1'); renderCropBox(); });
-
-                if (profileCoverUploadInput) profileCoverUploadInput.addEventListener('change', async (ev) => {
-                    const file = ev.target.files?.[0];
-                    if (!file) return;
-                    openCropModal(file);
-                });
-
-                if (cancelCropBtn) cancelCropBtn.addEventListener('click', closeCropModal);
-                if (coverCropModal) coverCropModal.addEventListener('click', (evt)=> { if (evt.target === coverCropModal) closeCropModal(); });
-
-                if (applyCropBtn) applyCropBtn.addEventListener('click', async () => {
+                // New: Auto-crop (center-crop) cover to 16:5 and upload immediately
+                async function autoCropAndUploadCover(file) {
                     try {
-                        // Render cropped area to canvas
+                        const dataUrl = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                        });
+                        const img = new Image();
+                        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+                        const targetW = 1600, targetH = 500; // 16:5
+                        const srcW = img.naturalWidth, srcH = img.naturalHeight;
+                        const srcAspect = srcW / srcH, outAspect = targetW / targetH;
+                        let drawW, drawH;
+                        if (srcAspect > outAspect) { // too wide
+                            drawH = targetH;
+                            drawW = Math.round(drawH * srcAspect);
+                        } else { // too tall
+                            drawW = targetW;
+                            drawH = Math.round(drawW / srcAspect);
+                        }
                         const canvas = document.createElement('canvas');
-                        const aspect = getAspect();
-                        const outW = 1600; const outH = Math.round(outW / aspect);
-                        canvas.width = outW; canvas.height = outH;
+                        canvas.width = targetW; canvas.height = targetH;
                         const ctx = canvas.getContext('2d');
-                        // Map crop box coords back to image pixels considering zoom and displayed size
-                        const wrapRect = cropCanvasWrap ? cropCanvasWrap.getBoundingClientRect() : { width: (cropImage?.clientWidth||800), height: (cropImage?.clientHeight||200) };
-                        const scaleX = imageNaturalWidth / wrapRect.width;
-                        const scaleY = imageNaturalHeight / wrapRect.height;
-                        const sx = cropState.x * scaleX / cropState.zoom;
-                        const sy = cropState.y * scaleY / cropState.zoom;
-                        const sw = cropState.w * scaleX / cropState.zoom;
-                        const sh = cropState.h * scaleY / cropState.zoom;
-                        ctx.drawImage(originalImage, sx, sy, sw, sh, 0, 0, outW, outH);
+                        const dx = Math.round((targetW - drawW) / 2);
+                        const dy = Math.round((targetH - drawH) / 2);
+                        ctx.drawImage(img, dx, dy, drawW, drawH);
                         const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
-                        if (!blob) throw new Error('Crop failed');
+                        if (!blob) throw new Error('Auto-crop failed');
                         const url = await uploadMediaToCloudinary(blob);
                         if (!url) throw new Error('Upload failed');
-                        if (profileCoverImg) profileCoverImg.src = getCloudinaryImageUrl(url, `w_${outW},h_${outH},c_fill,q_auto`);
-                        if (profileCoverImg) profileCoverImg.style.display = 'block';
-                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile'), { coverPicId: url, updatedAt: serverTimestamp() });
-                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid), { coverPicId: url, updatedAt: serverTimestamp() });
-                        closeCropModal();
+                        const coverUrl = getCloudinaryImageUrl(url, `w_${targetW},h_${targetH},c_fill,q_auto`);
+                        const previewEl = document.getElementById('profileCoverImg');
+                        if (previewEl) { previewEl.src = coverUrl; previewEl.style.display = 'block'; }
+                        if (currentUser && displayedUserId === currentUser.uid) {
+                            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile'), { coverPicId: url, updatedAt: serverTimestamp() });
+                            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid), { coverPicId: url, updatedAt: serverTimestamp() });
+                        }
                         showMessageBox('Cover updated!', 'success');
                     } catch (e) {
                         showMessageBox('Failed to update cover.', 'error');
                     }
+                }
+
+                if (profileCoverUploadInput) profileCoverUploadInput.addEventListener('change', async (ev) => {
+                    const file = ev.target.files?.[0];
+                    if (!file) return;
+                    // Use auto-crop immediate upload instead of manual modal
+                    await autoCropAndUploadCover(file);
                 });
             }
 
@@ -3682,7 +3605,6 @@
                 return null;
             }
         }
-
         /**
          * Updates the authorProfilePic in all posts by a given user.
          * This function is called when a user's main profile picture changes.
