@@ -615,9 +615,11 @@
             background: rgba(0, 0, 0, 0.1);
             border-radius: 10px;
             padding: 15px;
-            width: 100%;
-            text-align: left;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
             border: 1px solid var(--border-light);
+            display: grid;
+            grid-template-columns: 1fr;
+            row-gap: 6px;
         }
 
         .bank-details-section h3 {
@@ -638,16 +640,39 @@
             background: rgba(255, 255, 255, 0.1);
             color: var(--white);
             border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 0.8rem;
+            border-radius: 6px;
+            padding: 6px 12px;
             cursor: pointer;
-            transition: background 0.2s ease;
+            transition: transform 0.15s ease, background 0.2s ease;
+            font-size: 0.75rem;
             margin-left: 10px;
         }
 
         .bank-details-section .copy-button:hover {
             background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .bank-logo {
+            background: rgba(255,255,255,0.6);
+            border-radius: 6px;
+            padding: 4px 6px;
+        }
+
+        @media (max-width: 768px) {
+            .package-bonus {
+                font-size: 0.75rem;
+            }
+            .bank-details-section h3, .bank-details-form h3 {
+                font-size: 1.1rem;
+            }
+            .bank-details-section p, .bank-details-form .input-group label {
+                font-size: 0.85rem;
+            }
+            .bank-details-section .copy-button {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
         }
 
         /* Manual Buy Section Styles */
@@ -1387,7 +1412,7 @@
             transform: translateY(-1px);
         }
 
-        /* NEW: 2FA Confirmation Modal Styles */
+        /* NEW: PIN Confirmation Modal Styles */
         #twoFAModal.modal-overlay {
             background-color: rgba(0, 0, 0, 0.7);
             position: fixed;
@@ -1398,7 +1423,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1001; /* Higher than other modals */
+            z-index: 9999;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -1412,12 +1437,10 @@
             text-align: center;
             background: var(--card-background);
             border: 1px solid var(--glass-blue);
-            backdrop-filter: blur(10px) saturate(180%);
-            border-radius: var(--radius);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
+            border-radius: 15px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: calc(100% - 40px);
             gap: 1.5rem;
             transform: translateY(20px);
             transition: transform 0.3s ease;
@@ -1440,19 +1463,20 @@
             font-size: 0.95rem;
             margin-bottom: 1rem;
         }
-        #twoFAModal .modal-content input[type="password"] {
+        #twoFAModal .modal-content input[type="tel"] {
             width: 100%;
             padding: 12px 15px;
             border: 1px solid var(--border-light);
             border-radius: 8px;
-            background-color: var(--input-background);
+            background: rgba(255,255,255,0.05);
             color: var(--white);
-            font-size: 1rem;
+            font-size: 1.2rem;
+            letter-spacing: 6px;
             outline: none;
             text-align: center;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        #twoFAModal .modal-content input[type="password"]:focus {
+        #twoFAModal .modal-content input[type="tel"]:focus {
             border-color: var(--blue);
             box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
         }
@@ -1467,12 +1491,11 @@
             padding: 10px 20px;
             border: none;
             border-radius: 15px;
-            font-weight: 700;
+            background: rgba(255,255,255,0.08);
+            color: var(--white);
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: flex;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -1493,6 +1516,122 @@
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
         }
         #twoFAModal .modal-content .modal-button.cancel-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* NEW: Custom Confirmation Modal */
+        #customConfirmModal.modal-overlay {
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        #customConfirmModal.modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        #customConfirmModal .modal-content {
+            max-width: 450px;
+            min-width: 350px;
+            text-align: center;
+            background: var(--card-background);
+            border: 1px solid var(--glass-blue);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 20px;
+            width: calc(100% - 40px);
+            gap: 1.5rem;
+            transform: translateY(20px) scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        #customConfirmModal.modal-overlay.active .modal-content {
+            transform: translateY(0) scale(1);
+        }
+        #customConfirmModal .modal-content .confirm-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ff6b6b, #ffa726);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+        #customConfirmModal .modal-content h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        #customConfirmModal .modal-content p {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        #customConfirmModal .modal-content .warning-text {
+            color: #ffa726;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            padding: 12px;
+            background: rgba(255, 167, 38, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #ffa726;
+        }
+        #customConfirmModal .modal-content .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        #customConfirmModal .modal-content .modal-button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 120px;
+        }
+        #customConfirmModal .modal-content .modal-button.confirm-button {
+            background: linear-gradient(135deg, #ff6b6b, #ff4757);
+            color: white;
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        #customConfirmModal .modal-content .modal-button.confirm-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+        }
+        #customConfirmModal .modal-content .modal-button.cancel-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        #customConfirmModal .modal-content .modal-button.cancel-button:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: translateY(-1px);
         }
@@ -1656,6 +1795,33 @@
                 font-size: 0.8rem;
             }
         }
+
+        /* Success tick animation */
+        .success-tick {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(40, 167, 69, 0.95);
+            color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.35);
+            transform: translateY(-10px) scale(0.98);
+            opacity: 0;
+            animation: tickPop 2.2s ease forwards;
+            font-family: 'Poppins', sans-serif;
+        }
+        .success-tick i { font-size: 18px; }
+        @keyframes tickPop {
+            0% { opacity: 0; transform: translateY(-10px) scale(0.98); }
+            15% { opacity: 1; transform: translateY(0) scale(1); }
+            80% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-6px) scale(0.98); }
+        }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -1687,7 +1853,7 @@
                     <span class="balance-label">Current Balance</span>
                     <span id="jcoinBalance" class="jcoin-value">0</span>
                     <span id="gasBalance" class="gas-value">0 Gas (XP)</span>
-                    <span id="usdBalance" class="usd-value">$0.00 USD</span>
+                    <span id="usdBalance" class="usd-value"></span>
                 </div>
 
                                     <div class="wallet-buttons">
@@ -1704,28 +1870,11 @@
 
                 <div class="transaction-history-section">
                     <h2>Transaction History</h2>
-                    <!-- NEW: Filters and Search -->
-                    <div class="transaction-controls">
-                        <select id="transactionTypeFilter">
-                            <option value="all">All Types</option>
-                            <option value="credit">Credits</option>
-                            <option value="debit">Debits</option>
-                            <option value="purchase">Purchases</option>
-                            <option value="withdrawal">Withdrawals</option>
-                        </select>
-                        <input type="date" id="transactionDateFrom" placeholder="From">
-                        <input type="date" id="transactionDateTo" placeholder="To">
-                        <input type="text" id="transactionSearchInput" placeholder="Search description...">
-                        <button id="exportCsvButton" class="wallet-action-button secondary" style="padding: 6px 10px;">Export CSV</button>
-                        <button id="exportJsonButton" class="wallet-action-button secondary" style="padding: 6px 10px;">Export JSON</button>
-                    </div>
+                    <!-- Simplified: filters/exports removed -->
                     <div id="transactionList" class="transaction-list">
                         <p class="no-transactions-message" id="noTransactionsMessage">No transactions yet.</p>
-                        <!-- Transaction items will be dynamically loaded here -->
                     </div>
-                    <button id="loadMoreTransactionsButton" class="wallet-action-button secondary" style="margin-top: 15px; width: 100%; display: none;">
-                        Load More
-                    </button>
+                    <!-- Load more removed -->
                 </div>
             </div>
 
@@ -1733,12 +1882,12 @@
             <div class="buy-jcoins-panel">
                 <h2>Buy JCoins</h2>
                 <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem;">
-                    Select a package or enter a custom amount below to add JCoins to your wallet.
+                    Pay via OPay, then submit your receipt below.
                 </p>
 
                 <div class="bank-details-section">
-                    <h3>Bank Details</h3>
-                    <p><strong>Bank Name:</strong> Opay</p>
+                    <h3>OPay Details</h3>
+                    <div style="display:flex;align-items:center;gap:8px;"><i class="fas fa-university" style="font-size:20px;color:var(--jcoin-color);"></i><span><strong>Bank:</strong> OPay</span></div>
                     <p><strong>Account Name:</strong> ELECHI JOSHUA</p>
                     <p>
                         <strong>Account Number:</strong> <span id="bankAccountNumber">8111609765</span>
@@ -1748,14 +1897,48 @@
                         <strong>Reference:</strong> Your JCHAT User ID (<span id="userReferenceId">Loading...</span>)
                         <button class="copy-button" onclick="copyToClipboard(document.getElementById('userReferenceId').textContent)">Copy</button>
                     </p>
-                    <p style="font-size: 0.8rem; margin-top: 10px; color: var(--bonus-color);">
-                        <i class="fas fa-info-circle"></i> After making a transfer, please fill the form below and upload your payment receipt.
+                </div>
+
+                <div class="bank-details-section" style="margin-top:12px;">
+                    <h3>Bank Transfer (Keystone Bank)</h3>
+                    <div style="display:flex;align-items:center;gap:8px;"><i class="fas fa-university" style="font-size:20px;color:var(--jcoin-color);"></i><span><strong>Bank:</strong> Keystone Bank</span></div>
+                    <p><strong>Account Name:</strong> ELECHI OSOUNDU JOSHUA</p>
+                    <p>
+                        <strong>Account Number:</strong> <span>6042862356</span>
+                        <button class="copy-button" onclick="copyToClipboard('6042862356')">Copy</button>
                     </p>
+                    <p>
+                        <strong>Reference:</strong> Your JCHAT User ID (<span id="userReferenceId">Loading...</span>)
+                        <button class="copy-button" onclick="copyToClipboard(document.getElementById('userReferenceId').textContent)">Copy</button>
+                    </p>
+                    <p style="font-size:0.9rem;color:var(--text-light);">After payment, upload your receipt below and tap "Send Purchase Request".</p>
+                </div>
+
+                <!-- Transaction PIN Settings -->
+                <div class="bank-details-section" style="margin-top:12px;">
+                    <h3><i class="fas fa-key"></i> Transaction PIN</h3>
+                    <p>Set a 4-digit PIN to confirm transfers and withdrawals.</p>
+                    <div id="pinStatusRow" style="display:none;align-items:center;gap:8px;justify-content:space-between;">
+                        <span id="pinStatusLabel" style="color:var(--text-light);"><i class="fas fa-check-circle" style="color:#4CAF50;"></i> PIN set</span>
+                        <button id="changePinButton" class="wallet-action-button secondary" style="padding:6px 10px;font-size:0.8rem;">Change PIN</button>
+                    </div>
+                    <div id="pinSetupGroup">
+                        <div class="input-group">
+                            <label for="pinSetInput">New PIN (4 digits)</label>
+                            <input type="tel" id="pinSetInput" inputmode="numeric" maxlength="4" placeholder="••••">
+                        </div>
+                        <div class="input-group">
+                            <label for="pinConfirmInput">Confirm PIN</label>
+                            <input type="tel" id="pinConfirmInput" inputmode="numeric" maxlength="4" placeholder="••••">
+                        </div>
+                        <button id="savePinButton" class="wallet-action-button"><i class="fas fa-save"></i> Save PIN</button>
+                        <button id="resetPinButton" class="wallet-action-button secondary" style="margin-left:8px;"><i class="fas fa-envelope"></i> Reset via Email</button>
+                    </div>
                 </div>
 
                 <!-- Manual Buy Section -->
                 <div class="manual-buy-section">
-                    <h3>Custom Purchase</h3>
+                    <h3>Submit Receipt</h3>
                     <div class="input-group">
                         <label for="nairaInput">Amount Paid (NGN):</label>
                         <input type="number" id="nairaInput" min="200" step="1" placeholder="e.g., 200, 1000, 5000">
@@ -1779,107 +1962,21 @@
                         <div class="button-loader"></div>
                     </button>
                     <div class="whatsapp-info">
-                        <p>For support or issues with your purchase, contact:</p>
-                        <a href="https://wa.me/2349013790707" target="_blank">
-                            <i class="fab fa-whatsapp"></i> +234 901 379 0707
-                        </a>
+                        <p style="font-weight:600;">Need help?</p>
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            <a href="mailto:jchatguide@gmail.com" target="_blank"><i class="fas fa-envelope"></i> jchatguide@gmail.com</a>
+                            <a href="https://wa.me/2348111609765" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp +2348111609765</a>
+                            <a href="tel:+2349013790707"><i class="fas fa-phone"></i> Phone +2349013790707</a>
+                        </div>
                     </div>
                 </div>
                 <!-- End Manual Buy Section -->
 
-                <!-- JCoin Packages Grid (for pre-defined options) -->
-                <div class="jcoin-packages-grid" id="jcoinPackagesGrid">
-                    <!-- JCoin packages will be dynamically loaded here -->
-                </div>
+                <!-- Packages removed for simplicity -->
             </div>
             <!-- END Buy JCoins Panel -->
 
-            <!-- NEW: Earn JCoins Section -->
-            <div class="earn-jcoins-section">
-                <h2>Earn JCoins & Gas (XP)</h2>
-                <p style="color: var(--text-light); font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem;">
-                    Boost your balance by engaging with JCHAT!
-                </p>
-                <div class="earn-opportunities-grid">
-                    <div class="earn-card">
-                        <i class="fas fa-calendar-day"></i>
-                        <h3>Daily Login Bonus</h3>
-                        <p>Claim free JCoins and Gas every day!</p>
-                        <span class="earn-reward">+5 JCoins, +10 Gas</span>
-                        <button id="claimDailyBonusButton">Claim Now</button>
-                    </div>
-                    <div class="earn-card">
-                        <i class="fas fa-user-check"></i>
-                        <h3>Complete Your Profile</h3>
-                        <p>Fill out your profile completely to earn a one-time bonus.</p>
-                        <span class="earn-reward">+50 JCoins, +50 Gas</span>
-                        <a href="#" class="wallet-action-button" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Go to Profile</a> <!-- Changed to # -->
-                    </div>
-                    <div class="earn-card">
-                        <i class="fas fa-user-plus"></i>
-                        <h3>Refer a Friend</h3>
-                        <p>Invite friends to JCHAT and earn JCoins when they join.</p>
-                        <span class="earn-reward">+100 JCoins per referral</span>
-                        <a href="#" class="wallet-action-button" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Invite Now</a> <!-- Changed to # -->
-                    </div>
-                    <div class="earn-card">
-                        <i class="fas fa-comment-alt"></i>
-                        <h3>Engage in Chat</h3>
-                        <p>Earn Gas (XP) for sending messages and interacting with others.</p>
-                        <span class="earn-reward">Varies by activity</span>
-                        <a href="#" class="wallet-action-button" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Start Chatting</a> <!-- Changed to # -->
-                    </div>
-                </div>
-            </div>
-            <!-- END Earn JCoins Section -->
-
-
-            <!-- NEW: Withdrawal Section -->
-            <div class="withdrawal-section">
-                <h2>Withdraw JCoins</h2>
-                <p class="withdrawal-info">
-                    Withdrawal Rate: <strong>20000 JCoins</strong> = <strong>#10,000 NGN</strong>.
-                </p>
-
-                <!-- Bank Details Form -->
-                <div class="bank-details-form">
-                    <h3>Your Bank Details</h3>
-                    <div class="input-group">
-                        <label for="bankNameInput">Bank Name:</label>
-                        <input type="text" id="bankNameInput" placeholder="e.g., Opay, Zenith Bank" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="accountNameInput">Account Name:</label>
-                        <input type="text" id="accountNameInput" placeholder="Your Account Name" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="accountNumberInput">Account Number:</label>
-                        <input type="text" id="accountNumberInput" placeholder="Your Account Number" required>
-                    </div>
-                    <button id="saveBankDetailsButton" class="save-button">
-                        <span class="button-text">Save Bank Details</span>
-                        <div class="button-loader"></div>
-                    </button>
-                </div>
-
-                <button id="withdrawButton" class="withdrawal-button" disabled>
-                    <span class="button-text">Withdraw 20000 JCoins</span>
-                    <div class="button-loader"></div>
-                </button>
-                <p id="withdrawalMessage" class="withdrawal-message"></p>
-                <p id="pendingWithdrawalMessage" class="withdrawal-message" style="color: var(--bonus-color);"></p>
-
-                <!-- NEW: Withdrawal History -->
-                <div class="withdrawal-history-section">
-                    <h3>My Withdrawal Requests</h3>
-                    <div id="withdrawalList" class="withdrawal-list">
-                        <p class="no-transactions-message" id="noWithdrawalsMessage">No withdrawal requests yet.</p>
-                        <!-- Withdrawal items will be dynamically loaded here -->
-                    </div>
-                </div>
-            </div>
-            <!-- END Withdrawal Section -->
-
+            <!-- Earn/Withdraw removed for simplicity -->
         </div>
     </main>
 
@@ -1912,20 +2009,19 @@
         </div>
     </div>
 
-    <!-- NEW: 2FA Confirmation Modal -->
+    <!-- NEW: PIN Confirmation Modal -->
     <div id="twoFAModal" class="modal-overlay">
         <div class="modal-content">
-            <h3>Confirm Action</h3>
-            <p id="twoFAModalMessage">Please confirm your action.</p>
+            <h3>Enter 4-digit PIN</h3>
+            <p id="twoFAModalMessage">Please enter your Transaction PIN to confirm.</p>
             <div class="input-group">
-                <label for="twoFAPasswordInput">Enter your JCHAT password:</label>
-                <input type="password" id="twoFAPasswordInput" placeholder="Your password" autocomplete="current-password">
+                <label for="twoFAPinInput">Transaction PIN (4 digits)</label>
+                <input type="tel" id="twoFAPinInput" placeholder="••••" inputmode="numeric" maxlength="4" pattern="\d{4}">
             </div>
             <div class="button-group">
                 <button id="cancelTwoFA" class="modal-button cancel-button">Cancel</button>
                 <button id="confirmTwoFA" class="modal-button confirm-button">
-                    <span class="button-text">Confirm</span>
-                    <div class="button-loader"></div>
+                    <i class="fas fa-check-circle"></i> Confirm
                 </button>
             </div>
         </div>
@@ -1945,6 +2041,28 @@
                     <button id="downloadQrPng" class="modal-button confirm-button"><i class="fas fa-download"></i> Download PNG</button>
                     <button id="closeReceiveModal" class="modal-button cancel-button">Close</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Custom Confirmation Modal -->
+    <div id="customConfirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="confirm-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 id="confirmTitle">Reset Transaction PIN</h3>
+            <p id="confirmMessage">Are you sure you want to reset your transaction PIN?</p>
+            <div class="warning-text" id="confirmWarning">
+                ⚠️ This action will permanently delete your current PIN. You will need to set up a new PIN after this action.
+            </div>
+            <div class="button-group">
+                <button id="cancelConfirm" class="modal-button cancel-button">
+                    <i class="fas fa-times"></i> Keep Current PIN
+                </button>
+                <button id="confirmConfirm" class="modal-button confirm-button">
+                    <i class="fas fa-trash-alt"></i> Reset PIN
+                </button>
             </div>
         </div>
     </div>
@@ -1970,11 +2088,42 @@
 
     <!-- Tone.js for sound effects -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <script>
+      console.log('JCHAT_DEBUG: Wallet bootstrap');
+      window.addEventListener('error', function(e){ try { console.error('JCHAT_GLOBAL_ERROR:', e.message || e, e.error && e.error.stack); } catch(_) {} });
+      window.addEventListener('unhandledrejection', function(e){ try { console.error('JCHAT_GLOBAL_UNHANDLED:', e.reason); } catch(_) {} });
+    </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, runTransaction, limit, startAfter, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+        // Currency helpers fallback + dynamic import
+        window.userCurrency = window.userCurrency || { code: 'USD', symbol: '$', label: 'USD' };
+        let userCurrency = window.userCurrency;
+        let setUserCurrencyFromProfile = function(_) { window.userCurrency = window.userCurrency || userCurrency; return window.userCurrency; };
+        let formatLocalCurrency = function(amount) {
+            const uc = (window.userCurrency && typeof window.userCurrency === 'object') ? window.userCurrency : userCurrency;
+            try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: uc.code }).format(Number(amount)); }
+            catch (_) { return `${uc.symbol}${Number(amount).toFixed(2)} ${uc.label}`; }
+        };
+        let applyCurrencyDisplayForWallet = function(grid){
+            const amountLabel = document.querySelector('label[for="nairaInput"]');
+            if (amountLabel) amountLabel.textContent = (userCurrency.code === 'NGN') ? 'Amount Paid (NGN):' : 'Amount Paid';
+        };
+        let inferCountryCodeFromProfileOrLocale = function(profile){
+            try {
+                const pref = localStorage.getItem('jchat-currency-preference');
+                if (pref && pref !== 'AUTO') return pref === 'NGN' ? 'NG' : null;
+                const raw = (profile?.country || '').toString().trim().toLowerCase();
+                if (raw && (raw==='ng' || raw==='ngn' || raw==='nigeria' || raw.includes('nigeria'))) return 'NG';
+                const lang = navigator.language || '';
+                const m = lang.match(/-([A-Z]{2})$/); if (m && m[1]) return m[1];
+            } catch(_){}
+            return null;
+        };
+        // Removed dynamic import; using inline fallbacks for reliability on static hosting
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -2070,10 +2219,18 @@
         // 2FA Modal Elements (NEW)
         const twoFAModal = document.getElementById('twoFAModal');
         const twoFAModalMessage = document.getElementById('twoFAModalMessage');
-        const twoFAPasswordInput = document.getElementById('twoFAPasswordInput');
+        const twoFAPinInput = document.getElementById('twoFAPinInput');
         const cancelTwoFAButton = document.getElementById('cancelTwoFA');
         const confirmTwoFAButton = document.getElementById('confirmTwoFA');
 
+        // Custom Confirmation Modal Elements (NEW)
+        const customConfirmModal = document.getElementById('customConfirmModal');
+        const confirmTitle = document.getElementById('confirmTitle');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmWarning = document.getElementById('confirmWarning');
+        const cancelConfirmButton = document.getElementById('cancelConfirm');
+        const confirmConfirmButton = document.getElementById('confirmConfirm');
+        
         // Transaction Details Modal Elements (NEW)
         const transactionDetailsModal = document.getElementById('transactionDetailsModal');
         const detailType = document.getElementById('detailType');
@@ -2095,6 +2252,15 @@
         const downloadQrPngBtn = document.getElementById('downloadQrPng');
         const closeReceiveModalBtn = document.getElementById('closeReceiveModal');
 
+        // PIN Settings Elements
+        const pinSetInput = document.getElementById('pinSetInput');
+        const pinConfirmInput = document.getElementById('pinConfirmInput');
+        const savePinButton = document.getElementById('savePinButton');
+        const resetPinButton = document.getElementById('resetPinButton');
+        const pinSetupGroup = document.getElementById('pinSetupGroup');
+        const pinStatusRow = document.getElementById('pinStatusRow');
+        const changePinButton = document.getElementById('changePinButton');
+        const pinStatusLabel = document.getElementById('pinStatusLabel');
 
         // --- Global State ---
         let isAuthReady = false;
@@ -2112,6 +2278,10 @@
 
         let twoFAAction = null; // Stores the function to execute after 2FA
         let twoFAArgs = null; // Stores arguments for the 2FA action
+        
+        // Custom confirmation modal variables
+        let confirmAction = null; // Stores the function to execute after confirmation
+        let confirmArgs = null; // Stores arguments for the confirmation action
 
         // --- Constants ---
         // JCoin Rates
@@ -2142,6 +2312,9 @@
             { nairaPrice: 500, bonusPercent: 0, description: "Bronze Tier" },    // 500 / 0.4 = 1250. No bonus.
             { nairaPrice: 200, bonusPercent: 0, description: "Starter Pack" },   // 200 / 0.4 = 500. No bonus.
         ];
+
+        // --- Currency/Locale Helpers ---
+        // moved to currency.js to avoid duplication
 
         // --- Utility Functions (consistent with other JCHAT pages) ---
 
@@ -2450,70 +2623,123 @@
         }
 
         /**
-         * Shows the 2FA confirmation modal.
+         * Shows the custom confirmation modal with beautiful UI.
+         * @param {string} title - Title for the confirmation modal.
          * @param {string} message - Message to display in the modal.
-         * @param {Function} actionCallback - The function to call if 2FA is confirmed.
+         * @param {string} warning - Warning text to display.
+         * @param {Function} actionCallback - The function to call if confirmed.
          * @param {Array} args - Arguments to pass to the actionCallback.
          */
-        function showTwoFAModal(message, actionCallback, args) {
-            if (!twoFAModal || !twoFAModalMessage || !twoFAPasswordInput) return;
-            twoFAModalMessage.textContent = message;
-            twoFAPasswordInput.value = ''; // Clear previous input
-            twoFAAction = actionCallback;
-            twoFAArgs = args;
-            twoFAModal.classList.add('active');
-            twoFAPasswordInput.focus();
+        function showCustomConfirmModal(title, message, warning, actionCallback, args) {
+            if (!customConfirmModal || !confirmTitle || !confirmMessage || !confirmWarning) return;
+            
+            confirmTitle.textContent = title;
+            confirmMessage.textContent = message;
+            confirmWarning.textContent = warning;
+            confirmAction = actionCallback;
+            confirmArgs = args;
+            customConfirmModal.classList.add('active');
         }
 
         /**
-         * Hides the 2FA confirmation modal.
+         * Hides the custom confirmation modal.
+         */
+        function hideCustomConfirmModal() {
+            if (customConfirmModal) customConfirmModal.classList.remove('active');
+            confirmAction = null;
+            confirmArgs = null;
+        }
+
+        /**
+         * Handles the confirmation action.
+         */
+        async function handleCustomConfirmation() {
+            hideCustomConfirmModal();
+            if (typeof confirmAction === 'function') {
+                const args = Array.isArray(confirmArgs) ? confirmArgs : [];
+                await confirmAction(...args);
+            }
+        }
+
+        /**
+         * Shows the PIN confirmation modal.
+         * @param {string} message - Message to display in the modal.
+         * @param {Function} actionCallback - The function to call if PIN is confirmed.
+         * @param {Array} args - Arguments to pass to the actionCallback.
+         */
+        function showTwoFAModal(message, actionCallback, args) {
+            if (!twoFAModal || !twoFAModalMessage || !twoFAPinInput) return;
+            twoFAModalMessage.textContent = message;
+            twoFAPinInput.value = ''; // Clear previous input
+            twoFAAction = actionCallback;
+            twoFAArgs = args;
+            twoFAModal.classList.add('active');
+            twoFAPinInput.focus();
+        }
+
+        /**
+         * Hides the PIN confirmation modal.
          */
         function hideTwoFAModal() {
             if (twoFAModal) twoFAModal.classList.remove('active');
             twoFAAction = null;
             twoFAArgs = null;
-            if (twoFAPasswordInput) twoFAPasswordInput.value = '';
+            if (twoFAPinInput) twoFAPinInput.value = '';
         }
 
         /**
-         * Handles the 2FA confirmation logic.
+         * Handles the PIN confirmation logic.
          */
         async function handleTwoFAConfirmation() {
-            if (!currentUser || !twoFAPasswordInput || !twoFAAction) {
-                showMessageBox("2FA error: No action or user.", 'error');
+            if (!currentUser || !twoFAPinInput) {
+                showMessageBox("PIN verification error. Please try again.", 'error');
                 hideTwoFAModal();
                 return;
             }
-
-            const password = twoFAPasswordInput.value;
-            if (!password) {
-                showMessageBox("Please enter your password.", 'warning');
+            
+            const pin = (twoFAPinInput.value || '').trim();
+            
+            if (!pin) {
+                showMessageBox("Please enter your PIN.", 'warning');
                 return;
             }
-
-            toggleButtonLoading(confirmTwoFAButton, true);
-
+            
+            if (!/^\d{4}$/.test(pin)) {
+                showMessageBox("PIN must be exactly 4 digits.", 'warning');
+                return;
+            }
+            
             try {
-                // Reauthenticate user with their password
-                const credential = EmailAuthProvider.credential(currentUser.email, password);
-                await reauthenticateWithCredential(currentUser, credential);
-
-                showMessageBox("Authentication successful. Proceeding with action...", 'info');
-                hideTwoFAModal();
-                // Execute the stored action with its arguments
-                await twoFAAction(...twoFAArgs);
-
-            } catch (error) {
-                console.error("JCHAT_ERROR: 2FA re-authentication failed:", error);
-                if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    showMessageBox("Incorrect password. Please try again.", 'error');
-                } else if (error.code === 'auth/user-disabled') {
-                    showMessageBox("Your account has been disabled.", 'error');
-                } else {
-                    showMessageBox(`Authentication failed: ${error.message}`, 'error');
+                const enc = new TextEncoder();
+                const data = enc.encode(pin);
+                const buf = await crypto.subtle.digest('SHA-256', data);
+                const arr = Array.from(new Uint8Array(buf));
+                const hex = arr.map(b => b.toString(16).padStart(2,'0')).join('');
+                const stored = currentUserProfile?.transactionPinHash || null;
+                
+                if (!stored) {
+                    showMessageBox("No transaction PIN found. Please set your PIN first.", 'error');
+                    hideTwoFAModal();
+                    return;
                 }
-            } finally {
-                toggleButtonLoading(confirmTwoFAButton, false);
+                
+                if (hex !== stored) {
+                    showMessageBox("Incorrect PIN. Please try again.", 'error');
+                    // Clear the input but don't close modal for retry
+                    twoFAPinInput.value = '';
+                    twoFAPinInput.focus();
+                    return;
+                }
+                
+                // PIN is correct, proceed with action
+                hideTwoFAModal();
+                const args = Array.isArray(twoFAArgs) ? twoFAArgs : [];
+                const fn = (typeof twoFAAction === 'function') ? twoFAAction : (() => {});
+                await fn(...args);
+            } catch (e) {
+                console.error('JCHAT_ERROR: PIN verification failed:', e);
+                showMessageBox('PIN verification failed. Please try again.', 'error');
+                hideTwoFAModal();
             }
         }
 
@@ -2773,10 +2999,18 @@
                 showMessageBox("Please log in to send JCoins.", "warning");
                 return;
             }
+            
+            // Check if user has sufficient JCoins
+            const currentJCoins = currentUserProfile.jCoins || 0;
+            if (currentJCoins <= 0) {
+                showMessageBox("You need JCoins to send. Purchase JCoins first.", "warning");
+                return;
+            }
+            
             if (sendJCoinsModal) sendJCoinsModal.classList.add('active'); // Null check
             if (recipientIdInput) recipientIdInput.value = ''; // Null check
             if (sendAmountInput) sendAmountInput.value = ''; // Null check
-            if (yourJCoinsBalanceSpan) yourJCoinsBalanceSpan.textContent = (currentUserProfile.jCoins || 0).toLocaleString(); // Null check
+            if (yourJCoinsBalanceSpan) yourJCoinsBalanceSpan.textContent = currentJCoins.toLocaleString(); // Null check
         }
 
         /**
@@ -2795,23 +3029,40 @@
                 return;
             }
 
-            const recipientId = recipientIdInput.value.trim();
-            const amount = parseInt(sendAmountInput.value);
+            const recipientId = (recipientIdInput?.value || '').trim();
+            const amountValue = sendAmountInput?.value || '';
+            const amount = parseInt(amountValue);
 
+            // Enhanced validation
             if (!recipientId) {
                 showMessageBox("Please enter a recipient User ID.", 'error');
                 return;
             }
+            
+            // Validate recipient ID format (Firebase UID format)
+            if (recipientId.length < 10) {
+                showMessageBox("Invalid recipient User ID format.", 'error');
+                return;
+            }
+            
             if (recipientId === currentUser.uid) {
                 showMessageBox("You cannot send JCoins to yourself.", 'warning');
                 return;
             }
-            if (isNaN(amount) || amount <= 0) {
+            
+            if (!amountValue || isNaN(amount) || amount <= 0) {
                 showMessageBox("Please enter a valid positive amount to send.", 'error');
                 return;
             }
-            if (amount > (currentUserProfile.jCoins || 0)) {
-                showMessageBox("Insufficient JCoins balance.", 'error');
+            
+            if (amount < 1) {
+                showMessageBox("Minimum transfer amount is 1 JCoin.", 'error');
+                return;
+            }
+            
+            const currentJCoins = currentUserProfile.jCoins || 0;
+            if (amount > currentJCoins) {
+                showMessageBox(`Insufficient JCoins. You have ${currentJCoins.toLocaleString()} JCoins.`, 'error');
                 return;
             }
 
@@ -2885,7 +3136,7 @@
                     });
                 });
 
-                showMessageBox(`Successfully sent ${amount.toLocaleString()} JCoins to ${recipientId}!`, 'success');
+                showMessageBox(`Successfully sent ${amount.toLocaleString()} JCoins to ${recipientId}!`, 'success', true);
                 playSuccessTone(); // Play success sound
                 hideSendJCoinsModal(); // Close modal
 
@@ -3212,7 +3463,7 @@
             if (!currentUser) {
                 if (jcoinBalanceElement) jcoinBalanceElement.textContent = "0"; // Null check
                 if (gasBalanceElement) gasBalanceElement.textContent = "0 Gas (XP)"; // Null check
-                if (usdBalanceElement) usdBalanceElement.textContent = "$0.00 USD"; // Null check
+                if (usdBalanceElement) usdBalanceElement.textContent = formatLocalCurrency(0) + ' ' + userCurrency.label; // Null check
                 if (noTransactionsMessage) noTransactionsMessage.style.display = 'block'; // Null check
                 if (noTransactionsMessage) noTransactionsMessage.textContent = "Please log in to view your wallet."; // Null check
                 if (userReferenceIdSpan) userReferenceIdSpan.textContent = "N/A"; // Hide user ID for non-logged in, null check
@@ -3242,10 +3493,23 @@
                     const jCoins = currentUserProfile.jCoins ?? 0;
                     const gas = currentUserProfile.gas ?? 0; // NEW: Get gas balance
 
+                    // Infer currency once when profile loads/changes
+                    setUserCurrencyFromProfile(currentUserProfile);
+                    applyCurrencyDisplayForWallet(jcoinPackagesGrid);
+
                     if (jcoinBalanceElement) jcoinBalanceElement.textContent = jCoins.toLocaleString(); // Null check
                     if (gasBalanceElement) gasBalanceElement.textContent = `${gas.toLocaleString()} Gas (XP)`; // Null check
-                    const usdValue = (jCoins * JCOIN_TO_USD_RATE).toFixed(2); // Use the fixed JCOIN_TO_USD_RATE
-                    if (usdBalanceElement) usdBalanceElement.textContent = `$${usdValue} USD`; // Null check
+
+                    // Balance value display in local currency (NGN for Nigeria, USD otherwise)
+                    if (usdBalanceElement) {
+                        if (userCurrency.code === 'NGN') {
+                            const ngnValue = (jCoins * JCOIN_BUY_RATE_NGN_PER_JCOIN).toFixed(2);
+                            usdBalanceElement.textContent = `${formatLocalCurrency(ngnValue)} ${userCurrency.label}`;
+                        } else {
+                            const usdValue = (jCoins * JCOIN_TO_USD_RATE).toFixed(2);
+                            usdBalanceElement.textContent = `${formatLocalCurrency(usdValue)} ${userCurrency.label}`;
+                        }
+                    }
 
                     // Populate bank details form
                     if (bankNameInput) bankNameInput.value = currentUserProfile.bankDetails?.bankName || '';
@@ -3253,6 +3517,7 @@
                     if (accountNumberInput) accountNumberInput.value = currentUserProfile.bankDetails?.accountNumber || '';
 
                     updateWithdrawalButtonState(); // Update withdrawal button state based on new balance/bank details
+                    applyPinUIState(); // Reflect PIN UI state
                     updateDailyBonusButtonState(); // Update daily bonus button state
                     if (!loadMore) { // Only show "Wallet loaded" if it's the initial load
                         showMessageBox("Wallet loaded!", 'success');
@@ -3261,7 +3526,7 @@
                     currentUserProfile = null;
                     if (jcoinBalanceElement) jcoinBalanceElement.textContent = "0"; // Null check
                     if (gasBalanceElement) gasBalanceElement.textContent = "0 Gas (XP)"; // Null check
-                    if (usdBalanceElement) usdBalanceElement.textContent = "$0.00 USD"; // Null check
+                    if (usdBalanceElement) usdBalanceElement.textContent = formatLocalCurrency(0) + ' ' + userCurrency.label; // Null check
                     showMessageBox("User profile not found. JCoins are 0.", 'info');
                     updateWithdrawalButtonState(); // Update withdrawal button state
                     updateDailyBonusButtonState(); // Update daily bonus button state
@@ -3277,8 +3542,8 @@
             // Build transaction query with filters and pagination
             let qTransactions = query(transactionsCollectionRef, orderBy("timestamp", "desc"), limit(TRANSACTIONS_PER_PAGE));
 
-            const filterType = transactionTypeFilter.value;
-            const searchTerm = transactionSearchInput.value.toLowerCase();
+            const filterType = transactionTypeFilter ? transactionTypeFilter.value : 'all';
+            const searchTerm = transactionSearchInput ? transactionSearchInput.value.toLowerCase() : '';
             // Date filter inputs
             let fromDate = null, toDate = null;
             if (transactionDateFromInput && transactionDateFromInput.value) {
@@ -3332,7 +3597,7 @@
                             <div class="transaction-header">
                                 <span class="transaction-description">${transaction.description}</span>
                                 <span class="transaction-amount ${transaction.type === 'credit' ? 'positive' : 'negative'}">
-                                    ${transaction.type === 'credit' ? '+' : '-'}${transaction.amount.toLocaleString()} JCoins
+                                    ${transaction.type === 'credit' ? '+' : '-'}${(Number(transaction.amount)||0).toLocaleString()} JCoins
                                 </span>
                             </div>
                             <span class="transaction-timestamp">${timestamp}</span>
@@ -3378,10 +3643,18 @@
 
             // Check for existing pending WITHDRAWAL requests from this user
             if (unsubscribePendingWithdrawalRequests) unsubscribePendingWithdrawalRequests();
-            const qPendingWithdrawalRequests = query(withdrawalRequestsCollectionRef,
-                where("userId", "==", currentUser.uid),
-                orderBy("timestamp", "desc") // Order for display in history
-            );
+            let qPendingWithdrawalRequests;
+            try {
+                qPendingWithdrawalRequests = query(withdrawalRequestsCollectionRef,
+                    where("userId", "==", currentUser.uid),
+                    orderBy("timestamp", "desc") // Order for display in history
+                );
+            } catch (_) {
+                // Fallback without orderBy if index missing
+                qPendingWithdrawalRequests = query(withdrawalRequestsCollectionRef,
+                    where("userId", "==", currentUser.uid)
+                );
+            }
             unsubscribePendingWithdrawalRequests = onSnapshot(qPendingWithdrawalRequests, (snapshot) => {
                 const withdrawals = [];
                 let pendingFound = false;
@@ -3409,7 +3682,12 @@
                 console.log("JCHAT_DEBUG: User authenticated in Wallet Page:", user.uid);
                 await fetchAndDisplayHeaderProfile(user);
                 fetchAndDisplayWallet(); // Fetch wallet data and check pending requests
-                renderJCoinPackages(); // Render packages after user is loaded
+                // Render packages only for Nigerian users; others see message via applyCurrencyDisplay
+                if (inferCountryCodeFromProfileOrLocale(currentUserProfile) === 'NG') {
+                    renderJCoinPackages(); // Render packages after user is loaded
+                } else {
+                    applyCurrencyDisplayForWallet(jcoinPackagesGrid);
+                }
                 updateDailyBonusButtonState(); // Update daily bonus button state on auth
 
             } else {
@@ -3439,7 +3717,7 @@
                 showMessageBox("Please log in to view your wallet.", 'info', true);
                 if (jcoinBalanceElement) jcoinBalanceElement.textContent = "0"; // Null check
                 if (gasBalanceElement) gasBalanceElement.textContent = "0 Gas (XP)"; // Null check
-                if (usdBalanceElement) usdBalanceElement.textContent = "$0.00 USD"; // Null check
+                if (usdBalanceElement) usdBalanceElement.textContent = formatLocalCurrency(0) + ' ' + userCurrency.label; // Null check
                 if (noTransactionsMessage) noTransactionsMessage.style.display = 'block'; // Null check
                 if (noTransactionsMessage) noTransactionsMessage.textContent = "Please log in to view your wallet."; // Null check
                 if (userReferenceIdSpan) userReferenceIdSpan.textContent = "N/A"; // Hide user ID for non-logged in, null check
@@ -3453,6 +3731,39 @@
 
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('JCHAT_DEBUG: DOMContentLoaded - Wallet init');
+            
+            // Check if essential elements are present
+            const essentialElements = [
+                'sendJCoinsButton', 'sendJCoinsModal', 'confirmSendJCoins', 'cancelSendJCoins',
+                'pinSetInput', 'pinConfirmInput', 'savePinButton', 'resetPinButton',
+                'twoFAModal', 'twoFAPinInput', 'confirmTwoFA', 'cancelTwoFA',
+                'customConfirmModal', 'confirmConfirm', 'cancelConfirm'
+            ];
+            
+            const missingElements = essentialElements.filter(id => !document.getElementById(id));
+            if (missingElements.length > 0) {
+                console.warn('JCHAT_WARNING: Missing essential elements:', missingElements);
+            }
+            // Generate random logos for bank icons
+            const bankLogos = document.querySelectorAll('img.bank-logo');
+            bankLogos.forEach(img => {
+                const bank = img.getAttribute('data-bank') || 'BNK';
+                const initials = bank.split(/\s+/).map(w => w[0]).join('').slice(0,3).toUpperCase();
+                const canvas = document.createElement('canvas');
+                canvas.width = 120; canvas.height = 40;
+                const ctx = canvas.getContext('2d');
+                // random pastel color based on bank name
+                let hash = 0; for (let i=0;i<bank.length;i++) hash = (hash*31 + bank.charCodeAt(i))>>>0;
+                const hue = hash % 360; const sat = 60; const light = 70;
+                ctx.fillStyle = `hsl(${hue} ${sat}% ${light}%)`;
+                ctx.fillRect(0,0,120,40);
+                ctx.fillStyle = '#111';
+                ctx.font = 'bold 20px Poppins, sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(initials, 60, 22);
+                img.src = canvas.toDataURL('image/png');
+            });
             // Apply theme on load
             const savedTheme = localStorage.getItem('jchat-theme');
             const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
@@ -3479,7 +3790,7 @@
             if (sendManualBuyRequestButton) { // Null check
                 sendManualBuyRequestButton.addEventListener('click', () => {
                     if (currentUser && currentUser.email) {
-                        showTwoFAModal("Enter your password to confirm JCoin purchase request:", sendBuyJCoinsRequest, []);
+                        showTwoFAModal("Enter your 4-digit PIN to confirm purchase request:", sendBuyJCoinsRequest, []);
                     } else {
                         sendBuyJCoinsRequest(); // Allow anonymous if no email is set
                     }
@@ -3490,8 +3801,17 @@
             if (sendJCoinsButton) sendJCoinsButton.addEventListener('click', showSendJCoinsModal); // Null check
             if (cancelSendJCoinsButton) cancelSendJCoinsButton.addEventListener('click', hideSendJCoinsModal); // Null check
             if (confirmSendJCoinsButton) confirmSendJCoinsButton.addEventListener('click', () => {
-                if (currentUser && currentUser.email) {
-                    showTwoFAModal("Enter your password to confirm JCoin transfer:", sendJCoinsConfirmed, []);
+                // Ensure user is authenticated before proceeding
+                if (!currentUser) {
+                    showMessageBox("Please wait for authentication to complete and try again.", 'warning');
+                    return;
+                }
+                
+                if (currentUser.email && currentUserProfile && currentUserProfile.transactionPinHash) {
+                    showTwoFAModal("Enter your 4-digit PIN to confirm JCoin transfer:", sendJCoinsConfirmed, []);
+                } else if (!currentUserProfile || !currentUserProfile.transactionPinHash) {
+                    showMessageBox("Please set up your transaction PIN first.", 'warning');
+                    return;
                 } else {
                     sendJCoinsConfirmed(); // Allow anonymous if no email is set
                 }
@@ -3505,8 +3825,16 @@
 
             // Withdrawal button listener
             if (withdrawalButton) withdrawalButton.addEventListener('click', () => {
-                if (currentUser && currentUser.email) {
-                    showTwoFAModal("Enter your password to confirm JCoin withdrawal:", sendWithdrawalRequestConfirmed, []);
+                if (!currentUser) {
+                    showMessageBox("Please wait for authentication to complete and try again.", 'warning');
+                    return;
+                }
+                
+                if (currentUser.email && currentUserProfile && currentUserProfile.transactionPinHash) {
+                    showTwoFAModal("Enter your 4-digit PIN to confirm withdrawal:", sendWithdrawalRequestConfirmed, []);
+                } else if (!currentUserProfile || !currentUserProfile.transactionPinHash) {
+                    showMessageBox("Please set up your transaction PIN first.", 'warning');
+                    return;
                 } else {
                     sendWithdrawalRequestConfirmed(); // Allow anonymous if no email is set
                 }
@@ -3518,11 +3846,15 @@
             // Daily Bonus button listener
             if (claimDailyBonusButton) claimDailyBonusButton.addEventListener('click', claimDailyBonus); // Null check
 
+            // Custom Confirmation Modal listeners
+            if (cancelConfirmButton) cancelConfirmButton.addEventListener('click', hideCustomConfirmModal);
+            if (confirmConfirmButton) confirmConfirmButton.addEventListener('click', handleCustomConfirmation);
+
             // 2FA Modal listeners
             if (cancelTwoFAButton) cancelTwoFAButton.addEventListener('click', hideTwoFAModal);
             if (confirmTwoFAButton) confirmTwoFAButton.addEventListener('click', handleTwoFAConfirmation);
-            if (twoFAPasswordInput) {
-                twoFAPasswordInput.addEventListener('keypress', (e) => {
+            if (twoFAPinInput) {
+                twoFAPinInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         handleTwoFAConfirmation();
                     }
@@ -3590,6 +3922,42 @@
                     showMessageBox('Failed to export JSON.', 'error');
                 }
             });
+
+            // Transaction PIN listeners
+            if (savePinButton) savePinButton.addEventListener('click', saveTransactionPin);
+            if (resetPinButton) resetPinButton.addEventListener('click', resetTransactionPinViaEmail);
+            if (changePinButton) changePinButton.addEventListener('click', () => {
+                if (pinSetupGroup) pinSetupGroup.style.display = '';
+                if (pinStatusRow) pinStatusRow.style.display = 'none';
+                if (pinSetInput) pinSetInput.value = '';
+                if (pinConfirmInput) pinConfirmInput.value = '';
+            });
+            
+            // Add input validation for PIN fields
+            function validatePinInput(input) {
+                if (input) {
+                    input.addEventListener('input', (e) => {
+                        // Only allow digits
+                        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                        // Limit to 4 digits
+                        if (e.target.value.length > 4) {
+                            e.target.value = e.target.value.slice(0, 4);
+                        }
+                    });
+                    
+                    input.addEventListener('paste', (e) => {
+                        e.preventDefault();
+                        const paste = (e.clipboardData || window.clipboardData).getData('text');
+                        const numericPaste = paste.replace(/[^0-9]/g, '').slice(0, 4);
+                        e.target.value = numericPaste;
+                    });
+                }
+            }
+            
+            // Apply PIN validation to all PIN inputs
+            validatePinInput(pinSetInput);
+            validatePinInput(pinConfirmInput);
+            validatePinInput(twoFAPinInput);
         });
 
         function getCurrentFilterState() {
@@ -3698,40 +4066,145 @@
                 const s = String(v).replace(/"/g, '""');
                 return /[",\n]/.test(s) ? `"${s}"` : s;
             };
-            const lines = [headers.join(',')];
-            for (const r of rows) lines.push(headers.map(h => escape(r[h])).join(','));
-            return lines.join('\n');
+            return rows.map(row => headers.map(fieldName => escape(row[fieldName])).join(',')).join('\n');
         }
 
-        async function fetchAllTransactionsForExport(filters) {
-            const transactionsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "transactions");
-            let qBase = query(transactionsRef, orderBy("timestamp", "desc"));
-            // Firestore range filters require composite indexes; fall back to client filtering.
-            const snap = await getDocs(qBase);
-            const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            return items.filter(t => {
-                // Text search
-                if (filters.searchTerm && !(t.description || '').toLowerCase().includes(filters.searchTerm)) return false;
-                // Type
-                if (filters.type && filters.type !== 'all' && t.type !== filters.type) return false;
-                // Date
-                if (filters.from || filters.to) {
-                    const ts = t.timestamp ? t.timestamp.toDate() : null;
-                    if (!ts) return false;
-                    if (filters.from && ts < filters.from) return false;
-                    if (filters.to && ts > filters.to) return false;
-                }
-                return true;
-            });
+        async function saveTransactionPin() {
+            if (!currentUser) { 
+                showMessageBox('Please log in to set your PIN.', 'error'); 
+                return; 
+            }
+            
+            if (!pinSetInput || !pinConfirmInput) {
+                showMessageBox('PIN input fields not found.', 'error');
+                return;
+            }
+            
+            const p1 = (pinSetInput.value || '').trim();
+            const p2 = (pinConfirmInput.value || '').trim();
+            
+            // Enhanced PIN validation
+            if (!p1 || !p2) {
+                showMessageBox('Please fill in both PIN fields.', 'warning');
+                return;
+            }
+            
+            if (!/^\d{4}$/.test(p1) || !/^\d{4}$/.test(p2)) { 
+                showMessageBox('PIN must be exactly 4 digits.', 'warning'); 
+                return; 
+            }
+            
+            if (p1 !== p2) { 
+                showMessageBox('PINs do not match. Please try again.', 'error'); 
+                return; 
+            }
+            
+            // Check for weak PINs
+            const weakPins = ['0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999', '1234', '4321', '0123'];
+            if (weakPins.includes(p1)) {
+                showMessageBox('Please choose a stronger PIN. Avoid sequential or repeated digits.', 'warning');
+                return;
+            }
+            
+            try {
+                const enc = new TextEncoder();
+                const data = enc.encode(p1);
+                const buf = await crypto.subtle.digest('SHA-256', data);
+                const arr = Array.from(new Uint8Array(buf));
+                const hex = arr.map(b => b.toString(16).padStart(2,'0')).join('');
+                const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
+                await setDoc(ref, { transactionPinHash: hex, updatedAt: serverTimestamp() }, { merge: true });
+                if (currentUserProfile) currentUserProfile.transactionPinHash = hex;
+                
+                // Clear the input fields
+                pinSetInput.value = '';
+                pinConfirmInput.value = '';
+                
+                showMessageBox('Transaction PIN saved successfully!', 'success', true);
+                showSuccessTick('PIN saved');
+                applyPinUIState();
+            } catch (e) {
+                console.error('JCHAT_ERROR: saving PIN failed:', e);
+                showMessageBox('Failed to save PIN. Please try again.', 'error');
+            }
         }
-    
-        function getCurrentFilterState() {
-            const filterType = transactionTypeFilter?.value || 'all';
-            const searchTerm = (transactionSearchInput?.value || '').toLowerCase();
-            let from = null, to = null;
-            if (transactionDateFromInput?.value) from = new Date(transactionDateFromInput.value + 'T00:00:00');
-            if (transactionDateToInput?.value) to = new Date(transactionDateToInput.value + 'T23:59:59.999');
-            return { type: filterType, searchTerm, from, to };
+
+        async function resetTransactionPinViaEmail() {
+            if (!currentUser) { 
+                showMessageBox('Please log in to reset your PIN.', 'error'); 
+                return; 
+            }
+            
+            // Check if user has a PIN set first
+            if (!currentUserProfile || !currentUserProfile.transactionPinHash) {
+                showMessageBox('No PIN is currently set.', 'warning');
+                return;
+            }
+            
+            try {
+                if (!currentUser.email) {
+                    showMessageBox('No email linked to this account. Add an email in Settings to reset PIN.', 'error');
+                    return;
+                }
+                
+                if (currentUser.emailVerified) {
+                    // Show beautiful custom confirmation dialog
+                    showCustomConfirmModal(
+                        '🔑 Reset Transaction PIN',
+                        'This will permanently delete your current PIN and you\'ll need to create a new one.',
+                        '⚠️ This action cannot be undone. Your current PIN will be completely removed from your account.',
+                        async () => {
+                            try {
+                                showMessageBox('Resetting PIN...', 'loading', true);
+                                
+                                const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
+                                await setDoc(ref, { transactionPinHash: null, updatedAt: serverTimestamp() }, { merge: true });
+                                if (currentUserProfile) currentUserProfile.transactionPinHash = null;
+                                
+                                showMessageBox('✅ PIN successfully reset! Please set a new PIN below.', 'success');
+                                applyPinUIState();
+                                
+                                // Focus on the PIN input field
+                                if (pinSetInput) {
+                                    pinSetInput.focus();
+                                }
+                            } catch (error) {
+                                console.error('JCHAT_ERROR: PIN reset failed:', error);
+                                showMessageBox('Failed to reset PIN. Please try again.', 'error');
+                            }
+                        },
+                        []
+                    );
+                    return; // Exit the function here since the confirmation is now async
+                } else {
+                    showMessageBox('Sending verification email...', 'loading', true);
+                    await sendEmailVerification(currentUser);
+                    showMessageBox('Verification email sent to ' + currentUser.email + '. Please verify your email, then try Reset via Email again.', 'info');
+                }
+            } catch (e) {
+                console.error('JCHAT_ERROR: reset PIN via email failed:', e);
+                showMessageBox('Failed to process PIN reset. Please try again.', 'error');
+            }
+        }
+
+        function applyPinUIState() {
+            const hasPin = !!(currentUserProfile && currentUserProfile.transactionPinHash);
+            if (pinSetupGroup) pinSetupGroup.style.display = hasPin ? 'none' : '';
+            if (pinStatusRow) pinStatusRow.style.display = hasPin ? 'flex' : 'none';
+            if (hasPin && pinStatusLabel) pinStatusLabel.textContent = 'PIN set';
+            if (!hasPin) {
+                if (pinSetInput) pinSetInput.value = '';
+                if (pinConfirmInput) pinConfirmInput.value = '';
+            }
+        }
+
+        // Success tick helper
+        function showSuccessTick(text) {
+            const div = document.createElement('div');
+            div.className = 'success-tick';
+            div.innerHTML = `<i class="fas fa-check-circle"></i><span>${text || 'Success'}</span>`;
+            document.body.appendChild(div);
+            setTimeout(() => { div.remove(); }, 2200);
         }
     </script>
 </body>

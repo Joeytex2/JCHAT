@@ -627,6 +627,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { userCurrency, setUserCurrencyFromProfile, inferCountryCodeFromProfileOrLocale } from "./currency.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = {
@@ -1070,12 +1071,28 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                console.log("User authenticated:", user.uid);
-                await fetchAndDisplayHeaderProfile(user); // Still needed for header
-
+                try {
+                    await fetchAndDisplayHeaderProfile(user);
+                    // Infer currency and adjust labels if needed
+                    setUserCurrencyFromProfile(currentUserProfileData || {});
+                    if (userCurrency.code !== 'NGN' && jcoinAmountSelect) {
+                        // Update select option labels to remove ₦ prefix but keep NGN notion
+                        Array.from(jcoinAmountSelect.options).forEach(opt => {
+                            if (!opt.value) return;
+                            const num = Number(opt.value).toLocaleString();
+                            opt.textContent = `${num} (NGN) (${num} JCoins)`;
+                        });
+                    }
+                } catch (error) {
+                    displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, (user.displayName || "J").charAt(0).toUpperCase(), "w_70,h_70,c_fill,g_face,r_max");
+                    headerDisplayName.textContent = user.displayName || "JCHAT User";
+                    showMessageBox(`Error loading header profile: ${error.message}`, 'error');
+                }
             } else {
-                console.log("No user signed in. Redirecting to login page.");
-                window.location.href = '/login.html';
+                currentUser = null;
+                headerDisplayName.textContent = "Guest";
+                headerAvatarIcon.style.display = 'block';
+                headerProfilePic.style.display = 'none';
             }
         });
 

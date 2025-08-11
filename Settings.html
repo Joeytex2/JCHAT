@@ -1029,6 +1029,20 @@
                     <span class="button-text">Save All Settings</span>
                     <div class="button-loader"></div>
                 </button>
+
+                <section class="settings-section">
+                    <h2>Currency Preference</h2>
+                    <p>Select your preferred currency display. Auto uses your profile country or browser locale.</p>
+                    <div class="input-group">
+                        <label for="currencyPreference">Preferred Currency</label>
+                        <select id="currencyPreference">
+                            <option value="AUTO">Auto</option>
+                            <option value="NGN">NGN (₦)</option>
+                            <option value="USD">USD ($)</option>
+                        </select>
+                    </div>
+                    <button id="saveCurrencyPreference" class="primary-button">Save Preference</button>
+                </section>
             </div>
         </div>
     </main>
@@ -2021,6 +2035,21 @@
                 toggleButtonLoading(redeemCodeButton, false);
             }
         }
+
+        const currencyPreference = document.getElementById('currencyPreference');
+        const saveCurrencyPreference = document.getElementById('saveCurrencyPreference');
+
+        // Initialize preference on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const pref = localStorage.getItem('jchat-currency-preference') || 'AUTO';
+            currencyPreference.value = ['AUTO','NGN','USD'].includes(pref) ? pref : 'AUTO';
+        });
+
+        saveCurrencyPreference.addEventListener('click', () => {
+            const val = currencyPreference.value;
+            localStorage.setItem('jchat-currency-preference', val);
+            alert('Currency preference saved. It will apply on supported pages.');
+        });
     </script>
 </body>
 </html>

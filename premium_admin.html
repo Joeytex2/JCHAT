@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHAT - Premium Admin Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --pink: #ff2e92;
+            --blue: #00d5ff;
+            --glass-black: rgba(10, 10, 10, .75);
+            --glass-blue: rgba(0, 213, 255, .15);
+            --radius: 20px;
+            --transition: .3s ease;
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, .7);
+            --background-main: rgba(10, 10, 10, .75);
+            --background-gradient-1: #00d5ff;
+            --background-gradient-2: #ff2e92;
+            --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75));
+            --border-light: rgba(255, 255, 255, .05);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --button-background: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+            
+            /* Admin specific colors */
+            --success-green: #4CAF50;
+            --warning-orange: #ff9800;
+            --danger-red: #f44336;
+            --info-blue: #2196F3;
+            --theme-gold: #ffd700;
+            --theme-silver: #c0c0c0;
+            --theme-bronze: #cd7f32;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-main);
+            background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
+                              radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
+            color: var(--white);
+        }
+
+        .header {
+            width: 100%;
+            background: var(--header-background);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav a {
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            color: var(--blue);
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon.subscriptions { color: var(--success-green); }
+        .stat-icon.revenue { color: var(--theme-gold); }
+        .stat-icon.themes { color: var(--pink); }
+        .stat-icon.users { color: var(--blue); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .dashboard-sections {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .main-section {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .subscription-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .subscription-table th,
+        .subscription-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .subscription-table th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .subscription-table td {
+            color: var(--text-light);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: var(--success-green);
+            color: var(--white);
+        }
+
+        .status-expired {
+            background: var(--danger-red);
+            color: var(--white);
+        }
+
+        .status-pending {
+            background: var(--warning-orange);
+            color: var(--white);
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            margin-right: 0.5rem;
+        }
+
+        .action-btn.edit {
+            background: var(--info-blue);
+            color: var(--white);
+        }
+
+        .action-btn.delete {
+            background: var(--danger-red);
+            color: var(--white);
+        }
+
+        .action-btn:hover {
+            opacity: 0.8;
+        }
+
+        .sidebar-section {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quick-actions {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .quick-actions li {
+            margin-bottom: 0.75rem;
+        }
+
+        .quick-actions a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .quick-actions a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--blue);
+        }
+
+        .recent-activity {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .recent-activity li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .recent-activity li:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .activity-icon.subscription { background: var(--success-green); }
+        .activity-icon.theme { background: var(--pink); }
+        .activity-icon.payment { background: var(--theme-gold); }
+        .activity-icon.user { background: var(--blue); }
+
+        .activity-details {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            color: var(--white);
+            font-weight: 500;
+            z-index: 10000;
+            display: none;
+            max-width: 300px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .message-box.show {
+            display: block;
+        }
+
+        .message-box.success {
+            background: var(--success-green);
+        }
+
+        .message-box.error {
+            background: var(--danger-red);
+        }
+
+        .message-box.info {
+            background: var(--info-blue);
+        }
+
+        .message-box.warning {
+            background: var(--warning-orange);
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-sections {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/home.html" class="logo">JCHAT</a>
+            <nav class="nav">
+                <ul>
+                    <li><a href="/home.html">Home</a></li>
+                    <li><a href="/Admin.html">Admin</a></li>
+                    <li><a href="/premium_subscriptions.html">Premium</a></li>
+                    <li><a href="/premium_themes.html">Themes</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>Premium Admin Dashboard</h1>
+            <p>Monitor subscriptions, track revenue, and manage premium features</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon subscriptions">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="stat-value" id="totalSubscriptions">0</div>
+                <div class="stat-label">Active Subscriptions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon revenue">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="stat-value" id="monthlyRevenue">₦0</div>
+                <div class="stat-label">Monthly Revenue</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon themes">
+                    <i class="fas fa-palette"></i>
+                </div>
+                <div class="stat-value" id="themeSales">0</div>
+                <div class="stat-label">Theme Sales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon users">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value" id="premiumUsers">0</div>
+                <div class="stat-label">Premium Users</div>
+            </div>
+        </div>
+
+        <div class="dashboard-sections">
+            <div class="main-section">
+                <h2 class="section-title">
+                    <i class="fas fa-list"></i>
+                    Subscription Management
+                </h2>
+                <table class="subscription-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Plan</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subscriptionsTableBody">
+                        <!-- Subscription data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-bolt"></i>
+                        Quick Actions
+                    </h3>
+                    <ul class="quick-actions">
+                        <li>
+                            <a href="/premium_subscriptions.html" target="_blank">
+                                <i class="fas fa-plus"></i>
+                                Add New Subscription
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/premium_themes.html" target="_blank">
+                                <i class="fas fa-palette"></i>
+                                Manage Themes
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" onclick="generateRevenueReport()">
+                                <i class="fas fa-chart-bar"></i>
+                                Generate Report
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" onclick="exportData()">
+                                <i class="fas fa-download"></i>
+                                Export Data
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-clock"></i>
+                        Recent Activity
+                    </h3>
+                    <ul class="recent-activity" id="recentActivityList">
+                        <!-- Recent activity will be loaded here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <script>
+        // Sample data for demonstration
+        let dashboardData = {
+            subscriptions: [
+                {
+                    id: 1,
+                    user: 'john_doe',
+                    email: 'john@example.com',
+                    plan: 'Pro Premium',
+                    status: 'active',
+                    startDate: '2024-01-01',
+                    endDate: '2024-02-01',
+                    amount: 999
+                },
+                {
+                    id: 2,
+                    user: 'jane_smith',
+                    email: 'jane@example.com',
+                    plan: 'Basic Premium',
+                    status: 'active',
+                    startDate: '2024-01-15',
+                    endDate: '2024-02-15',
+                    amount: 499
+                },
+                {
+                    id: 3,
+                    user: 'bob_wilson',
+                    email: 'bob@example.com',
+                    plan: 'Enterprise',
+                    status: 'pending',
+                    startDate: '2024-01-20',
+                    endDate: '2024-02-20',
+                    amount: 1999
+                }
+            ],
+            recentActivity: [
+                {
+                    type: 'subscription',
+                    title: 'New Pro Premium subscription',
+                    description: 'john_doe upgraded to Pro Premium',
+                    time: '2 hours ago',
+                    icon: 'subscription'
+                },
+                {
+                    type: 'theme',
+                    title: 'Theme purchase completed',
+                    description: 'jane_smith bought Dark Elegance theme',
+                    time: '4 hours ago',
+                    icon: 'theme'
+                },
+                {
+                    type: 'payment',
+                    title: 'Payment received',
+                    description: '₦999 from Pro Premium subscription',
+                    time: '6 hours ago',
+                    icon: 'payment'
+                },
+                {
+                    type: 'user',
+                    title: 'New premium user',
+                    description: 'bob_wilson joined with Enterprise plan',
+                    time: '1 day ago',
+                    icon: 'user'
+                }
+            ]
+        };
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            renderSubscriptionsTable();
+            renderRecentActivity();
+        });
+
+        // Load dashboard data
+        function loadDashboardData() {
+            // In real implementation, this would fetch from your database
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const activeSubscriptions = dashboardData.subscriptions.filter(sub => sub.status === 'active').length;
+            const monthlyRevenue = dashboardData.subscriptions
+                .filter(sub => sub.status === 'active')
+                .reduce((sum, sub) => sum + sub.amount, 0);
+            const themeSales = 15; // Simulated data
+            const premiumUsers = activeSubscriptions;
+
+            document.getElementById('totalSubscriptions').textContent = activeSubscriptions;
+            document.getElementById('monthlyRevenue').textContent = `₦${monthlyRevenue.toLocaleString()}`;
+            document.getElementById('themeSales').textContent = themeSales;
+            document.getElementById('premiumUsers').textContent = premiumUsers;
+        }
+
+        // Render subscriptions table
+        function renderSubscriptionsTable() {
+            const tbody = document.getElementById('subscriptionsTableBody');
+            tbody.innerHTML = dashboardData.subscriptions.map(sub => `
+                <tr>
+                    <td>
+                        <div>
+                            <div style="font-weight: 600; color: var(--white);">${sub.user}</div>
+                            <div style="font-size: 0.8rem;">${sub.email}</div>
+                        </div>
+                    </td>
+                    <td>${sub.plan}</td>
+                    <td>
+                        <span class="status-badge status-${sub.status}">
+                            ${sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
+                        </span>
+                    </td>
+                    <td>${formatDate(sub.startDate)}</td>
+                    <td>${formatDate(sub.endDate)}</td>
+                    <td>
+                        <button class="action-btn edit" onclick="editSubscription(${sub.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteSubscription(${sub.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render recent activity
+        function renderRecentActivity() {
+            const list = document.getElementById('recentActivityList');
+            list.innerHTML = dashboardData.recentActivity.map(activity => `
+                <li>
+                    <div class="activity-icon ${activity.icon}">
+                        <i class="fas fa-${getActivityIcon(activity.type)}"></i>
+                    </div>
+                    <div class="activity-details">
+                        <div class="activity-title">${activity.title}</div>
+                        <div class="activity-time">${activity.time}</div>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        // Get activity icon
+        function getActivityIcon(type) {
+            const icons = {
+                subscription: 'crown',
+                theme: 'palette',
+                payment: 'money-bill-wave',
+                user: 'user-plus'
+            };
+            return icons[type] || 'info-circle';
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Edit subscription
+        function editSubscription(id) {
+            const subscription = dashboardData.subscriptions.find(sub => sub.id === id);
+            if (subscription) {
+                showMessage(`Editing subscription for ${subscription.user}`, 'info');
+                // In real implementation, this would open an edit modal
+            }
+        }
+
+        // Delete subscription
+        function deleteSubscription(id) {
+            const subscription = dashboardData.subscriptions.find(sub => sub.id === id);
+            if (subscription && confirm(`Are you sure you want to delete the subscription for ${subscription.user}?`)) {
+                dashboardData.subscriptions = dashboardData.subscriptions.filter(sub => sub.id !== id);
+                renderSubscriptionsTable();
+                updateStats();
+                showMessage(`Subscription for ${subscription.user} deleted successfully`, 'success');
+            }
+        }
+
+        // Generate revenue report
+        function generateRevenueReport() {
+            const totalRevenue = dashboardData.subscriptions
+                .filter(sub => sub.status === 'active')
+                .reduce((sum, sub) => sum + sub.amount, 0);
+            
+            const report = `
+                Revenue Report - ${new Date().toLocaleDateString()}
+                
+                Total Active Subscriptions: ${dashboardData.subscriptions.filter(sub => sub.status === 'active').length}
+                Monthly Recurring Revenue: ₦${totalRevenue.toLocaleString()}
+                Average Revenue Per User: ₦${Math.round(totalRevenue / Math.max(dashboardData.subscriptions.filter(sub => sub.status === 'active').length, 1))}
+                
+                Plan Breakdown:
+                ${getPlanBreakdown()}
+            `;
+            
+            alert(report);
+            showMessage('Revenue report generated successfully', 'success');
+        }
+
+        // Get plan breakdown
+        function getPlanBreakdown() {
+            const planCounts = {};
+            dashboardData.subscriptions
+                .filter(sub => sub.status === 'active')
+                .forEach(sub => {
+                    planCounts[sub.plan] = (planCounts[sub.plan] || 0) + 1;
+                });
+            
+            return Object.entries(planCounts)
+                .map(([plan, count]) => `${plan}: ${count} users`)
+                .join('\n');
+        }
+
+        // Export data
+        function exportData() {
+            const dataStr = JSON.stringify(dashboardData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `jchat-premium-data-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            showMessage('Data exported successfully', 'success');
+        }
+
+        // Show message
+        function showMessage(message, type = 'info') {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.className = `message-box show ${type}`;
+            
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
