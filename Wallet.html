@@ -1867,6 +1867,7 @@
         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, runTransaction, limit, startAfter, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        import { userCurrency, setUserCurrencyFromProfile, formatLocalCurrency, applyCurrencyDisplayForWallet, inferCountryCodeFromProfileOrLocale } from "./currency.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -2036,53 +2037,7 @@
         ];
 
         // --- Currency/Locale Helpers ---
-        let userCountryCode = null; // e.g., 'NG'
-        let userCurrency = { code: 'USD', symbol: '$', label: 'USD' };
-
-        function inferCountryCodeFromProfileOrLocale(profile) {
-            try {
-                const raw = (profile?.country || '').toString().trim().toLowerCase();
-                if (raw) {
-                    if (raw === 'ng' || raw === 'ngn' || raw === 'nigeria' || raw.includes('nigeria')) return 'NG';
-                }
-                const lang = navigator.language || navigator.userLanguage || '';
-                const match = lang.match(/-([A-Z]{2})$/);
-                if (match && match[1]) return match[1];
-            } catch (_) {}
-            return null;
-        }
-
-        function resolveCurrencyForCountry(countryCode) {
-            if (countryCode === 'NG') return { code: 'NGN', symbol: '₦', label: 'NGN' };
-            return { code: 'USD', symbol: '$', label: 'USD' };
-        }
-
-        function formatLocalCurrency(amount) {
-            try {
-                return new Intl.NumberFormat(undefined, { style: 'currency', currency: userCurrency.code }).format(Number(amount));
-            } catch (_) {
-                const value = Number(amount).toFixed(2);
-                return `${userCurrency.symbol}${value} ${userCurrency.label}`;
-            }
-        }
-
-        function applyCurrencyDisplay() {
-            const amountLabel = document.querySelector('label[for="nairaInput"]');
-            if (userCurrency.code === 'NGN') {
-                if (amountLabel) amountLabel.textContent = 'Amount Paid (NGN):';
-                // Ensure manual buy and packages are visible
-                const manualBuySection = document.querySelector('.manual-buy-section');
-                if (manualBuySection) manualBuySection.style.display = '';
-            } else {
-                if (amountLabel) amountLabel.textContent = 'Amount Paid';
-                // Hide NGN-specific purchase sections and show notice
-                const manualBuySection = document.querySelector('.manual-buy-section');
-                if (manualBuySection) manualBuySection.style.display = 'none';
-                if (jcoinPackagesGrid) {
-                    jcoinPackagesGrid.innerHTML = '<p style="text-align: center; color: var(--text-light);">Purchases are currently available in NGN for Nigerian users only.</p>';
-                }
-            }
-        }
+        // moved to currency.js to avoid duplication
 
         // --- Utility Functions (consistent with other JCHAT pages) ---
 
@@ -3184,9 +3139,8 @@
                     const gas = currentUserProfile.gas ?? 0; // NEW: Get gas balance
 
                     // Infer currency once when profile loads/changes
-                    userCountryCode = inferCountryCodeFromProfileOrLocale(currentUserProfile) || userCountryCode;
-                    userCurrency = resolveCurrencyForCountry(userCountryCode);
-                    applyCurrencyDisplay();
+                    setUserCurrencyFromProfile(currentUserProfile);
+                    applyCurrencyDisplayForWallet(jcoinPackagesGrid);
 
                     if (jcoinBalanceElement) jcoinBalanceElement.textContent = jCoins.toLocaleString(); // Null check
                     if (gasBalanceElement) gasBalanceElement.textContent = `${gas.toLocaleString()} Gas (XP)`; // Null check
@@ -3368,7 +3322,7 @@
                 if (inferCountryCodeFromProfileOrLocale(currentUserProfile) === 'NG') {
                     renderJCoinPackages(); // Render packages after user is loaded
                 } else {
-                    applyCurrencyDisplay();
+                    applyCurrencyDisplayForWallet(jcoinPackagesGrid);
                 }
                 updateDailyBonusButtonState(); // Update daily bonus button state on auth
 
