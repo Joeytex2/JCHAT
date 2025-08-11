@@ -1687,7 +1687,7 @@
                     <span class="balance-label">Current Balance</span>
                     <span id="jcoinBalance" class="jcoin-value">0</span>
                     <span id="gasBalance" class="gas-value">0 Gas (XP)</span>
-                    <span id="usdBalance" class="usd-value">$0.00 USD</span>
+                    <span id="usdBalance" class="usd-value"></span>
                 </div>
 
                                     <div class="wallet-buttons">
@@ -2034,6 +2034,55 @@
             { nairaPrice: 500, bonusPercent: 0, description: "Bronze Tier" },    // 500 / 0.4 = 1250. No bonus.
             { nairaPrice: 200, bonusPercent: 0, description: "Starter Pack" },   // 200 / 0.4 = 500. No bonus.
         ];
+
+        // --- Currency/Locale Helpers ---
+        let userCountryCode = null; // e.g., 'NG'
+        let userCurrency = { code: 'USD', symbol: '$', label: 'USD' };
+
+        function inferCountryCodeFromProfileOrLocale(profile) {
+            try {
+                const raw = (profile?.country || '').toString().trim().toLowerCase();
+                if (raw) {
+                    if (raw === 'ng' || raw === 'ngn' || raw === 'nigeria' || raw.includes('nigeria')) return 'NG';
+                }
+                const lang = navigator.language || navigator.userLanguage || '';
+                const match = lang.match(/-([A-Z]{2})$/);
+                if (match && match[1]) return match[1];
+            } catch (_) {}
+            return null;
+        }
+
+        function resolveCurrencyForCountry(countryCode) {
+            if (countryCode === 'NG') return { code: 'NGN', symbol: '₦', label: 'NGN' };
+            return { code: 'USD', symbol: '$', label: 'USD' };
+        }
+
+        function formatLocalCurrency(amount) {
+            try {
+                return new Intl.NumberFormat(undefined, { style: 'currency', currency: userCurrency.code }).format(Number(amount));
+            } catch (_) {
+                const value = Number(amount).toFixed(2);
+                return `${userCurrency.symbol}${value} ${userCurrency.label}`;
+            }
+        }
+
+        function applyCurrencyDisplay() {
+            const amountLabel = document.querySelector('label[for="nairaInput"]');
+            if (userCurrency.code === 'NGN') {
+                if (amountLabel) amountLabel.textContent = 'Amount Paid (NGN):';
+                // Ensure manual buy and packages are visible
+                const manualBuySection = document.querySelector('.manual-buy-section');
+                if (manualBuySection) manualBuySection.style.display = '';
+            } else {
+                if (amountLabel) amountLabel.textContent = 'Amount Paid';
+                // Hide NGN-specific purchase sections and show notice
+                const manualBuySection = document.querySelector('.manual-buy-section');
+                if (manualBuySection) manualBuySection.style.display = 'none';
+                if (jcoinPackagesGrid) {
+                    jcoinPackagesGrid.innerHTML = '<p style="text-align: center; color: var(--text-light);">Purchases are currently available in NGN for Nigerian users only.</p>';
+                }
+            }
+        }
 
         // --- Utility Functions (consistent with other JCHAT pages) ---
 
@@ -3104,7 +3153,7 @@
             if (!currentUser) {
                 if (jcoinBalanceElement) jcoinBalanceElement.textContent = "0"; // Null check
                 if (gasBalanceElement) gasBalanceElement.textContent = "0 Gas (XP)"; // Null check
-                if (usdBalanceElement) usdBalanceElement.textContent = "$0.00 USD"; // Null check
+                if (usdBalanceElement) usdBalanceElement.textContent = formatLocalCurrency(0) + ' ' + userCurrency.label; // Null check
                 if (noTransactionsMessage) noTransactionsMessage.style.display = 'block'; // Null check
                 if (noTransactionsMessage) noTransactionsMessage.textContent = "Please log in to view your wallet."; // Null check
                 if (userReferenceIdSpan) userReferenceIdSpan.textContent = "N/A"; // Hide user ID for non-logged in, null check
@@ -3134,10 +3183,24 @@
                     const jCoins = currentUserProfile.jCoins ?? 0;
                     const gas = currentUserProfile.gas ?? 0; // NEW: Get gas balance
 
+                    // Infer currency once when profile loads/changes
+                    userCountryCode = inferCountryCodeFromProfileOrLocale(currentUserProfile) || userCountryCode;
+                    userCurrency = resolveCurrencyForCountry(userCountryCode);
+                    applyCurrencyDisplay();
+
                     if (jcoinBalanceElement) jcoinBalanceElement.textContent = jCoins.toLocaleString(); // Null check
                     if (gasBalanceElement) gasBalanceElement.textContent = `${gas.toLocaleString()} Gas (XP)`; // Null check
-                    const usdValue = (jCoins * JCOIN_TO_USD_RATE).toFixed(2); // Use the fixed JCOIN_TO_USD_RATE
-                    if (usdBalanceElement) usdBalanceElement.textContent = `$${usdValue} USD`; // Null check
+
+                    // Balance value display in local currency (NGN for Nigeria, USD otherwise)
+                    if (usdBalanceElement) {
+                        if (userCurrency.code === 'NGN') {
+                            const ngnValue = (jCoins * JCOIN_BUY_RATE_NGN_PER_JCOIN).toFixed(2);
+                            usdBalanceElement.textContent = `${formatLocalCurrency(ngnValue)} ${userCurrency.label}`;
+                        } else {
+                            const usdValue = (jCoins * JCOIN_TO_USD_RATE).toFixed(2);
+                            usdBalanceElement.textContent = `${formatLocalCurrency(usdValue)} ${userCurrency.label}`;
+                        }
+                    }
 
                     // Populate bank details form
                     if (bankNameInput) bankNameInput.value = currentUserProfile.bankDetails?.bankName || '';
@@ -3153,7 +3216,7 @@
                     currentUserProfile = null;
                     if (jcoinBalanceElement) jcoinBalanceElement.textContent = "0"; // Null check
                     if (gasBalanceElement) gasBalanceElement.textContent = "0 Gas (XP)"; // Null check
-                    if (usdBalanceElement) usdBalanceElement.textContent = "$0.00 USD"; // Null check
+                    if (usdBalanceElement) usdBalanceElement.textContent = formatLocalCurrency(0) + ' ' + userCurrency.label; // Null check
                     showMessageBox("User profile not found. JCoins are 0.", 'info');
                     updateWithdrawalButtonState(); // Update withdrawal button state
                     updateDailyBonusButtonState(); // Update daily bonus button state
@@ -3301,7 +3364,12 @@
                 console.log("JCHAT_DEBUG: User authenticated in Wallet Page:", user.uid);
                 await fetchAndDisplayHeaderProfile(user);
                 fetchAndDisplayWallet(); // Fetch wallet data and check pending requests
-                renderJCoinPackages(); // Render packages after user is loaded
+                // Render packages only for Nigerian users; others see message via applyCurrencyDisplay
+                if (inferCountryCodeFromProfileOrLocale(currentUserProfile) === 'NG') {
+                    renderJCoinPackages(); // Render packages after user is loaded
+                } else {
+                    applyCurrencyDisplay();
+                }
                 updateDailyBonusButtonState(); // Update daily bonus button state on auth
 
             } else {
@@ -3331,7 +3399,7 @@
                 showMessageBox("Please log in to view your wallet.", 'info', true);
                 if (jcoinBalanceElement) jcoinBalanceElement.textContent = "0"; // Null check
                 if (gasBalanceElement) gasBalanceElement.textContent = "0 Gas (XP)"; // Null check
-                if (usdBalanceElement) usdBalanceElement.textContent = "$0.00 USD"; // Null check
+                if (usdBalanceElement) usdBalanceElement.textContent = formatLocalCurrency(0) + ' ' + userCurrency.label; // Null check
                 if (noTransactionsMessage) noTransactionsMessage.style.display = 'block'; // Null check
                 if (noTransactionsMessage) noTransactionsMessage.textContent = "Please log in to view your wallet."; // Null check
                 if (userReferenceIdSpan) userReferenceIdSpan.textContent = "N/A"; // Hide user ID for non-logged in, null check
