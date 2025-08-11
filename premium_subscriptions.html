@@ -132,6 +132,49 @@
             margin: 0 auto;
         }
 
+        .jcoin-balance-display {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--premium-gold);
+            border-radius: var(--radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .jcoin-balance {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            color: var(--white);
+        }
+
+        .jcoin-balance i {
+            font-size: 1.5rem;
+        }
+
+        .buy-jcoins-btn {
+            background: linear-gradient(45deg, var(--premium-gold), var(--pink));
+            color: var(--white);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .buy-jcoins-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
         .subscription-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -296,6 +339,28 @@
             margin-top: 0.5rem;
         }
 
+        .jcoin-purchase-btn {
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            color: var(--white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .jcoin-purchase-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 213, 255, 0.3);
+        }
+
         .message-box {
             position: fixed;
             top: 20px;
@@ -364,6 +429,17 @@
         <div class="hero-section">
             <h1>Unlock Premium Features</h1>
             <p>Enhance your JCHAT experience with exclusive features, premium themes, and advanced tools</p>
+            
+            <!-- JCoin Balance Display -->
+            <div class="jcoin-balance-display">
+                <div class="jcoin-balance">
+                    <i class="fas fa-coins" style="color: var(--premium-gold);"></i>
+                    <span>Your Balance: <strong id="userJCoins">0</strong> JCoins</span>
+                </div>
+                <a href="/jcoin_shop.html" class="buy-jcoins-btn">
+                    <i class="fas fa-plus"></i> Buy More JCoins
+                </a>
+            </div>
         </div>
 
         <div class="subscription-grid">
@@ -446,18 +522,30 @@
                 <div class="jcoin-package">
                     <div class="jcoin-amount">1000 JCoins</div>
                     <div class="jcoin-price">₦400</div>
+                    <button class="jcoin-purchase-btn" onclick="purchaseJCoins(1000, 400)">
+                        <i class="fas fa-shopping-cart"></i> Purchase
+                    </button>
                 </div>
                 <div class="jcoin-package">
                     <div class="jcoin-amount">2500 JCoins</div>
                     <div class="jcoin-price">₦1000</div>
+                    <button class="jcoin-purchase-btn" onclick="purchaseJCoins(2500, 1000)">
+                        <i class="fas fa-shopping-cart"></i> Purchase
+                    </button>
                 </div>
                 <div class="jcoin-package">
                     <div class="jcoin-amount">5000 JCoins</div>
                     <div class="jcoin-price">₦2000</div>
+                    <button class="jcoin-purchase-btn" onclick="purchaseJCoins(5000, 2000)">
+                        <i class="fas fa-shopping-cart"></i> Purchase
+                    </button>
                 </div>
                 <div class="jcoin-package">
                     <div class="jcoin-amount">12500 JCoins</div>
                     <div class="jcoin-price">₦5000</div>
+                    <button class="jcoin-purchase-btn" onclick="purchaseJCoins(12500, 5000)">
+                        <i class="fas fa-shopping-cart"></i> Purchase
+                    </button>
                 </div>
             </div>
             
@@ -620,7 +708,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, getDoc, serverTimestamp, addDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, serverTimestamp, addDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -642,27 +730,28 @@
         // Global variables
         let currentUser = null;
         let userPremiumStatus = null;
+        let userJCoins = 0;
         let isProcessing = false;
 
-        // Plan details
+        // Plan details - matching Home.html premium features
         const plans = {
             basic: { 
                 name: 'Basic Premium', 
                 price: 499, 
                 jcoins: 100,
-                features: ['Premium themes (5+ exclusive themes)', 'Custom profile frames', 'Priority customer support', 'Ad-free experience', '100 JCoins monthly bonus']
+                features: ['Premium themes (5+ exclusive themes)', 'Custom profile frames', 'Priority customer support', 'Ad-free experience', '100 JCoins monthly bonus', 'Advanced post features', 'Custom emoji access']
             },
             pro: { 
                 name: 'Pro Premium', 
                 price: 999, 
                 jcoins: 250,
-                features: ['All Basic features', 'Unlimited premium themes', 'Advanced analytics dashboard', 'Unlimited groups creation', 'Custom emoji packs', '250 JCoins monthly bonus', 'Priority chat features']
+                features: ['All Basic features', 'Unlimited premium themes', 'Advanced analytics dashboard', 'Unlimited groups creation', 'Custom emoji packs', '250 JCoins monthly bonus', 'Priority chat features', 'Enhanced moderation tools']
             },
             enterprise: { 
                 name: 'Enterprise', 
                 price: 1999, 
                 jcoins: 500,
-                features: ['All Pro features', 'Team management tools', 'Advanced moderation tools', 'Custom branding options', 'API access', '500 JCoins monthly bonus', 'Dedicated support']
+                features: ['All Pro features', 'Team management tools', 'Advanced moderation tools', 'Custom branding options', 'API access', '500 JCoins monthly bonus', 'Dedicated support', 'White-label solutions']
             }
         };
 
@@ -685,22 +774,44 @@
             });
         }
 
-        // Load user premium status
+        // Load user premium status - integrated with Home.html profile system
         async function loadUserPremiumStatus() {
             try {
-                const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    userPremiumStatus = userData.premiumStatus || null;
+                // Check user's private profile for premium status (Home.html structure)
+                const userProfileRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/profiles/user_profile`);
+                const userProfileDoc = await getDoc(userProfileRef);
+                
+                if (userProfileDoc.exists()) {
+                    const profileData = userProfileDoc.data();
+                    userPremiumStatus = profileData.premiumStatus || null;
+                    userJCoins = profileData.jCoins || 0;
                 } else {
-                    // Create user document if it doesn't exist
-                    await setDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`), {
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        username: currentUser.displayName || currentUser.email,
-                        premiumStatus: null,
+                    // Create user profile if it doesn't exist (Home.html structure)
+                    await setDoc(userProfileRef, {
+                        username: currentUser.displayName || `User_${currentUser.uid.substring(0, 8)}`,
+                        email: currentUser.email || "",
+                        profilePicId: currentUser.photoURL || null,
+                        bio: "",
+                        location: "",
+                        friendsCount: 0,
+                        followersCount: 0,
+                        followingCount: 0,
                         createdAt: serverTimestamp(),
-                        updatedAt: serverTimestamp()
+                        updatedAt: serverTimestamp(),
+                        inspirationType: "motivational",
+                        visibility: {
+                            displayName: true, profilePic: true, bio: false, location: false,
+                            emailPublic: false, allowFriendRequests: true, allowMessages: true,
+                        },
+                        totalPosts: 0,
+                        jCoins: 0,
+                        gas: 0,
+                        level: 1,
+                        currentXp: 0,
+                        xpToNextLevel: 100,
+                        lastLoginBonusClaimed: null,
+                        inCall: false,
+                        premiumStatus: null
                     });
                     userPremiumStatus = null;
                 }
@@ -710,10 +821,16 @@
             }
         }
 
-        // Update subscription UI
+        // Update subscription UI - integrated with Home.html JCoin system
         function updateSubscriptionUI() {
             // Remove any existing current plan badges
             document.querySelectorAll('.current-plan-badge').forEach(badge => badge.remove());
+            
+            // Update JCoin display
+            const jcoinDisplay = document.getElementById('userJCoins');
+            if (jcoinDisplay) {
+                jcoinDisplay.textContent = userJCoins;
+            }
             
             if (userPremiumStatus) {
                 const planCard = document.querySelector(`[data-plan="${userPremiumStatus.plan}"]`);
@@ -753,7 +870,7 @@
             processSubscription(planType, plans[planType]);
         }
 
-        // Process subscription
+        // Process subscription - integrated with Home.html JCoin system
         async function processSubscription(planType, planDetails) {
             isProcessing = true;
             setButtonLoading(planType, true);
@@ -788,6 +905,20 @@
                     plan: planType,
                     subscriptionId: subscriptionRef.id,
                     timestamp: serverTimestamp()
+                });
+
+                // Update user's premium status in their profile (for Home.html integration)
+                const userProfileRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/profiles/user_profile`);
+                await updateDoc(userProfileRef, {
+                    premiumStatus: {
+                        plan: planType,
+                        planName: planDetails.name,
+                        startDate: serverTimestamp(),
+                        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        subscriptionId: subscriptionRef.id,
+                        status: 'pending'
+                    },
+                    updatedAt: serverTimestamp()
                 });
 
                 showPaymentInstructions(planType, planDetails, subscriptionRef.id);
@@ -835,6 +966,54 @@ Please contact support to complete your payment and activate your subscription.`
         // Manage subscription
         function manageSubscription(planType) {
             showMessage('Subscription management features coming soon. Please contact support for assistance.', 'info');
+        }
+
+        // Purchase JCoins - integrated with Home.html JCoin system
+        async function purchaseJCoins(amount, price) {
+            if (isProcessing) return;
+            if (!currentUser) {
+                showMessage('Please log in to purchase JCoins', 'error');
+                return;
+            }
+            
+            isProcessing = true;
+            
+            try {
+                // Create JCoin purchase record
+                const purchaseData = {
+                    userId: currentUser.uid,
+                    username: currentUser.displayName || currentUser.email,
+                    email: currentUser.email,
+                    jcoins: amount,
+                    amount: price,
+                    status: 'pending',
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                };
+
+                const purchaseRef = await addDoc(collection(db, `artifacts/${appId}/public/data/jcoin_purchases`), purchaseData);
+
+                // Add activity log
+                await addDoc(collection(db, `artifacts/${appId}/public/data/premium_activity`), {
+                    userId: currentUser.uid,
+                    username: currentUser.displayName || currentUser.email,
+                    activityType: 'jcoin_purchase',
+                    title: `Purchased ${amount} JCoins`,
+                    description: `User purchased ${amount} JCoins for ₦${price}`,
+                    amount: price,
+                    jcoins: amount,
+                    purchaseId: purchaseRef.id,
+                    timestamp: serverTimestamp()
+                });
+
+                showMessage(`JCoin purchase created successfully! Please contact support to complete payment.`, 'success');
+                
+            } catch (error) {
+                console.error('Error processing JCoin purchase:', error);
+                showMessage('Error processing purchase. Please try again.', 'error');
+            } finally {
+                isProcessing = false;
+            }
         }
 
         // Logout

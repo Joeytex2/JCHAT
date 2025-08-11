@@ -147,6 +147,49 @@
             margin: 0 auto;
         }
 
+        .jcoin-balance-display {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--theme-gold);
+            border-radius: var(--radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .jcoin-balance {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            color: var(--white);
+        }
+
+        .jcoin-balance i {
+            font-size: 1.5rem;
+        }
+
+        .buy-jcoins-btn {
+            background: linear-gradient(45deg, var(--theme-gold), var(--pink));
+            color: var(--white);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .buy-jcoins-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
         .filters-section {
             display: flex;
             justify-content: space-between;
@@ -488,6 +531,17 @@
         <div class="hero-section">
             <h1>Premium Themes Marketplace</h1>
             <p>Transform your JCHAT experience with exclusive, professionally designed themes</p>
+            
+            <!-- JCoin Balance Display -->
+            <div class="jcoin-balance-display">
+                <div class="jcoin-balance">
+                    <i class="fas fa-coins" style="color: var(--theme-gold);"></i>
+                    <span>Your Balance: <strong id="heroUserBalance">0</strong> JCoins</span>
+                </div>
+                <a href="/premium_subscriptions.html" class="buy-jcoins-btn">
+                    <i class="fas fa-plus"></i> Get More JCoins
+                </a>
+            </div>
         </div>
 
         <div class="filters-section">
@@ -642,7 +696,15 @@
         // Update user balance display
         function updateUserBalance() {
             const balanceElement = document.getElementById('userBalance');
-            balanceElement.textContent = `${userBalance} JCoins`;
+            const heroBalanceElement = document.getElementById('heroUserBalance');
+            
+            if (balanceElement) {
+                balanceElement.textContent = `${userBalance} JCoins`;
+            }
+            
+            if (heroBalanceElement) {
+                heroBalanceElement.textContent = userBalance;
+            }
         }
 
         // Render themes
@@ -858,24 +920,44 @@
             });
         }
 
-        // Load user data
+        // Load user data - integrated with Home.html profile system
         async function loadUserData() {
             try {
-                const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    userBalance = userData.jcoins || 0;
-                    ownedThemes = userData.ownedThemes || [];
+                // Check user's private profile for JCoins and owned themes (Home.html structure)
+                const userProfileRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/profiles/user_profile`);
+                const userProfileDoc = await getDoc(userProfileRef);
+                
+                if (userProfileDoc.exists()) {
+                    const profileData = userProfileDoc.data();
+                    userBalance = profileData.jCoins || 0;
+                    ownedThemes = profileData.ownedThemes || [];
                 } else {
-                    // Create user document if it doesn't exist
-                    await setDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`), {
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        username: currentUser.displayName || currentUser.email,
-                        jcoins: 1000, // Starting balance
-                        ownedThemes: [],
+                    // Create user profile if it doesn't exist (Home.html structure)
+                    await setDoc(userProfileRef, {
+                        username: currentUser.displayName || `User_${currentUser.uid.substring(0, 8)}`,
+                        email: currentUser.email || "",
+                        profilePicId: currentUser.photoURL || null,
+                        bio: "",
+                        location: "",
+                        friendsCount: 0,
+                        followersCount: 0,
+                        followingCount: 0,
                         createdAt: serverTimestamp(),
-                        updatedAt: serverTimestamp()
+                        updatedAt: serverTimestamp(),
+                        inspirationType: "motivational",
+                        visibility: {
+                            displayName: true, profilePic: true, bio: false, location: false,
+                            emailPublic: false, allowFriendRequests: true, allowMessages: true,
+                        },
+                        totalPosts: 0,
+                        jCoins: 1000, // Starting balance for premium themes
+                        gas: 0,
+                        level: 1,
+                        currentXp: 0,
+                        xpToNextLevel: 100,
+                        lastLoginBonusClaimed: null,
+                        inCall: false,
+                        ownedThemes: []
                     });
                     userBalance = 1000;
                     ownedThemes = [];
@@ -1030,18 +1112,24 @@
             `).join('');
         }
 
-        // Process theme purchase
+        // Process theme purchase - integrated with Home.html profile system
         async function processThemePurchase(themeId, price) {
             if (isProcessing) return;
             isProcessing = true;
 
             try {
-                // Deduct JCoins from user balance
-                await setDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`), {
-                    jcoins: userBalance - price,
+                // Update user's profile with new JCoin balance and owned themes (Home.html structure)
+                const userProfileRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/profiles/user_profile`);
+                await setDoc(userProfileRef, {
+                    jCoins: userBalance - price,
                     ownedThemes: [...ownedThemes, themeId],
                     updatedAt: serverTimestamp()
                 }, { merge: true });
+
+                // Update local variables
+                userBalance -= price;
+                ownedThemes.push(themeId);
+                updateUserBalance();
 
                 // Add activity log
                 await addDoc(collection(db, `artifacts/${appId}/public/data/premium_activity`), {
@@ -1056,6 +1144,9 @@
                 });
 
                 showMessage('Theme purchased successfully!', 'success');
+                
+                // Re-render themes to show updated ownership status
+                renderThemes();
                 
             } catch (error) {
                 console.error('Error purchasing theme:', error);
