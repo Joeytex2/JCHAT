@@ -1679,6 +1679,33 @@
                 font-size: 0.8rem;
             }
         }
+
+        /* Success tick animation */
+        .success-tick {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(40, 167, 69, 0.95);
+            color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.35);
+            transform: translateY(-10px) scale(0.98);
+            opacity: 0;
+            animation: tickPop 2.2s ease forwards;
+            font-family: 'Poppins', sans-serif;
+        }
+        .success-tick i { font-size: 18px; }
+        @keyframes tickPop {
+            0% { opacity: 0; transform: translateY(-10px) scale(0.98); }
+            15% { opacity: 1; transform: translateY(0) scale(1); }
+            80% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-6px) scale(0.98); }
+        }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -3769,6 +3796,7 @@
                 await setDoc(ref, { transactionPinHash: hex, updatedAt: serverTimestamp() }, { merge: true });
                 if (currentUserProfile) currentUserProfile.transactionPinHash = hex;
                 showMessageBox('Transaction PIN saved successfully!', 'success', true);
+                showSuccessTick('PIN saved');
                 applyPinUIState();
             } catch (e) {
                 console.error('JCHAT_ERROR: saving PIN failed:', e);
@@ -3808,6 +3836,15 @@
                 if (pinSetInput) pinSetInput.value = '';
                 if (pinConfirmInput) pinConfirmInput.value = '';
             }
+        }
+
+        // Success tick helper
+        function showSuccessTick(text) {
+            const div = document.createElement('div');
+            div.className = 'success-tick';
+            div.innerHTML = `<i class="fas fa-check-circle"></i><span>${text || 'Success'}</span>`;
+            document.body.appendChild(div);
+            setTimeout(() => { div.remove(); }, 2200);
         }
     </script>
 </body>
