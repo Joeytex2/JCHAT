@@ -2130,6 +2130,10 @@
                 </ul>
             </nav>
             <div class="user-profile-header">
+                <!-- Unlock Features Icon -->
+                <button id="unlockAllBtn" title="Unlock Premium Features" style="background:transparent;border:none;cursor:pointer;display:flex;align-items:center;">
+                    <i class="fas fa-gem" style="font-size:22px;color:#ffd700;"></i>
+                </button>
                 <!-- Admin Icon Link (visible only to admin) -->
                 <a href="/coin_management.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
                     <i class="fas fa-user-cog"></i>
@@ -2379,6 +2383,83 @@
             <button id="stickerPickerClose" style="background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-times"></i></button>
         </div>
         <div id="stickerGrid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;"></div>
+    </div>
+
+    <!-- Feature Unlock Full Panel -->
+    <div id="unlockStore" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index:1200;">
+        <div style="max-width:920px; margin:40px auto; background:var(--card-background); border:1px solid var(--border-light); border-radius:16px; overflow:hidden;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border-light);">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fas fa-gem" style="color:#ffd700;"></i>
+                    <h3 style="margin:0; color:var(--white); font-family:Poppins, sans-serif;">Unlock Features</h3>
+                </div>
+                <button id="unlockStoreClose" style="background:transparent;border:1px solid var(--border-light);color:var(--white);border-radius:8px;padding:6px 10px;cursor:pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:0;">
+                <div style="padding:16px; border-right:1px solid var(--border-light);">
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+                        <div class="management-card" data-feature="stickers">
+                            <h4><i class="fas fa-face-smile"></i> Stickers Pack</h4>
+                            <p>Express with static + animated stickers.</p>
+                            <p><strong>₦1,500</strong></p>
+                            <button class="admin-button choose-feature" data-feature="stickers"><span class="button-text">Select</span><div class="button-loader"></div></button>
+                        </div>
+                        <div class="management-card" data-feature="reactions">
+                            <h4><i class="fas fa-bolt"></i> Reactions Pack</h4>
+                            <p>Fire, 100, wow, sad, clap, and more.</p>
+                            <p><strong>₦1,200</strong></p>
+                            <button class="admin-button choose-feature" data-feature="reactions"><span class="button-text">Select</span><div class="button-loader"></div></button>
+                        </div>
+                        <div class="management-card" data-feature="effects">
+                            <h4><i class="fas fa-wand-magic-sparkles"></i> Message Effects</h4>
+                            <p>Send messages with special animations.</p>
+                            <p><strong>₦1,000</strong></p>
+                            <button class="admin-button choose-feature" data-feature="effects"><span class="button-text">Select</span><div class="button-loader"></div></button>
+                        </div>
+                        <div class="management-card" data-feature="quickReplies">
+                            <h4><i class="fas fa-reply"></i> Quick Replies</h4>
+                            <p>One-tap replies for speed.</p>
+                            <p><strong>₦800</strong></p>
+                            <button class="admin-button choose-feature" data-feature="quickReplies"><span class="button-text">Select</span><div class="button-loader"></div></button>
+                        </div>
+                        <div class="management-card" data-feature="mediaPro">
+                            <h4><i class="fas fa-microphone"></i> Media Pro</h4>
+                            <p>Longer voice notes + HD media.</p>
+                            <p><strong>₦2,000</strong></p>
+                            <button class="admin-button choose-feature" data-feature="mediaPro"><span class="button-text">Select</span><div class="button-loader"></div></button>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding:16px;">
+                    <div id="storeSelection" style="margin-bottom:12px; color:var(--text-light)">Select a feature to see amount and Order ID</div>
+                    <div style="margin:10px 0; padding:10px; border:1px dashed var(--border-light); border-radius:10px;">
+                        <div><strong>Order ID:</strong> <span id="storeOrderId"></span> <button id="storeCopyOrder" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-copy"></i></button></div>
+                        <div style="margin-top:6px"><strong>Amount:</strong> <span id="storeAmount"></span></div>
+                    </div>
+                    <div style="display:grid; gap:10px;">
+                        <div style="padding:8px; border:1px solid var(--border-light); border-radius:10px;">
+                            <div style="display:flex;align-items:center;gap:8px;"><i class="fas fa-university" style="font-size:16px;color:#ffd700;"></i><span><strong>Bank:</strong> OPay</span></div>
+                            <div><strong>Account Name:</strong> ELECHI JOSHUA</div>
+                            <div><strong>Account Number:</strong> <span id="storeOpay">8111609765</span> <button id="storeCopyOpay" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 3px 8px; cursor: pointer;">Copy</button></div>
+                        </div>
+                        <div style="padding:8px; border:1px solid var(--border-light); border-radius:10px;">
+                            <div style="display:flex;align-items:center;gap:8px;"><i class="fas fa-university" style="font-size:16px;color:#ffd700;"></i><span><strong>Bank:</strong> Keystone Bank</span></div>
+                            <div><strong>Account Name:</strong> ELECHI OSOUNDU JOSHUA</div>
+                            <div><strong>Account Number:</strong> <span id="storeKeystone">6042862356</span> <button id="storeCopyKeystone" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 3px 8px; cursor: pointer;">Copy</button></div>
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                        <label for="storeReceipt" style="font-weight:600; color:var(--white)">I've paid — upload receipt (image or PDF)</label>
+                        <input id="storeReceipt" type="file" accept="image/*,.pdf" />
+                    </div>
+                    <div id="storeError" style="color:#ff6b6b; margin-top:8px; display:none"></div>
+                    <div style="display:flex;gap:8px;margin-top:12px;">
+                        <button id="storeSubmit" class="admin-button"><span class="button-text">Submit Receipt</span><div class="button-loader"></div></button>
+                        <button id="storeCancel" class="admin-button secondary"><span class="button-text">Cancel</span><div class="button-loader"></div></button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -5469,13 +5550,7 @@
                 if (badge) badge.style.display = unlocked ? 'none' : 'inline-flex';
                 btn.dataset.locked = unlocked ? '0' : '1';
                 btn.style.opacity = unlocked ? '1' : '0.85';
-                if (!unlocked) {
-                    btn.style.background = 'linear-gradient(90deg, #ffd700, #ff8c00)';
-                    btn.style.boxShadow = '0 4px 12px rgba(255, 215, 0, 0.25)';
-                } else {
-                    btn.style.background = '';
-                    btn.style.boxShadow = '';
-                }
+                
             };
             setBtn(stickersBtn, isUnlocked('stickers'));
             setBtn(reactionsBtn, isUnlocked('reactions'));
@@ -5693,6 +5768,77 @@
         // Example guard where you handle recording duration (place in your recorder loop):
         // if (elapsedSeconds >= getMaxVoiceSeconds()) { stopRecording(); }
 
+        const unlockAllBtn = document.getElementById('unlockAllBtn');
+        const unlockStore = document.getElementById('unlockStore');
+        const unlockStoreClose = document.getElementById('unlockStoreClose');
+        const storeOrderId = document.getElementById('storeOrderId');
+        const storeAmount = document.getElementById('storeAmount');
+        const storeCopyOrder = document.getElementById('storeCopyOrder');
+        const storeReceipt = document.getElementById('storeReceipt');
+        const storeSubmit = document.getElementById('storeSubmit');
+        const storeCancel = document.getElementById('storeCancel');
+        const storeError = document.getElementById('storeError');
+        let storeSelectedFeatureKey = null;
+
+        const storeChooseButtons = Array.from(document.getElementsByClassName('choose-feature'));
+        unlockAllBtn?.addEventListener('click', ()=> { storeSelectedFeatureKey=null; storeAmount.textContent=''; storeOrderId.textContent=''; storeReceipt.value=''; storeError.style.display='none'; unlockStore.style.display='block'; });
+        unlockStoreClose?.addEventListener('click', ()=> unlockStore.style.display='none');
+        storeCancel?.addEventListener('click', ()=> unlockStore.style.display='none');
+        storeCopyOrder?.addEventListener('click', ()=> navigator.clipboard.writeText(storeOrderId.textContent||''));
+        document.getElementById('storeCopyOpay')?.addEventListener('click', ()=> navigator.clipboard.writeText(document.getElementById('storeOpay')?.textContent||''));
+        document.getElementById('storeCopyKeystone')?.addEventListener('click', ()=> navigator.clipboard.writeText(document.getElementById('storeKeystone')?.textContent||''));
+
+        storeChooseButtons.forEach(btn => {
+            btn.addEventListener('click', ()=> {
+                const fk = btn.dataset.feature;
+                storeSelectedFeatureKey = fk;
+                const meta = FEATURE_META[fk];
+                if (!meta) return;
+                storeAmount.textContent = meta.amount;
+                storeOrderId.textContent = `ORD-${Date.now()}`;
+            });
+        });
+
+        async function submitStoreReceipt() {
+            try {
+                if (!auth.currentUser) { showMessageBox('Please log in.', 'warning'); return; }
+                const f = storeReceipt.files?.[0];
+                if (!f) { storeError.textContent = 'Please attach a receipt.'; storeError.style.display = 'block'; return; }
+                const orderId = storeOrderId.textContent;
+                const featureKey = storeSelectedFeatureKey;
+                const meta = FEATURE_META[featureKey];
+                if (!orderId || !featureKey || !meta) { showMessageBox('Select a feature first.', 'error'); return; }
+
+                toggleButtonLoading(storeSubmit, true);
+                const path = `orders/${auth.currentUser.uid}/${orderId}/${encodeURIComponent(f.name)}`;
+                const storageRefRef = ref(storage, path);
+                await uploadBytes(storageRefRef, f);
+                const receiptUrl = await getDownloadURL(storageRefRef);
+
+                const orderDocRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'));
+                await setDoc(orderDocRef, {
+                    orderId,
+                    userId: auth.currentUser.uid,
+                    itemId: meta.itemId,
+                    itemType: featureKey,
+                    amount: meta.amount,
+                    currency: 'NGN',
+                    receiptUrl,
+                    status: 'pending',
+                    createdAt: serverTimestamp(),
+                });
+
+                showMessageBox('Receipt submitted. Awaiting admin approval.', 'success');
+                unlockStore.style.display = 'none';
+            } catch (e) {
+                console.error(e);
+                storeError.textContent = e?.message || 'Failed to submit receipt';
+                storeError.style.display = 'block';
+            } finally {
+                toggleButtonLoading(storeSubmit, false);
+            }
+        }
+        storeSubmit?.addEventListener('click', submitStoreReceipt);
     </script>
 </body>
 </html>
