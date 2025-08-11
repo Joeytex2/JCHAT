@@ -5648,8 +5648,8 @@
 
         // Hook send to apply local effect preview when effects active
         const _origSendMessage = sendMessage;
-        async function sendMessage() {
-            await _origSendMessage();
+        async function sendMessageWithEffects(type, content) {
+            await _origSendMessage(type, content);
             try {
                 if (effectsBtn?.dataset.active === '1' && isUnlocked('effects')) {
                     // Briefly animate last message bubble you sent
@@ -5663,7 +5663,7 @@
                 }
             } catch {}
         }
-        window.sendMessage = sendMessage; // replace
+        window.sendMessage = sendMessageWithEffects; // replace
 
         // When starting/limiting recording, use getMaxVoiceSeconds()
         // Example guard where you handle recording duration (place in your recorder loop):
