@@ -1755,66 +1755,10 @@
                 </div>
                 <p id="noPostsMessage" style="display: none;">No public posts to display.</p>
             </div>
-            <div class="admin-section">
-                <h2>Buy Gas</h2>
-                <p style="color:var(--text-light); text-align:center; margin-top:-8px;">Top up your Gas (XP) via bank transfer. Upload your receipt and an admin will approve it.</p>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width:100%;">
-                    <div class="management-card">
-                        <h4>Gas 1,000</h4>
-                        <p>Amount: <strong>₦1,000</strong></p>
-                        <button class="admin-button" data-gas="1000" data-amount="1000" id="buyGas1000Btn"><span class="button-text">Buy</span><div class="button-loader"></div></button>
-                    </div>
-                    <div class="management-card">
-                        <h4>Gas 5,000</h4>
-                        <p>Amount: <strong>₦4,500</strong></p>
-                        <button class="admin-button" data-gas="5000" data-amount="4500" id="buyGas5000Btn"><span class="button-text">Buy</span><div class="button-loader"></div></button>
-                    </div>
-                    <div class="management-card">
-                        <h4>Gas 10,000</h4>
-                        <p>Amount: <strong>₦8,000</strong></p>
-                        <button class="admin-button" data-gas="10000" data-amount="8000" id="buyGas10000Btn"><span class="button-text">Buy</span><div class="button-loader"></div></button>
-                    </div>
-                </div>
-                <div style="margin-top:10px; text-align:center; color:var(--text-light); font-size:0.95rem;">
-                    Bank: Example Bank • Account: 0123456789 • Name: JCHAT LTD • Use the Order ID as transfer reference
-                </div>
-            </div>
+            
         </div>
     </main>
 
-    <!-- Buy Gas Modal -->
-    <div id="buyGasModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; z-index:1000;">
-        <div class="modal-content" style="background: var(--card-background); border:1px solid var(--border-light); border-radius:16px; padding:16px; width:90%; max-width:460px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                <h3 id="buyGasTitle" style="margin:0; color:var(--white); font-family:Poppins, sans-serif;">Buy Gas</h3>
-                <button id="closeBuyGasModalBtn" style="background:transparent;border:none;color:var(--white);cursor:pointer"><i class="fas fa-times"></i></button>
-            </div>
-            <div style="color:var(--text-light); font-size:0.95rem; line-height:1.5;">
-                <p id="buyGasDescription" style="margin-top:0"></p>
-                <div style="margin:10px 0; padding:10px; border:1px dashed var(--border-light); border-radius:10px;">
-                    <div><strong>Order ID:</strong> <span id="buyGasOrderId"></span> <button id="copyBuyGasOrderIdBtn" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-copy"></i></button></div>
-                    <div style="margin-top:6px"><strong>Amount:</strong> <span id="buyGasAmountText"></span></div>
-                    <div style="margin-top:6px"><strong>Bank details:</strong>
-                        <div style="font-size:0.9rem; opacity:0.9; margin-top:4px">
-                            Account Name: JCHAT LTD<br>
-                            Account Number: 0123456789<br>
-                            Bank: Example Bank<br>
-                            Reference: Use your Order ID above
-                        </div>
-                    </div>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-                    <label for="buyGasReceiptInput" style="font-weight:600; color:var(--white)">Upload payment receipt (image or PDF)</label>
-                    <input id="buyGasReceiptInput" type="file" accept="image/*,.pdf" />
-                </div>
-                <div id="buyGasError" style="color:#ff6b6b; margin-top:8px; display:none"></div>
-            </div>
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px;">
-                <button id="cancelBuyGasBtn" class="modal-button cancel-button">Cancel</button>
-                <button id="submitBuyGasBtn" class="modal-button save-button"><span class="button-text">Submit Receipt</span><div class="button-loader" style="margin-left:8px"></div></button>
-            </div>
-        </div>
-    </div>
 
     <!-- Custom Message Box -->
     <div id="messageBox" role="alert" aria-live="polite"></div>
@@ -1974,19 +1918,7 @@
         const globalUsersTableBody = document.getElementById('globalUsersTableBody');
         const noUsersMessage = document.getElementById('noUsersMessage');
 
-        // Buy Gas elements
-        const buyGasModal = document.getElementById('buyGasModal');
-        const buyGasTitle = document.getElementById('buyGasTitle');
-        const buyGasDescription = document.getElementById('buyGasDescription');
-        const buyGasOrderId = document.getElementById('buyGasOrderId');
-        const buyGasAmountText = document.getElementById('buyGasAmountText');
-        const buyGasReceiptInput = document.getElementById('buyGasReceiptInput');
-        const submitBuyGasBtn = document.getElementById('submitBuyGasBtn');
-        const cancelBuyGasBtn = document.getElementById('cancelBuyGasBtn');
-        const closeBuyGasModalBtn = document.getElementById('closeBuyGasModalBtn');
-        const copyBuyGasOrderIdBtn = document.getElementById('copyBuyGasOrderIdBtn');
-        const buyGasError = document.getElementById('buyGasError');
-        const buyGasButtons = [document.getElementById('buyGas1000Btn'), document.getElementById('buyGas5000Btn'), document.getElementById('buyGas10000Btn')];
+        
 
         // --- Global State Variables ---
         let currentUser = null;
@@ -4617,19 +4549,10 @@
         }
         function closeBuyGasModal(){ buyGasModal.style.display = 'none'; }
 
-        copyBuyGasOrderIdBtn?.addEventListener('click', ()=> navigator.clipboard.writeText(buyGasOrderId.textContent||'').then(()=> showMessageBox('Order ID copied','success')));
-        cancelBuyGasBtn?.addEventListener('click', closeBuyGasModal);
-        closeBuyGasModalBtn?.addEventListener('click', closeBuyGasModal);
+        
 
-        buyGasButtons.forEach(btn => {
-            btn?.addEventListener('click', () => {
-                const gas = Number(btn.dataset.gas||'0');
-                const amt = Number(btn.dataset.amount||'0');
-                openBuyGasModal(`${gas} Gas`, amt, gas);
-            });
-        });
-
-        async function submitBuyGasReceipt() {
+        /* removed buy gas feature */
+        /* async function submitBuyGasReceipt() {
             try {
                 if (!auth.currentUser) { showMessageBox('Please log in.', 'warning'); return; }
                 const f = buyGasReceiptInput.files?.[0];
@@ -4670,7 +4593,8 @@
                 toggleButtonLoading(submitBuyGasBtn, false);
             }
         }
-        submitBuyGasBtn?.addEventListener('click', submitBuyGasReceipt);
+        */
+        // submitBuyGasBtn?.addEventListener('click', submitBuyGasReceipt);
     </script>
 </body>
 </html>
