@@ -2195,6 +2195,9 @@
                     <button id="effectsBtn" class="gated-btn" title="Message Effects">
                         <i class="fas fa-wand-magic-sparkles"></i> Effects <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
                     </button>
+                    <button id="quickRepliesBtn" class="gated-btn" title="Quick Replies">
+                        <i class="fas fa-reply"></i> Quick Replies <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
+                    </button>
                 </div>
                 <div id="quickRepliesRow" class="quick-replies" style="display:none; gap:8px; flex-wrap:wrap; margin:8px 0;"></div>
                 <div class="chat-input-row">
@@ -2340,19 +2343,24 @@
             <div style="color:var(--text-light); font-size:0.95rem; line-height:1.5;">
                 <p id="unlockDescription" style="margin-top:0"></p>
                 <div style="margin:10px 0; padding:10px; border:1px dashed var(--border-light); border-radius:10px;">
+                    <div style="margin-bottom:6px; color:var(--text-light)">Step 1: Make a bank transfer using the details below. Use your Order ID as reference.</div>
                     <div><strong>Order ID:</strong> <span id="orderIdText"></span> <button id="copyOrderIdBtn" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-copy"></i></button></div>
                     <div style="margin-top:6px"><strong>Amount:</strong> <span id="orderAmountText"></span></div>
-                    <div style="margin-top:6px"><strong>Bank details:</strong>
-                        <div style="font-size:0.9rem; opacity:0.9; margin-top:4px">
-                            Account Name: JCHAT LTD<br>
-                            Account Number: 0123456789<br>
-                            Bank: Example Bank<br>
-                            Reference: Use your Order ID above
+                    <div style="margin-top:10px; display:grid; gap:10px;">
+                        <div style="padding:8px; border:1px solid var(--border-light); border-radius:10px;">
+                            <div style="display:flex;align-items:center;gap:8px;"><i class="fas fa-university" style="font-size:16px;color:#ffd700;"></i><span><strong>Bank:</strong> OPay</span></div>
+                            <div><strong>Account Name:</strong> ELECHI JOSHUA</div>
+                            <div><strong>Account Number:</strong> <span id="opayAcct">8111609765</span> <button id="copyOpayBtn" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 3px 8px; cursor: pointer;">Copy</button></div>
+                        </div>
+                        <div style="padding:8px; border:1px solid var(--border-light); border-radius:10px;">
+                            <div style="display:flex;align-items:center;gap:8px;"><i class="fas fa-university" style="font-size:16px;color:#ffd700;"></i><span><strong>Bank:</strong> Keystone Bank</span></div>
+                            <div><strong>Account Name:</strong> ELECHI OSOUNDU JOSHUA</div>
+                            <div><strong>Account Number:</strong> <span id="keystoneAcct">6042862356</span> <button id="copyKeystoneBtn" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 3px 8px; cursor: pointer;">Copy</button></div>
                         </div>
                     </div>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-                    <label for="unlockReceiptInput" style="font-weight:600; color:var(--white)">Upload payment receipt (image or PDF)</label>
+                    <label for="unlockReceiptInput" style="font-weight:600; color:var(--white)">Step 2: I've paid — upload receipt (image or PDF)</label>
                     <input id="unlockReceiptInput" type="file" accept="image/*,.pdf" />
                 </div>
                 <div id="unlockError" style="color:#ff6b6b; margin-top:8px; display:none"></div>
@@ -5407,6 +5415,7 @@
         const stickersBtn = document.getElementById('stickersBtn');
         const reactionsBtn = document.getElementById('reactionsBtn');
         const effectsBtn = document.getElementById('effectsBtn');
+        const quickRepliesBtn = document.getElementById('quickRepliesBtn');
         const quickRepliesRow = document.getElementById('quickRepliesRow');
         const unlockModal = document.getElementById('unlockModal');
         const unlockTitle = document.getElementById('unlockTitle');
@@ -5460,10 +5469,18 @@
                 if (badge) badge.style.display = unlocked ? 'none' : 'inline-flex';
                 btn.dataset.locked = unlocked ? '0' : '1';
                 btn.style.opacity = unlocked ? '1' : '0.85';
+                if (!unlocked) {
+                    btn.style.background = 'linear-gradient(90deg, #ffd700, #ff8c00)';
+                    btn.style.boxShadow = '0 4px 12px rgba(255, 215, 0, 0.25)';
+                } else {
+                    btn.style.background = '';
+                    btn.style.boxShadow = '';
+                }
             };
             setBtn(stickersBtn, isUnlocked('stickers'));
             setBtn(reactionsBtn, isUnlocked('reactions'));
             setBtn(effectsBtn, isUnlocked('effects'));
+            setBtn(quickRepliesBtn, isUnlocked('quickReplies'));
 
             // Quick replies row
             if (quickRepliesRow) {
@@ -5630,6 +5647,11 @@
                 effectsBtn.classList.toggle('active');
             } else { openUnlock('effects'); }
         });
+        quickRepliesBtn?.addEventListener('click', () => {
+            if (isUnlocked('quickReplies')) {
+                showMessageBox('Quick replies are active below the composer.', 'info');
+            } else { openUnlock('quickReplies'); }
+        });
 
         document.addEventListener('click', (ev) => {
             if (!stickerPicker.contains(ev.target) && ev.target !== stickersBtn) {
@@ -5645,6 +5667,8 @@
             navigator.clipboard.writeText(t).then(()=> showMessageBox('Order ID copied', 'success'));
         });
         unlockSubmitBtn?.addEventListener('click', submitUnlockReceipt);
+        document.getElementById('copyOpayBtn')?.addEventListener('click', ()=> navigator.clipboard.writeText(document.getElementById('opayAcct')?.textContent||''));
+        document.getElementById('copyKeystoneBtn')?.addEventListener('click', ()=> navigator.clipboard.writeText(document.getElementById('keystoneAcct')?.textContent||''));
 
         // Hook send to apply local effect preview when effects active
         const _origSendMessage = sendMessage;
