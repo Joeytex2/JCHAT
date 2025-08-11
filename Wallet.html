@@ -1887,7 +1887,44 @@
         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, runTransaction, limit, startAfter, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-        import { userCurrency, setUserCurrencyFromProfile, formatLocalCurrency, applyCurrencyDisplayForWallet, inferCountryCodeFromProfileOrLocale } from "./currency.js";
+
+        // Currency helpers fallback + dynamic import
+        window.userCurrency = window.userCurrency || { code: 'USD', symbol: '$', label: 'USD' };
+        let userCurrency = window.userCurrency;
+        let setUserCurrencyFromProfile = function(_) { window.userCurrency = window.userCurrency || userCurrency; return window.userCurrency; };
+        let formatLocalCurrency = function(amount) {
+            const uc = (window.userCurrency && typeof window.userCurrency === 'object') ? window.userCurrency : userCurrency;
+            try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: uc.code }).format(Number(amount)); }
+            catch (_) { return `${uc.symbol}${Number(amount).toFixed(2)} ${uc.label}`; }
+        };
+        let applyCurrencyDisplayForWallet = function(grid){
+            const amountLabel = document.querySelector('label[for="nairaInput"]');
+            if (amountLabel) amountLabel.textContent = (userCurrency.code === 'NGN') ? 'Amount Paid (NGN):' : 'Amount Paid';
+        };
+        let inferCountryCodeFromProfileOrLocale = function(profile){
+            try {
+                const pref = localStorage.getItem('jchat-currency-preference');
+                if (pref && pref !== 'AUTO') return pref === 'NGN' ? 'NG' : null;
+                const raw = (profile?.country || '').toString().trim().toLowerCase();
+                if (raw && (raw==='ng' || raw==='ngn' || raw==='nigeria' || raw.includes('nigeria'))) return 'NG';
+                const lang = navigator.language || '';
+                const m = lang.match(/-([A-Z]{2})$/); if (m && m[1]) return m[1];
+            } catch(_){}
+            return null;
+        };
+        (async () => {
+            try {
+                const mod = await import('./currency.js');
+                userCurrency = mod.userCurrency || userCurrency; window.userCurrency = userCurrency;
+                setUserCurrencyFromProfile = mod.setUserCurrencyFromProfile || setUserCurrencyFromProfile;
+                formatLocalCurrency = mod.formatLocalCurrency || formatLocalCurrency;
+                applyCurrencyDisplayForWallet = mod.applyCurrencyDisplayForWallet || applyCurrencyDisplayForWallet;
+                inferCountryCodeFromProfileOrLocale = mod.inferCountryCodeFromProfileOrLocale || inferCountryCodeFromProfileOrLocale;
+                console.log('JCHAT_DEBUG: currency.js loaded in Wallet');
+            } catch(e) {
+                console.warn('JCHAT_WARN: currency.js failed in Wallet, using fallback.', e);
+            }
+        })();
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
