@@ -615,9 +615,11 @@
             background: rgba(0, 0, 0, 0.1);
             border-radius: 10px;
             padding: 15px;
-            width: 100%;
-            text-align: left;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
             border: 1px solid var(--border-light);
+            display: grid;
+            grid-template-columns: 1fr;
+            row-gap: 6px;
         }
 
         .bank-details-section h3 {
@@ -638,16 +640,39 @@
             background: rgba(255, 255, 255, 0.1);
             color: var(--white);
             border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 0.8rem;
+            border-radius: 6px;
+            padding: 6px 12px;
             cursor: pointer;
-            transition: background 0.2s ease;
+            transition: transform 0.15s ease, background 0.2s ease;
+            font-size: 0.75rem;
             margin-left: 10px;
         }
 
         .bank-details-section .copy-button:hover {
             background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .bank-logo {
+            background: rgba(255,255,255,0.6);
+            border-radius: 6px;
+            padding: 4px 6px;
+        }
+
+        @media (max-width: 768px) {
+            .package-bonus {
+                font-size: 0.75rem;
+            }
+            .bank-details-section h3, .bank-details-form h3 {
+                font-size: 1.1rem;
+            }
+            .bank-details-section p, .bank-details-form .input-group label {
+                font-size: 0.85rem;
+            }
+            .bank-details-section .copy-button {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
         }
 
         /* Manual Buy Section Styles */
@@ -1774,10 +1799,12 @@
                         <div class="button-loader"></div>
                     </button>
                     <div class="whatsapp-info">
-                        <p>Need help?</p>
-                        <a href="https://wa.me/2349013790707" target="_blank">
-                            <i class="fab fa-whatsapp"></i> +234 901 379 0707
-                        </a>
+                        <p style="font-weight:600;">Need help?</p>
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            <a href="mailto:jchatguide@gmail.com" target="_blank"><i class="fas fa-envelope"></i> jchatguide@gmail.com</a>
+                            <a href="https://wa.me/2348111609765" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp +2348111609765</a>
+                            <a href="tel:+2349013790707"><i class="fas fa-phone"></i> Phone +2349013790707</a>
+                        </div>
                     </div>
                 </div>
                 <!-- End Manual Buy Section -->
@@ -3687,4 +3714,10 @@
             const escape = (v) => {
                 if (v == null) return '';
                 const s = String(v).replace(/"/g, '""');
-                return /[",\n]/.test(s) ? `"${s}"`
+                return /[",\n]/.test(s) ? `"${s}"` : s;
+            };
+            return rows.map(row => headers.map(fieldName => escape(row[fieldName])).join(',')).join('\n');
+        }
+    </script>
+</body>
+</html>
