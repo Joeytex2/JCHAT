@@ -1775,16 +1775,22 @@
                 <div class="bank-details-section" style="margin-top:12px;">
                     <h3><i class="fas fa-key"></i> Transaction PIN</h3>
                     <p>Set a 4-digit PIN to confirm transfers and withdrawals.</p>
-                    <div class="input-group">
-                        <label for="pinSetInput">New PIN (4 digits)</label>
-                        <input type="tel" id="pinSetInput" inputmode="numeric" maxlength="4" placeholder="••••">
+                    <div id="pinStatusRow" style="display:none;align-items:center;gap:8px;justify-content:space-between;">
+                        <span id="pinStatusLabel" style="color:var(--text-light);"><i class="fas fa-check-circle" style="color:#4CAF50;"></i> PIN set</span>
+                        <button id="changePinButton" class="wallet-action-button secondary" style="padding:6px 10px;font-size:0.8rem;">Change PIN</button>
                     </div>
-                    <div class="input-group">
-                        <label for="pinConfirmInput">Confirm PIN</label>
-                        <input type="tel" id="pinConfirmInput" inputmode="numeric" maxlength="4" placeholder="••••">
+                    <div id="pinSetupGroup">
+                        <div class="input-group">
+                            <label for="pinSetInput">New PIN (4 digits)</label>
+                            <input type="tel" id="pinSetInput" inputmode="numeric" maxlength="4" placeholder="••••">
+                        </div>
+                        <div class="input-group">
+                            <label for="pinConfirmInput">Confirm PIN</label>
+                            <input type="tel" id="pinConfirmInput" inputmode="numeric" maxlength="4" placeholder="••••">
+                        </div>
+                        <button id="savePinButton" class="wallet-action-button"><i class="fas fa-save"></i> Save PIN</button>
+                        <button id="resetPinButton" class="wallet-action-button secondary" style="margin-left:8px;"><i class="fas fa-envelope"></i> Reset via Email</button>
                     </div>
-                    <button id="savePinButton" class="wallet-action-button"><i class="fas fa-save"></i> Save PIN</button>
-                    <button id="resetPinButton" class="wallet-action-button secondary" style="margin-left:8px;"><i class="fas fa-envelope"></i> Reset via Email</button>
                 </div>
 
                 <!-- Manual Buy Section -->
@@ -2078,6 +2084,10 @@
         const pinConfirmInput = document.getElementById('pinConfirmInput');
         const savePinButton = document.getElementById('savePinButton');
         const resetPinButton = document.getElementById('resetPinButton');
+        const pinSetupGroup = document.getElementById('pinSetupGroup');
+        const pinStatusRow = document.getElementById('pinStatusRow');
+        const changePinButton = document.getElementById('changePinButton');
+        const pinStatusLabel = document.getElementById('pinStatusLabel');
 
         // --- Global State ---
         let isAuthReady = false;
@@ -3251,6 +3261,7 @@
                     if (accountNumberInput) accountNumberInput.value = currentUserProfile.bankDetails?.accountNumber || '';
 
                     updateWithdrawalButtonState(); // Update withdrawal button state based on new balance/bank details
+                    applyPinUIState(); // Reflect PIN UI state
                     updateDailyBonusButtonState(); // Update daily bonus button state
                     if (!loadMore) { // Only show "Wallet loaded" if it's the initial load
                         showMessageBox("Wallet loaded!", 'success');
@@ -3748,6 +3759,7 @@
                 await setDoc(ref, { transactionPinHash: hex, updatedAt: serverTimestamp() }, { merge: true });
                 if (currentUserProfile) currentUserProfile.transactionPinHash = hex;
                 showMessageBox('Transaction PIN saved.', 'success');
+                applyPinUIState();
             } catch (e) {
                 console.error('JCHAT_ERROR: saving PIN failed:', e);
                 showMessageBox('Failed to save PIN.', 'error');
@@ -3766,6 +3778,7 @@
                     await setDoc(ref, { transactionPinHash: null, updatedAt: serverTimestamp() }, { merge: true });
                     if (currentUserProfile) currentUserProfile.transactionPinHash = null;
                     showMessageBox('PIN cleared. Please set a new PIN.', 'success');
+                    applyPinUIState();
                 } else {
                     await sendEmailVerification(currentUser);
                     showMessageBox('Verification email sent. Verify your email, then tap Reset via Email again to clear your PIN.', 'info');
@@ -3773,6 +3786,17 @@
             } catch (e) {
                 console.error('JCHAT_ERROR: reset PIN via email failed:', e);
                 showMessageBox('Failed to process PIN reset.', 'error');
+            }
+        }
+
+        function applyPinUIState() {
+            const hasPin = !!(currentUserProfile && currentUserProfile.transactionPinHash);
+            if (pinSetupGroup) pinSetupGroup.style.display = hasPin ? 'none' : '';
+            if (pinStatusRow) pinStatusRow.style.display = hasPin ? 'flex' : 'none';
+            if (hasPin && pinStatusLabel) pinStatusLabel.textContent = 'PIN set';
+            if (!hasPin) {
+                if (pinSetInput) pinSetInput.value = '';
+                if (pinConfirmInput) pinConfirmInput.value = '';
             }
         }
     </script>
