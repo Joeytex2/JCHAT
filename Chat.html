@@ -5996,6 +5996,26 @@
         stickersBtn?.addEventListener('click', () => {
             openStickerPicker();
         });
-    </script>
-</body>
-</html>
+
+        // Sticker packs and builder (define if missing)
+        const PACK_SMILEYS = ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','😘','🥰','😗','😙','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','🙄','😏','😮','🤐','😯','😪','😫','🥱','😴','😌','😛','😜','😝','🤤','😒','😓','😔','😕','🙃','😲','☹️','🙁','😖','😞','😟','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰','😱','🥵','🥶','😳','🤪','😵','🥴','😠','😡','🤬','😷','🤒','🤕','🤢','🤮','🤧','🥹','🥲','😇','🥳','🤠','🤡'];
+        const PACK_HANDS = ['👍','👎','👏','🙌','👐','🤝','🙏','💪','🫶','✌️','🤞','👌','🤌','🤟','👋','🖐️','✋','☝️','👉','👈','👇','👆'];
+        const PACK_HEARTS = ['❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💔','❣️','💖','💗','💓','💞','💕','💘','💝','💟'];
+        const PACK_PARTY = ['🎉','🎊','🎈','✨','⭐','🌟','🔥','💯','🎁','🎂','🥳','🎆','🎇','🎃'];
+        const PACK_ANIMALS = ['😺','😸','😹','😻','😼','😽','🙀','😿','😾','🐶','🐱','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐵'];
+        const PACK_FOOD = ['🍎','🍊','🍌','🍉','🍇','🍓','🍒','🍑','🥝','🍍','🥭','🥥','🥑','🍅','🥕','🌽','🍞','🧀','🍔','🍟','🍕','🌮'];
+        const PACK_MISC = ['🚀','💡','📌','📎','✏️','🖊️','🧸','⚽','🏀','🏆','🎧','🎮','📱','💻','🖥️','🕹️','🎬','🎵','🛠️','🔧','🔨'];
+        const STICKER_PACKS = [
+            { id: 'smileys', name: 'Smileys', emojis: PACK_SMILEYS },
+            { id: 'hands', name: 'Hands', emojis: PACK_HANDS },
+            { id: 'hearts', name: 'Hearts', emojis: PACK_HEARTS },
+            { id: 'party', name: 'Party', emojis: PACK_PARTY },
+            { id: 'animals', name: 'Animals', emojis: PACK_ANIMALS },
+            { id: 'food', name: 'Food', emojis: PACK_FOOD },
+            { id: 'misc', name: 'More', emojis: PACK_MISC },
+        ];
+        function emojiToCodePoints(e){const parts=[];for(const ch of Array.from(e))parts.push(ch.codePointAt(0).toString(16));return parts.join('-');}
+        function getTwemojiUrl(e){return `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${emojiToCodePoints(e)}.png`;}
+        function buildStickerPackTabs(container, grid){
+            const tabs=document.getElementById('stickerTabs'); if(!tabs) return; tabs.innerHTML='';
+            function renderPack(pack){ grid.innerHTML=''; for(const em of pack.emojis){ const url=getTwemojiUrl(em); const img=document.createElement('img'); img.src=url; img.alt='sticker'; img.loading='lazy'; img.style.cssText='width:56px;height:56px;object-fit:contain;cursor:pointer;border-radius:8px; background:transparent;'; img.addEventListener('click', async ()=>{ if(!auth.currentUser||!partnerId) return; try{ toggleButtonLoading(sendMessageBtn,true); const chatRoomId=getChatRoomId(auth.currentUser.uid,partnerId); const messagesCollectionRef=collection(db,'artifacts',appId,'public','data','chats',chatRoomId,'messages'); await addDoc(messagesCollectionRef,{ senderId:auth.currentUser.uid, receiverId:partnerId, type:'image', mediaUrl:url, timestamp:serverTimestamp
