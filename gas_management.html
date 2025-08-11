@@ -569,11 +569,9 @@
             box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
         }
 
-
         .admin-button i {
             background-clip: text;
             color: transparent;
-            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -583,9 +581,15 @@
         .admin-button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            box-shadow: none;
         }
 
+        /* Orders toolbar and cards layout improvements */
+        .orders-toolbar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+        .orders-toolbar select, .orders-toolbar input, .orders-toolbar button { flex: 0 1 auto; }
+        .order-actions { display:flex; gap:8px; flex-wrap:wrap; }
+        @media (max-width: 600px) {
+            .orders-toolbar { gap:8px; }
+        }
 
         .user-details-display {
             background: rgba(0, 0, 0, 0.2);
@@ -1758,7 +1762,7 @@
             
             <div class="admin-section" id="featureOrdersSection">
                 <h2>Feature Orders</h2>
-                <div class="input-group" style="display:flex; gap:12px; align-items:center;">
+                <div class="input-group orders-toolbar">
                     <label for="ordersStatusFilter" style="margin:0;">Filter:</label>
                     <select id="ordersStatusFilter" style="padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--input-background); color:var(--white);">
                         <option value="pending" selected>Pending</option>
@@ -4267,7 +4271,7 @@
                     <div><strong>When:</strong> ${ts}</div>
                 </div>
                 ${receipt}
-                <div style="display:flex;gap:8px;margin-top:10px;">
+                <div class="order-actions" style="margin-top:10px;">
                     <button class="admin-button" data-action="approve" data-order-id="${orderId}" data-user-id="${order.userId}" data-item-type="${order.itemType}" data-item-id="${order.itemId || ''}"><span class="button-text">Approve</span><div class="button-loader"></div></button>
                     <button class="admin-button secondary" data-action="reject" data-order-id="${orderId}"><span class="button-text">Reject</span><div class="button-loader"></div></button>
                     ${order.receiptUrl ? `<a href="${order.receiptUrl}" target="_blank" class="admin-button secondary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-download"></i> Receipt</a>` : ''}
