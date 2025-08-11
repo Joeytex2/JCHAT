@@ -40,16 +40,16 @@ export function formatLocalCurrency(amount) {
 
 export function applyCurrencyDisplayForWallet(jcoinPackagesGrid) {
   const amountLabel = document.querySelector('label[for="nairaInput"]');
+  // Always show manual receipt section
+  const manualBuySection = document.querySelector('.manual-buy-section');
+  if (manualBuySection) manualBuySection.style.display = '';
+
   if (userCurrency.code === 'NGN') {
     if (amountLabel) amountLabel.textContent = 'Amount Paid (NGN):';
-    const manualBuySection = document.querySelector('.manual-buy-section');
-    if (manualBuySection) manualBuySection.style.display = '';
   } else {
     if (amountLabel) amountLabel.textContent = 'Amount Paid';
-    const manualBuySection = document.querySelector('.manual-buy-section');
-    if (manualBuySection) manualBuySection.style.display = 'none';
     if (jcoinPackagesGrid) {
-      jcoinPackagesGrid.innerHTML = '<p style="text-align: center; color: var(--text-light);">Purchases are currently available in NGN for Nigerian users only.</p>';
+      jcoinPackagesGrid.innerHTML = '<p style="text-align: center; color: var(--text-light);">Packages are priced in NGN. You can still submit a receipt with an equivalent amount.</p>';
     }
   }
 }

@@ -3034,7 +3034,6 @@
         const unlockedRewardsSection = document.getElementById('unlockedRewardsSection');
         const unlockedRewardsGrid = document.getElementById('unlockedRewardsGrid');
         const noRewardsMessage = document.getElementById('noRewardsMessage');
-
         // NEW: Friends Snippet Section
         const friendsSnippetSection = document.getElementById('friendsSnippetSection');
         const friendsSnippetGrid = document.getElementById('friendsSnippetGrid');
@@ -4880,7 +4879,6 @@
         function hideReportUserModal() {
             if (reportUserModal) reportUserModal.classList.remove('active');
         }
-
         /**
          * Submits a user report to Firestore.
          */
@@ -5355,8 +5353,18 @@
                     if (jCoinsSpan && jcoinExchangeRate && jcoinUSDValue) { // Null check
                         if (isCurrentUserProfile) {
                             jCoinsSpan.textContent = (displayedUserProfileData.jCoins ?? 0).toLocaleString();
-                            const usdValue = (displayedUserProfileData.jCoins ?? 0) / (currentSystemSettings.jcoinNairaRate || 7.5) * 0.001; // Assuming 1 Naira = $0.001, update as needed
-                            jcoinUSDValue.textContent = `$${usdValue.toFixed(2)}`;
+                            setUserCurrencyFromProfile(displayedUserProfileData);
+                            const j = (displayedUserProfileData.jCoins ?? 0);
+                            let fiatValue = 0;
+                            if (userCurrency.code === 'NGN') {
+                                const rate = currentSystemSettings.jcoinNairaRate || 7.5;
+                                fiatValue = j * rate; // JCoins to NGN using configured rate
+                            } else {
+                                const nairaRate = currentSystemSettings.jcoinNairaRate || 7.5;
+                                const usdPerNaira = 0.001; // existing assumption in app
+                                fiatValue = j * nairaRate * usdPerNaira; // approximate USD
+                            }
+                            jcoinUSDValue.textContent = formatLocalCurrency(fiatValue);
                             jcoinExchangeRate.style.display = 'flex'; // Use flex to align icon and text
                             if (jCoinsSpan.closest('.stat-item')) jCoinsSpan.closest('.stat-item').style.display = 'block'; // Ensure the entire stat item is visible
                         } else {
