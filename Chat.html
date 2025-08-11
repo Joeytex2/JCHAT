@@ -2129,6 +2129,17 @@
             #unlockStore .unlock-side { border-right: none; border-bottom: 1px solid var(--border-light); }
             #unlockStore .unlock-card { margin: 20px auto; }
         }
+        
+        /* Header Unlock Button */
+        .user-profile-header .unlock-btn { display:flex; align-items:center; gap:6px; background: var(--button-background); color: var(--white); border: 1px solid var(--border-light); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+        .user-profile-header .unlock-btn:hover { opacity:.9; }
+        .user-profile-header .unlock-btn i { font-size: 1rem; background-image: none; -webkit-text-fill-color: initial; color: #ffd700; }
+        .user-profile-header .unlock-btn span { font-weight:600; font-size:.9rem; }
+        
+        /* Unlock Store Feature Preview */
+        #unlockStore .feature-preview { background: rgba(255,255,255,0.03); border: 1px solid var(--border-light); border-radius: 12px; padding: 10px; margin-bottom: 10px; }
+        #unlockStore .feature-preview h4 { margin: 0 0 4px 0; color: var(--white); }
+        #unlockStore .feature-preview p { margin: 0; color: var(--text-light); font-size: .95rem; }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -2143,8 +2154,9 @@
             </nav>
             <div class="user-profile-header">
                 <!-- Unlock Features Icon -->
-                <button id="unlockAllBtn" title="Unlock Premium Features" style="background:transparent;border:none;cursor:pointer;display:flex;align-items:center;">
-                    <i class="fas fa-gem" style="font-size:22px;color:#ffd700;"></i>
+                <button id="unlockAllBtn" class="unlock-btn" title="Unlock Premium Features">
+                    <i class="fas fa-gem"></i>
+                    <span>Unlock</span>
                 </button>
                 <!-- Admin Icon Link (visible only to admin) -->
                 <a href="/coin_management.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
@@ -2443,6 +2455,10 @@
                     </div>
                 </div>
                 <div class="unlock-right">
+                    <div id="featurePreview" class="feature-preview" style="display:none;">
+                        <h4 id="featurePreviewTitle"></h4>
+                        <p id="featurePreviewDesc"></p>
+                    </div>
                     <div id="storeSelection" style="margin-bottom:12px; color:var(--text-light)">Select a feature to see amount and Order ID</div>
                     <div style="margin:10px 0; padding:10px; border:1px dashed var(--border-light); border-radius:10px;">
                         <div><strong>Order ID:</strong> <span id="storeOrderId"></span> <button id="storeCopyOrder" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-copy"></i></button></div>
@@ -2468,6 +2484,16 @@
                             <label for="storeReceipt" style="display:block; font-weight:800; color:var(--white); margin-bottom:6px;">I've paid — upload receipt</label>
                             <input id="storeReceipt" type="file" accept="image/*,.pdf" style="width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--border-light); background:var(--input-background); color:var(--white);" />
                             <img id="storeReceiptPreview" class="receipt-preview" alt="Receipt Preview" />
+                        </div>
+                        <div style="margin-top:12px; padding:10px; border:1px solid var(--border-light); border-radius:12px; background: rgba(255,255,255,0.03);">
+                            <div class="step"><div class="num">4</div><div><strong>Send receipt to Admin</strong> for manual review.</div></div>
+                            <label for="adminReceipt" style="display:block; font-weight:800; color:var(--white); margin:8px 0 6px;">Upload receipt for Admin</label>
+                            <input id="adminReceipt" type="file" accept="image/*,.pdf" style="width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--border-light); background:var(--input-background); color:var(--white);" />
+                            <img id="adminReceiptPreview" class="receipt-preview" alt="Admin Receipt Preview" />
+                            <div id="adminReceiptError" style="color:#ff6b6b; margin-top:8px; display:none"></div>
+                            <div style="display:flex;gap:8px;margin-top:10px;">
+                                <button id="adminReceiptSubmit" class="admin-button"><span class="button-text">Send to Admin</span><div class="button-loader"></div></button>
+                            </div>
                         </div>
                     </div>
                     <div id="storeError" style="color:#ff6b6b; margin-top:8px; display:none"></div>
@@ -5814,6 +5840,11 @@
                 if (!meta) return;
                 storeAmount.textContent = meta.amount;
                 storeOrderId.textContent = `ORD-${Date.now()}`;
+                if (featurePreview && featurePreviewTitle && featurePreviewDesc) {
+                    featurePreviewTitle.textContent = meta.title;
+                    featurePreviewDesc.textContent = meta.desc;
+                    featurePreview.style.display = 'block';
+                }
             });
         });
 
@@ -5862,6 +5893,66 @@
         storeReceipt?.addEventListener('change', () => {
             const file = storeReceipt.files?.[0];
             const prev = document.getElementById('storeReceiptPreview');
+            if (!prev) return;
+            if (file && file.type.startsWith('image/')) {
+                prev.src = URL.createObjectURL(file);
+                prev.style.display = 'block';
+            } else {
+                prev.src = '';
+                prev.style.display = 'none';
+            }
+        });
+
+        async function submitAdminReceipt() {
+            try {
+                if (!auth.currentUser) { showMessageBox('Please log in.', 'warning'); return; }
+                const f = adminReceipt?.files?.[0];
+                if (!f) { adminReceiptError.textContent = 'Please attach a receipt for Admin.'; adminReceiptError.style.display = 'block'; return; }
+                const orderId = (storeOrderId?.textContent && storeOrderId.textContent.trim()) ? storeOrderId.textContent : `ORD-${Date.now()}`;
+                toggleButtonLoading(adminReceiptSubmit, true);
+                const path = `admin_receipts/${ADMIN_UID}/${auth.currentUser.uid}/${orderId}/${encodeURIComponent(f.name)}`;
+                const storageRefRef = ref(storage, path);
+                await uploadBytes(storageRefRef, f);
+                const receiptUrl = await getDownloadURL(storageRefRef);
+
+                const adminReceiptRef = doc(collection(db, 'artifacts', appId, 'users', ADMIN_UID, 'admin_receipts'));
+                await setDoc(adminReceiptRef, {
+                    orderId,
+                    fromUserId: auth.currentUser.uid,
+                    receiptUrl,
+                    featureKey: storeSelectedFeatureKey || null,
+                    amount: storeAmount?.textContent || null,
+                    status: 'pending',
+                    createdAt: serverTimestamp(),
+                });
+
+                // Optional: notify admin
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'users', ADMIN_UID, 'notifications'), {
+                        type: 'receipt',
+                        message: 'New receipt submitted for review.',
+                        senderId: auth.currentUser.uid,
+                        timestamp: serverTimestamp(),
+                        read: false,
+                    });
+                } catch (_) {}
+
+                showMessageBox('Receipt sent to Admin.', 'success');
+                adminReceiptError.style.display = 'none';
+            } catch (e) {
+                console.error(e);
+                adminReceiptError.textContent = e?.message || 'Failed to send receipt to Admin';
+                adminReceiptError.style.display = 'block';
+            } finally {
+                toggleButtonLoading(adminReceiptSubmit, false);
+            }
+        }
+        adminReceiptSubmit?.addEventListener('click', submitAdminReceipt);
+
+        // Show admin receipt preview if image
+        adminReceipt?.addEventListener('change', () => {
+            const file = adminReceipt.files?.[0];
+            const prev = document.getElementById('adminReceiptPreview');
             if (!prev) return;
             if (file && file.type.startsWith('image/')) {
                 prev.src = URL.createObjectURL(file);
