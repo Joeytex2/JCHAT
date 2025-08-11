@@ -2146,6 +2146,16 @@
         #unlockStore .dropzone { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:2px dashed var(--border-light); border-radius:10px; cursor:pointer; }
         #unlockStore .dropzone:hover { background: rgba(255,255,255,0.04); }
         #unlockStore .file-name { color: var(--text-light); font-size: .9rem; margin-left: 6px; }
+
+        /* Unlock Store layout fixes to prevent overflow clipping */
+        #unlockStore { display:flex; align-items:center; justify-content:center; }
+        #unlockStore .unlock-card { max-height: 90vh; display:flex; flex-direction:column; }
+        #unlockStore .unlock-header { position: sticky; top: 0; z-index: 2; }
+        #unlockStore .unlock-body { display: grid; grid-template-columns: 1.2fr 0.8fr; flex: 1; overflow: visible; }
+        #unlockStore .unlock-side, #unlockStore .unlock-right { overflow: auto; min-height: 0; }
+        @media (max-width: 900px) {
+            #unlockStore .unlock-body { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -5849,7 +5859,17 @@
         let storeSelectedFeatureKey = null;
 
         const storeChooseButtons = Array.from(document.getElementsByClassName('choose-feature'));
-        unlockAllBtn?.addEventListener('click', ()=> { storeSelectedFeatureKey=null; storeAmount.textContent=''; storeOrderId.textContent=''; storeReceipt.value=''; storeError.style.display='none'; unlockStore.style.display='block'; });
+        unlockAllBtn?.addEventListener('click', ()=> {
+            storeSelectedFeatureKey = null;
+            storeAmount.textContent = '';
+            storeOrderId.textContent = '';
+            if (storeReceipt) storeReceipt.value = '';
+            if (storeError) storeError.style.display = 'none';
+            unlockStore.style.display = 'block';
+            // reset scroll positions to top for both columns
+            document.querySelector('#unlockStore .unlock-right')?.scrollTo(0,0);
+            document.querySelector('#unlockStore .unlock-side')?.scrollTo(0,0);
+        });
         unlockStoreClose?.addEventListener('click', ()=> unlockStore.style.display='none');
         storeCancel?.addEventListener('click', ()=> unlockStore.style.display='none');
         storeCopyOrder?.addEventListener('click', ()=> navigator.clipboard.writeText(storeOrderId.textContent||''));
