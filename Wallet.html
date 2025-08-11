@@ -1733,9 +1733,30 @@
                     </p>
                 </div>
 
+                <div class="bank-details-section" style="margin-top:12px;">
+                    <h3>Bank Transfer (Keystone Bank)</h3>
+                    <p><strong>Bank:</strong> Keystone Bank</p>
+                    <p><strong>Account Name:</strong> ELECHI OSOUNDU JOSHUA</p>
+                    <p>
+                        <strong>Account Number:</strong> <span>6042862356</span>
+                        <button class="copy-button" onclick="copyToClipboard('6042862356')">Copy</button>
+                    </p>
+                    <p>
+                        <strong>Reference:</strong> Your JCHAT User ID (<span id="userReferenceId">Loading...</span>)
+                        <button class="copy-button" onclick="copyToClipboard(document.getElementById('userReferenceId').textContent)">Copy</button>
+                    </p>
+                    <p style="font-size:0.9rem;color:var(--text-light);">After payment, upload your receipt below and tap "Send Purchase Request".</p>
+                </div>
+
                 <!-- Manual Buy Section -->
                 <div class="manual-buy-section">
                     <h3>Submit Receipt</h3>
+                    <div class="input-group">
+                        <label>Scan Payment QR (optional):</label>
+                        <video id="qrVideo" style="width:100%;max-height:200px;border:1px solid var(--border-light);border-radius:8px;" playsinline></video>
+                        <button id="startQrScan" class="wallet-action-button secondary" style="margin-top:8px;">Start QR Scan</button>
+                        <p id="qrResult" style="font-size:0.9rem;color:var(--text-light);"></p>
+                    </div>
                     <div class="input-group">
                         <label for="nairaInput">Amount Paid (NGN):</label>
                         <input type="number" id="nairaInput" min="200" step="1" placeholder="e.g., 200, 1000, 5000">
@@ -1862,6 +1883,7 @@
 
     <!-- Tone.js for sound effects -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -3637,7 +3659,57 @@
                 }
                 return true;
             });
+        }
+
+        // --- Simple QR Scan using jsQR ---
+        (function setupQrScan() {
+            const startBtn = document.getElementById('startQrScan');
+            const video = document.getElementById('qrVideo');
+            const resultEl = document.getElementById('qrResult');
+            if (!startBtn || !video || !resultEl || !(window.jsQR)) return;
+            let stream = null;
+            let rafId = null;
+            async function start() {
+                resultEl.textContent = 'Starting camera...';
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    video.srcObject = stream;
+                    await video.play();
+                    scanLoop();
+                } catch (e) {
+                    resultEl.textContent = `Camera error: ${e.message}`;
                 }
+            }
+            function stop() {
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = null;
+                if (stream) {
+                    stream.getTracks().forEach(t => t.stop());
+                    stream = null;
+                }
+            }
+            function scanLoop() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const w = video.videoWidth;
+                const h = video.videoHeight;
+                if (!w || !h) { rafId = requestAnimationFrame(scanLoop); return; }
+                canvas.width = w; canvas.height = h;
+                ctx.drawImage(video, 0, 0, w, h);
+                const imageData = ctx.getImageData(0, 0, w, h);
+                const code = jsQR(imageData.data, w, h);
+                if (code && code.data) {
+                    resultEl.textContent = `QR: ${code.data}`;
+                    stop();
+                } else {
+                    rafId = requestAnimationFrame(scanLoop);
+                }
+            }
+            startBtn.addEventListener('click', () => {
+                if (stream) { stop(); resultEl.textContent = 'Stopped.'; } else { start(); }
+            });
+            window.addEventListener('beforeunload', stop);
+        })();
     </script>
 </body>
 </html>
