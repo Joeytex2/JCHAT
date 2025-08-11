@@ -5350,7 +5350,8 @@
                             }
                             const j = (displayedUserProfileData.jCoins ?? 0);
                             let fiatValue = 0;
-                            if (userCurrency.code === 'NGN') {
+                            const uc = (typeof userCurrency === 'object' && userCurrency) ? userCurrency : { code: 'USD', symbol: '$', label: 'USD' };
+                            if (uc.code === 'NGN') {
                                 const rate = currentSystemSettings.jcoinNairaRate || 7.5;
                                 fiatValue = j * rate; // JCoins to NGN using configured rate
                             } else {
@@ -5358,7 +5359,8 @@
                                 const usdPerNaira = 0.001; // existing assumption in app
                                 fiatValue = j * nairaRate * usdPerNaira; // approximate USD
                             }
-                            jcoinUSDValue.textContent = formatLocalCurrency(fiatValue);
+                            const fmt = (typeof formatLocalCurrency === 'function') ? formatLocalCurrency : (amt => `$${Number(amt).toFixed(2)}`);
+                            jcoinUSDValue.textContent = fmt(fiatValue);
                             jcoinExchangeRate.style.display = 'flex'; // Use flex to align icon and text
                             if (jCoinsSpan.closest('.stat-item')) jCoinsSpan.closest('.stat-item').style.display = 'block'; // Ensure the entire stat item is visible
                         } else {
