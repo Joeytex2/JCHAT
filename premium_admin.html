@@ -7,41 +7,65 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
+        /* Universal box-sizing for consistent layout */
         *, *::before, *::after {
             box-sizing: border-box;
         }
 
+        /* Global CSS Variables for easy theme switching */
         :root {
+            /* Core JCHAT Colors */
             --pink: #ff2e92;
             --blue: #00d5ff;
-            --glass-black: rgba(10, 10, 10, .75);
-            --glass-blue: rgba(0, 213, 255, .15);
             --radius: 20px;
             --transition: .3s ease;
+
+            /* Default Dark Mode variables */
             --white: #fff;
             --text-light: rgba(255, 255, 255, .7);
             --background-main: rgba(10, 10, 10, .75);
             --background-gradient-1: #00d5ff;
             --background-gradient-2: #ff2e92;
             --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
-            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75));
+            --header-background: linear-gradient(135deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .75));
             --border-light: rgba(255, 255, 255, .05);
             --input-background: rgba(255, 255, 255, 0.05);
-            --button-background: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-background-gradient: linear-gradient(90deg, var(--blue), var(--pink));
             --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
-            
-            /* Admin specific colors */
-            --success-green: #4CAF50;
-            --warning-orange: #ff9800;
-            --danger-red: #f44336;
-            --info-blue: #2196F3;
-            --theme-gold: #ffd700;
-            --theme-silver: #c0c0c0;
-            --theme-bronze: #cd7f32;
+
+            /* Semantic Colors */
+            --background-color-primary: #1a1a2e;
+            --background-color-secondary: #0f0f1f;
+            --header-background-color: #2a2a4a;
+            --footer-background-color: #2a2a4a;
+            --content-background-color: #20203a;
+            --card-background-color: #2a2a4a;
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --notification-badge-color: #ff2e92;
+            --status-online: #4CAF50;
+            --status-offline: #6c757d;
+            --status-away: #FFC107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+            --accent-color: #00d5ff;
+            --accent-color-dark: #00aaff;
+            --border-color: #3a3a5a;
+        }
+
+        /* Always show scrollbar to prevent layout shifts */
+        html {
+            overflow-y: scroll;
         }
 
         body {
@@ -49,87 +73,297 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding-bottom: 20px;
             background-color: var(--background-main);
             background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
                               radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
             color: var(--white);
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
 
-        .header {
-            width: 100%;
+        /* Header Styling */
+        header {
             background: var(--header-background);
-            backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border-light);
-            position: sticky;
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
             top: 0;
-            z-index: 1000;
+            left: 0;
+            width: 100%;
+            height: 55px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
         }
 
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1rem 2rem;
+        header .header-content-wrapper {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
         }
 
         .logo {
+            font-family: 'Poppins', sans-serif;
             font-size: 1.8rem;
             font-weight: 800;
-            background: linear-gradient(45deg, var(--blue), var(--pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
             text-decoration: none;
         }
 
-        .nav ul {
+        /* Header Navigation */
+        header nav ul {
             list-style: none;
-            display: flex;
-            gap: 2rem;
             margin: 0;
             padding: 0;
+            display: flex;
+            gap: 25px;
         }
 
-        .nav a {
+        header nav ul li a {
             color: var(--white);
             text-decoration: none;
-            transition: var(--transition);
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 5px 0;
+            position: relative;
+            transition: color var(--transition);
         }
 
-        .nav a:hover {
+        header nav ul li a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 0;
+            height: 3px;
+            background: var(--blue);
+            border-radius: 2px;
+            transition: width var(--transition);
+        }
+
+        header nav ul li a:hover {
             color: var(--blue);
         }
 
-        .main-content {
-            max-width: 1400px;
-            margin: 0 auto;
+        header nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        /* User Profile Header Styling */
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Notification Icon Styling */
+        .notification-icon-wrapper {
+            position: relative;
+        }
+
+        .notification-icon-wrapper a {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 1.2rem;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color var(--transition);
+        }
+
+        .notification-icon-wrapper a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--notification-badge-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Logout Button */
+        #logoutButton {
+            background: var(--button-background-gradient);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all var(--transition);
+            box-shadow: var(--button-shadow);
+        }
+
+        #logoutButton:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--blue), 0 6px 20px var(--pink);
+        }
+
+        #logoutButton:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Profile Link */
+        #profileLink {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color var(--transition);
+        }
+
+        #profileLink:hover {
+            color: var(--blue);
+        }
+
+        #headerProfilePic {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--blue);
+        }
+
+        #headerAvatarIcon {
+            font-size: 2rem;
+            color: var(--blue);
+        }
+
+        /* Main Content */
+        main {
+            margin-top: 75px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+        }
+
+        .content-wrapper {
+            width: 100%;
+        }
+
+        .section-card {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
             padding: 2rem;
-        }
-
-        .dashboard-header {
             margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
         }
 
-        .dashboard-header h1 {
+        .section-card h1 {
+            color: var(--white);
+            margin: 0 0 1rem 0;
             font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(45deg, var(--blue), var(--pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            color: transparent;
         }
 
-        .dashboard-header p {
+        .section-card h2 {
+            color: var(--white);
+            margin: 2rem 0 1rem 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .section-card p {
             color: var(--text-light);
-            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
         }
 
-        .stats-grid {
+        /* Admin Tools Grid */
+        .admin-tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 2rem;
+            margin-top: 2rem;
+        }
+
+        .admin-tool-card {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            text-decoration: none;
+            color: var(--white);
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .admin-tool-card:hover::before {
+            left: 100%;
+        }
+
+        .admin-tool-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--blue);
+            box-shadow: 0 10px 30px rgba(0, 213, 255, 0.3);
+        }
+
+        .admin-tool-card i {
+            font-size: 2.5rem;
+            color: var(--blue);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .admin-tool-card h3 {
+            color: var(--white);
+            margin: 0 0 0.5rem 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .admin-tool-card p {
+            color: var(--text-light);
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Premium Stats Grid */
+        .premium-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
         }
 
         .stat-card {
@@ -138,950 +372,585 @@
             border-radius: var(--radius);
             padding: 1.5rem;
             text-align: center;
+            transition: all var(--transition);
         }
 
-        .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .stat-icon.subscriptions { color: var(--success-green); }
-        .stat-icon.revenue { color: var(--theme-gold); }
-        .stat-icon.themes { color: var(--pink); }
-        .stat-icon.users { color: var(--blue); }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-
-        .dashboard-sections {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
-        }
-
-        .main-section {
-            background: var(--card-background);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .subscription-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .subscription-table th,
-        .subscription-table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .subscription-table th {
-            background: rgba(255, 255, 255, 0.05);
-            font-weight: 600;
-            color: var(--white);
-        }
-
-        .subscription-table td {
-            color: var(--text-light);
-        }
-
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .status-active {
-            background: var(--success-green);
-            color: var(--white);
-        }
-
-        .status-expired {
-            background: var(--danger-red);
-            color: var(--white);
-        }
-
-        .status-pending {
-            background: var(--warning-orange);
-            color: var(--white);
-        }
-
-        .action-btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: var(--transition);
-            margin-right: 0.5rem;
-        }
-
-        .action-btn.edit {
-            background: var(--info-blue);
-            color: var(--white);
-        }
-
-        .action-btn.delete {
-            background: var(--danger-red);
-            color: var(--white);
-        }
-
-        .action-btn:hover {
-            opacity: 0.8;
-        }
-
-        .sidebar-section {
-            background: var(--card-background);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .quick-actions {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .quick-actions li {
-            margin-bottom: 0.75rem;
-        }
-
-        .quick-actions a {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
-            color: var(--white);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .quick-actions a:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .stat-card:hover {
+            transform: translateY(-3px);
             border-color: var(--blue);
         }
 
-        .recent-activity {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .stat-card .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--blue);
+            margin-bottom: 0.5rem;
         }
 
-        .recent-activity li {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .recent-activity li:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        .activity-icon.subscription { background: var(--success-green); }
-        .activity-icon.theme { background: var(--pink); }
-        .activity-icon.payment { background: var(--theme-gold); }
-        .activity-icon.user { background: var(--blue); }
-
-        .activity-details {
-            flex: 1;
-        }
-
-        .activity-title {
-            font-weight: 600;
-            color: var(--white);
-            margin-bottom: 0.25rem;
-        }
-
-        .activity-time {
-            font-size: 0.8rem;
+        .stat-card .stat-label {
             color: var(--text-light);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .message-box {
+        /* Message Box */
+        #messageBox {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
+            top: 80px;
+            right: 30px;
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
             border-radius: var(--radius);
+            padding: 1rem 1.5rem;
             color: var(--white);
-            font-weight: 500;
-            z-index: 10000;
+            font-weight: 600;
+            z-index: 1000;
             display: none;
-            max-width: 300px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all var(--transition);
+            max-width: 400px;
         }
 
-        .message-box.show {
-            display: block;
+        #messageBox.show {
+            display: flex;
+            opacity: 1;
         }
 
-        .message-box.success {
-            background: var(--success-green);
+        #messageBox.success {
+            border-color: var(--status-online);
+            background: rgba(76, 175, 80, 0.1);
         }
 
-        .message-box.error {
-            background: var(--danger-red);
+        #messageBox.error {
+            border-color: var(--delete-button-color);
+            background: rgba(220, 53, 69, 0.1);
         }
 
-        .message-box.info {
-            background: var(--info-blue);
+        #messageBox.info {
+            border-color: var(--accent-color);
+            background: rgba(0, 213, 255, 0.1);
         }
 
-        .message-box.warning {
-            background: var(--warning-orange);
+        #messageBox.warning {
+            border-color: var(--warning-color);
+            background: rgba(255, 193, 7, 0.1);
         }
 
-        @media (max-width: 1024px) {
-            .dashboard-sections {
+        #messageBox.loading-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .admin-tools-grid {
                 grid-template-columns: 1fr;
             }
-        }
-
-        @media (max-width: 768px) {
-            .stats-grid {
+            
+            .premium-stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
             
-            .main-content {
-                padding: 1rem;
+            header .header-content-wrapper {
+                padding: 0 15px;
+            }
+            
+            main {
+                padding: 0 15px;
+            }
+            
+            .section-card {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .premium-stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-card h1 {
+                font-size: 2rem;
             }
         }
     </style>
 </head>
-<body>
-    <header class="header">
-        <div class="header-content">
-            <a href="/home.html" class="logo">JCHAT</a>
-            <nav class="nav">
+<body class="theme-dark-mode">
+
+    <header>
+        <div class="header-content-wrapper">
+            <a href="/Home.html" class="logo">JCHAT</a>
+            <nav>
                 <ul>
-                    <li><a href="/home.html">Home</a></li>
-                    <li><a href="/Admin.html">Admin</a></li>
-                    <li><a href="/premium_subscriptions.html">Premium</a></li>
-                    <li><a href="/premium_themes.html">Themes</a></li>
+                    <li><a href="/premium_subscriptions.html">Premium Subscriptions</a></li>
+                    <li><a href="/premium_themes.html">Premium Themes</a></li>
                 </ul>
             </nav>
+            <div class="user-profile-header">
+                <div class="notification-icon-wrapper">
+                    <a href="/notifications.html" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                    </a>
+                </div>
+                <button id="logoutButton" aria-label="Logout" disabled>
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <a href="Profile.html" id="profileLink">
+                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
+                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                    <span id="headerDisplayName">Loading...</span>
+                </a>
+            </div>
         </div>
     </header>
 
-    <main class="main-content">
-        <div class="dashboard-header">
-            <h1>Premium Admin Dashboard</h1>
-            <p>Monitor subscriptions, track revenue, and manage premium features</p>
-        </div>
+    <main>
+        <div class="content-wrapper">
+            <div class="section-card">
+                <h1>JCHAT Premium Admin Dashboard</h1>
+                <p style="color: var(--pink); font-weight: 600; margin-top: -1rem; margin-bottom: 1rem;">
+                    <i class="fas fa-crown"></i> Manage premium features and subscriptions
+                </p>
+                <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    Monitor premium subscriptions, theme sales, and user engagement to optimize revenue.
+                </p>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon subscriptions">
-                    <i class="fas fa-crown"></i>
-                </div>
-                <div class="stat-value" id="totalSubscriptions">0</div>
-                <div class="stat-label">Active Subscriptions</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon revenue">
-                    <i class="fas fa-money-bill-wave"></i>
-                </div>
-                <div class="stat-value" id="monthlyRevenue">₦0</div>
-                <div class="stat-label">Monthly Revenue</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon themes">
-                    <i class="fas fa-palette"></i>
-                </div>
-                <div class="stat-value" id="themeSales">0</div>
-                <div class="stat-label">Theme Sales</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon users">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-value" id="premiumUsers">0</div>
-                <div class="stat-label">Premium Users</div>
-            </div>
-        </div>
-
-        <div class="dashboard-sections">
-            <div class="main-section">
-                <h2 class="section-title">
-                    <i class="fas fa-list"></i>
-                    Subscription Management
-                </h2>
-                <table class="subscription-table">
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Plan</th>
-                            <th>Status</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="subscriptionsTableBody">
-                        <!-- Subscription data will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="sidebar">
-                <div class="sidebar-section">
-                    <h3 class="section-title">
-                        <i class="fas fa-bolt"></i>
-                        Quick Actions
-                    </h3>
-                    <ul class="quick-actions">
-                        <li>
-                            <a href="/premium_subscriptions.html" target="_blank">
-                                <i class="fas fa-plus"></i>
-                                Add New Subscription
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/premium_themes.html" target="_blank">
-                                <i class="fas fa-palette"></i>
-                                Manage Themes
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" onclick="generateRevenueReport()">
-                                <i class="fas fa-chart-bar"></i>
-                                Generate Report
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" onclick="exportData()">
-                                <i class="fas fa-download"></i>
-                                Export Data
-                            </a>
-                        </li>
-                    </ul>
+                <!-- Premium Stats -->
+                <div class="premium-stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="activeSubscriptions">0</div>
+                        <div class="stat-label">Active Subscriptions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="monthlyRevenue">₦0</div>
+                        <div class="stat-label">Monthly Revenue</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="themeSales">₦0</div>
+                        <div class="stat-label">Theme Sales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="premiumUsers">0</div>
+                        <div class="stat-label">Premium Users</div>
+                    </div>
                 </div>
 
-                <div class="sidebar-section">
-                    <h3 class="section-title">
-                        <i class="fas fa-clock"></i>
-                        Recent Activity
-                    </h3>
-                    <ul class="recent-activity" id="recentActivityList">
-                        <!-- Recent activity will be loaded here -->
-                    </ul>
+                <h2>Premium Management Tools</h2>
+                <div class="admin-tools-grid">
+                    <a href="/premium_subscriptions.html" class="admin-tool-card">
+                        <i class="fas fa-credit-card"></i>
+                        <h3>Subscription Management</h3>
+                        <p>Manage premium subscriptions and user plans.</p>
+                    </a>
+                    <a href="/premium_themes.html" class="admin-tool-card">
+                        <i class="fas fa-palette"></i>
+                        <h3>Theme Marketplace</h3>
+                        <p>Manage premium themes and track sales.</p>
+                    </a>
+                    <a href="/User_management.html" class="admin-tool-card">
+                        <i class="fas fa-users"></i>
+                        <h3>User Management</h3>
+                        <p>Manage user accounts and premium status.</p>
+                    </a>
+                    <a href="/analytics.html" class="admin-tool-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Premium Analytics</h3>
+                        <p>View premium feature usage and revenue trends.</p>
+                    </a>
+                    <a href="/coin_requests_admin.html" class="admin-tool-card">
+                        <i class="fas fa-coins"></i>
+                        <h3>JCoin Management</h3>
+                        <p>Manage JCoin requests and user balances.</p>
+                    </a>
+                    <a href="/admin_logs.html" class="admin-tool-card">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>Activity Logs</h3>
+                        <p>Review premium-related admin actions.</p>
+                    </a>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="messageBox" class="message-box"></div>
+    <div id="messageBox"></div>
 
-    <script>
-        // Sample data for demonstration
-        let dashboardData = {
-            subscriptions: [
-                {
-                    id: 1,
-                    user: 'john_doe',
-                    email: 'john@example.com',
-                    plan: 'Pro Premium',
-                    status: 'active',
-                    startDate: '2024-01-01',
-                    endDate: '2024-02-01',
-                    amount: 999
-                },
-                {
-                    id: 2,
-                    user: 'jane_smith',
-                    email: 'jane@example.com',
-                    plan: 'Basic Premium',
-                    status: 'active',
-                    startDate: '2024-01-15',
-                    endDate: '2024-02-15',
-                    amount: 499
-                },
-                {
-                    id: 3,
-                    user: 'bob_wilson',
-                    email: 'bob@example.com',
-                    plan: 'Enterprise',
-                    status: 'pending',
-                    startDate: '2024-01-20',
-                    endDate: '2024-02-20',
-                    amount: 1999
-                }
-            ],
-            recentActivity: [
-                {
-                    type: 'subscription',
-                    title: 'New Pro Premium subscription',
-                    description: 'john_doe upgraded to Pro Premium',
-                    time: '2 hours ago',
-                    icon: 'subscription'
-                },
-                {
-                    type: 'theme',
-                    title: 'Theme purchase completed',
-                    description: 'jane_smith bought Dark Elegance theme',
-                    time: '4 hours ago',
-                    icon: 'theme'
-                },
-                {
-                    type: 'payment',
-                    title: 'Payment received',
-                    description: '₦999 from Pro Premium subscription',
-                    time: '6 hours ago',
-                    icon: 'payment'
-                },
-                {
-                    type: 'user',
-                    title: 'New premium user',
-                    description: 'bob_wilson joined with Enterprise plan',
-                    time: '1 day ago',
-                    icon: 'user'
-                }
-            ]
-        };
-
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            loadDashboardData();
-            renderSubscriptionsTable();
-            renderRecentActivity();
-        });
-
-        // Load dashboard data
-        function loadDashboardData() {
-            // In real implementation, this would fetch from your database
-            updateStats();
-        }
-
-        // Update statistics
-        function updateStats() {
-            const activeSubscriptions = dashboardData.subscriptions.filter(sub => sub.status === 'active').length;
-            const monthlyRevenue = dashboardData.subscriptions
-                .filter(sub => sub.status === 'active')
-                .reduce((sum, sub) => sum + sub.amount, 0);
-            const themeSales = 15; // Simulated data
-            const premiumUsers = activeSubscriptions;
-
-            document.getElementById('totalSubscriptions').textContent = activeSubscriptions;
-            document.getElementById('monthlyRevenue').textContent = `₦${monthlyRevenue.toLocaleString()}`;
-            document.getElementById('themeSales').textContent = themeSales;
-            document.getElementById('premiumUsers').textContent = premiumUsers;
-        }
-
-        // Render subscriptions table
-        function renderSubscriptionsTable() {
-            const tbody = document.getElementById('subscriptionsTableBody');
-            tbody.innerHTML = dashboardData.subscriptions.map(sub => `
-                <tr>
-                    <td>
-                        <div>
-                            <div style="font-weight: 600; color: var(--white);">${sub.user}</div>
-                            <div style="font-size: 0.8rem;">${sub.email}</div>
-                        </div>
-                    </td>
-                    <td>${sub.plan}</td>
-                    <td>
-                        <span class="status-badge status-${sub.status}">
-                            ${sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
-                        </span>
-                    </td>
-                    <td>${formatDate(sub.startDate)}</td>
-                    <td>${formatDate(sub.endDate)}</td>
-                    <td>
-                        <button class="action-btn edit" onclick="editSubscription(${sub.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete" onclick="deleteSubscription(${sub.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        // Render recent activity
-        function renderRecentActivity() {
-            const list = document.getElementById('recentActivityList');
-            list.innerHTML = dashboardData.recentActivity.map(activity => `
-                <li>
-                    <div class="activity-icon ${activity.icon}">
-                        <i class="fas fa-${getActivityIcon(activity.type)}"></i>
-                    </div>
-                    <div class="activity-details">
-                        <div class="activity-title">${activity.title}</div>
-                        <div class="activity-time">${activity.time}</div>
-                    </div>
-                </li>
-            `).join('');
-        }
-
-        // Get activity icon
-        function getActivityIcon(type) {
-            const icons = {
-                subscription: 'crown',
-                theme: 'palette',
-                payment: 'money-bill-wave',
-                user: 'user-plus'
-            };
-            return icons[type] || 'info-circle';
-        }
-
-        // Format date
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
-
-        // Edit subscription
-        function editSubscription(id) {
-            const subscription = dashboardData.subscriptions.find(sub => sub.id === id);
-            if (subscription) {
-                showMessage(`Editing subscription for ${subscription.user}`, 'info');
-                // In real implementation, this would open an edit modal
-            }
-        }
-
-        // Delete subscription
-        function deleteSubscription(id) {
-            const subscription = dashboardData.subscriptions.find(sub => sub.id === id);
-            if (subscription && confirm(`Are you sure you want to delete the subscription for ${subscription.user}?`)) {
-                dashboardData.subscriptions = dashboardData.subscriptions.filter(sub => sub.id !== id);
-                renderSubscriptionsTable();
-                updateStats();
-                showMessage(`Subscription for ${subscription.user} deleted successfully`, 'success');
-            }
-        }
-
-        // Generate revenue report
-        function generateRevenueReport() {
-            const totalRevenue = dashboardData.subscriptions
-                .filter(sub => sub.status === 'active')
-                .reduce((sum, sub) => sum + sub.amount, 0);
-            
-            const report = `
-                Revenue Report - ${new Date().toLocaleDateString()}
-                
-                Total Active Subscriptions: ${dashboardData.subscriptions.filter(sub => sub.status === 'active').length}
-                Monthly Recurring Revenue: ₦${totalRevenue.toLocaleString()}
-                Average Revenue Per User: ₦${Math.round(totalRevenue / Math.max(dashboardData.subscriptions.filter(sub => sub.status === 'active').length, 1))}
-                
-                Plan Breakdown:
-                ${getPlanBreakdown()}
-            `;
-            
-            alert(report);
-            showMessage('Revenue report generated successfully', 'success');
-        }
-
-        // Get plan breakdown
-        function getPlanBreakdown() {
-            const planCounts = {};
-            dashboardData.subscriptions
-                .filter(sub => sub.status === 'active')
-                .forEach(sub => {
-                    planCounts[sub.plan] = (planCounts[sub.plan] || 0) + 1;
-                });
-            
-            return Object.entries(planCounts)
-                .map(([plan, count]) => `${plan}: ${count} users`)
-                .join('\n');
-        }
-
-        // Export data
-        function exportData() {
-            const dataStr = JSON.stringify(dashboardData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `jchat-premium-data-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            URL.revokeObjectURL(url);
-            showMessage('Data exported successfully', 'success');
-        }
-
-        // Show message
-        function showMessage(message, type = 'info') {
-            const messageBox = document.getElementById('messageBox');
-            messageBox.textContent = message;
-            messageBox.className = `message-box show ${type}`;
-            
-            setTimeout(() => {
-                messageBox.classList.remove('show');
-            }, 5000);
-        }
-    </script>
-
-    <!-- Firebase SDK -->
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, collection, query, where, orderBy, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, addDoc, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Firebase configuration
+        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBvQhHhHhHhHhHhHhHhHhHhHhHhHhHhHhHh",
-            authDomain: "jchat-12345.firebaseapp.com",
-            projectId: "jchat-12345",
-            storageBucket: "jchat-12345.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdefghijklmnop"
+            apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+            authDomain: "jchat-1.firebaseapp.com",
+            projectId: "jchat-1",
+            storageBucket: "jchat-1.firebaseapp.com",
+            messagingSenderId: "328479683167",
+            appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+            measurementId: "G-S6Z9GG0R9P"
+        };
+        const appId = 'default-app-id';
+        const initialAuthToken = null;
+
+        // Cloudinary Configuration
+        const cloudinaryConfig = {
+            cloudName: "dxld01rcp",
+            uploadPreset: "Storage_preset"
         };
 
-        // Initialize Firebase
+        // Initialize Firebase services
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = "jchat-12345";
 
-        // Global variables
-        let currentUser = null;
+        // DOM Elements
+        const headerProfilePic = document.getElementById('headerProfilePic');
+        const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+        const headerDisplayName = document.getElementById('headerDisplayName');
+        const logoutButton = document.getElementById('logoutButton');
+        const notificationCountElement = document.getElementById('notificationCount');
+        const messageBox = document.getElementById('messageBox');
+        const headerNavLinkProfile = document.getElementById('profileLink');
+
+        // Global State
         let isAuthReady = false;
-        let dashboardData = {
-            subscriptions: [],
-            recentActivity: []
-        };
+        let currentUser = null;
 
-        // Check if user is admin
-        const ADMIN_UID = "admin123"; // Replace with actual admin UID
+        // Admin Specific ID
+        const ADMIN_UID = 'cc96gdhCRPO72NFZtleRCujHvIq2';
 
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuthState();
+        // Tone.js Synths for Notification Sounds
+        const successSynth = new Tone.Synth().toDestination();
+        const errorSynth = new Tone.Synth().toDestination();
+        const infoSynth = new Tone.Synth().toDestination();
+
+        successSynth.oscillator.type = "sine";
+        successSynth.envelope.attack = 0.01;
+        successSynth.envelope.decay = 0.2;
+        successSynth.envelope.sustain = 0.0;
+        successSynth.envelope.release = 0.5;
+
+        errorSynth.oscillator.type = "sawtooth";
+        errorSynth.envelope.attack = 0.01;
+        errorSynth.envelope.decay = 0.3;
+        errorSynth.envelope.sustain = 0.0;
+        errorSynth.envelope.release = 0.5;
+
+        infoSynth.oscillator.type = "triangle";
+        infoSynth.oscillator.envelope.attack = 0.01;
+        infoSynth.oscillator.envelope.decay = 0.1;
+        infoSynth.oscillator.envelope.sustain = 0.0;
+        infoSynth.oscillator.envelope.release = 0.3;
+
+        function playNotificationSound(type) {
+            Tone.start();
+            if (type === 'success') {
+                successSynth.triggerAttackRelease("C5", "8n");
+            } else if (type === 'error') {
+                errorSynth.triggerAttackRelease("C3", "8n");
+            } else if (type === 'info') {
+                infoSynth.triggerAttackRelease("E4", "16n");
+            }
+        }
+
+        // Utility Functions
+        function showMessageBox(message, type, durationMs = 3000, isPersistent = false) {
+            if (messageBox.timeoutId) {
+                clearTimeout(messageBox.timeoutId);
+                messageBox.timeoutId = null;
+            }
+
+            messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
+            const messageBoxIcon = document.getElementById('messageBoxIcon');
+            const messageBoxText = document.getElementById('messageBoxText');
+
+            messageBoxText.textContent = message;
+            messageBox.className = 'message-box show ' + type;
+
+            if (messageBoxIcon) {
+                messageBoxIcon.className = '';
+                if (type === 'success') { messageBoxIcon.classList.add('fas', 'fa-check-circle'); playNotificationSound('success'); }
+                else if (type === 'error') { messageBoxIcon.classList.add('fas', 'fa-times-circle'); playNotificationSound('error'); }
+                else if (type === 'info') { messageBoxIcon.classList.add('fas', 'fa-info-circle'); playNotificationSound('info'); }
+                else if (type === 'warning') { messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle'); playNotificationSound('info'); }
+                else if (type === 'loading') { messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin'); }
+            }
+
+            if (type === 'loading') {
+                messageBox.classList.add('loading-pulse');
+            } else {
+                messageBox.classList.remove('loading-pulse');
+            }
+
+            messageBox.style.display = 'flex';
+            messageBox.style.opacity = '1';
+
+            if (!isPersistent) {
+                messageBox.timeoutId = setTimeout(() => {
+                    messageBox.style.opacity = '0';
+                    messageBox.addEventListener('transitionend', function handler() {
+                        messageBox.style.display = 'none';
+                        messageBox.removeEventListener('transitionend', handler);
+                        messageBox.classList.remove('loading-pulse');
+                    }, { once: true });
+                }, durationMs);
+            }
+        }
+
+        function toggleButtonLoading(buttonElement, isLoading) {
+            if (!buttonElement) return;
+            const loader = buttonElement.querySelector('.button-loader');
+            const text = buttonElement.querySelector('.button-text');
+
+            if (isLoading) {
+                buttonElement.disabled = true;
+                buttonElement.classList.add('loading');
+                if (loader) loader.classList.add('active');
+                if (text) text.style.display = 'none';
+            } else {
+                buttonElement.disabled = false;
+                buttonElement.classList.remove('loading');
+                if (loader) loader.classList.remove('active');
+                if (text) text.style.display = 'block';
+            }
+        }
+
+        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
+            if (!urlOrPublicId) return null;
+            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
+                return urlOrPublicId;
+            }
+            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
+        }
+
+        function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
+            if (imgElement) {
+                if (profilePicId) {
+                    const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
+                    imgElement.src = imageUrl;
+                    imgElement.style.display = 'block';
+                    if (iconElement) iconElement.style.display = 'none';
+                    imgElement.onerror = () => {
+                        console.error(`Failed to load profile picture: ${profilePicId}. Using placeholder.`);
+                        const bgColor = getComputedStyle(document.body).getPropertyValue('--card-background-color').trim();
+                        const textColor = getComputedStyle(document.body).getPropertyValue('--text-color-primary').trim();
+                        imgElement.src = `https://placehold.co/120x120/${bgColor.replace('#', '')}/${textColor.replace('#', '')}?text=${usernameInitial}`;
+                        imgElement.style.display = 'block';
+                        if (iconElement) iconElement.style.display = 'none';
+                    };
+                } else {
+                    imgElement.src = '';
+                    imgElement.style.display = 'none';
+                    if (iconElement) iconElement.style.display = 'block';
+                }
+            }
+        }
+
+        async function fetchAndDisplayHeaderProfile(user) {
+            try {
+                const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+
+                const privateDocSnap = await getDoc(privateProfileDocRef);
+                let profileData = null;
+
+                if (privateDocSnap.exists()) {
+                    profileData = privateDocSnap.data();
+                } else {
+                    profileData = {
+                        username: user.displayName || `User_${user.uid.substring(0, 8)}`,
+                        email: user.email || "",
+                        profilePicId: user.photoURL || null,
+                        bio: "", location: "", school: "", work: "", interests: "", website: "", socialLinks: "",
+                        friendsCount: 0, followersCount: 0, followingCount: 0,
+                        createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+                        inspirationType: "motivational",
+                        visibility: {
+                            displayName: true, profilePic: true, bio: false, location: false,
+                            emailPublic: false, lastOnline: false, allowFriendRequests: true, allowMessages: true,
+                            school: false, work: false, interests: false, website: false, socialLinks: false
+                        },
+                        totalPosts: 0, jCoins: 0, gas: 0, totalGasEarned: 0, level: 1, walletUnlocked: false, unlockedBenefits: [],
+                        banned: false
+                    };
+                    await setDoc(privateProfileDocRef, profileData);
+                }
+
+                const publicProfileSummary = {
+                    username: profileData.username,
+                    profilePicId: profileData.profilePicId,
+                    jCoins: profileData.jCoins,
+                    level: profileData.level,
+                    userId: user.uid,
+                    email: profileData.email,
+                    totalPosts: profileData.totalPosts,
+                    totalGasEarned: profileData.totalGasEarned,
+                    banned: profileData.banned
+                };
+                await setDoc(publicProfileDocRef, publicProfileSummary, { merge: true });
+
+                const usernameInitial = (profileData.username || "J").charAt(0).toUpperCase();
+                displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                headerDisplayName.textContent = profileData.username || "JCHAT User";
+                headerNavLinkProfile.href = `/profile.html?userId=${user.uid}`;
+
+                logoutButton.disabled = false;
+            } catch (error) {
+                console.error("Error fetching or creating profile for header:", error);
+                const usernameInitial = (user.displayName || "J").charAt(0).toUpperCase();
+                displayProfilePicture(headerProfilePic, headerAvatarIcon, user.photoURL, usernameInitial, "w_70,h_70,c_fill,g_face,r_max");
+                headerDisplayName.textContent = user.displayName || "JCHAT User";
+                showMessageBox(`Error loading header profile: ${error.message}`, 'error');
+                logoutButton.disabled = false;
+            }
+        }
+
+        async function fetchNotificationCount(userId) {
+            try {
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
+                const q = query(notificationsCollectionRef, where("read", "==", false));
+                onSnapshot(q, (querySnapshot) => {
+                    const unreadCount = querySnapshot.size;
+                    if (unreadCount > 0) {
+                        notificationCountElement.textContent = unreadCount;
+                        notificationCountElement.style.display = 'flex';
+                    } else {
+                        notificationCountElement.style.display = 'none';
+                    }
+                }, (error) => {
+                    console.error("Error listening to notification count:", error);
+                    notificationCountElement.style.display = 'none';
+                });
+            } catch (error) {
+                console.error("Error setting up listener for notification count:", error);
+            }
+        }
+
+        async function logAdminAction(adminUid, actionType, details = {}) {
+            try {
+                const logsCollectionRef = collection(db, "artifacts", appId, "public", "data", "admin_logs");
+                await addDoc(logsCollectionRef, {
+                    adminUid: adminUid,
+                    actionType: actionType,
+                    details: details,
+                    timestamp: serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Error logging admin action:", error);
+            }
+        }
+
+        // Authentication State Listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                // Admin Authorization Check
+                if (currentUser.uid !== ADMIN_UID) {
+                    showMessageBox("Unauthorized access. Redirecting to home page.", 'error', 2000, true);
+                    isAuthReady = false;
+                    document.querySelectorAll('a, button').forEach(el => {
+                        if (el.id !== 'logoutButton') {
+                            el.classList.add('disabled-link');
+                            el.style.pointerEvents = 'none';
+                        }
+                    });
+                    logoutButton.disabled = true;
+                    setTimeout(() => {
+                        window.location.href = '/Home.html';
+                    }, 2000);
+                    return;
+                }
+
+                isAuthReady = true;
+                await fetchAndDisplayHeaderProfile(user);
+                fetchNotificationCount(user.uid);
+
+                showMessageBox("Welcome Premium Admin! You are logged in.", 'success', 5000);
+            } else {
+                isAuthReady = false;
+                logoutButton.disabled = true;
+                headerDisplayName.textContent = "Guest";
+                headerProfilePic.style.display = 'none';
+                headerAvatarIcon.style.display = 'block';
+                document.querySelector('main .content-wrapper').innerHTML = `
+                    <div class="section-card">
+                        <h1>Access Denied</h1>
+                        <p style="color: var(--pink); font-weight: 600;">
+                            <i class="fas fa-exclamation-triangle"></i> Please log in to access admin tools.
+                        </p>
+                        <p style="color: var(--text-light);">Redirecting to login page...</p>
+                    </div>
+                `;
+                showMessageBox("You must be logged in to access the Premium Admin Dashboard.", 'error', 2000, true);
+                setTimeout(() => {
+                    if (initialAuthToken) {
+                        signInWithCustomToken(auth, initialAuthToken).catch(err => {
+                            console.error("Error signing in with custom token:", err);
+                            window.location.href = '/Login.html';
+                        });
+                    } else {
+                        signInAnonymously(auth).catch(err => {
+                            console.error("Error signing in anonymously:", err);
+                            window.location.href = '/Login.html';
+                        });
+                    }
+                }, 2000);
+            }
         });
 
-        // Check authentication state
-        function checkAuthState() {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUser = user;
-                    isAuthReady = true;
-                    
-                    // Check if user is admin
-                    if (user.uid === ADMIN_UID) {
-                        await loadDashboardData();
-                        renderSubscriptionsTable();
-                        renderRecentActivity();
-                        startRealTimeListeners();
-                    } else {
-                        showMessage('Access denied. Admin privileges required.', 'error');
-                        setTimeout(() => {
-                            window.location.href = '/Home.html';
-                        }, 2000);
-                    }
-                } else {
-                    // Redirect to login if not authenticated
-                    window.location.href = '/Login.html';
-                }
-            });
-        }
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply saved theme
+            const savedTheme = localStorage.getItem('jchat-theme');
+            const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+            if (savedTheme && themes.includes(savedTheme)) {
+                document.body.classList.remove(...themes);
+                document.body.classList.add(savedTheme);
+            } else {
+                document.body.classList.add('theme-dark-mode');
+            }
+        });
 
-        // Load dashboard data
-        async function loadDashboardData() {
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'jchat-theme') {
+                const newTheme = event.newValue || 'theme-dark-mode';
+                const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
+                if (themes.includes(newTheme)) {
+                    document.body.classList.remove(...themes);
+                    document.body.classList.add(newTheme);
+                }
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            if (!isAuthReady) return;
+            toggleButtonLoading(logoutButton, true);
             try {
-                // Load subscriptions
-                const subscriptionsQuery = query(
-                    collection(db, `artifacts/${appId}/public/data/premium_subscriptions`),
-                    orderBy('createdAt', 'desc')
-                );
-                const subscriptionsSnapshot = await getDocs(subscriptionsQuery);
-                dashboardData.subscriptions = [];
-                subscriptionsSnapshot.forEach((doc) => {
-                    dashboardData.subscriptions.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                });
-
-                // Load recent activity
-                const activityQuery = query(
-                    collection(db, `artifacts/${appId}/public/data/premium_activity`),
-                    orderBy('timestamp', 'desc'),
-                    limit(10)
-                );
-                const activitySnapshot = await getDocs(activityQuery);
-                dashboardData.recentActivity = [];
-                activitySnapshot.forEach((doc) => {
-                    dashboardData.recentActivity.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                });
-
-                updateStats();
-            } catch (error) {
-                console.error('Error loading dashboard data:', error);
-                showMessage('Error loading dashboard data', 'error');
-            }
-        }
-
-        // Start real-time listeners
-        function startRealTimeListeners() {
-            // Listen for subscription updates
-            const subscriptionsQuery = query(
-                collection(db, `artifacts/${appId}/public/data/premium_subscriptions`),
-                orderBy('createdAt', 'desc')
-            );
-            
-            onSnapshot(subscriptionsQuery, (querySnapshot) => {
-                dashboardData.subscriptions = [];
-                querySnapshot.forEach((doc) => {
-                    dashboardData.subscriptions.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                });
-                renderSubscriptionsTable();
-                updateStats();
-            });
-
-            // Listen for activity updates
-            const activityQuery = query(
-                collection(db, `artifacts/${appId}/public/data/premium_activity`),
-                orderBy('timestamp', 'desc'),
-                limit(10)
-            );
-            
-            onSnapshot(activityQuery, (querySnapshot) => {
-                dashboardData.recentActivity = [];
-                querySnapshot.forEach((doc) => {
-                    dashboardData.recentActivity.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                });
-                renderRecentActivity();
-            });
-        }
-
-        // Update stats
-        function updateStats() {
-            const activeSubscriptions = dashboardData.subscriptions.filter(sub => sub.status === 'active').length;
-            const monthlyRevenue = dashboardData.subscriptions
-                .filter(sub => sub.status === 'active')
-                .reduce((sum, sub) => sum + (sub.amount || 0), 0);
-            const themeSales = dashboardData.recentActivity
-                .filter(activity => activity.activityType === 'theme_purchase')
-                .reduce((sum, activity) => sum + (activity.amount || 0), 0);
-            const premiumUsers = dashboardData.subscriptions.length;
-
-            document.getElementById('activeSubscriptions').textContent = activeSubscriptions;
-            document.getElementById('monthlyRevenue').textContent = `₦${monthlyRevenue.toLocaleString()}`;
-            document.getElementById('themeSales').textContent = `₦${themeSales.toLocaleString()}`;
-            document.getElementById('premiumUsers').textContent = premiumUsers;
-        }
-
-        // Render subscriptions table
-        function renderSubscriptionsTable() {
-            const tbody = document.getElementById('subscriptionsTableBody');
-            if (dashboardData.subscriptions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No subscriptions found</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = dashboardData.subscriptions.map(sub => `
-                <tr>
-                    <td>${sub.user || sub.username || 'N/A'}</td>
-                    <td>${sub.email || 'N/A'}</td>
-                    <td>${sub.plan || 'N/A'}</td>
-                    <td>${sub.status || 'N/A'}</td>
-                    <td>${formatDate(sub.createdAt)}</td>
-                    <td>
-                        <button onclick="editSubscription('${sub.id}')" class="btn-edit">Edit</button>
-                        <button onclick="deleteSubscription('${sub.id}')" class="btn-delete">Delete</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        // Render recent activity
-        function renderRecentActivity() {
-            const list = document.getElementById('recentActivityList');
-            if (dashboardData.recentActivity.length === 0) {
-                list.innerHTML = '<li class="text-center">No recent activity</li>';
-                return;
-            }
-
-            list.innerHTML = dashboardData.recentActivity.map(activity => `
-                <li>
-                    <i class="fas fa-${getActivityIcon(activity.activityType)}"></i>
-                    <div>
-                        <strong>${activity.title || 'N/A'}</strong>
-                        <span>${formatTimeAgo(activity.timestamp)}</span>
-                    </div>
-                </li>
-            `).join('');
-        }
-
-        // Get activity icon
-        function getActivityIcon(type) {
-            const icons = {
-                subscription: 'credit-card',
-                theme_purchase: 'palette',
-                payment: 'money-bill-wave',
-                user: 'user-plus'
-            };
-            return icons[type] || 'info-circle';
-        }
-
-        // Format date
-        function formatDate(timestamp) {
-            if (!timestamp) return 'N/A';
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
-
-        // Format time ago
-        function formatTimeAgo(timestamp) {
-            if (!timestamp) return 'N/A';
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            const now = new Date();
-            const diffInSeconds = Math.floor((now - date) / 1000);
-            
-            if (diffInSeconds < 60) return 'Just now';
-            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-            return `${Math.floor(diffInSeconds / 86400)} days ago`;
-        }
-
-        // Edit subscription
-        function editSubscription(id) {
-            showMessage('Edit functionality coming soon', 'info');
-        }
-
-        // Delete subscription
-        async function deleteSubscription(id) {
-            const subscription = dashboardData.subscriptions.find(sub => sub.id === id);
-            if (subscription && confirm(`Are you sure you want to delete the subscription for ${subscription.user || subscription.username}?`)) {
-                try {
-                    // Delete from Firestore
-                    await deleteDoc(doc(db, `artifacts/${appId}/public/data/premium_subscriptions/${id}`));
-                    
-                    // Add activity log
-                    await addDoc(collection(db, `artifacts/${appId}/public/data/premium_activity`), {
-                        userId: currentUser.uid,
-                        username: currentUser.displayName || currentUser.email,
-                        activityType: 'subscription',
-                        title: `Deleted subscription for ${subscription.user || subscription.username}`,
-                        description: `Admin deleted subscription for ${subscription.user || subscription.username}`,
-                        timestamp: serverTimestamp()
-                    });
-
-                    showMessage(`Subscription for ${subscription.user || subscription.username} deleted successfully`, 'success');
-                } catch (error) {
-                    console.error('Error deleting subscription:', error);
-                    showMessage('Error deleting subscription', 'error');
+                if (currentUser) {
+                    await logAdminAction(currentUser.uid, 'admin_logout');
                 }
+                await signOut(auth);
+                showMessageBox("Logged out successfully! 👋", 'success');
+                setTimeout(() => {
+                    window.location.href = '/Login.html';
+                }, 1500);
+            } catch (error) {
+                console.error("Error logging out:", error);
+                showMessageBox("Failed to log out. Please try again.", 'error');
+                toggleButtonLoading(logoutButton, false);
             }
-        }
-
-        // Generate revenue report
-        function generateRevenueReport() {
-            const totalRevenue = dashboardData.subscriptions
-                .filter(sub => sub.status === 'active')
-                .reduce((sum, sub) => sum + (sub.amount || 0), 0);
-            
-            const report = `
-                Revenue Report - ${new Date().toLocaleDateString()}
-                
-                Total Active Subscriptions: ${dashboardData.subscriptions.filter(sub => sub.status === 'active').length}
-                Monthly Recurring Revenue: ₦${totalRevenue.toLocaleString()}
-                Average Revenue Per User: ₦${Math.round(totalRevenue / Math.max(dashboardData.subscriptions.filter(sub => sub.status === 'active').length, 1))}
-                
-                Plan Breakdown:
-                ${getPlanBreakdown()}
-            `;
-            
-            alert(report);
-            showMessage('Revenue report generated successfully', 'success');
-        }
-
-        // Get plan breakdown
-        function getPlanBreakdown() {
-            const planCounts = {};
-            dashboardData.subscriptions
-                .filter(sub => sub.status === 'active')
-                .forEach(sub => {
-                    planCounts[sub.plan] = (planCounts[sub.plan] || 0) + 1;
-                });
-            
-            return Object.entries(planCounts)
-                .map(([plan, count]) => `${plan}: ${count} users`)
-                .join('\n');
-        }
-
-        // Export data
-        function exportData() {
-            const dataStr = JSON.stringify(dashboardData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `jchat-premium-data-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            URL.revokeObjectURL(url);
-            showMessage('Data exported successfully', 'success');
-        }
-
-        // Logout
-        function handleLogout() {
-            signOut(auth).then(() => {
-                window.location.href = '/Login.html';
-            }).catch((error) => {
-                console.error('Error signing out:', error);
-                showMessage('Error signing out', 'error');
-            });
-        }
+        });
     </script>
 </body>
 </html>
