@@ -807,6 +807,79 @@
             margin-right: 5px;
         }
 
+        /* NEW: User ID Display Styles */
+        .user-id-container {
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 12px;
+            background: rgba(0, 213, 255, 0.1);
+            border: 1px solid rgba(0, 213, 255, 0.3);
+            border-radius: 12px;
+            margin: 8px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .user-id-container:hover {
+            background: rgba(0, 213, 255, 0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 213, 255, 0.2);
+        }
+        
+        .user-id-label {
+            font-weight: 600;
+            color: var(--blue);
+            margin: 0 4px;
+        }
+        
+        .user-id-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--white);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex: 1;
+            min-width: 0;
+            word-break: break-all;
+        }
+        
+        .copy-user-id-btn {
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 8px rgba(0, 213, 255, 0.3);
+        }
+        
+        .copy-user-id-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 213, 255, 0.4);
+        }
+        
+        .copy-user-id-btn:active {
+            transform: translateY(0);
+        }
+        
+        .copy-user-id-btn.copied {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            animation: pulse 0.6s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
 
         .profile-stats {
             display: grid;
@@ -2237,6 +2310,17 @@
                     </div>
                     <h2 id="profileUsername" class="profile-name">Loading...</h2>
                     <p id="profileBio" class="profile-bio">No bio provided yet.</p>
+                    
+                    <!-- NEW: User ID Display -->
+                    <p id="profileUserId" class="profile-info-item user-id-container" style="display: none;">
+                        <i class="fas fa-id-card"></i> 
+                        <span class="user-id-label">User ID:</span>
+                        <span id="userIdText" class="user-id-text"></span>
+                        <button id="copyUserIdBtn" class="copy-user-id-btn" title="Copy User ID">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </p>
+                    
                     <p id="profileLocation" class="profile-info-item" style="display: none;"><i class="fas fa-map-marker-alt"></i> <span id="locationText"></span></p>
                     <p id="profileEmail" class="profile-info-item" style="display: none;"><i class="fas fa-envelope"></i> <span id="emailText"></span></p>
                     <p id="profileSchool" class="profile-info-item" style="display: none;"><i class="fas fa-graduation-cap"></i> <span id="schoolText"></span></p>
@@ -2375,6 +2459,13 @@
                         <label for="toggleLocationVisibility">Show Location Publicly</label>
                         <label class="toggle-switch">
                             <input type="checkbox" id="toggleLocationVisibility">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="privacy-toggle-group">
+                        <label for="toggleUserIdVisibility">Show User ID Publicly</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleUserIdVisibility" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -2875,6 +2966,12 @@
 
         const profileUsername = document.getElementById('profileUsername'); // H2 element for username
         const profileBio = document.getElementById('profileBio');
+        
+        // NEW: User ID elements
+        const profileUserId = document.getElementById('profileUserId'); // P element container
+        const userIdText = document.getElementById('userIdText'); // Span for User ID text
+        const copyUserIdBtn = document.getElementById('copyUserIdBtn'); // Copy button
+        
         const profileLocation = document.getElementById('profileLocation'); // P element container
         const locationText = document.getElementById('locationText'); // Span inside profileLocation
         const profileEmail = document.getElementById('profileEmail'); // P element container
@@ -2971,6 +3068,7 @@
             // NEW: Privacy Settings Toggles
             const toggleEmailVisibility = document.getElementById('toggleEmailVisibility');
         const toggleLocationVisibility = document.getElementById('toggleLocationVisibility');
+        const toggleUserIdVisibility = document.getElementById('toggleUserIdVisibility');
         const toggleOnlineStatusVisibility = document.getElementById('toggleOnlineStatusVisibility');
         const toggleFriendRequests = document.getElementById('toggleFriendRequests');
         const toggleMessages = document.getElementById('toggleMessages');
@@ -3825,6 +3923,52 @@
                 toggleButtonLoading(saveProfileChanges, false);
             }
         }
+
+        /**
+         * Handles copying the User ID to clipboard.
+         */
+        async function handleCopyUserId() {
+            if (!userIdText || !userIdText.textContent) {
+                showMessageBox("No User ID to copy.", 'warning');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(userIdText.textContent);
+                
+                // Visual feedback
+                copyUserIdBtn.classList.add('copied');
+                const originalIcon = copyUserIdBtn.querySelector('i');
+                originalIcon.className = 'fas fa-check';
+                
+                showMessageBox("User ID copied to clipboard! 📋", 'success');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    copyUserIdBtn.classList.remove('copied');
+                    originalIcon.className = 'fas fa-copy';
+                }, 2000);
+                
+            } catch (error) {
+                console.error("JCHAT_ERROR: Failed to copy User ID:", error);
+                
+                // Fallback for older browsers
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = userIdText.textContent;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    showMessageBox("User ID copied to clipboard! 📋", 'success');
+                } catch (fallbackError) {
+                    console.error("JCHAT_ERROR: Fallback copy failed:", fallbackError);
+                    showMessageBox("Failed to copy User ID. Please select and copy manually.", 'error');
+                }
+            }
+        }
+
         /**
          * Handles saving privacy settings.
          */
@@ -3843,6 +3987,7 @@
                     profilePic: true,  // Profile pic is always public
                     emailPublic: toggleEmailVisibility.checked,
                     location: toggleLocationVisibility.checked,
+                    userId: toggleUserIdVisibility.checked, // NEW: User ID visibility
                     lastOnline: toggleOnlineStatusVisibility.checked, // Assuming this is handled by backend logic
                     allowFriendRequests: toggleFriendRequests.checked,
                     allowMessages: toggleMessages.checked,
@@ -5146,6 +5291,7 @@
             showMessageBox("Loading profile...", 'loading', true);
             if (profileUsername) profileUsername.textContent = "Loading...";
             if (profileBio) profileBio.textContent = "Loading...";
+            if (profileUserId) profileUserId.style.display = 'none'; // NEW: Hide User ID during loading
             if (profileLocation) profileLocation.style.display = 'none';
             if (profileEmail) profileEmail.style.display = 'none';
             if (profileSchool) profileSchool.style.display = 'none'; // NEW
@@ -5201,6 +5347,7 @@
             if (savePrivacySettingsButton) savePrivacySettingsButton.style.display = 'none';
             if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'none'; // Hide parent div
             if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'none';
+            if (toggleUserIdVisibility) toggleUserIdVisibility.closest('.privacy-toggle-group').style.display = 'none';
             if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'none';
             if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'none';
             if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'none';
@@ -5276,6 +5423,16 @@
                             profileBio.textContent = displayedUserProfileData.bio;
                         } else {
                             profileBio.textContent = isCurrentUserProfile ? "No bio provided yet." : "Bio not publicly available.";
+                        }
+                    }
+
+                    // NEW: User ID Display
+                    if (profileUserId && userIdText) { // Null check
+                        if (isCurrentUserProfile || visibility.userId) {
+                            userIdText.textContent = userIdToDisplay;
+                            profileUserId.style.display = 'block';
+                        } else {
+                            profileUserId.style.display = 'none';
                         }
                     }
 
@@ -5486,6 +5643,7 @@
                         // Populate privacy toggles
                         if (toggleEmailVisibility) toggleEmailVisibility.checked = visibility.emailPublic ?? false;
                         if (toggleLocationVisibility) toggleLocationVisibility.checked = visibility.location ?? false;
+                        if (toggleUserIdVisibility) toggleUserIdVisibility.checked = visibility.userId ?? true; // Default to true for User ID
                         if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.checked = visibility.lastOnline ?? false;
                         if (toggleFriendRequests) toggleFriendRequests.checked = visibility.allowFriendRequests ?? true;
                         if (toggleMessages) toggleMessages.checked = visibility.allowMessages ?? true;
@@ -5497,6 +5655,7 @@
                         // Show privacy toggles and save button
                         if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'flex';
                         if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'flex';
+                        if (toggleUserIdVisibility) toggleUserIdVisibility.closest('.privacy-toggle-group').style.display = 'flex';
                         if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'flex';
                         if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'flex';
                         if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'flex';
@@ -5557,6 +5716,7 @@
                         if (savePrivacySettingsButton) savePrivacySettingsButton.style.display = 'none';
                         if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'none';
                         if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleUserIdVisibility) toggleUserIdVisibility.closest('.privacy-toggle-group').style.display = 'none';
                         if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'none';
                         if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'none';
                         if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'none';
@@ -5590,6 +5750,7 @@
                         if (savePrivacySettingsButton) savePrivacySettingsButton.style.display = 'none';
                         if (toggleEmailVisibility) toggleEmailVisibility.closest('.privacy-toggle-group').style.display = 'none';
                         if (toggleLocationVisibility) toggleLocationVisibility.closest('.privacy-toggle-group').style.display = 'none';
+                        if (toggleUserIdVisibility) toggleUserIdVisibility.closest('.privacy-toggle-group').style.display = 'none';
                         if (toggleOnlineStatusVisibility) toggleOnlineStatusVisibility.closest('.privacy-toggle-group').style.display = 'none';
                         if (toggleFriendRequests) toggleFriendRequests.closest('.privacy-toggle-group').style.display = 'none';
                         if (toggleMessages) toggleMessages.closest('.privacy-toggle-group').style.display = 'none';
@@ -5823,6 +5984,9 @@
 
             // Profile Edit
             if (saveProfileChanges) saveProfileChanges.addEventListener('click', handleSaveProfileChanges); // Null check
+
+            // NEW: User ID Copy Button
+            if (copyUserIdBtn) copyUserIdBtn.addEventListener('click', handleCopyUserId); // Null check
 
             // Privacy Settings
             if (savePrivacySettingsButton) savePrivacySettingsButton.addEventListener('click', handleSavePrivacySettings);
