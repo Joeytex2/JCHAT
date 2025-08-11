@@ -2243,7 +2243,10 @@
                         <i class="fas fa-reply"></i> Quick Replies <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
                     </button>
                 </div>
-                <div id="quickRepliesRow" class="quick-replies" style="display:none; gap:8px; flex-wrap:wrap; margin:8px 0;"></div>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+                    <div id="quickRepliesRow" class="quick-replies" style="display:none; gap:8px; flex-wrap:wrap; margin:8px 0;"></div>
+                    <button id="toggleQuickReplies" class="gated-btn" style="margin-left:8px;" title="Show/Hide Quick Replies"><i class="fas fa-list"></i></button>
+                </div>
                 <div class="chat-input-row">
                     <textarea id="messageInput" placeholder="Type your message..." rows="1"></textarea>
                     <button id="sendMessageBtn"><i class="fas fa-paper-plane"></i> Send</button>
@@ -3341,7 +3344,8 @@
                 const youToThem = await getDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", partnerId));
                 const themToYou = await getDoc(doc(db, "artifacts", appId, "users", partnerId, "friends", currentUser.uid));
                 const isFriends = youToThem.exists() && themToYou.exists();
-                if (!isFriends) {
+                const allowMessaging = UNLOCK_ALL_PREVIEW || isFriends;
+                if (!allowMessaging) {
                     if (messageInput) messageInput.disabled = true;
                     if (sendMessageBtn) sendMessageBtn.disabled = true;
                     if (noMessages) {
@@ -3354,6 +3358,10 @@
                 }
             } catch (e) {
                 console.warn('JCHAT_WARN: Friendship check failed:', e?.message || e);
+                if (UNLOCK_ALL_PREVIEW) {
+                    if (messageInput) messageInput.disabled = false;
+                    if (sendMessageBtn) sendMessageBtn.disabled = false;
+                }
             }
 
             console.log("JCHAT_DEBUG: Fetching messages for chat between", currentUser.uid, "and", partnerId);
@@ -6144,6 +6152,15 @@
                 reactionBar.style.display = 'none';
             } catch (e) { console.error('Reaction apply failed', e); }
         }
+
+        const toggleQuickReplies = document.getElementById('toggleQuickReplies');
+
+        toggleQuickReplies?.addEventListener('click', () => {
+            if (!isUnlocked('quickReplies')) { openUnlock('quickReplies'); return; }
+            const isVisible = quickRepliesRow.style.display !== 'none';
+            quickRepliesRow.style.display = isVisible ? 'none' : 'flex';
+            if (!isVisible) renderQuickReplies();
+        });
     </script>
 </body>
 </html>
