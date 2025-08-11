@@ -370,6 +370,20 @@
             background: var(--warning-orange);
         }
 
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         @media (max-width: 1024px) {
             .dashboard-sections {
                 grid-template-columns: 1fr;
@@ -390,10 +404,10 @@
 <body>
     <header class="header">
         <div class="header-content">
-            <a href="/home.html" class="logo">JCHAT</a>
+            <a href="/Home.html" class="logo">JCHAT</a>
             <nav class="nav">
                 <ul>
-                    <li><a href="/home.html">Home</a></li>
+                    <li><a href="/Home.html">Home</a></li>
                     <li><a href="/Admin.html">Admin</a></li>
                     <li><a href="/premium_subscriptions.html">Premium</a></li>
                     <li><a href="/premium_themes.html">Themes</a></li>
@@ -457,7 +471,12 @@
                         </tr>
                     </thead>
                     <tbody id="subscriptionsTableBody">
-                        <!-- Subscription data will be loaded here -->
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem;">
+                                <div class="loading-spinner"></div>
+                                <div style="margin-top: 1rem; color: var(--text-light);">Loading subscriptions...</div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -502,7 +521,10 @@
                         Recent Activity
                     </h3>
                     <ul class="recent-activity" id="recentActivityList">
-                        <!-- Recent activity will be loaded here -->
+                        <li style="text-align: center; padding: 2rem;">
+                            <div class="loading-spinner"></div>
+                            <div style="margin-top: 1rem; color: var(--text-light);">Loading activity...</div>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -511,84 +533,124 @@
 
     <div id="messageBox" class="message-box"></div>
 
-    <script>
-        // Sample data for demonstration
-        let dashboardData = {
-            subscriptions: [
-                {
-                    id: 1,
-                    user: 'john_doe',
-                    email: 'john@example.com',
-                    plan: 'Pro Premium',
-                    status: 'active',
-                    startDate: '2024-01-01',
-                    endDate: '2024-02-01',
-                    amount: 999
-                },
-                {
-                    id: 2,
-                    user: 'jane_smith',
-                    email: 'jane@example.com',
-                    plan: 'Basic Premium',
-                    status: 'active',
-                    startDate: '2024-01-15',
-                    endDate: '2024-02-15',
-                    amount: 499
-                },
-                {
-                    id: 3,
-                    user: 'bob_wilson',
-                    email: 'bob@example.com',
-                    plan: 'Enterprise',
-                    status: 'pending',
-                    startDate: '2024-01-20',
-                    endDate: '2024-02-20',
-                    amount: 1999
-                }
-            ],
-            recentActivity: [
-                {
-                    type: 'subscription',
-                    title: 'New Pro Premium subscription',
-                    description: 'john_doe upgraded to Pro Premium',
-                    time: '2 hours ago',
-                    icon: 'subscription'
-                },
-                {
-                    type: 'theme',
-                    title: 'Theme purchase completed',
-                    description: 'jane_smith bought Dark Elegance theme',
-                    time: '4 hours ago',
-                    icon: 'theme'
-                },
-                {
-                    type: 'payment',
-                    title: 'Payment received',
-                    description: '₦999 from Pro Premium subscription',
-                    time: '6 hours ago',
-                    icon: 'payment'
-                },
-                {
-                    type: 'user',
-                    title: 'New premium user',
-                    description: 'bob_wilson joined with Enterprise plan',
-                    time: '1 day ago',
-                    icon: 'user'
-                }
-            ]
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, query, where, orderBy, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, addDoc, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvQhHhHhHhHhHhHhHhHhHhHhHhHhHhHh",
+            authDomain: "jchat-12345.firebaseapp.com",
+            projectId: "jchat-12345",
+            storageBucket: "jchat-12345.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdefghijklmnop"
         };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = "jchat-12345";
+
+        // Global variables
+        let currentUser = null;
+        let isAuthReady = false;
+        let dashboardData = {
+            subscriptions: [],
+            recentActivity: []
+        };
+
+        // Check if user is admin
+        const ADMIN_UID = "admin123"; // Replace with actual admin UID
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            loadDashboardData();
-            renderSubscriptionsTable();
-            renderRecentActivity();
+            checkAuthState();
         });
 
-        // Load dashboard data
-        function loadDashboardData() {
-            // In real implementation, this would fetch from your database
-            updateStats();
+        // Check authentication state
+        function checkAuthState() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    isAuthReady = true;
+                    
+                    // Check if user is admin
+                    if (user.uid === ADMIN_UID) {
+                        await loadDashboardData();
+                        renderSubscriptionsTable();
+                        renderRecentActivity();
+                        startRealTimeListeners();
+                    } else {
+                        showMessage('Access denied. Admin privileges required.', 'error');
+                        setTimeout(() => {
+                            window.location.href = '/Home.html';
+                        }, 2000);
+                    }
+                } else {
+                    // Redirect to login if not authenticated
+                    window.location.href = '/Login.html';
+                }
+            });
+        }
+
+        // Load dashboard data from Firebase
+        async function loadDashboardData() {
+            try {
+                showMessage('Loading dashboard data...', 'info');
+                
+                // Load subscriptions
+                const subscriptionsRef = collection(db, "artifacts", appId, "public", "data", "premium_subscriptions");
+                const subscriptionsSnapshot = await getDocs(subscriptionsRef);
+                
+                dashboardData.subscriptions = subscriptionsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Load recent activity
+                const activityRef = collection(db, "artifacts", appId, "public", "data", "premium_activity");
+                const activitySnapshot = await getDocs(query(activityRef, orderBy("timestamp", "desc"), limit(10)));
+                
+                dashboardData.recentActivity = activitySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                updateStats();
+                showMessage('Dashboard data loaded successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showMessage('Failed to load dashboard data', 'error');
+            }
+        }
+
+        // Start real-time listeners
+        function startRealTimeListeners() {
+            // Listen for subscription changes
+            const subscriptionsRef = collection(db, "artifacts", appId, "public", "data", "premium_subscriptions");
+            onSnapshot(subscriptionsRef, (snapshot) => {
+                dashboardData.subscriptions = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                updateStats();
+                renderSubscriptionsTable();
+            });
+
+            // Listen for activity changes
+            const activityRef = collection(db, "artifacts", appId, "public", "data", "premium_activity");
+            onSnapshot(query(activityRef, orderBy("timestamp", "desc"), limit(10)), (snapshot) => {
+                dashboardData.recentActivity = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                renderRecentActivity();
+            });
         }
 
         // Update statistics
@@ -596,8 +658,8 @@
             const activeSubscriptions = dashboardData.subscriptions.filter(sub => sub.status === 'active').length;
             const monthlyRevenue = dashboardData.subscriptions
                 .filter(sub => sub.status === 'active')
-                .reduce((sum, sub) => sum + sub.amount, 0);
-            const themeSales = 15; // Simulated data
+                .reduce((sum, sub) => sum + (sub.amount || 0), 0);
+            const themeSales = dashboardData.recentActivity.filter(activity => activity.type === 'theme_purchase').length;
             const premiumUsers = activeSubscriptions;
 
             document.getElementById('totalSubscriptions').textContent = activeSubscriptions;
@@ -609,27 +671,39 @@
         // Render subscriptions table
         function renderSubscriptionsTable() {
             const tbody = document.getElementById('subscriptionsTableBody');
+            
+            if (dashboardData.subscriptions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-light);">
+                            No subscriptions found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
             tbody.innerHTML = dashboardData.subscriptions.map(sub => `
                 <tr>
                     <td>
                         <div>
-                            <div style="font-weight: 600; color: var(--white);">${sub.user}</div>
-                            <div style="font-size: 0.8rem;">${sub.email}</div>
+                            <div style="font-weight: 600; color: var(--white);">${sub.username || sub.userId || 'Unknown User'}</div>
+                            <div style="font-size: 0.8rem;">${sub.email || 'No email'}</div>
                         </div>
                     </td>
-                    <td>${sub.plan}</td>
+                    <td>${sub.plan || 'Unknown Plan'}</td>
                     <td>
-                        <span class="status-badge status-${sub.status}">
-                            ${sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
+                        <span class="status-badge status-${sub.status || 'pending'}">
+                            ${(sub.status || 'pending').charAt(0).toUpperCase() + (sub.status || 'pending').slice(1)}
                         </span>
                     </td>
                     <td>${formatDate(sub.startDate)}</td>
                     <td>${formatDate(sub.endDate)}</td>
                     <td>
-                        <button class="action-btn edit" onclick="editSubscription(${sub.id})">
+                        <button class="action-btn edit" onclick="editSubscription('${sub.id}')">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete" onclick="deleteSubscription(${sub.id})">
+                        <button class="action-btn delete" onclick="deleteSubscription('${sub.id}')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -640,14 +714,24 @@
         // Render recent activity
         function renderRecentActivity() {
             const list = document.getElementById('recentActivityList');
+            
+            if (dashboardData.recentActivity.length === 0) {
+                list.innerHTML = `
+                    <li style="text-align: center; padding: 2rem; color: var(--text-light);">
+                        No recent activity
+                    </li>
+                `;
+                return;
+            }
+
             list.innerHTML = dashboardData.recentActivity.map(activity => `
                 <li>
-                    <div class="activity-icon ${activity.icon}">
+                    <div class="activity-icon ${activity.type}">
                         <i class="fas fa-${getActivityIcon(activity.type)}"></i>
                     </div>
                     <div class="activity-details">
-                        <div class="activity-title">${activity.title}</div>
-                        <div class="activity-time">${activity.time}</div>
+                        <div class="activity-title">${activity.title || 'Activity'}</div>
+                        <div class="activity-time">${formatTimeAgo(activity.timestamp)}</div>
                     </div>
                 </li>
             `).join('');
@@ -657,48 +741,91 @@
         function getActivityIcon(type) {
             const icons = {
                 subscription: 'crown',
-                theme: 'palette',
+                theme_purchase: 'palette',
                 payment: 'money-bill-wave',
-                user: 'user-plus'
+                user_upgrade: 'user-plus',
+                subscription_renewal: 'sync',
+                subscription_cancellation: 'times-circle'
             };
             return icons[type] || 'info-circle';
         }
 
         // Format date
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            
+            try {
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch (error) {
+                return 'Invalid Date';
+            }
+        }
+
+        // Format time ago
+        function formatTimeAgo(timestamp) {
+            if (!timestamp) return 'Unknown time';
+            
+            try {
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - date) / 1000);
+                
+                if (diffInSeconds < 60) return 'Just now';
+                if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+                if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+                return `${Math.floor(diffInSeconds / 86400)}d ago`;
+            } catch (error) {
+                return 'Unknown time';
+            }
         }
 
         // Edit subscription
-        function editSubscription(id) {
+        window.editSubscription = async function(id) {
             const subscription = dashboardData.subscriptions.find(sub => sub.id === id);
             if (subscription) {
-                showMessage(`Editing subscription for ${subscription.user}`, 'info');
+                showMessage(`Editing subscription for ${subscription.username || subscription.userId}`, 'info');
                 // In real implementation, this would open an edit modal
+                // For now, just show a message
             }
-        }
+        };
 
         // Delete subscription
-        function deleteSubscription(id) {
+        window.deleteSubscription = async function(id) {
             const subscription = dashboardData.subscriptions.find(sub => sub.id === id);
-            if (subscription && confirm(`Are you sure you want to delete the subscription for ${subscription.user}?`)) {
-                dashboardData.subscriptions = dashboardData.subscriptions.filter(sub => sub.id !== id);
-                renderSubscriptionsTable();
-                updateStats();
-                showMessage(`Subscription for ${subscription.user} deleted successfully`, 'success');
+            if (subscription && confirm(`Are you sure you want to delete the subscription for ${subscription.username || subscription.userId}?`)) {
+                try {
+                    const subscriptionRef = doc(db, "artifacts", appId, "public", "data", "premium_subscriptions", id);
+                    await deleteDoc(subscriptionRef);
+                    
+                    // Add activity log
+                    const activityRef = collection(db, "artifacts", appId, "public", "data", "premium_activity");
+                    await addDoc(activityRef, {
+                        type: 'subscription_cancellation',
+                        title: 'Subscription deleted',
+                        description: `Subscription for ${subscription.username || subscription.userId} was deleted`,
+                        timestamp: serverTimestamp(),
+                        userId: currentUser.uid,
+                        adminAction: true
+                    });
+                    
+                    showMessage(`Subscription for ${subscription.username || subscription.userId} deleted successfully`, 'success');
+                } catch (error) {
+                    console.error('Error deleting subscription:', error);
+                    showMessage('Failed to delete subscription', 'error');
+                }
             }
-        }
+        };
 
         // Generate revenue report
-        function generateRevenueReport() {
+        window.generateRevenueReport = function() {
             const totalRevenue = dashboardData.subscriptions
                 .filter(sub => sub.status === 'active')
-                .reduce((sum, sub) => sum + sub.amount, 0);
+                .reduce((sum, sub) => sum + (sub.amount || 0), 0);
             
             const report = `
                 Revenue Report - ${new Date().toLocaleDateString()}
@@ -713,7 +840,7 @@
             
             alert(report);
             showMessage('Revenue report generated successfully', 'success');
-        }
+        };
 
         // Get plan breakdown
         function getPlanBreakdown() {
@@ -721,7 +848,8 @@
             dashboardData.subscriptions
                 .filter(sub => sub.status === 'active')
                 .forEach(sub => {
-                    planCounts[sub.plan] = (planCounts[sub.plan] || 0) + 1;
+                    const plan = sub.plan || 'Unknown';
+                    planCounts[plan] = (planCounts[plan] || 0) + 1;
                 });
             
             return Object.entries(planCounts)
@@ -730,7 +858,7 @@
         }
 
         // Export data
-        function exportData() {
+        window.exportData = function() {
             const dataStr = JSON.stringify(dashboardData, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(dataBlob);
@@ -742,7 +870,7 @@
             
             URL.revokeObjectURL(url);
             showMessage('Data exported successfully', 'success');
-        }
+        };
 
         // Show message
         function showMessage(message, type = 'info') {
@@ -753,6 +881,17 @@
             setTimeout(() => {
                 messageBox.classList.remove('show');
             }, 5000);
+        }
+
+        // Handle logout
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                window.location.href = '/Login.html';
+            } catch (error) {
+                console.error('Error signing out:', error);
+                showMessage('Error signing out', 'error');
+            }
         }
     </script>
 

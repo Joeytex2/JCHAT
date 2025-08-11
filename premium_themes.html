@@ -407,6 +407,20 @@
             margin-top: 1rem;
         }
 
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         .message-box {
             position: fixed;
             top: 20px;
@@ -468,10 +482,10 @@
 <body>
     <header class="header">
         <div class="header-content">
-            <a href="/home.html" class="logo">JCHAT</a>
+            <a href="/Home.html" class="logo">JCHAT</a>
             <nav class="nav">
                 <ul>
-                    <li><a href="/home.html">Home</a></li>
+                    <li><a href="/Home.html">Home</a></li>
                     <li><a href="/premium_subscriptions.html">Premium</a></li>
                     <li><a href="/wallet.html">Wallet</a></li>
                     <li><a href="/jcoin_shop.html">Buy JCoins</a></li>
@@ -511,132 +525,249 @@
 
     <div id="messageBox" class="message-box"></div>
 
-    <script>
-        // Theme data
-        const themes = [
-            {
-                id: 'dark-elegance',
-                name: 'Dark Elegance',
-                description: 'A sophisticated dark theme with elegant gradients and smooth transitions',
-                price: 150,
-                category: 'dark',
-                features: ['Premium dark mode', 'Custom gradients', 'Smooth animations', 'Professional look'],
-                previewClass: 'preview-dark',
-                isPremium: true
-            },
-            {
-                id: 'light-minimal',
-                name: 'Light Minimal',
-                description: 'Clean and minimal light theme perfect for productivity and focus',
-                price: 100,
-                category: 'light',
-                features: ['Clean design', 'High contrast', 'Minimal distractions', 'Professional appearance'],
-                previewClass: 'preview-light',
-                isPremium: false
-            },
-            {
-                id: 'sunset-vibes',
-                name: 'Sunset Vibes',
-                description: 'Warm and inviting theme inspired by beautiful sunset colors',
-                price: 200,
-                category: 'gradient',
-                features: ['Warm color palette', 'Gradient backgrounds', 'Cozy atmosphere', 'Unique design'],
-                previewClass: 'preview-sunset',
-                isPremium: true
-            },
-            {
-                id: 'ocean-depths',
-                name: 'Ocean Depths',
-                description: 'Deep blue theme reminiscent of the mysterious ocean depths',
-                price: 175,
-                category: 'gradient',
-                features: ['Deep blue tones', 'Ocean-inspired', 'Calming effect', 'Premium gradients'],
-                previewClass: 'preview-ocean',
-                isPremium: true
-            },
-            {
-                id: 'forest-nature',
-                name: 'Forest Nature',
-                description: 'Natural green theme inspired by lush forests and nature',
-                price: 125,
-                category: 'gradient',
-                features: ['Natural colors', 'Eco-friendly design', 'Calming greens', 'Nature inspired'],
-                previewClass: 'preview-forest',
-                isPremium: false
-            },
-            {
-                id: 'neon-futuristic',
-                name: 'Neon Futuristic',
-                description: 'Bold neon theme with futuristic aesthetics and vibrant colors',
-                price: 250,
-                category: 'premium',
-                features: ['Neon effects', 'Futuristic design', 'Vibrant colors', 'Premium animations'],
-                previewClass: 'preview-neon',
-                isPremium: true
-            },
-            {
-                id: 'royal-purple',
-                name: 'Royal Purple',
-                description: 'Luxurious purple theme with regal aesthetics and premium feel',
-                price: 300,
-                category: 'premium',
-                features: ['Luxury design', 'Royal aesthetics', 'Premium gradients', 'Exclusive look'],
-                previewClass: 'preview-royal',
-                isPremium: true
-            },
-            {
-                id: 'cosmic-space',
-                name: 'Cosmic Space',
-                description: 'Space-inspired theme with cosmic elements and deep space aesthetics',
-                price: 225,
-                category: 'premium',
-                features: ['Space theme', 'Cosmic elements', 'Deep aesthetics', 'Premium design'],
-                previewClass: 'preview-cosmic',
-                isPremium: true
-            },
-            {
-                id: 'aurora-borealis',
-                name: 'Aurora Borealis',
-                description: 'Magical theme inspired by the beautiful northern lights',
-                price: 275,
-                category: 'premium',
-                features: ['Magical effects', 'Northern lights', 'Premium animations', 'Unique design'],
-                previewClass: 'preview-aurora',
-                isPremium: true
-            }
-        ];
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, doc, setDoc, getDoc, serverTimestamp, addDoc, onSnapshot, query, where, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvQhHhHhHhHhHhHhHhHhHhHhHhHhHhHhHh",
+            authDomain: "jchat-12345.firebaseapp.com",
+            projectId: "jchat-12345",
+            storageBucket: "jchat-12345.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdefghijklmnop"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = "jchat-12345";
+
+        // Global variables
         let currentUser = null;
         let userBalance = 0;
         let ownedThemes = [];
         let currentFilter = 'all';
+        let themes = [];
+        let isProcessing = false;
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             checkUserAuth();
-            loadUserData();
-            renderThemes();
             setupEventListeners();
         });
 
         // Check user authentication
         function checkUserAuth() {
-            const user = localStorage.getItem('jchat_user');
-            if (user) {
-                currentUser = JSON.parse(user);
-            } else {
-                window.location.href = '/login.html';
-            }
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    await loadUserData();
+                    await loadThemes();
+                    renderThemes();
+                    startRealTimeListeners();
+                } else {
+                    // Redirect to login if not authenticated
+                    window.location.href = '/Login.html';
+                }
+            });
         }
 
         // Load user data
-        function loadUserData() {
-            // This would fetch from your database
-            // For now, we'll simulate it
-            userBalance = 500; // Simulated balance
-            ownedThemes = ['light-minimal', 'forest-nature']; // Simulated owned themes
+        async function loadUserData() {
+            try {
+                const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    userBalance = userData.jcoins || 0;
+                    ownedThemes = userData.ownedThemes || [];
+                } else {
+                    // Create user document if it doesn't exist
+                    await setDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`), {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        username: currentUser.displayName || currentUser.email,
+                        jcoins: 500, // Default balance
+                        ownedThemes: [],
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                    userBalance = 500;
+                    ownedThemes = [];
+                }
+                updateUserBalance();
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                showMessage('Error loading user data', 'error');
+            }
+        }
+
+        // Load themes from Firestore
+        async function loadThemes() {
+            try {
+                const themesQuery = query(
+                    collection(db, `artifacts/${appId}/public/data/premium_themes`),
+                    orderBy('createdAt', 'desc')
+                );
+                
+                const querySnapshot = await getDocs(themesQuery);
+                themes = [];
+                querySnapshot.forEach((doc) => {
+                    themes.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                // If no themes exist, create default themes
+                if (themes.length === 0) {
+                    await createDefaultThemes();
+                }
+            } catch (error) {
+                console.error('Error loading themes:', error);
+                showMessage('Error loading themes', 'error');
+            }
+        }
+
+        // Create default themes
+        async function createDefaultThemes() {
+            const defaultThemes = [
+                {
+                    name: 'Dark Elegance',
+                    description: 'A sophisticated dark theme with elegant gradients and smooth transitions',
+                    price: 150,
+                    category: 'dark',
+                    features: ['Premium dark mode', 'Custom gradients', 'Smooth animations', 'Professional look'],
+                    previewClass: 'preview-dark',
+                    isPremium: true,
+                    createdAt: serverTimestamp()
+                },
+                {
+                    name: 'Light Minimal',
+                    description: 'Clean and minimal light theme perfect for productivity and focus',
+                    price: 100,
+                    category: 'light',
+                    features: ['Clean design', 'High contrast', 'Minimal distractions', 'Professional appearance'],
+                    previewClass: 'preview-light',
+                    isPremium: false,
+                    createdAt: serverTimestamp()
+                },
+                {
+                    name: 'Sunset Vibes',
+                    description: 'Warm and inviting theme inspired by beautiful sunset colors',
+                    price: 200,
+                    category: 'gradient',
+                    features: ['Warm color palette', 'Gradient backgrounds', 'Cozy atmosphere', 'Unique design'],
+                    previewClass: 'preview-sunset',
+                    isPremium: true,
+                    createdAt: serverTimestamp()
+                },
+                {
+                    name: 'Ocean Depths',
+                    description: 'Deep blue theme reminiscent of the mysterious ocean depths',
+                    price: 175,
+                    category: 'gradient',
+                    features: ['Deep blue tones', 'Ocean-inspired', 'Calming effect', 'Premium gradients'],
+                    previewClass: 'preview-ocean',
+                    isPremium: true,
+                    createdAt: serverTimestamp()
+                },
+                {
+                    name: 'Forest Nature',
+                    description: 'Natural green theme inspired by lush forests and nature',
+                    price: 125,
+                    category: 'gradient',
+                    features: ['Natural colors', 'Eco-friendly design', 'Calming greens', 'Nature inspired'],
+                    previewClass: 'preview-forest',
+                    isPremium: false,
+                    createdAt: serverTimestamp()
+                },
+                {
+                    name: 'Neon Futuristic',
+                    description: 'Bold neon theme with futuristic aesthetics and vibrant colors',
+                    price: 250,
+                    category: 'premium',
+                    features: ['Neon effects', 'Futuristic design', 'Vibrant colors', 'Premium animations'],
+                    previewClass: 'preview-neon',
+                    isPremium: true,
+                    createdAt: serverTimestamp()
+                },
+                {
+                    name: 'Royal Purple',
+                    description: 'Luxurious purple theme with regal aesthetics and premium feel',
+                    price: 300,
+                    category: 'premium',
+                    features: ['Luxury design', 'Royal aesthetics', 'Premium gradients', 'Exclusive look'],
+                    previewClass: 'preview-royal',
+                    isPremium: true,
+                    createdAt: serverTimestamp()
+                },
+                {
+                    name: 'Cosmic Space',
+                    description: 'Space-inspired theme with cosmic elements and deep space aesthetics',
+                    price: 225,
+                    category: 'premium',
+                    features: ['Space theme', 'Cosmic elements', 'Deep aesthetics', 'Premium design'],
+                    previewClass: 'preview-cosmic',
+                    isPremium: true,
+                    createdAt: serverTimestamp()
+                },
+                {
+                    name: 'Aurora Borealis',
+                    description: 'Magical theme inspired by the beautiful northern lights',
+                    price: 275,
+                    category: 'premium',
+                    features: ['Magical effects', 'Northern lights', 'Premium animations', 'Unique design'],
+                    previewClass: 'preview-aurora',
+                    isPremium: true,
+                    createdAt: serverTimestamp()
+                }
+            ];
+
+            try {
+                for (const theme of defaultThemes) {
+                    await addDoc(collection(db, `artifacts/${appId}/public/data/premium_themes`), theme);
+                }
+                await loadThemes(); // Reload themes after creating defaults
+            } catch (error) {
+                console.error('Error creating default themes:', error);
+            }
+        }
+
+        // Start real-time listeners
+        function startRealTimeListeners() {
+            // Listen for theme updates
+            const themesQuery = query(
+                collection(db, `artifacts/${appId}/public/data/premium_themes`),
+                orderBy('createdAt', 'desc')
+            );
             
-            updateUserBalance();
+            onSnapshot(themesQuery, (querySnapshot) => {
+                themes = [];
+                querySnapshot.forEach((doc) => {
+                    themes.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                renderThemes();
+            });
+
+            // Listen for user data updates
+            const userDocRef = doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`);
+            onSnapshot(userDocRef, (doc) => {
+                if (doc.exists()) {
+                    const userData = doc.data();
+                    userBalance = userData.jcoins || 0;
+                    ownedThemes = userData.ownedThemes || [];
+                    updateUserBalance();
+                    renderThemes();
+                }
+            });
         }
 
         // Update user balance display
@@ -737,7 +868,6 @@
             const theme = themes.find(t => t.id === themeId);
             if (!theme) return;
             
-            // In a real implementation, this would apply the theme temporarily
             showMessage(`Previewing ${theme.name} theme...`, 'info');
             
             // Simulate theme preview
@@ -758,39 +888,53 @@
             }
             
             if (confirm(`Purchase "${theme.name}" for ${theme.price} JCoins?`)) {
-                // Process purchase
                 processThemePurchase(theme);
             }
         }
 
         // Process theme purchase
-        function processThemePurchase(theme) {
+        async function processThemePurchase(theme) {
+            if (isProcessing) return;
+            
+            isProcessing = true;
             showMessage('Processing purchase...', 'info');
             
-            // Simulate purchase processing
-            setTimeout(() => {
-                // Deduct JCoins
-                userBalance -= theme.price;
-                updateUserBalance();
-                
-                // Add to owned themes
-                ownedThemes.push(theme.id);
-                
-                // Show success message
+            try {
+                // Deduct JCoins from user
+                const newBalance = userBalance - theme.price;
+                await setDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`), {
+                    jcoins: newBalance,
+                    ownedThemes: [...ownedThemes, theme.id],
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+
+                // Add purchase to activity log
+                await addDoc(collection(db, `artifacts/${appId}/public/data/premium_activity`), {
+                    userId: currentUser.uid,
+                    username: currentUser.displayName || currentUser.email,
+                    activityType: 'theme_purchase',
+                    title: `Purchased ${theme.name} theme`,
+                    description: `User purchased ${theme.name} theme for ${theme.price} JCoins`,
+                    amount: theme.price,
+                    themeId: theme.id,
+                    themeName: theme.name,
+                    timestamp: serverTimestamp()
+                });
+
                 showMessage(`Successfully purchased "${theme.name}"!`, 'success');
                 
-                // Re-render themes to update UI
+                // Update local state
+                userBalance = newBalance;
+                ownedThemes.push(theme.id);
+                updateUserBalance();
                 renderThemes();
                 
-                // In real implementation, save to database
-                saveThemePurchase(theme);
-            }, 1000);
-        }
-
-        // Save theme purchase to database
-        function saveThemePurchase(theme) {
-            // This would integrate with your existing database
-            console.log(`Theme purchase saved: ${theme.name} for user ${currentUser?.uid}`);
+            } catch (error) {
+                console.error('Error processing theme purchase:', error);
+                showMessage('Error processing purchase. Please try again.', 'error');
+            } finally {
+                isProcessing = false;
+            }
         }
 
         // Show message
@@ -803,6 +947,10 @@
                 messageBox.classList.remove('show');
             }, 5000);
         }
+
+        // Make functions globally available
+        window.previewTheme = previewTheme;
+        window.buyTheme = buyTheme;
     </script>
 
     <!-- Firebase SDK -->
