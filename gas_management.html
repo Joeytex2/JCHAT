@@ -1756,9 +1756,22 @@
                 <p id="noPostsMessage" style="display: none;">No public posts to display.</p>
             </div>
             
+            <div class="admin-section" id="featureOrdersSection">
+                <h2>Feature Orders</h2>
+                <div class="input-group" style="display:flex; gap:12px; align-items:center;">
+                    <label for="ordersStatusFilter" style="margin:0;">Filter:</label>
+                    <select id="ordersStatusFilter" style="padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--input-background); color:var(--white);">
+                        <option value="pending" selected>Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="all">All</option>
+                    </select>
+                </div>
+                <div id="ordersList" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:12px; width:100%;"></div>
+                <p id="noOrdersMessage" style="display:none; color:var(--text-light); text-align:center;">No orders to display.</p>
+            </div>
         </div>
     </main>
-
 
     <!-- Custom Message Box -->
     <div id="messageBox" role="alert" aria-live="polite"></div>
@@ -1918,7 +1931,12 @@
         const globalUsersTableBody = document.getElementById('globalUsersTableBody');
         const noUsersMessage = document.getElementById('noUsersMessage');
 
-        
+        // Feature Orders elements
+        const featureOrdersSection = document.getElementById('featureOrdersSection');
+        const ordersStatusFilter = document.getElementById('ordersStatusFilter');
+        const ordersList = document.getElementById('ordersList');
+        const noOrdersMessage = document.getElementById('noOrdersMessage');
+        let unsubscribeFeatureOrdersListener = null;
 
         // --- Global State Variables ---
         let currentUser = null;
@@ -4230,6 +4248,118 @@
             }
         }
 
+        function renderOrderCard(order, orderId) {
+            const card = document.createElement('div');
+            card.className = 'management-card';
+            const ts = order.createdAt ? new Date(order.createdAt.toDate()).toLocaleString() : 'N/A';
+            const receipt = order.receiptUrl ? `<img src="${order.receiptUrl}" alt="Receipt" style="width:100%;max-height:180px;object-fit:contain;border-radius:10px;border:1px solid var(--border-light);margin-top:6px;"/>` : '<div style="color:var(--text-light);">No receipt</div>';
+            card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                    <div style="font-weight:700;">${order.itemType || 'unknown'}</div>
+                    <span style="opacity:.8;font-size:.85rem;">${order.status || 'pending'}</span>
+                </div>
+                <div style="margin-top:6px;color:var(--text-light);font-size:.9rem;">
+                    <div><strong>Order ID:</strong> ${order.orderId || orderId}</div>
+                    <div><strong>User:</strong> ${order.userId || 'N/A'}</div>
+                    <div><strong>Amount:</strong> ${order.amount || 'N/A'}</div>
+                    <div><strong>When:</strong> ${ts}</div>
+                </div>
+                ${receipt}
+                <div style="display:flex;gap:8px;margin-top:10px;">
+                    <button class="admin-button" data-action="approve" data-order-id="${orderId}" data-user-id="${order.userId}" data-item-type="${order.itemType}" data-item-id="${order.itemId || ''}"><span class="button-text">Approve</span><div class="button-loader"></div></button>
+                    <button class="admin-button secondary" data-action="reject" data-order-id="${orderId}"><span class="button-text">Reject</span><div class="button-loader"></div></button>
+                    ${order.receiptUrl ? `<a href="${order.receiptUrl}" target="_blank" class="admin-button secondary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-download"></i> Receipt</a>` : ''}
+                </div>
+            `;
+            return card;
+        }
+
+        function subscribeFeatureOrders() {
+            if (unsubscribeFeatureOrdersListener) {
+                unsubscribeFeatureOrdersListener();
+                unsubscribeFeatureOrdersListener = null;
+            }
+            let qRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+            const status = ordersStatusFilter?.value || 'pending';
+            if (status !== 'all') {
+                qRef = query(qRef, where('status', '==', status));
+            }
+            unsubscribeFeatureOrdersListener = onSnapshot(qRef, (snap) => {
+                ordersList.innerHTML = '';
+                if (snap.empty) {
+                    noOrdersMessage.style.display = 'block';
+                } else {
+                    noOrdersMessage.style.display = 'none';
+                    snap.forEach(docSnap => {
+                        const card = renderOrderCard(docSnap.data(), docSnap.id);
+                        ordersList.appendChild(card);
+                    });
+                }
+            }, (err) => {
+                console.error('JCHAT_ERROR: orders listener', err);
+                noOrdersMessage.style.display = 'block';
+            });
+        }
+
+        ordersStatusFilter?.addEventListener('change', subscribeFeatureOrders);
+
+        async function approveFeatureOrder(orderId, userId, itemType, itemId, buttonEl) {
+            try {
+                if (!orderId || !userId || !itemType) { showMessageBox('Invalid order.', 'error'); return; }
+                toggleButtonLoading(buttonEl, true);
+
+                const entRef = doc(db, 'artifacts', appId, 'users', userId, 'profiles', 'user_entitlements');
+                const updates = {};
+                if (itemType === 'stickers') { updates.stickersUnlocked = true; updates.packs = arrayUnion('stickers_basic'); }
+                else if (itemType === 'reactions') { updates.reactionsUnlocked = true; updates.packs = arrayUnion('reactions_basic'); }
+                else if (itemType === 'effects') { updates.effectsUnlocked = true; }
+                else if (itemType === 'quickReplies') { updates.quickRepliesUnlocked = true; }
+                else if (itemType === 'mediaPro') { updates.mediaTier = 'pro'; }
+
+                await setDoc(entRef, updates, { merge: true });
+
+                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await updateDoc(orderRef, { status: 'approved', approvedAt: serverTimestamp(), approvedBy: currentUser?.uid || null });
+
+                showMessageBox('Order approved and feature unlocked.', 'success');
+            } catch (e) {
+                console.error(e);
+                showMessageBox(e?.message || 'Failed to approve order', 'error');
+            } finally {
+                toggleButtonLoading(buttonEl, false);
+            }
+        }
+
+        async function rejectFeatureOrder(orderId, buttonEl) {
+            try {
+                if (!orderId) { showMessageBox('Invalid order.', 'error'); return; }
+                toggleButtonLoading(buttonEl, true);
+                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await updateDoc(orderRef, { status: 'rejected', rejectedAt: serverTimestamp(), rejectedBy: currentUser?.uid || null });
+                showMessageBox('Order rejected.', 'info');
+            } catch (e) {
+                console.error(e);
+                showMessageBox(e?.message || 'Failed to reject order', 'error');
+            } finally {
+                toggleButtonLoading(buttonEl, false);
+            }
+        }
+
+        featureOrdersSection?.addEventListener('click', (ev) => {
+            const btn = ev.target.closest('button.admin-button');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            if (action === 'approve') {
+                approveFeatureOrder(btn.dataset.orderId, btn.dataset.userId, btn.dataset.itemType, btn.dataset.itemId, btn);
+            } else if (action === 'reject') {
+                rejectFeatureOrder(btn.dataset.orderId, btn);
+            }
+        });
+
+        // Start orders listener on auth ready
+        onAuthStateChanged(auth, (user) => {
+            if (user) { subscribeFeatureOrders(); }
+        });
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
