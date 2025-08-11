@@ -2150,6 +2150,18 @@
         @media (max-width: 900px) {
             #unlockStore .unlock-body { grid-template-columns: 1fr; }
         }
+
+        /* Emoji picker and Reaction bar */
+        #emojiPicker { display:none; position:fixed; bottom:84px; left:16px; width:280px; max-height:240px; overflow:auto; background:var(--card-background); border:1px solid var(--border-light); border-radius:12px; padding:8px; box-shadow:0 8px 20px rgba(0,0,0,0.4); z-index:900; }
+        #emojiGrid { display:grid; grid-template-columns: repeat(8, 1fr); gap:6px; }
+        #emojiGrid button { font-size:20px; padding:6px; border-radius:8px; background:transparent; border:1px solid var(--border-light); cursor:pointer; }
+        #emojiGrid button:hover { background: rgba(255,255,255,0.05); }
+
+        #reactionBar { display:none; position:fixed; background:var(--card-background); border:1px solid var(--border-light); border-radius:999px; padding:6px; box-shadow:0 6px 16px rgba(0,0,0,0.35); z-index:1200; }
+        #reactionBar button { font-size:20px; margin:0 4px; width:36px; height:36px; border-radius:50%; border:1px solid var(--border-light); background:transparent; cursor:pointer; }
+        #reactionBar button:hover { background: rgba(255,255,255,0.08); }
+        .reactions-row { display:flex; gap:6px; align-items:center; margin-top:4px; flex-wrap:wrap; }
+        .reaction-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border:1px solid var(--border-light); border-radius:999px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -2525,6 +2537,18 @@
             </div>
         </div>
     </div>
+
+    <!-- Emoji picker -->
+    <div id="emojiPicker">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <span style="font-weight:700; color:var(--white)">Emoji</span>
+            <button id="emojiPickerClose" style="background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="emojiGrid"></div>
+    </div>
+
+    <!-- Reaction bar -->
+    <div id="reactionBar"></div>
 
     <script type="module">
         // Import Firebase modules
@@ -3051,6 +3075,7 @@
             const messageBubble = document.createElement('div');
             messageBubble.classList.add('message-bubble');
             messageBubble.setAttribute('data-message-id', message.id); // Store message ID
+            messageBubble.dataset.reactions = JSON.stringify(message.reactions || {});
 
             const isSentByCurrentUser = message.senderId === currentUserId;
             messageBubble.classList.add(isSentByCurrentUser ? 'sent' : 'received');
@@ -3112,6 +3137,12 @@
                 messageInfo.classList.add('message-info');
                 messageInfo.textContent = timeString;
                 messageBubble.appendChild(messageInfo);
+
+                // Reactions row
+                const reactionsRow = document.createElement('div');
+                reactionsRow.className = 'reactions-row';
+                updateReactionsRow(reactionsRow, message);
+                messageBubble.appendChild(reactionsRow);
             }
 
             // Add message options (edit/delete) if sent by current user and not a call status message
@@ -6012,6 +6043,107 @@
                 prev.style.display = 'none';
             }
         });
+
+        // ---- Emoji Picker ----
+        const emojiPicker = document.getElementById('emojiPicker');
+        const emojiPickerClose = document.getElementById('emojiPickerClose');
+        const emojiGrid = document.getElementById('emojiGrid');
+        const EMOJI_SET = ['😀','😁','😂','🤣','😊','😍','😘','😜','😎','😢','😭','😡','👍','👎','👏','🙏','🔥','💯','🎉','❤️','💔','😮','😴','🤔','😅','😉','😇','🤗','😋','😏','🙄','🤩','🥳','🥰','🤤','🤐','🤯','😬','😤','😇'];
+        function buildEmojiGrid() {
+            emojiGrid.innerHTML = '';
+            for (const e of EMOJI_SET) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.textContent = e;
+                b.addEventListener('click', () => {
+                    if (!messageInput) return;
+                    const start = messageInput.selectionStart || messageInput.value.length;
+                    const end = messageInput.selectionEnd || messageInput.value.length;
+                    const v = messageInput.value;
+                    messageInput.value = v.slice(0, start) + e + v.slice(end);
+                    messageInput.focus();
+                });
+                emojiGrid.appendChild(b);
+            }
+        }
+        buildEmojiGrid();
+        emojiPickerClose?.addEventListener('click', () => emojiPicker.style.display = 'none');
+
+        // Optional: open emoji picker on right-click inside textarea
+        messageInput?.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            emojiPicker.style.display = 'block';
+            const rect = messageInput.getBoundingClientRect();
+            emojiPicker.style.left = `${Math.max(8, rect.left)}px`;
+            emojiPicker.style.bottom = `84px`;
+        });
+
+        // ---- Reactions ----
+        const reactionBar = document.getElementById('reactionBar');
+        const REACTIONS = ['👍','❤️','😂','😮','😢','🙏','🔥','💯'];
+
+        function updateReactionsRow(container, message) {
+            const counts = message.reactions || {};
+            container.innerHTML = '';
+            Object.keys(counts).forEach(key => {
+                if (!counts[key]) return;
+                const pill = document.createElement('span');
+                pill.className = 'reaction-pill';
+                pill.innerHTML = `${key} <span>${counts[key]}</span>`;
+                container.appendChild(pill);
+            });
+            if (container.children.length === 0) {
+                container.style.display = 'none';
+            } else {
+                container.style.display = 'flex';
+            }
+        }
+
+        function wireReactionLongPress(bubbleEl, message) {
+            let pressTimer = null;
+            const start = (ev) => {
+                pressTimer = setTimeout(() => openReactionBar(ev, bubbleEl, message), 350);
+            };
+            const cancel = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
+            bubbleEl.addEventListener('mousedown', start);
+            bubbleEl.addEventListener('touchstart', start);
+            ['mouseup','mouseleave','mouseout','touchend','touchcancel'].forEach(e => bubbleEl.addEventListener(e, cancel));
+        }
+
+        function openReactionBar(ev, bubbleEl, message) {
+            const rect = bubbleEl.getBoundingClientRect();
+            reactionBar.innerHTML = '';
+            for (const r of REACTIONS) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.textContent = r;
+                b.addEventListener('click', () => applyReaction(message, r));
+                reactionBar.appendChild(b);
+            }
+            reactionBar.style.display = 'block';
+            const x = rect.left + rect.width / 2 - reactionBar.offsetWidth / 2;
+            reactionBar.style.left = `${Math.max(8, x)}px`;
+            reactionBar.style.top = `${Math.max(8, rect.top - 48)}px`;
+            const close = (e) => {
+                if (!reactionBar.contains(e.target)) {
+                    reactionBar.style.display = 'none';
+                    document.removeEventListener('click', close, true);
+                }
+            };
+            setTimeout(() => document.addEventListener('click', close, true), 0);
+        }
+
+        async function applyReaction(message, emoji) {
+            try {
+                if (!auth.currentUser || !partnerId) return;
+                const chatRoomId = getChatRoomId(auth.currentUser.uid, partnerId);
+                const messageDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'chats', chatRoomId, 'messages', message.id);
+                const current = message.reactions || {};
+                const nextCount = (current[emoji] || 0) + 1;
+                await updateDoc(messageDocRef, { [`reactions.${emoji}`]: nextCount });
+                reactionBar.style.display = 'none';
+            } catch (e) { console.error('Reaction apply failed', e); }
+        }
     </script>
 </body>
 </html>
