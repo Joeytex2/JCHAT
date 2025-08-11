@@ -5772,27 +5772,30 @@
             }
         }
 
-        // Simple sticker picker content
-        const SAMPLE_STICKERS = [
-            'https://i.imgur.com/0Z8FQ.png',
-            'https://i.imgur.com/7V9bY.png',
-            'https://i.imgur.com/2x0k1.png',
-            'https://i.imgur.com/3y9Qh.png',
-            'https://i.imgur.com/uh9Ts.png',
-            'https://i.imgur.com/qp8xW.png',
-            'https://i.imgur.com/PG7eN.png',
-            'https://i.imgur.com/3D0oQ.png'
-        ];
+        // Real sticker set using Twemoji CDN (100+)
+        function emojiToCodePoints(emoji) {
+            const parts = [];
+            for (const ch of Array.from(emoji)) {
+                parts.push(ch.codePointAt(0).toString(16));
+            }
+            return parts.join('-');
+        }
+        function getTwemojiUrl(emoji) {
+            const cp = emojiToCodePoints(emoji);
+            return `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${cp}.png`;
+        }
+        const STICKER_EMOJIS = ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','😘','🥰','😗','😙','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','🙄','😏','😣','😥','😮','🤐','😯','😪','😫','🥱','😴','😌','😛','😜','😝','🤤','😒','😓','😔','😕','🙃','🫠','🫥','😲','☹️','🙁','😖','😞','😟','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰','😱','🥵','🥶','😳','🤪','😵','🥴','😠','😡','🤬','😷','🤒','🤕','🤢','🤮','🤧','🥹','🥲','😇','🥳','🤠','🤡','👻','💀','👽','🤖','💩','😺','😸','😹','😻','😼','😽','🙀','😿','😾','👍','👎','👏','🙌','👐','🤝','🙏','💪','🫶','❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💔','❣️','💖','💗','💓','💞','💕','💘','💝','🔥','💯','✨','⭐','🌟','🎉','🎊','🎈'];
 
         function openStickerPicker() {
             stickerGrid.innerHTML = '';
-            for (const url of SAMPLE_STICKERS) {
+            for (const emoji of STICKER_EMOJIS) {
+                const url = getTwemojiUrl(emoji);
                 const img = document.createElement('img');
                 img.src = url;
                 img.alt = 'sticker';
-                img.style.cssText = 'width:56px;height:56px;object-fit:contain;cursor:pointer;background:#0002;border-radius:8px;';
+                img.loading = 'lazy';
+                img.style.cssText = 'width:56px;height:56px;object-fit:contain;cursor:pointer;background:transparent;border-radius:8px;';
                 img.addEventListener('click', async () => {
-                    // Send as image message
                     if (!auth.currentUser || !partnerId) return;
                     try {
                         toggleButtonLoading(sendMessageBtn, true);
