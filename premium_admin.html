@@ -755,5 +755,333 @@
             }, 5000);
         }
     </script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, query, where, orderBy, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, addDoc, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvQhHhHhHhHhHhHhHhHhHhHhHhHhHhHhHh",
+            authDomain: "jchat-12345.firebaseapp.com",
+            projectId: "jchat-12345",
+            storageBucket: "jchat-12345.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdefghijklmnop"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = "jchat-12345";
+
+        // Global variables
+        let currentUser = null;
+        let isAuthReady = false;
+        let dashboardData = {
+            subscriptions: [],
+            recentActivity: []
+        };
+
+        // Check if user is admin
+        const ADMIN_UID = "admin123"; // Replace with actual admin UID
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthState();
+        });
+
+        // Check authentication state
+        function checkAuthState() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    isAuthReady = true;
+                    
+                    // Check if user is admin
+                    if (user.uid === ADMIN_UID) {
+                        await loadDashboardData();
+                        renderSubscriptionsTable();
+                        renderRecentActivity();
+                        startRealTimeListeners();
+                    } else {
+                        showMessage('Access denied. Admin privileges required.', 'error');
+                        setTimeout(() => {
+                            window.location.href = '/Home.html';
+                        }, 2000);
+                    }
+                } else {
+                    // Redirect to login if not authenticated
+                    window.location.href = '/Login.html';
+                }
+            });
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                // Load subscriptions
+                const subscriptionsQuery = query(
+                    collection(db, `artifacts/${appId}/public/data/premium_subscriptions`),
+                    orderBy('createdAt', 'desc')
+                );
+                const subscriptionsSnapshot = await getDocs(subscriptionsQuery);
+                dashboardData.subscriptions = [];
+                subscriptionsSnapshot.forEach((doc) => {
+                    dashboardData.subscriptions.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                // Load recent activity
+                const activityQuery = query(
+                    collection(db, `artifacts/${appId}/public/data/premium_activity`),
+                    orderBy('timestamp', 'desc'),
+                    limit(10)
+                );
+                const activitySnapshot = await getDocs(activityQuery);
+                dashboardData.recentActivity = [];
+                activitySnapshot.forEach((doc) => {
+                    dashboardData.recentActivity.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                updateStats();
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showMessage('Error loading dashboard data', 'error');
+            }
+        }
+
+        // Start real-time listeners
+        function startRealTimeListeners() {
+            // Listen for subscription updates
+            const subscriptionsQuery = query(
+                collection(db, `artifacts/${appId}/public/data/premium_subscriptions`),
+                orderBy('createdAt', 'desc')
+            );
+            
+            onSnapshot(subscriptionsQuery, (querySnapshot) => {
+                dashboardData.subscriptions = [];
+                querySnapshot.forEach((doc) => {
+                    dashboardData.subscriptions.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                renderSubscriptionsTable();
+                updateStats();
+            });
+
+            // Listen for activity updates
+            const activityQuery = query(
+                collection(db, `artifacts/${appId}/public/data/premium_activity`),
+                orderBy('timestamp', 'desc'),
+                limit(10)
+            );
+            
+            onSnapshot(activityQuery, (querySnapshot) => {
+                dashboardData.recentActivity = [];
+                querySnapshot.forEach((doc) => {
+                    dashboardData.recentActivity.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                renderRecentActivity();
+            });
+        }
+
+        // Update stats
+        function updateStats() {
+            const activeSubscriptions = dashboardData.subscriptions.filter(sub => sub.status === 'active').length;
+            const monthlyRevenue = dashboardData.subscriptions
+                .filter(sub => sub.status === 'active')
+                .reduce((sum, sub) => sum + (sub.amount || 0), 0);
+            const themeSales = dashboardData.recentActivity
+                .filter(activity => activity.activityType === 'theme_purchase')
+                .reduce((sum, activity) => sum + (activity.amount || 0), 0);
+            const premiumUsers = dashboardData.subscriptions.length;
+
+            document.getElementById('activeSubscriptions').textContent = activeSubscriptions;
+            document.getElementById('monthlyRevenue').textContent = `₦${monthlyRevenue.toLocaleString()}`;
+            document.getElementById('themeSales').textContent = `₦${themeSales.toLocaleString()}`;
+            document.getElementById('premiumUsers').textContent = premiumUsers;
+        }
+
+        // Render subscriptions table
+        function renderSubscriptionsTable() {
+            const tbody = document.getElementById('subscriptionsTableBody');
+            if (dashboardData.subscriptions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No subscriptions found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = dashboardData.subscriptions.map(sub => `
+                <tr>
+                    <td>${sub.user || sub.username || 'N/A'}</td>
+                    <td>${sub.email || 'N/A'}</td>
+                    <td>${sub.plan || 'N/A'}</td>
+                    <td>${sub.status || 'N/A'}</td>
+                    <td>${formatDate(sub.createdAt)}</td>
+                    <td>
+                        <button onclick="editSubscription('${sub.id}')" class="btn-edit">Edit</button>
+                        <button onclick="deleteSubscription('${sub.id}')" class="btn-delete">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render recent activity
+        function renderRecentActivity() {
+            const list = document.getElementById('recentActivityList');
+            if (dashboardData.recentActivity.length === 0) {
+                list.innerHTML = '<li class="text-center">No recent activity</li>';
+                return;
+            }
+
+            list.innerHTML = dashboardData.recentActivity.map(activity => `
+                <li>
+                    <i class="fas fa-${getActivityIcon(activity.activityType)}"></i>
+                    <div>
+                        <strong>${activity.title || 'N/A'}</strong>
+                        <span>${formatTimeAgo(activity.timestamp)}</span>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        // Get activity icon
+        function getActivityIcon(type) {
+            const icons = {
+                subscription: 'credit-card',
+                theme_purchase: 'palette',
+                payment: 'money-bill-wave',
+                user: 'user-plus'
+            };
+            return icons[type] || 'info-circle';
+        }
+
+        // Format date
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Format time ago
+        function formatTimeAgo(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+            return `${Math.floor(diffInSeconds / 86400)} days ago`;
+        }
+
+        // Edit subscription
+        function editSubscription(id) {
+            showMessage('Edit functionality coming soon', 'info');
+        }
+
+        // Delete subscription
+        async function deleteSubscription(id) {
+            const subscription = dashboardData.subscriptions.find(sub => sub.id === id);
+            if (subscription && confirm(`Are you sure you want to delete the subscription for ${subscription.user || subscription.username}?`)) {
+                try {
+                    // Delete from Firestore
+                    await deleteDoc(doc(db, `artifacts/${appId}/public/data/premium_subscriptions/${id}`));
+                    
+                    // Add activity log
+                    await addDoc(collection(db, `artifacts/${appId}/public/data/premium_activity`), {
+                        userId: currentUser.uid,
+                        username: currentUser.displayName || currentUser.email,
+                        activityType: 'subscription',
+                        title: `Deleted subscription for ${subscription.user || subscription.username}`,
+                        description: `Admin deleted subscription for ${subscription.user || subscription.username}`,
+                        timestamp: serverTimestamp()
+                    });
+
+                    showMessage(`Subscription for ${subscription.user || subscription.username} deleted successfully`, 'success');
+                } catch (error) {
+                    console.error('Error deleting subscription:', error);
+                    showMessage('Error deleting subscription', 'error');
+                }
+            }
+        }
+
+        // Generate revenue report
+        function generateRevenueReport() {
+            const totalRevenue = dashboardData.subscriptions
+                .filter(sub => sub.status === 'active')
+                .reduce((sum, sub) => sum + (sub.amount || 0), 0);
+            
+            const report = `
+                Revenue Report - ${new Date().toLocaleDateString()}
+                
+                Total Active Subscriptions: ${dashboardData.subscriptions.filter(sub => sub.status === 'active').length}
+                Monthly Recurring Revenue: ₦${totalRevenue.toLocaleString()}
+                Average Revenue Per User: ₦${Math.round(totalRevenue / Math.max(dashboardData.subscriptions.filter(sub => sub.status === 'active').length, 1))}
+                
+                Plan Breakdown:
+                ${getPlanBreakdown()}
+            `;
+            
+            alert(report);
+            showMessage('Revenue report generated successfully', 'success');
+        }
+
+        // Get plan breakdown
+        function getPlanBreakdown() {
+            const planCounts = {};
+            dashboardData.subscriptions
+                .filter(sub => sub.status === 'active')
+                .forEach(sub => {
+                    planCounts[sub.plan] = (planCounts[sub.plan] || 0) + 1;
+                });
+            
+            return Object.entries(planCounts)
+                .map(([plan, count]) => `${plan}: ${count} users`)
+                .join('\n');
+        }
+
+        // Export data
+        function exportData() {
+            const dataStr = JSON.stringify(dashboardData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `jchat-premium-data-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            showMessage('Data exported successfully', 'success');
+        }
+
+        // Logout
+        function handleLogout() {
+            signOut(auth).then(() => {
+                window.location.href = '/Login.html';
+            }).catch((error) => {
+                console.error('Error signing out:', error);
+                showMessage('Error signing out', 'error');
+            });
+        }
+    </script>
 </body>
 </html>

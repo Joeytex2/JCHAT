@@ -615,5 +615,236 @@
             }, 5000);
         }
     </script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, doc, setDoc, getDoc, serverTimestamp, addDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvQhHhHhHhHhHhHhHhHhHhHhHhHhHhHhHh",
+            authDomain: "jchat-12345.firebaseapp.com",
+            projectId: "jchat-12345",
+            storageBucket: "jchat-12345.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdefghijklmnop"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = "jchat-12345";
+
+        // Global variables
+        let currentUser = null;
+        let userPremiumStatus = null;
+        let isProcessing = false;
+
+        // Plan details
+        const plans = {
+            basic: { 
+                name: 'Basic Premium', 
+                price: 499, 
+                jcoins: 100,
+                features: ['Premium themes (5+ exclusive themes)', 'Custom profile frames', 'Priority customer support', 'Ad-free experience', '100 JCoins monthly bonus']
+            },
+            pro: { 
+                name: 'Pro Premium', 
+                price: 999, 
+                jcoins: 250,
+                features: ['All Basic features', 'Unlimited premium themes', 'Advanced analytics dashboard', 'Unlimited groups creation', 'Custom emoji packs', '250 JCoins monthly bonus', 'Priority chat features']
+            },
+            enterprise: { 
+                name: 'Enterprise', 
+                price: 1999, 
+                jcoins: 500,
+                features: ['All Pro features', 'Team management tools', 'Advanced moderation tools', 'Custom branding options', 'API access', '500 JCoins monthly bonus', 'Dedicated support']
+            }
+        };
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserAuth();
+        });
+
+        // Check user authentication
+        function checkUserAuth() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    await loadUserPremiumStatus();
+                    updateSubscriptionUI();
+                } else {
+                    // Redirect to login if not authenticated
+                    window.location.href = '/Login.html';
+                }
+            });
+        }
+
+        // Load user premium status
+        async function loadUserPremiumStatus() {
+            try {
+                const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    userPremiumStatus = userData.premiumStatus || null;
+                } else {
+                    // Create user document if it doesn't exist
+                    await setDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`), {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        username: currentUser.displayName || currentUser.email,
+                        premiumStatus: null,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                    userPremiumStatus = null;
+                }
+            } catch (error) {
+                console.error('Error loading user premium status:', error);
+                showMessage('Error loading user data', 'error');
+            }
+        }
+
+        // Update subscription UI
+        function updateSubscriptionUI() {
+            // Remove any existing current plan badges
+            document.querySelectorAll('.current-plan-badge').forEach(badge => badge.remove());
+            
+            if (userPremiumStatus) {
+                const planCard = document.querySelector(`[data-plan="${userPremiumStatus.plan}"]`);
+                if (planCard) {
+                    const badge = document.createElement('div');
+                    badge.className = 'current-plan-badge';
+                    badge.textContent = 'Current Plan';
+                    badge.style.cssText = 'background: var(--success-green); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; text-align: center; margin-top: 1rem;';
+                    planCard.appendChild(badge);
+                    
+                    // Change button text
+                    const button = planCard.querySelector('.subscribe-btn');
+                    if (button) {
+                        button.textContent = 'Manage Subscription';
+                        button.onclick = () => manageSubscription(userPremiumStatus.plan);
+                    }
+                }
+            }
+        }
+
+        // Subscribe to plan
+        function subscribeToPlan(planType) {
+            if (isProcessing) return;
+            if (!currentUser) {
+                showMessage('Please log in to subscribe', 'error');
+                return;
+            }
+            if (!plans[planType]) {
+                showMessage('Invalid plan selected', 'error');
+                return;
+            }
+            if (userPremiumStatus && userPremiumStatus.plan === planType) {
+                showMessage('You already own this plan', 'info');
+                return;
+            }
+            
+            processSubscription(planType, plans[planType]);
+        }
+
+        // Process subscription
+        async function processSubscription(planType, planDetails) {
+            isProcessing = true;
+            setButtonLoading(planType, true);
+            
+            try {
+                // Create subscription document
+                const subscriptionData = {
+                    userId: currentUser.uid,
+                    username: currentUser.displayName || currentUser.email,
+                    email: currentUser.email,
+                    plan: planType,
+                    planName: planDetails.name,
+                    amount: planDetails.price,
+                    jcoins: planDetails.jcoins,
+                    status: 'pending',
+                    startDate: serverTimestamp(),
+                    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                };
+
+                const subscriptionRef = await addDoc(collection(db, `artifacts/${appId}/public/data/premium_subscriptions`), subscriptionData);
+
+                // Add activity log
+                await addDoc(collection(db, `artifacts/${appId}/public/data/premium_activity`), {
+                    userId: currentUser.uid,
+                    username: currentUser.displayName || currentUser.email,
+                    activityType: 'subscription',
+                    title: `Subscribed to ${planDetails.name}`,
+                    description: `User subscribed to ${planDetails.name} plan`,
+                    amount: planDetails.price,
+                    plan: planType,
+                    subscriptionId: subscriptionRef.id,
+                    timestamp: serverTimestamp()
+                });
+
+                showPaymentInstructions(planType, planDetails, subscriptionRef.id);
+                
+            } catch (error) {
+                console.error('Error processing subscription:', error);
+                showMessage('Error processing subscription. Please try again.', 'error');
+            } finally {
+                isProcessing = false;
+                setButtonLoading(planType, false);
+            }
+        }
+
+        // Set button loading state
+        function setButtonLoading(planType, isLoading) {
+            const button = document.getElementById(`${planType}Btn`);
+            if (button) {
+                button.disabled = isLoading;
+                const btnText = button.querySelector('.btn-text');
+                const spinner = button.querySelector('.loading-spinner');
+                
+                if (isLoading) {
+                    btnText.textContent = 'Processing...';
+                    spinner.style.display = 'inline-block';
+                } else {
+                    btnText.textContent = 'Subscribe Now';
+                    spinner.style.display = 'none';
+                }
+            }
+        }
+
+        // Show payment instructions
+        function showPaymentInstructions(planType, planDetails, subscriptionId) {
+            alert(`Payment Instructions for ${planDetails.name}:
+            
+Your User ID: ${currentUser.uid}
+Subscription ID: ${subscriptionId}
+Amount: ₦${planDetails.price}
+
+Please contact support to complete your payment and activate your subscription.`);
+            
+            showMessage(`Subscription created successfully! Please contact support to complete payment.`, 'success');
+        }
+
+        // Manage subscription
+        function manageSubscription(planType) {
+            showMessage('Subscription management features coming soon. Please contact support for assistance.', 'info');
+        }
+
+        // Logout
+        function handleLogout() {
+            signOut(auth).then(() => {
+                window.location.href = '/Login.html';
+            }).catch((error) => {
+                console.error('Error signing out:', error);
+                showMessage('Error signing out', 'error');
+            });
+        }
+    </script>
 </body>
 </html>

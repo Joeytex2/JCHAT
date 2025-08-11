@@ -804,5 +804,307 @@
             }, 5000);
         }
     </script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, doc, setDoc, getDoc, serverTimestamp, addDoc, onSnapshot, query, where, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvQhHhHhHhHhHhHhHhHhHhHhHhHhHhHhHh",
+            authDomain: "jchat-12345.firebaseapp.com",
+            projectId: "jchat-12345",
+            storageBucket: "jchat-12345.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdefghijklmnop"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = "jchat-12345";
+
+        // Global variables
+        let currentUser = null;
+        let userBalance = 0;
+        let ownedThemes = [];
+        let currentFilter = 'all';
+        let themes = [];
+        let isProcessing = false;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserAuth();
+            setupEventListeners();
+        });
+
+        // Check user authentication
+        function checkUserAuth() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    await loadUserData();
+                    await loadThemes();
+                    renderThemes();
+                    startRealTimeListeners();
+                } else {
+                    // Redirect to login if not authenticated
+                    window.location.href = '/Login.html';
+                }
+            });
+        }
+
+        // Load user data
+        async function loadUserData() {
+            try {
+                const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    userBalance = userData.jcoins || 0;
+                    ownedThemes = userData.ownedThemes || [];
+                } else {
+                    // Create user document if it doesn't exist
+                    await setDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`), {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        username: currentUser.displayName || currentUser.email,
+                        jcoins: 1000, // Starting balance
+                        ownedThemes: [],
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                    userBalance = 1000;
+                    ownedThemes = [];
+                }
+                updateUserBalance();
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                showMessage('Error loading user data', 'error');
+            }
+        }
+
+        // Load themes from Firestore
+        async function loadThemes() {
+            try {
+                const themesQuery = query(collection(db, `artifacts/${appId}/public/data/premium_themes`));
+                const themesSnapshot = await getDocs(themesQuery);
+                
+                if (themesSnapshot.empty) {
+                    // Create default themes if collection is empty
+                    const defaultThemes = [
+                        {
+                            id: 'theme1',
+                            name: 'Midnight Blue',
+                            description: 'A sleek dark theme with blue accents',
+                            price: 150,
+                            category: 'dark',
+                            image: 'https://via.placeholder.com/300x200/1e3a8a/ffffff?text=Midnight+Blue',
+                            features: ['Dark mode', 'Blue accents', 'Professional look']
+                        },
+                        {
+                            id: 'theme2',
+                            name: 'Sunset Glow',
+                            description: 'Warm orange and red gradient theme',
+                            price: 200,
+                            category: 'gradient',
+                            image: 'https://via.placeholder.com/300x200/f97316/ffffff?text=Sunset+Glow',
+                            features: ['Gradient background', 'Warm colors', 'Modern design']
+                        },
+                        {
+                            id: 'theme3',
+                            name: 'Forest Green',
+                            description: 'Nature-inspired green theme',
+                            price: 180,
+                            category: 'nature',
+                            image: 'https://via.placeholder.com/300x200/16a34a/ffffff?text=Forest+Green',
+                            features: ['Green palette', 'Nature inspired', 'Calming']
+                        }
+                    ];
+
+                    for (const theme of defaultThemes) {
+                        await addDoc(collection(db, `artifacts/${appId}/public/data/premium_themes`), {
+                            ...theme,
+                            createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp()
+                        });
+                    }
+                    
+                    themes = defaultThemes;
+                } else {
+                    themes = [];
+                    themesSnapshot.forEach((doc) => {
+                        themes.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading themes:', error);
+                showMessage('Error loading themes', 'error');
+            }
+        }
+
+        // Start real-time listeners
+        function startRealTimeListeners() {
+            // Listen for theme updates
+            const themesQuery = query(collection(db, `artifacts/${appId}/public/data/premium_themes`));
+            onSnapshot(themesQuery, (querySnapshot) => {
+                themes = [];
+                querySnapshot.forEach((doc) => {
+                    themes.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                renderThemes();
+            });
+
+            // Listen for user data updates
+            const userDocRef = doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`);
+            onSnapshot(userDocRef, (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const userData = docSnapshot.data();
+                    userBalance = userData.jcoins || 0;
+                    ownedThemes = userData.ownedThemes || [];
+                    updateUserBalance();
+                    renderThemes(); // Re-render to update button states
+                }
+            });
+        }
+
+        // Update user balance display
+        function updateUserBalance() {
+            const balanceElement = document.getElementById('userBalance');
+            if (balanceElement) {
+                balanceElement.textContent = userBalance;
+            }
+        }
+
+        // Render themes
+        function renderThemes() {
+            const themesContainer = document.getElementById('themesContainer');
+            if (!themesContainer) return;
+
+            let filteredThemes = themes;
+            if (currentFilter !== 'all') {
+                filteredThemes = themes.filter(theme => theme.category === currentFilter);
+            }
+
+            if (filteredThemes.length === 0) {
+                themesContainer.innerHTML = '<p class="no-themes">No themes found for this category.</p>';
+                return;
+            }
+
+            themesContainer.innerHTML = filteredThemes.map(theme => `
+                <div class="theme-card" data-theme-id="${theme.id}">
+                    <div class="theme-image">
+                        <img src="${theme.image}" alt="${theme.name}" loading="lazy">
+                        <div class="theme-overlay">
+                            <button onclick="previewTheme('${theme.id}')" class="preview-btn">
+                                <i class="fas fa-eye"></i> Preview
+                            </button>
+                        </div>
+                    </div>
+                    <div class="theme-info">
+                        <h3>${theme.name}</h3>
+                        <p>${theme.description}</p>
+                        <div class="theme-features">
+                            ${theme.features.map(feature => `<span class="feature-tag">${feature}</span>`).join('')}
+                        </div>
+                        <div class="theme-price">
+                            <span class="price">${theme.price} JCoins</span>
+                            ${ownedThemes.includes(theme.id) ? 
+                                '<button class="owned-btn" disabled>Already Owned</button>' :
+                                `<button onclick="buyTheme('${theme.id}', ${theme.price})" class="buy-btn" ${userBalance < theme.price ? 'disabled' : ''}>
+                                    ${userBalance < theme.price ? 'Insufficient JCoins' : 'Buy Now'}
+                                </button>`
+                            }
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Process theme purchase
+        async function processThemePurchase(themeId, price) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            try {
+                // Deduct JCoins from user balance
+                await setDoc(doc(db, `artifacts/${appId}/public/data/users/${currentUser.uid}`), {
+                    jcoins: userBalance - price,
+                    ownedThemes: [...ownedThemes, themeId],
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+
+                // Add activity log
+                await addDoc(collection(db, `artifacts/${appId}/public/data/premium_activity`), {
+                    userId: currentUser.uid,
+                    username: currentUser.displayName || currentUser.email,
+                    activityType: 'theme_purchase',
+                    title: `Purchased theme: ${themes.find(t => t.id === themeId)?.name || 'Unknown'}`,
+                    description: `User purchased a premium theme`,
+                    amount: price,
+                    themeId: themeId,
+                    timestamp: serverTimestamp()
+                });
+
+                showMessage('Theme purchased successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error purchasing theme:', error);
+                showMessage('Error purchasing theme. Please try again.', 'error');
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    currentFilter = this.dataset.filter;
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    renderThemes();
+                });
+            });
+        }
+
+        // Make functions globally available
+        window.previewTheme = function(themeId) {
+            const theme = themes.find(t => t.id === themeId);
+            if (theme) {
+                alert(`Preview: ${theme.name}\n\n${theme.description}\n\nFeatures:\n${theme.features.join('\n')}`);
+            }
+        };
+
+        window.buyTheme = function(themeId, price) {
+            if (userBalance < price) {
+                showMessage('Insufficient JCoins. Please top up your balance.', 'error');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to purchase this theme for ${price} JCoins?`)) {
+                processThemePurchase(themeId, price);
+            }
+        };
+
+        // Logout
+        function handleLogout() {
+            signOut(auth).then(() => {
+                window.location.href = '/Login.html';
+            }).catch((error) => {
+                console.error('Error signing out:', error);
+                showMessage('Error signing out', 'error');
+            });
+        }
+    </script>
 </body>
 </html>
