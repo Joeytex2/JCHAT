@@ -2459,7 +2459,8 @@
                 hideTwoFAModal();
                 // Execute the stored action with its arguments
                 const args = Array.isArray(twoFAArgs) ? twoFAArgs : [];
-                await twoFAAction(...args);
+                const fn = (typeof twoFAAction === 'function') ? twoFAAction : (() => {});
+                await fn(...args);
             } catch (error) {
                 console.error("JCHAT_ERROR: 2FA re-authentication failed:", error);
                 showMessageBox(error.message || "2FA failed.", 'error');
