@@ -3228,7 +3228,7 @@
                 function openCropModal(file) {
                     const reader = new FileReader();
                     reader.onload = () => {
-                        cropImage.src = reader.result;
+                        if (cropImage) cropImage.src = reader.result;
                         originalImage = new Image();
                         originalImage.onload = () => {
                             imageNaturalWidth = originalImage.width;
@@ -3249,13 +3249,13 @@
                 }
 
                 function getAspect() {
-                    const val = cropAspectSelect.value || '4:1';
+                    const val = (cropAspectSelect && cropAspectSelect.value) || '4:1';
                     const [w, h] = val.split(':').map(Number);
                     return w / h;
                 }
 
                 function initCropBox() {
-                    const wrapRect = cropCanvasWrap.getBoundingClientRect();
+                    const wrapRect = cropCanvasWrap ? cropCanvasWrap.getBoundingClientRect() : { width: (cropImage?.clientWidth||800), height: (cropImage?.clientHeight||200) };
                     const aspect = getAspect();
                     const targetW = Math.min(wrapRect.width - 20, wrapRect.width);
                     const targetH = targetW / aspect;
@@ -3312,7 +3312,7 @@
                         canvas.width = outW; canvas.height = outH;
                         const ctx = canvas.getContext('2d');
                         // Map crop box coords back to image pixels considering zoom and displayed size
-                        const wrapRect = cropCanvasWrap.getBoundingClientRect();
+                        const wrapRect = cropCanvasWrap ? cropCanvasWrap.getBoundingClientRect() : { width: (cropImage?.clientWidth||800), height: (cropImage?.clientHeight||200) };
                         const scaleX = imageNaturalWidth / wrapRect.width;
                         const scaleY = imageNaturalHeight / wrapRect.height;
                         const sx = cropState.x * scaleX / cropState.zoom;
@@ -3324,8 +3324,8 @@
                         if (!blob) throw new Error('Crop failed');
                         const url = await uploadMediaToCloudinary(blob);
                         if (!url) throw new Error('Upload failed');
-                        profileCoverImg.src = getCloudinaryImageUrl(url, `w_${outW},h_${outH},c_fill,q_auto`);
-                        profileCoverImg.style.display = 'block';
+                        if (profileCoverImg) profileCoverImg.src = getCloudinaryImageUrl(url, `w_${outW},h_${outH},c_fill,q_auto`);
+                        if (profileCoverImg) profileCoverImg.style.display = 'block';
                         await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile'), { coverPicId: url, updatedAt: serverTimestamp() });
                         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid), { coverPicId: url, updatedAt: serverTimestamp() });
                         closeCropModal();
