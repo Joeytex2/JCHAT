@@ -3087,11 +3087,23 @@
             const timeString = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             let contentHtml = '';
+            // Backward-compat: normalize legacy messages without `type`
+            if (!message.type) {
+                if (message.mediaUrl || message.mediaType) {
+                    const mt = (message.mediaType || '').toLowerCase();
+                    if (mt.includes('video')) message.type = 'video';
+                    else if (mt.includes('audio')) message.type = 'audio';
+                    else message.type = 'image';
+                } else if (typeof message.content === 'string') {
+                    message.type = 'text';
+                    message.text = message.content;
+                }
+            }
             if (message.type === 'text') {
                 // XSS-safe text rendering
                 const wrapper = document.createElement('div');
                 wrapper.className = 'message-content';
-                const textNode = document.createTextNode(message.text || '');
+                const textNode = document.createTextNode(message.text || message.content || '');
                 wrapper.appendChild(textNode);
                 if (message.edited) {
                     const edited = document.createElement('span');
@@ -3117,11 +3129,11 @@
                                 <input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1">
                                 <span class="time-display">00:00 / 00:00</span>
                             </div>
-                            <audio src="${message.mediaUrl}" preload="none"></audio>
+                            <audio src="${message.mediaUrl || message.audioUrl || ''}" preload="none"></audio>
                         </div>
                         <div class="audio-buttons">
-                            <button class="audio-forward-btn" data-audio-url="${message.mediaUrl}" title="Forward Audio"><i class="fas fa-share"></i></button>
-                            <button class="audio-download-btn" data-audio-url="${message.mediaUrl}" data-filename="voice_note_${message.id}.webm" title="Download Audio"><i class="fas fa-download"></i></button>
+                            <button class="audio-forward-btn" data-audio-url="${message.mediaUrl || message.audioUrl || ''}" title="Forward Audio"><i class="fas fa-share"></i></button>
+                            <button class="audio-download-btn" data-audio-url="${message.mediaUrl || message.audioUrl || ''}" data-filename="voice_note_${message.id}.webm" title="Download Audio"><i class="fas fa-download"></i></button>
                         </div>
                     </div>
                 `;
@@ -3443,16 +3455,18 @@
                 return;
             }
 
-            // Prevent sending if not friends
+            // Prevent sending if not friends (bypass in preview)
             try {
                 const youToThem = await getDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", partnerId));
                 const themToYou = await getDoc(doc(db, "artifacts", appId, "users", partnerId, "friends", currentUser.uid));
-                if (!(youToThem.exists() && themToYou.exists())) {
+                const allow = UNLOCK_ALL_PREVIEW || (youToThem.exists() && themToYou.exists());
+                if (!allow) {
                     showMessageBox("You can only message friends. Send a request from Find Friends.", 'info');
                     return;
                 }
             } catch (e) {
                 console.warn('JCHAT_WARN: Friendship re-check failed on send:', e?.message || e);
+                if (!UNLOCK_ALL_PREVIEW) return;
             }
 
             if (type === 'text' && !content.trim()) {
@@ -5782,14 +5796,13 @@
                     try {
                         toggleButtonLoading(sendMessageBtn, true);
                         const chatRoomId = getChatRoomId(auth.currentUser.uid, partnerId);
-                        const messagesCollectionRef = collection(db, 'artifacts', appId, 'users', chatRoomId, 'messages');
+                        const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', chatRoomId, 'messages');
                         await addDoc(messagesCollectionRef, {
                             senderId: auth.currentUser.uid,
-                            content: '',
+                            receiverId: partnerId,
+                            type: 'image',
                             mediaUrl: url,
-                            mediaType: 'image',
                             timestamp: serverTimestamp(),
-                            isEdited: false
                         });
                         stickerPicker.style.display = 'none';
                     } catch (e) {
