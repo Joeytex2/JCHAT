@@ -1721,7 +1721,7 @@
 
                 <div class="bank-details-section">
                     <h3>OPay Details</h3>
-                    <div style="display:flex;align-items:center;gap:8px;"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/OPay_logo.png" alt="OPay Logo" class="bank-logo" style="height:24px;width:auto;"/><span><strong>Bank:</strong> OPay</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;"><img class="bank-logo" data-bank="OPay" alt="OPay Logo" style="height:24px;width:auto;"/><span><strong>Bank:</strong> OPay</span></div>
                     <p><strong>Account Name:</strong> ELECHI JOSHUA</p>
                     <p>
                         <strong>Account Number:</strong> <span id="bankAccountNumber">8111609765</span>
@@ -1735,7 +1735,7 @@
 
                 <div class="bank-details-section" style="margin-top:12px;">
                     <h3>Bank Transfer (Keystone Bank)</h3>
-                    <div style="display:flex;align-items:center;gap:8px;"><img src="https://upload.wikimedia.org/wikipedia/en/0/0e/Keystone_Logo.png" alt="Keystone Bank Logo" class="bank-logo" style="height:24px;width:auto;"/><span><strong>Bank:</strong> Keystone Bank</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;"><img class="bank-logo" data-bank="Keystone" alt="Keystone Bank Logo" style="height:24px;width:auto;"/><span><strong>Bank:</strong> Keystone Bank</span></div>
                     <p><strong>Account Name:</strong> ELECHI OSOUNDU JOSHUA</p>
                     <p>
                         <strong>Account Number:</strong> <span>6042862356</span>
@@ -3425,6 +3425,25 @@
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
             console.log('JCHAT_DEBUG: DOMContentLoaded - Wallet init');
+            // Generate random logos for bank icons
+            const bankLogos = document.querySelectorAll('img.bank-logo');
+            bankLogos.forEach(img => {
+                const bank = img.getAttribute('data-bank') || 'BNK';
+                const initials = bank.split(/\s+/).map(w => w[0]).join('').slice(0,3).toUpperCase();
+                const canvas = document.createElement('canvas');
+                canvas.width = 120; canvas.height = 40;
+                const ctx = canvas.getContext('2d');
+                // random pastel color based on bank name
+                let hash = 0; for (let i=0;i<bank.length;i++) hash = (hash*31 + bank.charCodeAt(i))>>>0;
+                const hue = hash % 360; const sat = 60; const light = 70;
+                ctx.fillStyle = `hsl(${hue} ${sat}% ${light}%)`;
+                ctx.fillRect(0,0,120,40);
+                ctx.fillStyle = '#111';
+                ctx.font = 'bold 20px Poppins, sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(initials, 60, 22);
+                img.src = canvas.toDataURL('image/png');
+            });
             // Apply theme on load
             const savedTheme = localStorage.getItem('jchat-theme');
             const themes = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
@@ -3668,36 +3687,4 @@
             const escape = (v) => {
                 if (v == null) return '';
                 const s = String(v).replace(/"/g, '""');
-                return /[",\n]/.test(s) ? `"${s}"` : s;
-            };
-            const lines = [headers.join(',')];
-            for (const r of rows) lines.push(headers.map(h => escape(r[h])).join(','));
-            return lines.join('\n');
-        }
-
-        async function fetchAllTransactionsForExport(filters) {
-            const transactionsRef = collection(db, "artifacts", appId, "users", currentUser.uid, "transactions");
-            let qBase = query(transactionsRef, orderBy("timestamp", "desc"));
-            // Firestore range filters require composite indexes; fall back to client filtering.
-            const snap = await getDocs(qBase);
-            const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            return items.filter(t => {
-                // Text search
-                if (filters.searchTerm && !(t.description || '').toLowerCase().includes(filters.searchTerm)) return false;
-                // Type
-                if (filters.type && filters.type !== 'all' && t.type !== filters.type) return false;
-                // Date
-                if (filters.from || filters.to) {
-                    const ts = t.timestamp ? t.timestamp.toDate() : null;
-                    if (!ts) return false;
-                    if (filters.from && ts < filters.from) return false;
-                    if (filters.to && ts > filters.to) return false;
-                }
-                return true;
-            });
-        }
-
-
-    </script>
-</body>
-</html>
+                return /[",\n]/.test(s) ? `"${s}"`
