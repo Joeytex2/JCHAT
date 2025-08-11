@@ -3745,7 +3745,7 @@
                 const arr = Array.from(new Uint8Array(buf));
                 const hex = arr.map(b => b.toString(16).padStart(2,'0')).join('');
                 const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
-                await updateDoc(ref, { transactionPinHash: hex, updatedAt: serverTimestamp() });
+                await setDoc(ref, { transactionPinHash: hex, updatedAt: serverTimestamp() }, { merge: true });
                 if (currentUserProfile) currentUserProfile.transactionPinHash = hex;
                 showMessageBox('Transaction PIN saved.', 'success');
             } catch (e) {
@@ -3757,11 +3757,22 @@
         async function resetTransactionPinViaEmail() {
             if (!currentUser) { showMessageBox('Please log in.', 'error'); return; }
             try {
-                await sendEmailVerification(currentUser);
-                showMessageBox('Verification email sent. After verifying, a PIN reset option will appear.', 'info');
+                if (!currentUser.email) {
+                    showMessageBox('No email linked to this account. Add an email to reset PIN.', 'error');
+                    return;
+                }
+                if (currentUser.emailVerified) {
+                    const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
+                    await setDoc(ref, { transactionPinHash: null, updatedAt: serverTimestamp() }, { merge: true });
+                    if (currentUserProfile) currentUserProfile.transactionPinHash = null;
+                    showMessageBox('PIN cleared. Please set a new PIN.', 'success');
+                } else {
+                    await sendEmailVerification(currentUser);
+                    showMessageBox('Verification email sent. Verify your email, then tap Reset via Email again to clear your PIN.', 'info');
+                }
             } catch (e) {
-                console.error('JCHAT_ERROR: send verification email failed:', e);
-                showMessageBox('Failed to send verification email.', 'error');
+                console.error('JCHAT_ERROR: reset PIN via email failed:', e);
+                showMessageBox('Failed to process PIN reset.', 'error');
             }
         }
     </script>
