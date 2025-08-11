@@ -1801,7 +1801,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, runTransaction, writeBatch, serverTimestamp, onSnapshot, addDoc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, runTransaction, writeBatch, serverTimestamp, onSnapshot, addDoc, deleteDoc, Timestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, getDownloadURL, deleteObject, uploadBytes } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // --- Firebase & Canvas Environment Configuration ---
@@ -1937,6 +1937,8 @@
         const ordersList = document.getElementById('ordersList');
         const noOrdersMessage = document.getElementById('noOrdersMessage');
         let unsubscribeFeatureOrdersListener = null;
+        const ordersUserSearch = document.getElementById('ordersUserSearch');
+        const ordersSearchBtn = document.getElementById('ordersSearchBtn');
 
         // --- Global State Variables ---
         let currentUser = null;
@@ -4281,9 +4283,11 @@
             }
             let qRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
             const status = ordersStatusFilter?.value || 'pending';
-            if (status !== 'all') {
-                qRef = query(qRef, where('status', '==', status));
-            }
+            const userQ = (ordersUserSearch?.value || '').trim();
+            const constraints = [];
+            if (status !== 'all') { constraints.push(where('status', '==', status)); }
+            if (userQ) { constraints.push(where('userId', '==', userQ)); }
+            if (constraints.length > 0) { qRef = query(qRef, ...constraints); }
             unsubscribeFeatureOrdersListener = onSnapshot(qRef, (snap) => {
                 ordersList.innerHTML = '';
                 if (snap.empty) {
@@ -4302,6 +4306,7 @@
         }
 
         ordersStatusFilter?.addEventListener('change', subscribeFeatureOrders);
+        ordersSearchBtn?.addEventListener('click', () => { subscribeFeatureOrders(); });
 
         async function approveFeatureOrder(orderId, userId, itemType, itemId, buttonEl) {
             try {
@@ -4319,7 +4324,8 @@
                 await setDoc(entRef, updates, { merge: true });
 
                 const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
-                await updateDoc(orderRef, { status: 'approved', approvedAt: serverTimestamp(), approvedBy: currentUser?.uid || null });
+                const note = (featureOrdersSection.querySelector(`textarea.order-note[data-order-id="${orderId}"]`)?.value || '').trim();
+                await updateDoc(orderRef, { status: 'approved', approvedAt: serverTimestamp(), approvedBy: currentUser?.uid || null, adminNote: note });
 
                 showMessageBox('Order approved and feature unlocked.', 'success');
             } catch (e) {
@@ -4335,7 +4341,8 @@
                 if (!orderId) { showMessageBox('Invalid order.', 'error'); return; }
                 toggleButtonLoading(buttonEl, true);
                 const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
-                await updateDoc(orderRef, { status: 'rejected', rejectedAt: serverTimestamp(), rejectedBy: currentUser?.uid || null });
+                const note = (featureOrdersSection.querySelector(`textarea.order-note[data-order-id="${orderId}"]`)?.value || '').trim();
+                await updateDoc(orderRef, { status: 'rejected', rejectedAt: serverTimestamp(), rejectedBy: currentUser?.uid || null, adminNote: note });
                 showMessageBox('Order rejected.', 'info');
             } catch (e) {
                 console.error(e);
