@@ -2110,13 +2110,19 @@
 
         /* Unlock store responsive layout */
         #unlockStore { overflow: auto; }
-        #unlockStore .unlock-card { max-width: 960px; margin: 32px auto; border-radius: 16px; }
-        #unlockStore .unlock-header { position: sticky; top: 0; background: var(--card-background); border-bottom: 1px solid var(--border-light); z-index: 2; }
+        #unlockStore .unlock-card { max-width: 960px; margin: 32px auto; border-radius: 16px; background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); box-shadow: 0 20px 50px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        #unlockStore .unlock-header { position: sticky; top: 0; background: linear-gradient(90deg, var(--blue), var(--pink)); border-bottom: 1px solid var(--border-light); z-index: 2; }
+        #unlockStore .unlock-header h3 { color: #fff !important; }
         #unlockStore .unlock-body { display: grid; grid-template-columns: 1.2fr 0.8fr; max-height: calc(100vh - 120px); overflow: hidden; }
         #unlockStore .unlock-side { padding: 16px; border-right: 1px solid var(--border-light); max-height: calc(100vh - 120px); overflow: auto; }
         #unlockStore .unlock-right { padding: 16px; max-height: calc(100vh - 120px); overflow: auto; }
         #unlockStore .unlock-features-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; }
-        #unlockStore .unlock-features-grid .management-card { min-height: 150px; display:flex; flex-direction:column; gap:6px; }
+        #unlockStore .unlock-features-grid .management-card { min-height: 160px; display:flex; flex-direction:column; gap:6px; transition: transform .2s ease, box-shadow .2s ease; }
+        #unlockStore .unlock-features-grid .management-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
+        #unlockStore .price-chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background: rgba(255,255,255,0.1); border:1px solid var(--border-light); color:var(--white); font-weight:700; }
+        #unlockStore .step { display:flex; gap:10px; align-items:flex-start; }
+        #unlockStore .step .num { width:22px; height:22px; border-radius:50%; background: linear-gradient(90deg, var(--blue), var(--pink)); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; }
+        #unlockStore .receipt-preview { width:100%; max-height:180px; object-fit:contain; border-radius:10px; border:1px solid var(--border-light); display:none; }
         @media (max-width: 900px) {
             #unlockStore .unlock-body { grid-template-columns: 1fr; max-height: calc(100vh - 120px); }
             #unlockStore .unlock-side { border-right: none; border-bottom: 1px solid var(--border-light); }
@@ -2439,7 +2445,7 @@
                     <div id="storeSelection" style="margin-bottom:12px; color:var(--text-light)">Select a feature to see amount and Order ID</div>
                     <div style="margin:10px 0; padding:10px; border:1px dashed var(--border-light); border-radius:10px;">
                         <div><strong>Order ID:</strong> <span id="storeOrderId"></span> <button id="storeCopyOrder" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-copy"></i></button></div>
-                        <div style="margin-top:6px"><strong>Amount:</strong> <span id="storeAmount"></span></div>
+                        <div style="margin-top:8px"><span class="price-chip"><i class="fas fa-tag"></i> <span id="storeAmount"></span></span></div>
                     </div>
                     <div style="display:grid; gap:10px;">
                         <div style="padding:8px; border:1px solid var(--border-light); border-radius:10px;">
@@ -2453,9 +2459,13 @@
                             <div><strong>Account Number:</strong> <span id="storeKeystone">6042862356</span> <button id="storeCopyKeystone" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 3px 8px; cursor: pointer;">Copy</button></div>
                         </div>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-                        <label for="storeReceipt" style="font-weight:600; color:var(--white)">I've paid — upload receipt (image or PDF)</label>
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+                        <div class="step"><div class="num">1</div><div><strong>Transfer</strong> the amount above to any of the bank accounts.</div></div>
+                        <div class="step"><div class="num">2</div><div><strong>Use the Order ID</strong> as your transfer reference/memo.</div></div>
+                        <div class="step"><div class="num">3</div><div><strong>Upload the receipt</strong> and submit for approval.</div></div>
+                        <label for="storeReceipt" style="font-weight:700; color:var(--white); margin-top:4px;">I've paid — upload receipt</label>
                         <input id="storeReceipt" type="file" accept="image/*,.pdf" />
+                        <img id="storeReceiptPreview" class="receipt-preview" alt="Receipt Preview" />
                     </div>
                     <div id="storeError" style="color:#ff6b6b; margin-top:8px; display:none"></div>
                     <div style="display:flex;gap:8px;margin-top:12px;">
@@ -5844,6 +5854,20 @@
             }
         }
         storeSubmit?.addEventListener('click', submitStoreReceipt);
+
+        // Show receipt preview if image
+        storeReceipt?.addEventListener('change', () => {
+            const file = storeReceipt.files?.[0];
+            const prev = document.getElementById('storeReceiptPreview');
+            if (!prev) return;
+            if (file && file.type.startsWith('image/')) {
+                prev.src = URL.createObjectURL(file);
+                prev.style.display = 'block';
+            } else {
+                prev.src = '';
+                prev.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
