@@ -3228,17 +3228,26 @@
                 function openCropModal(file) {
                     const reader = new FileReader();
                     reader.onload = () => {
-                        if (cropImage) cropImage.src = reader.result;
+                        if (cropImage) {
+                            cropImage.onload = () => {
+                                if (cropCanvasWrap && cropImage) {
+                                    const ih = cropImage.naturalHeight || cropImage.clientHeight || 200;
+                                    cropCanvasWrap.style.height = ih + 'px';
+                                }
+                                initCropBox();
+                            };
+                            cropImage.src = reader.result;
+                        }
                         originalImage = new Image();
                         originalImage.onload = () => {
                             imageNaturalWidth = originalImage.width;
                             imageNaturalHeight = originalImage.height;
-                            // Initialize crop to center with chosen ratio
-                            setTimeout(() => initCropBox(), 0);
                         };
                         originalImage.src = reader.result;
-                        coverCropModal.style.display = 'flex';
-                        setTimeout(()=> coverCropModal.classList.add('active'), 0);
+                        if (coverCropModal) {
+                            coverCropModal.style.display = 'flex';
+                            setTimeout(()=> coverCropModal.classList.add('active'), 0);
+                        }
                     };
                     reader.readAsDataURL(file);
                 }
@@ -3270,6 +3279,7 @@
                 }
 
                 function renderCropBox() {
+                    if (!cropBox || !cropImage) return;
                     cropBox.style.left = `${cropState.x}px`;
                     cropBox.style.top = `${cropState.y}px`;
                     cropBox.style.width = `${cropState.w}px`;
