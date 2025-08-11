@@ -2111,13 +2111,16 @@
         /* Unlock store responsive layout */
         #unlockStore { overflow: auto; }
         #unlockStore .unlock-card { max-width: 960px; margin: 32px auto; border-radius: 16px; }
-        #unlockStore .unlock-body { display: grid; grid-template-columns: 1.2fr 0.8fr; }
-        #unlockStore .unlock-side { padding: 16px; border-right: 1px solid var(--border-light); }
-        #unlockStore .unlock-right { padding: 16px; }
+        #unlockStore .unlock-header { position: sticky; top: 0; background: var(--card-background); border-bottom: 1px solid var(--border-light); z-index: 2; }
+        #unlockStore .unlock-body { display: grid; grid-template-columns: 1.2fr 0.8fr; max-height: calc(100vh - 120px); overflow: hidden; }
+        #unlockStore .unlock-side { padding: 16px; border-right: 1px solid var(--border-light); max-height: calc(100vh - 120px); overflow: auto; }
+        #unlockStore .unlock-right { padding: 16px; max-height: calc(100vh - 120px); overflow: auto; }
         #unlockStore .unlock-features-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; }
+        #unlockStore .unlock-features-grid .management-card { min-height: 150px; display:flex; flex-direction:column; gap:6px; }
         @media (max-width: 900px) {
-            #unlockStore .unlock-body { grid-template-columns: 1fr; }
+            #unlockStore .unlock-body { grid-template-columns: 1fr; max-height: calc(100vh - 120px); }
             #unlockStore .unlock-side { border-right: none; border-bottom: 1px solid var(--border-light); }
+            #unlockStore .unlock-card { margin: 20px auto; }
         }
     </style>
 </head>
@@ -2390,16 +2393,16 @@
     <!-- Feature Unlock Full Panel -->
     <div id="unlockStore" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index:1200;">
         <div class="unlock-card" style="background:var(--card-background); border:1px solid var(--border-light); overflow:hidden;">
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border-light);">
+            <div class="unlock-header" style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <i class="fas fa-gem" style="color:#ffd700;"></i>
                     <h3 style="margin:0; color:var(--white); font-family:Poppins, sans-serif;">Unlock Features</h3>
                 </div>
                 <button id="unlockStoreClose" style="background:transparent;border:1px solid var(--border-light);color:var(--white);border-radius:8px;padding:6px 10px;cursor:pointer;"><i class="fas fa-times"></i></button>
             </div>
-            <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:0;">
-                <div style="padding:16px; border-right:1px solid var(--border-light);">
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+            <div class="unlock-body">
+                <div class="unlock-side">
+                    <div class="unlock-features-grid">
                         <div class="management-card" data-feature="stickers">
                             <h4><i class="fas fa-face-smile"></i> Stickers Pack</h4>
                             <p>Express with static + animated stickers.</p>
@@ -2432,7 +2435,7 @@
                         </div>
                     </div>
                 </div>
-                <div style="padding:16px;">
+                <div class="unlock-right">
                     <div id="storeSelection" style="margin-bottom:12px; color:var(--text-light)">Select a feature to see amount and Order ID</div>
                     <div style="margin:10px 0; padding:10px; border:1px dashed var(--border-light); border-radius:10px;">
                         <div><strong>Order ID:</strong> <span id="storeOrderId"></span> <button id="storeCopyOrder" style="margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 4px 8px; cursor: pointer;"><i class="fas fa-copy"></i></button></div>
