@@ -6845,6 +6845,115 @@
             }
         }
 
+        // Payment form functions
+        function previewPaymentProof(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('proofImage').src = e.target.result;
+                    document.getElementById('proofPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeProofPreview() {
+            document.getElementById('paymentProof').value = '';
+            document.getElementById('proofPreview').style.display = 'none';
+        }
+
+        // Initialize payment form
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current user info
+            const currentUser = auth.currentUser;
+            if (currentUser) {
+                document.getElementById('paymentUsername').value = currentUser.displayName || currentUser.email || 'User';
+            }
+            
+            // Set max date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('paymentDate').max = today;
+            document.getElementById('paymentDate').value = today;
+            
+            // Handle form submission
+            document.getElementById('paymentSubmissionForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await submitPaymentDetails();
+            });
+        });
+
+        async function submitPaymentDetails() {
+            const form = document.getElementById('paymentSubmissionForm');
+            const formData = new FormData(form);
+            
+            try {
+                // Show loading state
+                const submitBtn = document.querySelector('.submit-payment-btn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                submitBtn.disabled = true;
+
+                // Get current user
+                const currentUser = auth.currentUser;
+                if (!currentUser) {
+                    throw new Error('Please login to submit payment details');
+                }
+
+                // Create payment submission data
+                const paymentData = {
+                    userId: currentUser.uid,
+                    username: formData.get('username'),
+                    email: formData.get('email'),
+                    phone: formData.get('phone'),
+                    amount: parseFloat(formData.get('amount')),
+                    bank: formData.get('bank'),
+                    paymentDate: formData.get('paymentDate'),
+                    reference: formData.get('reference'),
+                    notes: formData.get('notes'),
+                    status: 'pending',
+                    submittedAt: serverTimestamp(),
+                    adminReviewed: false
+                };
+
+                // Upload payment proof if provided
+                const proofFile = formData.get('proof');
+                if (proofFile && proofFile.size > 0) {
+                    const storageRef = ref(storage, `payment_proofs/${currentUser.uid}_${Date.now()}_${proofFile.name}`);
+                    const uploadResult = await uploadBytes(storageRef, proofFile);
+                    paymentData.proofUrl = await getDownloadURL(uploadResult.ref);
+                }
+
+                // Save to database
+                const paymentRef = collection(db, 'artifacts', appId, 'public', 'data', 'payment_submissions');
+                await addDoc(paymentRef, paymentData);
+
+                // Also save to user's personal submissions
+                const userPaymentRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'payments');
+                await addDoc(userPaymentRef, paymentData);
+
+                // Show success message
+                alert('✅ Payment details submitted successfully! Admin will review and send you an unlock code via notification.');
+                
+                // Reset form
+                form.reset();
+                document.getElementById('proofPreview').style.display = 'none';
+                
+                // Set default values
+                document.getElementById('paymentUsername').value = currentUser.displayName || currentUser.email || 'User';
+                document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+
+            } catch (error) {
+                console.error('Error submitting payment:', error);
+                alert(`❌ Error submitting payment: ${error.message}`);
+            } finally {
+                // Restore button state
+                const submitBtn = document.querySelector('.submit-payment-btn');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
         // TEST FUNCTION - Remove this after testing
         function testPremiumSystem() {
             console.log('🧪 Testing Premium System...');
