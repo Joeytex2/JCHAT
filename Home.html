@@ -3459,7 +3459,7 @@
                 <a href="./Profile.html" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;">
                     <img id="headerProfilePic" src="" alt="Profile Picture" style="display:none;width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);">
                     <i id="headerAvatarIcon" class="fas fa-user-circle" role="img" aria-label="User Avatar" style="font-size:28px;"></i>
-                    <span id="headerDisplayName">Loading...</span>
+                    <span id="headerDisplayName"></span>
                 </a>
             </div>
         </div>
@@ -8467,7 +8467,7 @@
                     const newGroup = {
                         id: Date.now().toString(),
                         name: groupName.trim(),
-                        description: 'A new community group',
+                        description: '',
                         memberCount: 1,
                         status: 'new',
                         icon: 'fas fa-users',
@@ -8539,13 +8539,12 @@
                     if (saved) {
                         this.userInterests = JSON.parse(saved);
                     } else {
-                        // Default interests
-                        this.userInterests = ['Gaming', 'Technology', 'Music', 'Sports', 'Travel'];
+                        this.userInterests = [];
                     }
                     this.displayUserInterests();
                 } catch (error) {
                     console.warn('Failed to load user interests:', error);
-                    this.userInterests = ['Gaming', 'Technology', 'Music', 'Sports', 'Travel'];
+                    this.userInterests = [];
                 }
             }
 
@@ -8636,20 +8635,20 @@
                     } else {
                         // Default preferences
                         this.userPreferences = {
-                            preferredContentTypes: ['text', 'media', 'polls', 'inspiration'],
-                            interests: ['gaming', 'technology', 'music'],
+                            preferredContentTypes: [],
+                            interests: [],
                             activityLevel: 'medium',
                             lastActive: Date.now()
                         };
                     }
                 } catch (error) {
-                    console.warn('Failed to load feed preferences:', error);
+                                        console.warn('Failed to load feed preferences:', error);
                     this.userPreferences = {
-                        preferredContentTypes: ['text', 'media', 'polls', 'inspiration'],
-                        interests: ['gaming', 'technology', 'music'],
-                        activityLevel: 'medium',
-                        lastActive: Date.now()
-                    };
+                            preferredContentTypes: [],
+                            interests: [],
+                            activityLevel: 'medium',
+                            lastActive: Date.now()
+                        };
                 }
             }
 
@@ -9027,10 +9026,11 @@
                     const username = pubSnap.exists() ? (pubSnap.data().username || fid) : fid;
                     const profilePicId = pubSnap.exists() ? (pubSnap.data().profilePicId || null) : null;
                     const usernameInitial = (username || 'U').charAt(0).toUpperCase();
-                    const imgUrl = profilePicId ? getCloudinaryImageUrl(profilePicId, 'w_60,h_60,c_fill,g_face,r_max') : `https://placehold.co/40x40/CCCCCC/000000?text=${usernameInitial}`;
+                    const imgUrl = profilePicId ? getCloudinaryImageUrl(profilePicId, 'w_60,h_60,c_fill,g_face,r_max') : '';
+                    const avatarMarkup = profilePicId ? `<img src="${imgUrl}" alt="${username}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);">` : `<i class="fas fa-user-circle" style="font-size:36px;color:var(--text-light)"></i>`;
                     const row = document.createElement('div');
                     row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:6px;gap:10px;';
-                    row.innerHTML = `<div style=\"display:flex;align-items:center;gap:10px;\"><img src=\"${imgUrl}\" alt=\"${username}\" style=\"width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);\"><span>${username}</span></div><button class=\"btn\" data-fid=\"${fid}\">Send</button>`;
+                    row.innerHTML = `<div style=\"display:flex;align-items:center;gap:10px;\">${avatarMarkup}<span>${username}</span></div><button class=\"btn\" data-fid=\"${fid}\">Send</button>`;
                     row.querySelector('button').addEventListener('click', () => {
                         const msg = `${inspirationQuoteElement ? inspirationQuoteElement.textContent : ''} ${inspirationAuthorElement ? inspirationAuthorElement.textContent : ''}`.trim();
                         navigateToChatWithPrefill(fid, msg);
@@ -9629,6 +9629,74 @@
             window.addEventListener('resize', updateSmartScrollState);
             document.addEventListener('DOMContentLoaded', updateSmartScrollState);
         }
+        // Global UI helpers for consistent dialogs
+        function customConfirm(message, title = 'Confirm Action') {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('confirmationModal');
+                const titleEl = document.getElementById('confirmationTitle');
+                const msgEl = document.getElementById('confirmationMessage');
+                const cancelBtn = document.getElementById('confirmCancelButton');
+                const proceedBtn = document.getElementById('confirmProceedButton');
+                if (!modal || !titleEl || !msgEl || !cancelBtn || !proceedBtn) {
+                    resolve(window.confirm(message));
+                    return;
+                }
+                titleEl.textContent = title;
+                msgEl.textContent = message;
+                modal.style.display = 'block';
+                modal.offsetHeight;
+                modal.classList.add('show');
+                const cleanup = () => {
+                    modal.classList.remove('show');
+                    modal.addEventListener('transitionend', function handler() {
+                        modal.style.display = 'none';
+                        modal.removeEventListener('transitionend', handler);
+                    }, { once: true });
+                    cancelBtn.removeEventListener('click', onCancel);
+                    proceedBtn.removeEventListener('click', onProceed);
+                };
+                const onCancel = () => { cleanup(); resolve(false); };
+                const onProceed = () => { cleanup(); resolve(true); };
+                cancelBtn.addEventListener('click', onCancel);
+                proceedBtn.addEventListener('click', onProceed);
+            });
+        }
+        function openCustomPrompt({ title = 'Input Required', label = 'Enter value', placeholder = '' } = {}) {
+            return new Promise((resolve) => {
+                // Build ephemeral modal overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay show';
+                overlay.style.display = 'block';
+                overlay.innerHTML = `
+                    <div class="modal-content">
+                        <h3>${title}</h3>
+                        <label style="display:block;margin:8px 0;color:var(--text-light)">${label}</label>
+                        <input id="customPromptInput" type="text" placeholder="${placeholder}" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border-light);background:var(--input-background);color:var(--white)" />
+                        <div class="button-group" style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end;">
+                            <button id="customPromptCancel" class="modal-button cancel-button">Cancel</button>
+                            <button id="customPromptOk" class="modal-button save-button">OK</button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(overlay);
+                const input = overlay.querySelector('#customPromptInput');
+                const ok = overlay.querySelector('#customPromptOk');
+                const cancel = overlay.querySelector('#customPromptCancel');
+                const close = (val) => {
+                    overlay.classList.remove('show');
+                    overlay.addEventListener('transitionend', function handler() {
+                        overlay.remove();
+                        overlay.removeEventListener('transitionend', handler);
+                    }, { once: true });
+                    resolve(val);
+                };
+                ok.addEventListener('click', () => close((input.value || '').trim()));
+                cancel.addEventListener('click', () => close(''));
+                input.addEventListener('keydown', (e) => { if (e.key === 'Enter') ok.click(); });
+                setTimeout(()=> input && input.focus(), 0);
+            });
+        }
+        window.customConfirm = customConfirm;
+        window.openCustomPrompt = openCustomPrompt;
     </script>
 </body>
 </html>
