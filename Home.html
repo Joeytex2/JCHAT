@@ -2189,6 +2189,189 @@
     #smartScrollBtn { position: fixed; right: 16px; bottom: 90px; z-index: 1100; border: 1px solid var(--border-light); border-radius: 999px; background: var(--button-background); color: #fff; padding: 10px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); cursor: pointer; }
         #smartScrollBtn .label { font-weight: 600; }
     .icon-btn { background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 10px; padding: 6px 8px; margin-right: 8px; cursor: pointer; }
+
+    /* Quick Actions Floating Menu */
+    .quick-actions-menu {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .quick-actions-toggle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--blue), var(--pink));
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 8px 25px rgba(0, 213, 255, 0.4), 0 8px 25px rgba(255, 46, 146, 0.4);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+    }
+
+    .quick-actions-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 35px rgba(0, 213, 255, 0.6), 0 12px 35px rgba(255, 46, 146, 0.6);
+    }
+
+    .quick-actions-toggle.active {
+        transform: rotate(45deg);
+        background: linear-gradient(135deg, var(--pink), var(--blue));
+    }
+
+    .quick-actions-dropdown {
+        position: absolute;
+        bottom: 70px;
+        right: 0;
+        background: var(--glass-black);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-blue);
+        border-radius: 20px;
+        padding: 15px;
+        min-width: 200px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(20px) scale(0.9);
+        transition: all 0.3s ease;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .quick-actions-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+    }
+
+    .quick-action-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        color: var(--white);
+        cursor: pointer;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        margin-bottom: 8px;
+    }
+
+    .quick-action-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .quick-action-item:hover {
+        background: var(--glass-blue);
+        transform: translateX(5px);
+    }
+
+    .quick-action-item i {
+        font-size: 18px;
+        width: 20px;
+        text-align: center;
+        color: var(--blue);
+    }
+
+    .quick-action-item span {
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    /* Mobile Responsiveness for Quick Actions */
+    @media (max-width: 768px) {
+        .quick-actions-menu {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .quick-actions-toggle {
+            width: 55px;
+            height: 55px;
+            font-size: 22px;
+        }
+
+        .quick-actions-dropdown {
+            min-width: 180px;
+            padding: 12px;
+        }
+
+        .quick-action-item {
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+    }
+
+    /* Enhanced Mobile Experience */
+    @media (max-width: 768px) {
+        .content-wrapper {
+            padding: 15px;
+            gap: 15px;
+        }
+
+        .daily-inspiration-section {
+            padding: 1.5rem;
+            width: 95%;
+        }
+
+        .daily-inspiration-section h2 {
+            font-size: 1.5rem;
+        }
+
+        .post-creation-section {
+            padding: 1rem;
+        }
+
+        .post-creation-section h3 {
+            font-size: 1.1rem;
+        }
+
+        .quick-actions-toggle {
+            box-shadow: 0 6px 20px rgba(0, 213, 255, 0.5), 0 6px 20px rgba(255, 46, 146, 0.5);
+        }
+
+        .quick-actions-toggle:active {
+            transform: scale(0.95);
+        }
+    }
+
+    /* Smooth scrolling for better UX */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Enhanced button interactions */
+    .quick-action-item:active {
+        transform: scale(0.98);
+    }
+
+    /* Loading states for quick actions */
+    .quick-action-item.loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    .quick-action-item.loading::after {
+        content: '';
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--blue);
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -2268,6 +2451,39 @@
                     </div>
                 </div>
             </div>
+            </div>
+
+            <!-- Quick Actions Floating Menu -->
+            <div class="quick-actions-menu" id="quickActionsMenu">
+                <button class="quick-actions-toggle" id="quickActionsToggle" aria-label="Quick Actions">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="quick-actions-dropdown" id="quickActionsDropdown">
+                    <div class="quick-action-item" data-action="create-post">
+                        <i class="fas fa-edit"></i>
+                        <span>Create Post</span>
+                    </div>
+                    <div class="quick-action-item" data-action="share-inspiration">
+                        <i class="fas fa-share-alt"></i>
+                        <span>Share Inspiration</span>
+                    </div>
+                    <div class="quick-action-item" data-action="daily-bonus">
+                        <i class="fas fa-gift"></i>
+                        <span>Daily Bonus</span>
+                    </div>
+                    <div class="quick-action-item" data-action="profile">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </div>
+                    <div class="quick-action-item" data-action="wallet">
+                        <i class="fas fa-wallet"></i>
+                        <span>Wallet</span>
+                    </div>
+                    <div class="quick-action-item" data-action="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Post Creation Section -->
@@ -6029,11 +6245,172 @@
             }
         });
 
+        // Quick Actions Menu Functions
+        function initializeQuickActions() {
+            const toggleBtn = document.getElementById('quickActionsToggle');
+            const dropdown = document.getElementById('quickActionsDropdown');
+            
+            if (!toggleBtn || !dropdown) {
+                console.warn('Quick Actions elements not found');
+                return;
+            }
+
+            // Toggle dropdown
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('show');
+                toggleBtn.classList.toggle('active');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!toggleBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                    toggleBtn.classList.remove('active');
+                }
+            });
+
+            // Handle quick action clicks
+            dropdown.addEventListener('click', (e) => {
+                const actionItem = e.target.closest('.quick-action-item');
+                if (actionItem) {
+                    const action = actionItem.dataset.action;
+                    handleQuickAction(action);
+                    dropdown.classList.remove('show');
+                    toggleBtn.classList.remove('active');
+                }
+            });
+        }
+
+        function handleQuickAction(action) {
+            // Add haptic feedback for mobile
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+
+            switch (action) {
+                case 'create-post':
+                    // Scroll to post creation section
+                    const postSection = document.getElementById('postCreationSection');
+                    if (postSection) {
+                        postSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Focus on post content if user is authenticated
+                        const postContent = document.getElementById('postContent');
+                        if (postContent && !postContent.disabled) {
+                            postContent.focus();
+                        }
+                    }
+                    break;
+                    
+                case 'share-inspiration':
+                    // Open share inspiration modal
+                    if (typeof openShareInspirationModal === 'function') {
+                        openShareInspirationModal();
+                    }
+                    break;
+                    
+                case 'daily-bonus':
+                    // Scroll to daily bonus button
+                    const bonusBtn = document.getElementById('claimDailyBonusButton');
+                    if (bonusBtn) {
+                        bonusBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Highlight the button briefly
+                        bonusBtn.style.transform = 'scale(1.1)';
+                        setTimeout(() => {
+                            bonusBtn.style.transform = 'scale(1)';
+                        }, 500);
+                    }
+                    break;
+                    
+                case 'profile':
+                    // Navigate to profile page
+                    window.location.href = './Profile.html';
+                    break;
+                    
+                case 'wallet':
+                    // Navigate to wallet page
+                    window.location.href = './Wallet.html';
+                    break;
+                    
+                case 'settings':
+                    // Toggle sidebar (which contains settings)
+                    if (typeof toggleSidebar === 'function') {
+                        toggleSidebar();
+                    }
+                    break;
+                    
+                default:
+                    console.log('Unknown quick action:', action);
+            }
+        }
+
+        // Enhanced Mobile Experience Functions
+        function initializeTouchGestures() {
+            let startY = 0;
+            let startTime = 0;
+            let isScrolling = false;
+
+            // Touch start
+            document.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+                startTime = Date.now();
+                isScrolling = false;
+            }, { passive: true });
+
+            // Touch move
+            document.addEventListener('touchmove', (e) => {
+                if (Math.abs(e.touches[0].clientY - startY) > 10) {
+                    isScrolling = true;
+                }
+            }, { passive: true });
+
+            // Touch end
+            document.addEventListener('touchend', (e) => {
+                if (isScrolling) return;
+                
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                const deltaY = e.changedTouches[0].clientY - startY;
+                
+                // Quick swipe gestures
+                if (duration < 300 && Math.abs(deltaY) > 50) {
+                    if (deltaY < 0) {
+                        // Swipe up - scroll to post creation
+                        const postSection = document.getElementById('postCreationSection');
+                        if (postSection) {
+                            postSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    } else {
+                        // Swipe down - toggle quick actions
+                        const toggleBtn = document.getElementById('quickActionsToggle');
+                        if (toggleBtn) {
+                            toggleBtn.click();
+                        }
+                    }
+                }
+            }, { passive: true });
+
+            // Add haptic feedback to buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(30);
+                    }
+                }
+            });
+        }
+
         // --- Event Listeners for static elements ---
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize theme switcher
             initializeThemeSwitcher();
             console.log("JCHAT_DEBUG: DOMContentLoaded fired.");
+            
+            // Initialize Quick Actions Menu
+            initializeQuickActions();
+            
+            // Initialize Enhanced Mobile Experience
+            initializeTouchGestures();
             
             // Initially disable interactive elements until authentication state is confirmed.
             toggleInteractiveElements(false, false);
