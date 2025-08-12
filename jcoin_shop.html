@@ -226,7 +226,12 @@
       }
     }
 
-    function generateOrderId() { return `EMOJI-${Date.now()}`; }
+    function generateOrderId() {
+      // Generate a compact, unique ID: timestamp base-36 + 4-char random segment
+      const ts = Date.now().toString(36).toUpperCase(); // e.g., LZJ0HW3
+      const rand = Math.random().toString(36).substring(2, 6).toUpperCase(); // e.g., 3F9K
+      return `EMOJI-${ts}-${rand}`;
+    }
     function getSelectedPackIds() {
       return Array.from(document.querySelectorAll('.pack input[type="checkbox"]:checked')).map(i => i.value);
     }
