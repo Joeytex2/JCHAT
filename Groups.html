@@ -1561,6 +1561,10 @@
                 font-size: 0.8rem;
             }
         }
+
+        /* Tag chips */
+        .tag-chip{display:inline-block;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.08);font-size:.75rem;margin:2px;color:var(--text-light)}
+        .tags-container{margin-top:6px;}
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -1779,6 +1783,10 @@
             <div class="form-group">
                 <label for="groupPicInput">Group Picture URL (Optional):</label>
                 <input type="text" id="groupPicInput" placeholder="Enter image URL or leave blank">
+            </div>
+            <div class="form-group">
+                <label for="createGroupTagsInput">Tags (comma separated):</label>
+                <input type="text" id="createGroupTagsInput" placeholder="e.g., tech,gaming,study" maxlength="60">
             </div>
             <div class="modal-buttons">
                 <button id="submitCreateGroupBtn" class="primary-btn">
@@ -2469,12 +2477,14 @@
                 statusTagsHtml = `<div class="group-status-tags">${statusTagsHtml}</div>`;
             }
 
+            const tagsHtml = (groupData.tags||[]).slice(0,5).map(t=>`<span class="tag-chip">${t}</span>`).join(' ');
 
             groupCard.innerHTML = `
                 <img src="" alt="Group Avatar" class="group-avatar" id="group-avatar-${groupData.id}" style="display: none;">
                 <i class="fas fa-users group-avatar-icon" id="group-avatar-icon-${groupData.id}"></i>
                 <h3>${groupData.name || 'Unnamed Group'}</h3>
                 <p>${groupData.description || 'No description provided.'}</p>
+                <div class="tags-container">${tagsHtml}</div>
                 <span class="member-count"><i class="fas fa-users"></i> ${groupData.members?.length || 0} Members</span>
                 ${vaultHtml}
                 ${statusTagsHtml}
@@ -2617,7 +2627,8 @@
 
             const filteredGroups = allPublicGroupsData.filter(group =>
                 group.name.toLowerCase().includes(searchTerm) ||
-                (group.description && group.description.toLowerCase().includes(searchTerm))
+                (group.description && group.description.toLowerCase().includes(searchTerm)) ||
+                (group.tags && group.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
             );
 
             if (filteredGroups.length === 0) {
@@ -2644,6 +2655,8 @@
             const groupName = groupNameInput.value.trim();
             const groupDescription = groupDescriptionInput.value.trim();
             const groupPicUrl = groupPicInput.value.trim();
+            const tagsRaw = createGroupTagsInput.value.trim();
+            const tagsArr = tagsRaw ? tagsRaw.split(',').map(t=>t.trim()).filter(Boolean).slice(0,5) : [];
 
             if (!groupName) {
                 showMessageBox("Group Name is required.", "warning");
@@ -2706,7 +2719,8 @@
                         lastActivity: serverTimestamp(),
                         isPublic: true, // All created groups are public for now
                         groupJCoinBalance: 0, // Initialize group JCoin balance
-                        groupGasBalance: 0 // Initialize group Gas balance
+                        groupGasBalance: 0, // Initialize group Gas balance
+                        tags: tagsArr
                     });
 
                     // 4. Add group ID to user's memberOfGroups array
@@ -2735,6 +2749,7 @@
                 groupNameInput.value = ''; // Clear form
                 groupDescriptionInput.value = '';
                 groupPicInput.value = '';
+                createGroupTagsInput.value = '';
 
                 // onSnapshot listeners will handle UI updates for groups
             } catch (error) {
