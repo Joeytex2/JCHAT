@@ -312,7 +312,14 @@
         .logo { display: none; }
         .brand-banner { width: 100%; height: var(--brand-banner-height); padding: 16px 0; background: linear-gradient(90deg, var(--blue), var(--pink)); color:#fff; text-align:center; position: sticky; top: calc(var(--header-height) + var(--brand-banner-gap)); z-index: 9; border-bottom: 1px solid var(--border-light); display:flex; flex-direction:column; align-items:center; justify-content:center; }
         .brand-banner .brand-title { font-family: 'Poppins', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
-        .brand-banner .brand-sub { opacity: .9; font-size: .95rem; margin-top: 6px; }
+        .brand-banner .brand-sub { opacity: .9; font-size: .95rem; margin-top: 6px; white-space: nowrap; overflow: hidden; }
+        .announcement-ticker { position: relative; width: 100%; height: 22px; overflow: hidden; }
+        .announcement-track { display: inline-block; white-space: nowrap; will-change: transform; }
+        @keyframes ticker-rtl { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+        @keyframes ticker-ltr { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+        @media (prefers-reduced-motion: reduce) {
+            .announcement-track { animation: none !important; }
+        }
         .brand-banner .brand-glow { position:absolute; inset:0; pointer-events:none; box-shadow: inset 0 0 120px rgba(255,255,255,.15); border-radius: 0 0 16px 16px; }
 
         /* Removed Header Navigation (Home, Profile) */
@@ -3383,7 +3390,6 @@
         .mobile-device .smart-feed-section {
             border-radius: 15px;
         }
-
         /* Enhanced Mobile Touch Improvements */
         .mobile-device .group-card,
         .mobile-device .notification-item,
@@ -3506,7 +3512,11 @@
     <div class="brand-banner">
         <div class="brand-glow"></div>
         <div class="brand-title">JCHAT</div>
-        <div class="brand-sub">Modern social chat platform with communities, JCoins and more</div>
+        <div class="brand-sub"><span id="brandSubtitle">Modern social chat platform with communities, JCoins and more</span>
+            <div class="announcement-ticker" id="announcementTicker" style="display:none;">
+                <div class="announcement-track" id="announcementTrack" aria-live="polite"></div>
+            </div>
+        </div>
     </div>
     <main style="margin-top: 0;">
         <div class="content-wrapper">
@@ -6987,6 +6997,54 @@
 
             // Re-evaluate daily bonus button state.
             checkAndStartDailyBonusTimer();
+
+            // Announcement ticker in brand banner
+            const subtitleEl = document.getElementById('brandSubtitle');
+            const ticker = document.getElementById('announcementTicker');
+            const track = document.getElementById('announcementTrack');
+            if (subtitleEl && ticker && track) {
+                const enabled = !!settings.announcementEnabled;
+                const text = (settings.announcementText || '').trim();
+                const durationMs = Math.max(10000, Number(settings.announcementDurationMs || 300000)); // default 5 min
+                if (enabled && text) {
+                    // Hide subtitle, show ticker
+                    subtitleEl.style.display = 'none';
+                    ticker.style.display = 'block';
+                    track.textContent = `   ${text}   `; // spacing
+                    // Compute speed based on text length
+                    requestAnimationFrame(() => {
+                        const width = track.scrollWidth || 600;
+                        const cycleSecFast = Math.min(30, Math.max(10, width / 60));
+                        const cycleSecSlow = Math.min(45, Math.max(15, width / 40));
+                        let dir = 'rtl';
+                        const run = () => {
+                            if (dir === 'rtl') {
+                                track.style.animation = `ticker-rtl ${cycleSecFast}s linear infinite`;
+                                dir = 'ltr';
+                            } else {
+                                track.style.animation = `ticker-ltr ${cycleSecSlow}s linear infinite`;
+                                dir = 'rtl';
+                            }
+                        };
+                        run();
+                        // Alternate directions each cycle end using a timer approximation
+                        let altTimer = setInterval(run, (dir==='rtl'?cycleSecFast:cycleSecSlow) * 1000);
+                        // Auto-restore after duration
+                        clearTimeout(window.__announcementTimer);
+                        window.__announcementTimer = setTimeout(() => {
+                            clearInterval(altTimer);
+                            track.style.animation = 'none';
+                            ticker.style.display = 'none';
+                            subtitleEl.style.display = 'inline';
+                        }, durationMs);
+                    });
+                } else {
+                    // Ensure subtitle is visible and ticker hidden
+                    ticker.style.display = 'none';
+                    track.style.animation = 'none';
+                    subtitleEl.style.display = 'inline';
+                }
+            }
         }
 
         // WebRTC STUN/TURN servers (NEW)
@@ -7869,7 +7927,6 @@
                 navigator.vibrate(200);
             }
         }
-
         // Smart Notifications System
         class NotificationsManager {
             constructor() {
@@ -9407,7 +9464,6 @@
             }
             themeSelect.addEventListener('change', () => applyTheme(themeSelect.value));
         }
-
         // Streaks & Quests basic implementation
         const streakInfo = document.getElementById('streakInfo');
         const questsList = document.getElementById('questsList');
