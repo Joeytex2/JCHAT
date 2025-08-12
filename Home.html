@@ -798,7 +798,6 @@
             flex-wrap: wrap;
             justify-content: center;
         }
-
         .inspiration-action-button {
             background: var(--button-background);
             color: var(--white);
@@ -2396,7 +2395,6 @@
         display: block;
         animation: slideInUp 0.3s ease;
     }
-
     @keyframes slideInUp {
         from {
             opacity: 0;
@@ -3189,7 +3187,6 @@
             40% { transform: translateY(-5px); }
             60% { transform: translateY(-3px); }
         }
-
         /* Feature Toggle Section */
         .feature-toggle-section {
             background: var(--glass-black);
@@ -3427,12 +3424,7 @@
                 font-size: 1.3rem;
             }
         }
-        /* Donation Flower Widget */
-        .donation-flower-wrapper { position: fixed; left: 22px; bottom: 22px; z-index: 9; }
-        .donation-flower-btn { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--border-light); background: radial-gradient(circle at 30% 30%, #ff8ec3, #ff2e92 60%, #d4006d); color: #fff; box-shadow: 0 10px 24px rgba(255,46,146,.35); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; position: relative; }
-        .donation-flower-btn::before, .donation-flower-btn::after { content: ""; position: absolute; width: 100%; height: 100%; border-radius: 50%; inset: 0; background: radial-gradient(circle at 70% 70%, rgba(255,255,255,.6), transparent 60%); mix-blend-mode: screen; pointer-events: none; }
-        .donation-flower-btn:hover { transform: scale(1.05) rotate(-2deg); box-shadow: 0 12px 28px rgba(255,46,146,.5); }
-        .donation-flower-btn i { font-size: 22px; }
+        /* Donation Widget (header button uses existing .theme-switcher-btn styles) */
         .donation-modal .modal-content { max-width: 460px; background: var(--card-background); color: var(--white); border: 1px solid var(--border-light); border-radius: 16px; }
         .donation-list { display: grid; gap: 10px; margin-top: 8px; }
         .donation-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 10px; border: 1px solid var(--border-light); border-radius: 10px; background: rgba(255,255,255,.03); }
@@ -3579,9 +3571,14 @@
                         <span>Notifications</span>
                         <span class="notifications-count" id="notificationsCount">0</span>
                     </div>
-                    <button class="clear-notifications-btn" id="clearNotificationsBtn" aria-label="Clear All Notifications">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button class="clear-notifications-btn" id="saveNotificationsBtn" title="Save" aria-label="Save Notifications"><i class="fas fa-save"></i></button>
+                        <button class="clear-notifications-btn" id="downloadNotificationsBtn" title="Download" aria-label="Download Notifications"><i class="fas fa-download"></i></button>
+                        <button class="clear-notifications-btn" id="shareNotificationsBtn" title="Share" aria-label="Share Notifications"><i class="fas fa-share-alt"></i></button>
+                        <button class="clear-notifications-btn" id="clearNotificationsBtn" aria-label="Clear All Notifications">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="notifications-list" id="notificationsList">
                     <div class="no-notifications">
@@ -3639,6 +3636,9 @@
                     <button class="create-group-btn" id="createGroupBtn" aria-label="Create New Group">
                         <i class="fas fa-plus"></i> Create Group
                     </button>
+                    <a href="/Groups.html" class="create-group-btn" aria-label="Open Groups" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;">
+                        <i class="fas fa-external-link-alt"></i> Open Groups
+                    </a>
                 </div>
                 
                 <div class="groups-grid" id="groupsGrid">
@@ -3965,7 +3965,6 @@
             <button id="endCallBtn" class="end-call-btn" style="display: none;" aria-label="End Call"><i class="fas fa-phone-slash"></i></button>
         </div>
     </div>
-
     <!-- Sidebar Navigation -->
     <aside id="sidebarNav" class="sidebar-hidden" role="navigation" aria-label="Main Navigation">
         <div class="sidebar-header">
@@ -4031,13 +4030,6 @@
 
     <!-- Smart Scroll Button -->
     <button id="smartScrollBtn" aria-label="Smart Scroll"><i class="fas fa-arrow-down"></i><span class="label">Bottom</span></button>
-
-    <!-- Donation Flower Widget (left bottom, unobtrusive) -->
-    <div class="donation-flower-wrapper">
-        <button id="donationFlowerBtn" class="donation-flower-btn" aria-label="Support Developer">
-            <i class="fas fa-seedling"></i>
-        </button>
-    </div>
 
     <!-- Donation Modal (reuses modal styles) -->
     <div id="donationModal" class="modal-overlay donation-modal" role="dialog" aria-modal="true" aria-labelledby="donationTitle" style="display:none;">
@@ -4762,14 +4754,12 @@
                 toggleButtonLoading(claimDailyBonusButton, false); // Revert button loading state.
             }
         }
-
         // --- Tone.js Synths for Notification Sounds ---
         // Initialize various synths for different notification types.
         const successSynth = new Tone.Synth().toDestination();
         const errorSynth = new Tone.Synth().toDestination();
         const infoSynth = new Tone.Synth().toDestination();
         const ringingSynth = new Tone.Synth().toDestination(); // For incoming call ring
-
         // Configure basic sound properties for each synth.
         successSynth.oscillator.type = "sine";
         successSynth.envelope.attack = 0.01;
@@ -5557,7 +5547,6 @@
                 console.log("JCHAT_DEBUG: fetchAndDisplayHeaderProfile failed. Interactive elements might still be enabled if auth succeeded.");
             }
         }
-
         /**
          * Fetches the count of unread notifications for the current user.
          * @param {string} userId - The ID of the current user.
@@ -6351,7 +6340,6 @@
                 playNotificationSound('error');
             }
         }
-
         /**
          * Renders a single post HTML element.
          * @param {object} post - The post data object from Firestore.
@@ -7888,7 +7876,6 @@
             indicator.style.transform = `translateY(${Math.min(distance, 100)}px)`;
             indicator.style.opacity = Math.min(distance / threshold, 1);
         }
-
         function hidePullToRefreshIndicator() {
             const indicator = document.getElementById('pullToRefreshIndicator');
             if (indicator) {
@@ -7933,6 +7920,12 @@
                         this.clearAllNotifications();
                     });
                 }
+                const saveBtn = document.getElementById('saveNotificationsBtn');
+                const downloadBtn = document.getElementById('downloadNotificationsBtn');
+                const shareBtn = document.getElementById('shareNotificationsBtn');
+                if (saveBtn) saveBtn.addEventListener('click', ()=> this.saveNotifications());
+                if (downloadBtn) downloadBtn.addEventListener('click', ()=> this.downloadNotifications());
+                if (shareBtn) shareBtn.addEventListener('click', ()=> this.shareNotifications());
             }
 
             addNotification(type, title, message, data = {}) {
@@ -8086,8 +8079,49 @@
             saveNotifications() {
                 try {
                     localStorage.setItem('jchat-notifications', JSON.stringify(this.notifications));
+                    showMessageBox('Notifications saved.', 'success');
                 } catch (error) {
                     console.warn('Failed to save notifications:', error);
+                    showMessageBox('Failed to save notifications.', 'error');
+                }
+            }
+
+            downloadNotifications() {
+                try {
+                    const rows = this.notifications.map(n => ({
+                        id: n.id,
+                        type: n.type,
+                        title: n.title,
+                        message: n.message,
+                        timestamp: n.timestamp instanceof Date ? n.timestamp.toISOString() : n.timestamp
+                    }));
+                    const csvHeader = 'id,type,title,message,timestamp\n';
+                    const csvBody = rows.map(r => [r.id, r.type, JSON.stringify(r.title), JSON.stringify(r.message), r.timestamp].join(',')).join('\n');
+                    const blob = new Blob([csvHeader + csvBody], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `jchat-notifications-${Date.now()}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showMessageBox('Notifications downloaded.', 'success');
+                } catch (e) {
+                    console.warn('Download failed', e);
+                    showMessageBox('Download failed.', 'error');
+                }
+            }
+
+            shareNotifications() {
+                try {
+                    const text = this.notifications.slice(0, 10).map(n => `• [${n.type}] ${n.title}: ${n.message}`).join('\n');
+                    if (navigator.share) {
+                        navigator.share({ text }).catch(()=>{});
+                    } else {
+                        navigator.clipboard.writeText(text).then(()=> showMessageBox('Copied to clipboard.', 'success')).catch(()=> showMessageBox('Copy failed.', 'error'));
+                    }
+                } catch (e) {
+                    console.warn('Share failed', e);
+                    showMessageBox('Share failed.', 'error');
                 }
             }
 
@@ -8405,7 +8439,7 @@
                 const createGroupBtn = document.getElementById('createGroupBtn');
                 if (createGroupBtn) {
                     createGroupBtn.addEventListener('click', () => {
-                        this.showCreateGroupModal();
+                        window.location.href = '/Groups.html#create';
                     });
                 }
 
@@ -8638,7 +8672,6 @@
                 }
             }
         }
-
         // AI-Powered Smart Feed Manager
         class SmartFeedManager {
             constructor() {
@@ -9437,7 +9470,6 @@
                 });
             }
         }
-
         // Daily Spin
         const spinNowButton = document.getElementById('spinNowButton');
         const spinStatus = document.getElementById('spinStatus');
@@ -9684,7 +9716,7 @@
         }
         // Donation widget logic
         (function setupDonationWidget(){
-            const btn = document.getElementById('donationHeaderBtn') || document.getElementById('donationFlowerBtn');
+            const btn = document.getElementById('donationHeaderBtn');
             const modal = document.getElementById('donationModal');
             const closeBtn = document.getElementById('donationCloseBtn');
             const map = {
@@ -9715,6 +9747,8 @@
                     apply('donationBankName', bd.bankName || map.donationBankName);
                     apply('donationAccountName', bd.accountName || map.donationAccountName);
                     apply('donationAccountNumber', bd.accountNumber || map.donationAccountNumber);
+                    apply('donationSwift', map.donationSwift);
+                    apply('donationNote', map.donationNote);
                     modal.style.display='block'; modal.offsetHeight; modal.classList.add('show'); 
                 }
             });
