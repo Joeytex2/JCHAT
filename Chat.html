@@ -5424,9 +5424,11 @@
          * Closes the select friend modal.
          */
         function closeSelectFriendModal() {
-            selectFriendModal.classList.remove('active');
-            friendSearchInput.value = ''; // Clear search input
+            try { selectFriendModal.classList.remove('active'); } catch {}
+            try { friendSearchInput.value = ''; } catch {}
         }
+        // Close button wiring for friend modal
+        document.getElementById('closeFriendModalBtn')?.addEventListener('click', closeSelectFriendModal);
 
         let allFriendsData = []; // Store all friends data for filtering
 
@@ -5527,14 +5529,14 @@
                     const selectedFriendId = friend.userId;
                     if (selectedFriendId === partnerId) {
                         showMessageBox(`${friend.username} is already your current chat partner.`, 'info');
-                        closeFriendModalBtn.click();
+                        closeSelectFriendModal();
                         return;
                     }
                     partnerId = selectedFriendId;
                     await fetchPartnerProfile(partnerId);
                     await fetchAndDisplayMessages();
                     listenForCallStatus(); // Re-establish call listener for new partner
-                    closeFriendModalBtn.click();
+                    closeSelectFriendModal();
                     showMessageBox(`Chatting with ${friend.username}`, 'success');
                 });
 
