@@ -3418,15 +3418,17 @@
             }
         }
                  /* Donation Widget (header button uses existing .theme-switcher-btn styles) */
-         .donation-modal .modal-content { max-width: 460px; background: var(--card-background); color: var(--white); border: 1px solid var(--border-light); border-radius: 16px; }
-         .donation-dropdown { position: absolute; top: 120%; right: 0; min-width: 320px; background: var(--card-background); border: 1px solid var(--border-light); border-radius: 14px; padding: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.3); z-index: 20; }
-         .donation-list { display: grid; gap: 10px; margin-top: 8px; }
-         .donation-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 10px; border: 1px solid var(--border-light); border-radius: 10px; background: rgba(255,255,255,.03); }
-         .donation-item .label { opacity: .75; font-size: .85rem; }
-         .donation-item .value { word-break: break-all; font-weight: 600; }
-         .donation-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
-         .copy-btn { padding: 6px 10px; border-radius: 8px; background: var(--button-background); color: #fff; border: none; cursor: pointer; }
-         .copy-btn:hover { filter: brightness(1.05); }
+                   .donation-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); z-index: 50; }
+          .donation-modal.show { display: flex; }
+          .donation-modal .modal-content { max-width: 520px; width: calc(100% - 32px); background: var(--card-background); color: var(--white); border: 1px solid var(--border-light); border-radius: 16px; padding: 16px; }
+          .donation-dropdown { position: absolute; top: 120%; right: 0; min-width: 320px; background: var(--card-background); border: 1px solid var(--border-light); border-radius: 14px; padding: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.3); z-index: 20; display: none; }
+          .donation-list { display: grid; gap: 10px; margin-top: 8px; }
+          .donation-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 10px; border: 1px solid var(--border-light); border-radius: 10px; background: rgba(255,255,255,.03); }
+          .donation-item .label { opacity: .75; font-size: .85rem; }
+          .donation-item .value { word-break: break-all; font-weight: 600; }
+          .donation-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+          .copy-btn { padding: 6px 10px; border-radius: 8px; background: var(--button-background); color: #fff; border: none; cursor: pointer; }
+          .copy-btn:hover { filter: brightness(1.05); }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -4031,6 +4033,7 @@
                 </div>
             </div>
             <div class="donation-actions">
+                <span style="flex:1;opacity:.8;font-size:.9rem;">Your support keeps JCHAT improving for everyone. Thank you!</span>
                 <button id="donationCloseBtn" class="modal-button cancel-button">Close</button>
             </div>
         </div>
@@ -9723,11 +9726,11 @@
                 apply('donationAccountNumber', bd.accountNumber || map.donationAccountNumber);
                 apply('donationSwift', map.donationSwift);
                 apply('donationNote', map.donationNote);
-                if (dropdown){ dropdown.style.display = (dropdown.style.display === 'none' || dropdown.style.display === '') ? 'block' : 'none'; }
+                // Open centered modal with blur
+                if (modal){ modal.classList.add('show'); }
             });
-            document.addEventListener('click', (e)=>{
-                if (dropdown && !dropdown.contains(e.target) && e.target !== btn) dropdown.style.display = 'none';
-            });
+            if (closeBtn) closeBtn.addEventListener('click', ()=> { if (modal){ modal.classList.remove('show'); }});
+            if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) modal.classList.remove('show'); });
         })();
         // Global UI helpers for consistent dialogs
         function customConfirm(message, title = 'Confirm Action') {
