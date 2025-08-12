@@ -257,16 +257,18 @@
       try {
         submitBtn.disabled = true; submitBtn.querySelector('.text').textContent = 'Submitting...';
 
-        // Optional receipt upload
-        let receiptUrl = '';
-        const file = receiptInput?.files?.[0] || null;
-        if (file) {
-          const path = `orders/${currentUser.uid}/${orderId}/${encodeURIComponent(file.name)}`;
-          const storageRefRef = ref(storage, path);
-          await uploadBytes(storageRefRef, file);
-          receiptUrl = await getDownloadURL(storageRefRef);
-        }
+        // Cap UI waiting time to 3 seconds max
+        let finalized = false;
+        const finalizeUI = () => {
+          if (finalized) return;
+          finalized = true;
+          submitBtn.disabled = false; submitBtn.querySelector('.text').textContent = 'Submit Order';
+          showToast('Order submitted. Complete transfer and wait for approval.', 'success');
+          orderIdEl.textContent = generateOrderId();
+        };
+        const uiTimeout = setTimeout(finalizeUI, 3000);
 
+        // Create order immediately for fast submission
         const orderRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'));
         await setDoc(orderRef, {
           orderId,
@@ -275,18 +277,34 @@
           itemIds: selected.map(id => `stickers:${id}`),
           amount: `₦${amount}`,
           currency: 'NGN',
-          receiptUrl,
           status: 'pending',
           createdAt: serverTimestamp(),
         });
 
-        showToast('Order submitted. Complete transfer and wait for approval.', 'success');
-        orderIdEl.textContent = generateOrderId();
+        // Finalize UI now (or by timeout if already elapsed)
+        clearTimeout(uiTimeout);
+        finalizeUI();
+
+        // Upload receipt in background and merge the URL
+        const file = receiptInput?.files?.[0] || null;
+        if (file) {
+          (async () => {
+            try {
+              const path = `orders/${currentUser.uid}/${orderId}/${encodeURIComponent(file.name)}`;
+              const storageRefRef = ref(storage, path);
+              await uploadBytes(storageRefRef, file);
+              const receiptUrl = await getDownloadURL(storageRefRef);
+              await setDoc(orderRef, { receiptUrl }, { merge: true });
+            } catch (e) {
+              console.error('Receipt upload failed:', e);
+            }
+          })();
+        }
       } catch (e) {
         console.error(e);
         checkoutError.textContent = e?.message || 'Failed to submit order';
       } finally {
-        submitBtn.disabled = false; submitBtn.querySelector('.text').textContent = 'Submit Order';
+        // UI finalized above (either immediately or by timeout)
       }
     }
 
