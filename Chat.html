@@ -3748,12 +3748,11 @@
                 return;
             }
 
-            // Friendship gate: ensure both sides have friend docs
+            // Friendship gate: allow if either side has a friend doc (one-sided ok)
             try {
                 const youToThem = await getDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", partnerId));
                 const themToYou = await getDoc(doc(db, "artifacts", appId, "users", partnerId, "friends", currentUser.uid));
-                const isFriends = youToThem.exists() && themToYou.exists();
-                const allowMessaging = UNLOCK_ALL_PREVIEW || isFriends;
+                const allowMessaging = UNLOCK_ALL_PREVIEW || youToThem.exists() || themToYou.exists();
                 if (!allowMessaging) {
                     if (messageInput) messageInput.disabled = true;
                     if (sendMessageBtn) sendMessageBtn.disabled = true;
@@ -3764,6 +3763,7 @@
                 } else {
                     if (messageInput) messageInput.disabled = false;
                     if (sendMessageBtn) sendMessageBtn.disabled = false;
+                    if (noMessages) noMessages.style.display = 'none';
                 }
             } catch (e) {
                 console.warn('JCHAT_WARN: Friendship check failed:', e?.message || e);
@@ -3852,13 +3852,13 @@
                 return;
             }
 
-            // Prevent sending if not friends (bypass in preview)
+            // Prevent sending if not friends (one-sided friendship allowed)
             try {
                 const youToThem = await getDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", partnerId));
                 const themToYou = await getDoc(doc(db, "artifacts", appId, "users", partnerId, "friends", currentUser.uid));
-                const allow = UNLOCK_ALL_PREVIEW || (youToThem.exists() && themToYou.exists());
+                const allow = UNLOCK_ALL_PREVIEW || youToThem.exists() || themToYou.exists();
                 if (!allow) {
-                    showMessageBox("You can only message friends. Send a request from Find Friends.", 'info');
+                    showMessageBox("You are not connected yet. Use Find Friends to send a request.", 'info');
                     return;
                 }
             } catch (e) {
