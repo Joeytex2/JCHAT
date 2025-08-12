@@ -1884,11 +1884,35 @@
                         <div style="text-align:center; padding:15px; background:rgba(255,255,255,0.05); border-radius:8px;">
                             <h5 style="color:var(--accent-color); margin:0 0 10px 0;">Monthly Revenue</h5>
                             <span id="monthlyRevenue" style="font-size:24px; font-weight:bold; color:var(--white);">$0</span>
-                        </div>
-                    </div>
+                                            </div>
                 </div>
             </div>
         </div>
+        
+        <!-- PAYMENT SUBMISSIONS REVIEW SECTION -->
+        <div class="admin-section" id="paymentSubmissionsSection">
+            <h2><i class="fas fa-credit-card"></i> Payment Submissions Review</h2>
+            <p>Review and process payment submissions from users to generate unlock codes.</p>
+            
+            <div class="submissions-filters">
+                <select id="statusFilter" onchange="filterSubmissions()">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending Review</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <button onclick="refreshSubmissions()" class="admin-button">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            
+            <div id="submissionsList" class="submissions-list">
+                <div class="loading-placeholder">
+                    <i class="fas fa-spinner fa-spin"></i> Loading submissions...
+                </div>
+            </div>
+        </div>
+    </div>
     </main>
 
     <!-- Custom Message Box -->
@@ -5131,6 +5155,216 @@
 
         // Load premium stats on page load
         updatePremiumStats();
+
+        // Payment submissions review functions
+        async function loadPaymentSubmissions() {
+            try {
+                const submissionsRef = collection(db, 'artifacts', appId, 'public', 'data', 'payment_submissions');
+                const q = query(submissionsRef, orderBy('submittedAt', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                displaySubmissions(snapshot.docs);
+            } catch (error) {
+                console.error('Error loading submissions:', error);
+                showMessageBox('Failed to load payment submissions', 'error');
+            }
+        }
+
+        function displaySubmissions(submissions) {
+            const container = document.getElementById('submissionsList');
+            
+            if (submissions.length === 0) {
+                container.innerHTML = '<div class="no-submissions">No payment submissions found</div>';
+                return;
+            }
+            
+            container.innerHTML = submissions.map(doc => {
+                const data = doc.data();
+                const status = data.status || 'pending';
+                const statusClass = status === 'approved' ? 'status-approved' : 
+                                  status === 'rejected' ? 'status-rejected' : 'status-pending';
+                
+                return `
+                    <div class="submission-item ${statusClass}" data-id="${doc.id}">
+                        <div class="submission-header">
+                            <div class="user-info">
+                                <img src="${data.profilePicId ? getCloudinaryImageUrl(data.profilePicId, 'w_40,h_40,c_fill,g_face,r_max') : 'https://placehold.co/40x40/CCCCCC/000000?text=' + (data.username?.charAt(0) || 'U').toUpperCase()}" 
+                                     alt="${data.username}" 
+                                     style="width:40px; height:40px; border-radius:50%; object-fit:cover;"
+                                     onerror="this.src='https://placehold.co/40x40/CCCCCC/000000?text=${(data.username?.charAt(0) || 'U').toUpperCase()}'">
+                                <div>
+                                    <h4>${data.username}</h4>
+                                    <p>${data.email}</p>
+                                    <small>Submitted: ${data.submittedAt?.toDate().toLocaleDateString() || 'Unknown'}</small>
+                                </div>
+                            </div>
+                            <div class="submission-status">
+                                <span class="status-badge ${statusClass}">${status.toUpperCase()}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="submission-details">
+                            <div class="detail-row">
+                                <span><strong>Amount:</strong> $${data.amount}</span>
+                                <span><strong>Bank:</strong> ${data.bank}</span>
+                                <span><strong>Reference:</strong> ${data.reference}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span><strong>Phone:</strong> ${data.phone}</span>
+                                <span><strong>Payment Date:</strong> ${data.paymentDate}</span>
+                            </div>
+                            ${data.notes ? `<div class="detail-row"><span><strong>Notes:</strong> ${data.notes}</span></div>` : ''}
+                        </div>
+                        
+                        ${data.proofUrl ? `
+                        <div class="proof-section">
+                            <strong>Payment Proof:</strong>
+                            <a href="${data.proofUrl}" target="_blank" class="proof-link">
+                                <i class="fas fa-external-link-alt"></i> View Proof
+                            </a>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="submission-actions">
+                            ${status === 'pending' ? `
+                                <button onclick="approveSubmission('${doc.id}', '${data.userId}', '${data.amount}')" class="admin-button approve-btn">
+                                    <i class="fas fa-check"></i> Approve & Generate Code
+                                </button>
+                                <button onclick="rejectSubmission('${doc.id}')" class="admin-button reject-btn">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            ` : ''}
+                            <button onclick="viewSubmissionDetails('${doc.id}')" class="admin-button">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function approveSubmission(submissionId, userId, amount) {
+            try {
+                // Determine tier based on amount
+                let tier = 'basic';
+                if (amount >= 19.99) tier = 'ultimate';
+                else if (amount >= 9.99) tier = 'pro';
+                
+                // Generate unlock code
+                const unlockCode = generateUnlockCode(tier);
+                const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+                
+                // Store code in database
+                const codeRef = doc(db, 'artifacts', appId, 'public', 'data', 'premium_codes');
+                await setDoc(codeRef, {
+                    code: unlockCode,
+                    userId: userId,
+                    tier: tier,
+                    generatedAt: serverTimestamp(),
+                    expiresAt: Timestamp.fromDate(expiryDate),
+                    status: 'active',
+                    used: false,
+                    notificationSent: false,
+                    submissionId: submissionId
+                }, { merge: true });
+                
+                // Update submission status
+                const submissionRef = doc(db, 'artifacts', appId, 'public', 'data', 'payment_submissions', submissionId);
+                await updateDoc(submissionRef, {
+                    status: 'approved',
+                    approvedAt: serverTimestamp(),
+                    unlockCode: unlockCode,
+                    tier: tier
+                });
+                
+                // Send notification to user
+                await sendNotificationToUser(userId, unlockCode, tier);
+                
+                showMessageBox(`Payment approved! Unlock code generated and sent to user.`, 'success');
+                
+                // Refresh submissions and stats
+                loadPaymentSubmissions();
+                updatePremiumStats();
+                
+            } catch (error) {
+                console.error('Error approving submission:', error);
+                showMessageBox(`Failed to approve submission: ${error.message}`, 'error');
+            }
+        }
+
+        async function rejectSubmission(submissionId) {
+            const reason = prompt('Please provide a reason for rejection:');
+            if (!reason) return;
+            
+            try {
+                const submissionRef = doc(db, 'artifacts', appId, 'public', 'data', 'payment_submissions', submissionId);
+                await updateDoc(submissionRef, {
+                    status: 'rejected',
+                    rejectedAt: serverTimestamp(),
+                    rejectionReason: reason
+                });
+                
+                showMessageBox('Payment submission rejected.', 'success');
+                loadPaymentSubmissions();
+                
+            } catch (error) {
+                console.error('Error rejecting submission:', error);
+                showMessageBox(`Failed to reject submission: ${error.message}`, 'error');
+            }
+        }
+
+        async function sendNotificationToUser(userId, code, tier) {
+            try {
+                const notificationData = {
+                    userId: userId,
+                    type: 'premium_code',
+                    title: '🎉 Payment Approved - Premium Unlock Code Ready!',
+                    message: `Your payment has been approved! Your ${tier} premium unlock code is ready. Enter it on your profile page to unlock premium features!`,
+                    code: code,
+                    code: code,
+                    tier: tier,
+                    timestamp: serverTimestamp(),
+                    read: false,
+                    priority: 'high'
+                };
+
+                // Send to user's notifications
+                const userNotificationsRef = collection(db, 'artifacts', appId, 'users', userId, 'notifications');
+                await addDoc(userNotificationsRef, notificationData);
+
+                // Send to public notifications
+                const publicNotificationsRef = collection(db, 'artifacts', appId, 'public', 'data', 'notifications');
+                await addDoc(publicNotificationsRef, {
+                    ...notificationData,
+                    global: true,
+                    targetUserId: userId
+                });
+                
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                throw error;
+            }
+        }
+
+        function filterSubmissions() {
+            const status = document.getElementById('statusFilter').value;
+            // Implementation for filtering submissions
+            loadPaymentSubmissions(); // For now, just reload all
+        }
+
+        function refreshSubmissions() {
+            loadPaymentSubmissions();
+        }
+
+        function viewSubmissionDetails(submissionId) {
+            // Implementation for viewing detailed submission info
+            alert('Detailed view feature coming soon!');
+        }
+
+        // Load submissions when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPaymentSubmissions();
+        });
     </script>
 </body>
 </html>
