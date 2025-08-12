@@ -5909,8 +5909,38 @@
             const stickersBtn = document.getElementById('stickersBtn');
             const stickerPicker = document.getElementById('stickerPicker');
             const stickerPickerClose = document.getElementById('stickerPickerClose');
+            // Anchor sticker picker to the stickers button like WhatsApp
+            if (stickersBtn && stickerPicker) {
+                const anchor = stickersBtn.parentElement || document.body;
+                if (anchor && anchor !== stickerPicker.parentElement) {
+                    // Ensure anchor can position absolute children
+                    if (getComputedStyle(anchor).position === 'static') {
+                        anchor.style.position = 'relative';
+                    }
+                    anchor.appendChild(stickerPicker);
+                    // Convert picker to anchored dropdown
+                    Object.assign(stickerPicker.style, {
+                        position: 'absolute',
+                        bottom: '48px',
+                        right: '0',
+                        left: 'auto',
+                        transform: 'none',
+                        width: 'min(360px, 95vw)',
+                        maxHeight: '60vh',
+                        zIndex: '1200',
+                        border: '1px solid #e0e0e0',
+                        borderRadius: '16px',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+                    });
+                }
+            }
             function openStickerPicker() {
                 if (!stickerPicker) return;
+                // Initialize packs on first open
+                if (typeof window.__stickerPickerInitialized === 'undefined' || !window.__stickerPickerInitialized) {
+                    buildStickerPicker();
+                    window.__stickerPickerInitialized = true;
+                }
                 stickerPicker.style.display = 'block';
                 stickerPicker.scrollTop = 0;
             }
