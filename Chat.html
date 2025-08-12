@@ -1034,6 +1034,8 @@
             display: flex;
             gap: 10px;
             width: 100%;
+            align-items: flex-end;
+            padding: 0 4px;
         }
 
         .chat-input-area textarea {
@@ -1124,6 +1126,52 @@
             to {
                 opacity: 0;
                 transform: translateY(10px);
+            }
+        }
+
+        /* Responsive design for mobile devices */
+        @media (max-width: 768px) {
+            .chat-input-row {
+                gap: 8px;
+            }
+            
+            .chat-input-area textarea {
+                padding: 10px 14px;
+                font-size: 14px;
+                min-height: 40px;
+            }
+            
+            .chat-input-area #sendMessageBtn {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+            
+            #stickerPicker {
+                width: min(300px, 95vw) !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+            }
+            
+            #stickerGrid {
+                grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)) !important;
+                gap: 6px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #stickerPicker {
+                width: 95vw !important;
+                padding: 12px !important;
+            }
+            
+            #stickerTabs {
+                gap: 6px !important;
+            }
+            
+            #stickerTabs button {
+                padding: 6px 12px !important;
+                font-size: 12px !important;
             }
         }
 
@@ -2278,13 +2326,13 @@
                         <i class="fas fa-face-smile"></i> Stickers <span class="lock-badge" style="display:none"><i class="fas fa-lock"></i></span>
                         
                         <!-- Sticker Picker Dropdown (moved inside button) -->
-                        <div id="stickerPicker" style="display:none; position:absolute; bottom:100%; right:0; width:320px; max-height:400px; overflow:auto; background:#ffffff; border:1px solid #e0e0e0; border-radius:16px; padding:16px; box-shadow:0 8px 32px rgba(0,0,0,0.12); z-index:900; margin-bottom:8px;">
+                        <div id="stickerPicker" style="display:none; position:absolute; bottom:100%; right:0; width:min(320px, 90vw); max-height:400px; overflow:auto; background:#ffffff; border:1px solid #e0e0e0; border-radius:16px; padding:16px; box-shadow:0 8px 32px rgba(0,0,0,0.12); z-index:900; margin-bottom:8px; left:50%; transform:translateX(-50%);">
                             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; border-bottom:1px solid #f0f0f0; padding-bottom:12px;">
                                 <span style="font-weight:600; color:#1a1a1a; font-size:16px; font-family:'Segoe UI', sans-serif;">😊 Stickers</span>
                                 <button id="stickerPickerClose" style="background: #f5f5f5; border: none; color: #666; border-radius: 50%; width:32px; height:32px; cursor: pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s ease;" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f5f5f5'"><i class="fas fa-times"></i></button>
                             </div>
                             <div id="stickerTabs" style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; border-bottom:1px solid #f0f0f0; padding-bottom:12px;"></div>
-                            <div id="stickerGrid" style="display:grid; grid-template-columns:repeat(6, 1fr); gap:8px; padding:8px 0;"></div>
+                            <div id="stickerGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(48px, 1fr)); gap:8px; padding:8px 0;"></div>
                         </div>
                     </button>
                     
@@ -5719,7 +5767,21 @@
             { id:'misc',    name:'More',    emojis: PACK_MISC },
         ];
         const emojiToCodePoints = (e) => Array.from(e).map(ch=>ch.codePointAt(0).toString(16)).join('-');
-        const getTwemojiUrl = (e) => `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${emojiToCodePoints(e)}.png`;
+        const getTwemojiUrl = (e) => {
+            try {
+                const codePoints = emojiToCodePoints(e);
+                // Try multiple CDNs for better reliability
+                const urls = [
+                    `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${codePoints}.png`,
+                    `https://twemoji.maxcdn.com/v/latest/72x72/${codePoints}.png`,
+                    `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/${codePoints}.png`
+                ];
+                return urls[0]; // Return first URL, will fallback if needed
+            } catch (error) {
+                console.warn('Failed to generate Twemoji URL for:', e);
+                return null;
+            }
+        };
         function buildStickerPackTabs(container, grid) {
             const tabs = document.getElementById('stickerTabs');
             if (!tabs || !grid) return;
@@ -5728,9 +5790,33 @@
                 grid.innerHTML = '';
                 for (const em of pack.emojis) {
                     const url = getTwemojiUrl(em);
+                    if (!url) continue; // Skip if URL generation failed
+                    
                     const img = document.createElement('img');
-                    img.src = url; img.alt = 'sticker'; img.loading = 'lazy';
+                    img.src = url; 
+                    img.alt = 'sticker'; 
+                    img.loading = 'lazy';
                     img.style.cssText = 'width:48px;height:48px;object-fit:contain;cursor:pointer;border-radius:12px;background:#f8f9fa;padding:4px;transition:all 0.2s ease;';
+                    
+                    // Handle image load errors with CDN fallback
+                    let currentUrlIndex = 0;
+                    img.onerror = () => {
+                        currentUrlIndex++;
+                        if (currentUrlIndex < 3) {
+                            // Try next CDN
+                            const codePoints = emojiToCodePoints(em);
+                            const fallbackUrls = [
+                                `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${codePoints}.png`,
+                                `https://twemoji.maxcdn.com/v/latest/72x72/${codePoints}.png`,
+                                `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/${codePoints}.png`
+                            ];
+                            img.src = fallbackUrls[currentUrlIndex];
+                        } else {
+                            // All CDNs failed, hide the image
+                            img.style.display = 'none';
+                        }
+                    };
+                    
                     img.addEventListener('mouseenter', () => {
                         img.style.transform = 'scale(1.1)';
                         img.style.background = '#e9ecef';
