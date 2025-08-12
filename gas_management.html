@@ -1821,97 +1821,17 @@
                 <small style="color:var(--text-light)">This writes to user_entitlements.packs adding the selected key.</small>
             </div>
 
-            <!-- PREMIUM CODE GENERATOR TOOL -->
-            <div class="admin-section" id="premiumCodeGeneratorSection">
-                <h2><i class="fas fa-key"></i> Premium Code Generator</h2>
-                <p>Generate unlock codes for users who have made premium payments.</p>
+
+
                 
-                <div class="input-group" style="display:grid; grid-template-columns: 1fr 1fr auto; gap:12px; align-items:end;">
-                    <div>
-                        <label for="premiumUserId">User ID / Username</label>
-                        <input type="text" id="premiumUserId" placeholder="Enter user ID or username" style="width:100%" />
-                    </div>
-                    <div>
-                        <label for="premiumTierSelect">Premium Tier</label>
-                        <select id="premiumTierSelect" style="width:100%">
-                            <option value="basic">Basic Premium ($4.99/month)</option>
-                            <option value="pro">Pro Premium ($9.99/month)</option>
-                            <option value="ultimate">Ultimate Premium ($19.99/month)</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button id="generatePremiumCodeBtn" class="admin-button"><span class="button-text">Generate Code</span><div class="button-loader"></div></button>
-                    </div>
-                </div>
 
-                <!-- Generated Code Display -->
-                <div id="generatedCodeSection" style="display:none; margin-top:20px; padding:20px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid var(--border-light);">
-                    <h3 style="color:var(--accent-color); margin-bottom:15px;">🔑 Generated Unlock Code</h3>
-                                            <div style="display:grid; grid-template-columns: 1fr auto; gap:15px; align-items:center;">
-                            <div>
-                                <p style="margin:5px 0;"><strong>User:</strong> <span id="generatedCodeUser"></span></p>
-                                <p style="margin:5px 0;"><strong>Tier:</strong> <span id="generatedCodeTier"></span></p>
-                                <p style="margin:5px 0;"><strong>Code:</strong> <span id="generatedCodeText" style="font-family:monospace; font-size:18px; color:var(--accent-color); font-weight:bold;"></span></p>
-                                <p style="margin:5px 0;"><strong>Expires:</strong> <span id="generatedCodeExpiry"></span></p>
-                                <p style="margin:5px 0;"><strong>Status:</strong> <span id="notificationStatus" style="color:var(--accent-color);">Ready to send</span></p>
-                            </div>
-                        <div style="display:flex; flex-direction:column; gap:8px;">
-                            <button id="copyCodeBtn" class="admin-button" style="background:var(--accent-color);">
-                                <i class="fas fa-copy"></i> Copy Code
-                            </button>
-                            <button id="sendCodeBtn" class="admin-button" style="background:var(--accent-color);">
-                                <i class="fas fa-paper-plane"></i> Send via WhatsApp
-                            </button>
-                            <button id="sendNotificationBtn" class="admin-button" style="background:var(--accent-color);">
-                                <i class="fas fa-bell"></i> Send to Notifications
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Payment Tracking -->
-                <div style="margin-top:20px; padding:20px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid var(--border-light);">
-                    <h4 style="margin-bottom:15px;">📊 Payment Tracking</h4>
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
-                        <div style="text-align:center; padding:15px; background:rgba(255,255,255,0.05); border-radius:8px;">
-                            <h5 style="color:var(--accent-color); margin:0 0 10px 0;">Total Codes Generated</h5>
-                            <span id="totalCodesGenerated" style="font-size:24px; font-weight:bold; color:var(--white);">0</span>
-                        </div>
-                        <div style="text-align:center; padding:15px; background:rgba(255,255,255,0.05); border-radius:8px;">
-                            <h5 style="color:var(--accent-color); margin:0 0 10px 0;">Active Premium Users</h5>
-                            <span id="activePremiumUsers" style="font-size:24px; font-weight:bold; color:var(--white);">0</span>
-                        </div>
-                        <div style="text-align:center; padding:15px; background:rgba(255,255,255,0.05); border-radius:8px;">
-                            <h5 style="color:var(--accent-color); margin:0 0 10px 0;">Monthly Revenue</h5>
-                            <span id="monthlyRevenue" style="font-size:24px; font-weight:bold; color:var(--white);">$0</span>
-                                            </div>
-                </div>
-            </div>
-        </div>
+
+
+
+
         
-        <!-- PAYMENT SUBMISSIONS REVIEW SECTION -->
-        <div class="admin-section" id="paymentSubmissionsSection">
-            <h2><i class="fas fa-credit-card"></i> Payment Submissions Review</h2>
-            <p>Review and process payment submissions from users to generate unlock codes.</p>
-            
-            <div class="submissions-filters">
-                <select id="statusFilter" onchange="filterSubmissions()">
-                    <option value="all">All Status</option>
-                    <option value="pending">Pending Review</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                </select>
-                <button onclick="refreshSubmissions()" class="admin-button">
-                    <i class="fas fa-sync-alt"></i> Refresh
-                </button>
-            </div>
-            
-            <div id="submissionsList" class="submissions-list">
-                <div class="loading-placeholder">
-                    <i class="fas fa-spinner fa-spin"></i> Loading submissions...
-                </div>
-            </div>
-        </div>
+
     </div>
     </main>
 
@@ -2240,19 +2160,7 @@
          * @param {string} transformations - Optional Cloudinary transformations.
          * @returns {string|null} The full Cloudinary URL or null if urlOrPublicId is not provided.
          */
-        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
-            if (!urlOrPublicId) return null;
-            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
-                if (urlOrPublicId.includes('res.cloudinary.com')) {
-                    const parts = urlOrPublicId.split('/upload/');
-                    if (parts.length === 2) {
-                        return `${parts[0]}/upload/${transformations}/${parts[1]}`;
-                    }
-                }
-                return urlOrPublicId;
-            }
-            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
-        }
+
 
         /**
          * Displays the profile picture or a default icon.
@@ -2265,7 +2173,7 @@
         function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
             if (imgElement) {
                 if (profilePicId) {
-                    const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
+                    const imageUrl = profilePicId ? `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${profilePicId}` : null;
                     imgElement.src = imageUrl;
                     imgElement.style.display = 'block';
                     if (iconElement) iconElement.style.display = 'none';
@@ -3401,7 +3309,7 @@
                         requestCard.setAttribute('data-request-id', requestId);
 
                         const requesterInitial = (request.username || 'U').charAt(0).toUpperCase();
-                        const profilePicSrc = request.profilePicId ? getCloudinaryImageUrl(request.profilePicId, 'w_100,h_100,c_fill,g_face,r_max') : `https://placehold.co/50x50/CCCCCC/000000?text=${requesterInitial}`;
+                        const profilePicSrc = request.profilePicId ? `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/w_100,h_100,c_fill,g_face,r_max/${request.profilePicId}` : `https://placehold.co/50x50/CCCCCC/000000?text=${requesterInitial}`;
                         const timestamp = request.timestamp ? new Date(request.timestamp.toDate()).toLocaleString() : 'N/A';
 
                         requestCard.innerHTML = `
@@ -4729,8 +4637,7 @@
                 });
             }
 
-            // Load payment submissions on page load
-            loadPaymentSubmissions();
+
 
             // Event listener for "Approve Selected" button
             if (approveSelectedBtn) {
@@ -4922,441 +4829,15 @@
             }
         });
 
-        // PREMIUM CODE GENERATOR TOOL
-        document.getElementById('generatePremiumCodeBtn')?.addEventListener('click', async () => {
-            const userId = (document.getElementById('premiumUserId')?.value || '').trim();
-            const tier = (document.getElementById('premiumTierSelect')?.value || '').trim();
-            
-            if (!userId || !tier) {
-                showMessageBox('Please enter user ID/username and select premium tier', 'error');
-                return;
-            }
-
-            try {
-                // First, verify the user exists
-                const userRef = doc(db, 'artifacts', appId, 'users', userId);
-                const userDoc = await getDoc(userRef);
-                
-                if (!userDoc.exists()) {
-                    showMessageBox(`User ${userId} not found. Please check the user ID.`, 'error');
-                    return;
-                }
-
-                const userData = userDoc.data();
-                const username = userData.username || userData.displayName || userId;
-
-                // Generate unique unlock code
-                const unlockCode = generateUnlockCode(tier);
-                const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-                
-                // Store code in database for tracking
-                const codeRef = doc(db, 'artifacts', appId, 'public', 'data', 'premium_codes');
-                await setDoc(codeRef, {
-                    code: unlockCode,
-                    userId: userId,
-                    username: username,
-                    tier: tier,
-                    generatedAt: serverTimestamp(),
-                    expiresAt: Timestamp.fromDate(expiryDate),
-                    status: 'active',
-                    used: false,
-                    notificationSent: false
-                }, { merge: true });
-
-                // Display generated code with enhanced user info
-                document.getElementById('generatedCodeUser').innerHTML = `
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <img src="${userData.profilePicId ? getCloudinaryImageUrl(userData.profilePicId, 'w_40,h_40,c_fill,g_face,r_max') : 'https://placehold.co/40x40/CCCCCC/000000?text=' + username.charAt(0).toUpperCase()}" 
-                             alt="${username}" 
-                             style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-color);"
-                             onerror="this.src='https://placehold.co/40x40/CCCCCC/000000?text=${username.charAt(0).toUpperCase()}'">
-                        <div>
-                            <div style="font-weight:bold; color:var(--white);">${username}</div>
-                            <div style="font-size:0.8rem; color:var(--text-light);">ID: ${userId}</div>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('generatedCodeTier').textContent = `${tier.charAt(0).toUpperCase() + tier.slice(1)} Premium`;
-                document.getElementById('generatedCodeText').textContent = unlockCode;
-                document.getElementById('generatedCodeExpiry').textContent = expiryDate.toLocaleDateString();
-                document.getElementById('notificationStatus').textContent = 'Ready to send';
-                document.getElementById('notificationStatus').style.color = 'var(--accent-color)';
-                
-                document.getElementById('generatedCodeSection').style.display = 'block';
-                
-                showMessageBox(`Premium code generated successfully for ${username}`, 'success');
-                
-                // Update stats
-                updatePremiumStats();
-                
-            } catch (e) {
-                console.error(e);
-                showMessageBox(e?.message || 'Failed to generate premium code', 'error');
-            }
-        });
-
-        // Copy code button
-        document.getElementById('copyCodeBtn')?.addEventListener('click', () => {
-            const codeText = document.getElementById('generatedCodeText').textContent;
-            navigator.clipboard.writeText(codeText).then(() => {
-                showMessageBox('Code copied to clipboard!', 'success');
-            }).catch(() => {
-                showMessageBox('Failed to copy code', 'error');
-            });
-        });
-
-        // Send code button (opens WhatsApp/Email)
-        document.getElementById('sendCodeBtn')?.addEventListener('click', () => {
-            const codeText = document.getElementById('generatedCodeText').textContent;
-            const user = document.getElementById('generatedCodeUser').textContent;
-            const tier = document.getElementById('generatedCodeTier').textContent;
-            
-            // Create message
-            const message = `🎉 Your JCHAT Premium is ready!\n\n` +
-                          `User: ${user}\n` +
-                          `Tier: ${tier}\n` +
-                          `Unlock Code: ${codeText}\n\n` +
-                          `Enter this code on your profile page to unlock premium features!\n\n` +
-                          `Thank you for choosing JCHAT Premium! 🚀\n\n` +
-                          `Need help? Contact us:\n` +
-                          `📧 Email: jchatguide@gmail.com\n` +
-                          `📱 WhatsApp: +2349013790707`;
-            
-            // Open WhatsApp with pre-filled message
-            const whatsappUrl = `https://wa.me/2349013790707?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
-            
-            showMessageBox('WhatsApp opened with your message!', 'success');
-        });
-
-        // Send notification button (sends code to user's notifications)
-        document.getElementById('sendNotificationBtn')?.addEventListener('click', async () => {
-            const codeText = document.getElementById('generatedCodeText').textContent;
-            const user = document.getElementById('generatedCodeUser').textContent;
-            const tier = document.getElementById('generatedCodeTier').textContent;
-            const userId = document.getElementById('premiumUserId').value.trim();
-            
-            if (!userId) {
-                showMessageBox('Please enter a valid user ID first', 'error');
-                return;
-            }
-
-            try {
-                // Show loading state
-                const sendNotificationBtn = document.getElementById('sendNotificationBtn');
-                const originalText = sendNotificationBtn.innerHTML;
-                sendNotificationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-                sendNotificationBtn.disabled = true;
-
-                // Create notification data
-                const notificationData = {
-                    userId: userId,
-                    type: 'premium_code',
-                    title: '🎉 Premium Unlock Code Ready!',
-                    message: `Your ${tier} premium unlock code is ready. Enter it on your profile page to unlock premium features!`,
-                    code: codeText,
-                    tier: tier,
-                    timestamp: serverTimestamp(),
-                    read: false,
-                    priority: 'high'
-                };
-
-                // Send to user's notifications collection
-                const userNotificationsRef = collection(db, 'artifacts', appId, 'users', userId, 'notifications');
-                await addDoc(userNotificationsRef, notificationData);
-
-                // Also send to public notifications for real-time updates
-                const publicNotificationsRef = collection(db, 'artifacts', appId, 'public', 'data', 'notifications');
-                await addDoc(publicNotificationsRef, {
-                    ...notificationData,
-                    global: true,
-                    targetUserId: userId
-                });
-
-                // Update the code status to indicate notification sent
-                const codesRef = collection(db, 'artifacts', appId, 'public', 'data', 'premium_codes');
-                const q = query(codesRef, where('code', '==', codeText));
-                const querySnapshot = await getDocs(q);
-                
-                if (!querySnapshot.empty) {
-                    const codeRef = doc(db, 'artifacts', appId, 'public', 'data', 'premium_codes', querySnapshot.docs[0].id);
-                    await updateDoc(codeRef, {
-                        notificationSent: true,
-                        notificationSentAt: serverTimestamp()
-                    });
-                }
-
-                showMessageBox(`Premium code notification sent successfully to ${user}!`, 'success');
-                
-                // Update notification status
-                document.getElementById('notificationStatus').textContent = '✅ Notification sent';
-                document.getElementById('notificationStatus').style.color = '#4CAF50';
-                
-                // Update stats
-                updatePremiumStats();
-
-            } catch (error) {
-                console.error('Error sending notification:', error);
-                showMessageBox(`Failed to send notification: ${error.message}`, 'error');
-            } finally {
-                // Restore button state
-                const sendNotificationBtn = document.getElementById('sendNotificationBtn');
-                sendNotificationBtn.innerHTML = originalText;
-                sendNotificationBtn.disabled = false;
-            }
-        });
 
 
 
-        // Generate unique unlock code
-        function generateUnlockCode(tier) {
-            const timestamp = Date.now().toString(36);
-            const random = Math.random().toString(36).substr(2, 6);
-            const tierPrefix = tier.charAt(0).toUpperCase();
-            return `JCHAT${tierPrefix}${timestamp}${random}`.toUpperCase();
-        }
 
 
 
-        // Update premium statistics
-        async function updatePremiumStats() {
-            try {
-                const codesRef = collection(db, 'artifacts', appId, 'public', 'data', 'premium_codes');
-                const codesSnapshot = await getDocs(codesRef);
-                
-                let totalCodes = 0;
-                let activeUsers = 0;
-                let monthlyRevenue = 0;
-                
-                codesSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    totalCodes++;
-                    
-                    if (data.status === 'active' && !data.used) {
-                        activeUsers++;
-                        
-                        // Calculate revenue based on tier
-                        if (data.tier === 'basic') monthlyRevenue += 4.99;
-                        else if (data.tier === 'pro') monthlyRevenue += 9.99;
-                        else if (data.tier === 'ultimate') monthlyRevenue += 19.99;
-                    }
-                });
-                
-                document.getElementById('totalCodesGenerated').textContent = totalCodes;
-                document.getElementById('activePremiumUsers').textContent = activeUsers;
-                document.getElementById('monthlyRevenue').textContent = `$${monthlyRevenue.toFixed(2)}`;
-                
-            } catch (e) {
-                console.error('Failed to update premium stats:', e);
-            }
-        }
 
-        // Load premium stats on page load
-        updatePremiumStats();
 
-        // Payment submissions review functions
-        async function loadPaymentSubmissions() {
-            try {
-                const submissionsRef = collection(db, 'artifacts', appId, 'public', 'data', 'payment_submissions');
-                const q = query(submissionsRef, orderBy('submittedAt', 'desc'));
-                const snapshot = await getDocs(q);
-                
-                displaySubmissions(snapshot.docs);
-            } catch (error) {
-                console.error('Error loading submissions:', error);
-                showMessageBox('Failed to load payment submissions', 'error');
-            }
-        }
 
-        function displaySubmissions(submissions) {
-            const container = document.getElementById('submissionsList');
-            
-            if (submissions.length === 0) {
-                container.innerHTML = '<div class="no-submissions">No payment submissions found</div>';
-                return;
-            }
-            
-            container.innerHTML = submissions.map(doc => {
-                const data = doc.data();
-                const status = data.status || 'pending';
-                const statusClass = status === 'approved' ? 'status-approved' : 
-                                  status === 'rejected' ? 'status-rejected' : 'status-pending';
-                
-                return `
-                    <div class="submission-item ${statusClass}" data-id="${doc.id}">
-                        <div class="submission-header">
-                            <div class="user-info">
-                                <img src="${data.profilePicId ? getCloudinaryImageUrl(data.profilePicId, 'w_40,h_40,c_fill,g_face,r_max') : 'https://placehold.co/40x40/CCCCCC/000000?text=' + (data.username?.charAt(0) || 'U').toUpperCase()}" 
-                                     alt="${data.username}" 
-                                     style="width:40px; height:40px; border-radius:50%; object-fit:cover;"
-                                     onerror="this.src='https://placehold.co/40x40/CCCCCC/000000?text=${(data.username?.charAt(0) || 'U').toUpperCase()}'">
-                                <div>
-                                    <h4>${data.username}</h4>
-                                    <p>${data.email}</p>
-                                    <small>Submitted: ${data.submittedAt?.toDate().toLocaleDateString() || 'Unknown'}</small>
-                                </div>
-                            </div>
-                            <div class="submission-status">
-                                <span class="status-badge ${statusClass}">${status.toUpperCase()}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="submission-details">
-                            <div class="detail-row">
-                                <span><strong>Amount:</strong> $${data.amount}</span>
-                                <span><strong>Bank:</strong> ${data.bank}</span>
-                                <span><strong>Reference:</strong> ${data.reference}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span><strong>Phone:</strong> ${data.phone}</span>
-                                <span><strong>Payment Date:</strong> ${data.paymentDate}</span>
-                            </div>
-                            ${data.notes ? `<div class="detail-row"><span><strong>Notes:</strong> ${data.notes}</span></div>` : ''}
-                        </div>
-                        
-                        ${data.proofUrl ? `
-                        <div class="proof-section">
-                            <strong>Payment Proof:</strong>
-                            <a href="${data.proofUrl}" target="_blank" class="proof-link">
-                                <i class="fas fa-external-link-alt"></i> View Proof
-                            </a>
-                        </div>
-                        ` : ''}
-                        
-                        <div class="submission-actions">
-                            ${status === 'pending' ? `
-                                <button onclick="approveSubmission('${doc.id}', '${data.userId}', '${data.amount}')" class="admin-button approve-btn">
-                                    <i class="fas fa-check"></i> Approve & Generate Code
-                                </button>
-                                <button onclick="rejectSubmission('${doc.id}')" class="admin-button reject-btn">
-                                    <i class="fas fa-times"></i> Reject
-                                </button>
-                            ` : ''}
-                            <button onclick="viewSubmissionDetails('${doc.id}')" class="admin-button">
-                                <i class="fas fa-eye"></i> View Details
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        async function approveSubmission(submissionId, userId, amount) {
-            try {
-                // Determine tier based on amount
-                let tier = 'basic';
-                if (amount >= 19.99) tier = 'ultimate';
-                else if (amount >= 9.99) tier = 'pro';
-                
-                // Generate unlock code
-                const unlockCode = generateUnlockCode(tier);
-                const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-                
-                // Store code in database
-                const codeRef = doc(db, 'artifacts', appId, 'public', 'data', 'premium_codes');
-                await setDoc(codeRef, {
-                    code: unlockCode,
-                    userId: userId,
-                    tier: tier,
-                    generatedAt: serverTimestamp(),
-                    expiresAt: Timestamp.fromDate(expiryDate),
-                    status: 'active',
-                    used: false,
-                    notificationSent: false,
-                    submissionId: submissionId
-                }, { merge: true });
-                
-                // Update submission status
-                const submissionRef = doc(db, 'artifacts', appId, 'public', 'data', 'payment_submissions', submissionId);
-                await updateDoc(submissionRef, {
-                    status: 'approved',
-                    approvedAt: serverTimestamp(),
-                    unlockCode: unlockCode,
-                    tier: tier
-                });
-                
-                // Send notification to user
-                await sendNotificationToUser(userId, unlockCode, tier);
-                
-                showMessageBox(`Payment approved! Unlock code generated and sent to user.`, 'success');
-                
-                // Refresh submissions and stats
-                loadPaymentSubmissions();
-                updatePremiumStats();
-                
-            } catch (error) {
-                console.error('Error approving submission:', error);
-                showMessageBox(`Failed to approve submission: ${error.message}`, 'error');
-            }
-        }
-
-        async function rejectSubmission(submissionId) {
-            const reason = prompt('Please provide a reason for rejection:');
-            if (!reason) return;
-            
-            try {
-                const submissionRef = doc(db, 'artifacts', appId, 'public', 'data', 'payment_submissions', submissionId);
-                await updateDoc(submissionRef, {
-                    status: 'rejected',
-                    rejectedAt: serverTimestamp(),
-                    rejectionReason: reason
-                });
-                
-                showMessageBox('Payment submission rejected.', 'success');
-                loadPaymentSubmissions();
-                
-            } catch (error) {
-                console.error('Error rejecting submission:', error);
-                showMessageBox(`Failed to reject submission: ${error.message}`, 'error');
-            }
-        }
-
-        async function sendNotificationToUser(userId, code, tier) {
-            try {
-                const notificationData = {
-                    userId: userId,
-                    type: 'premium_code',
-                    title: '🎉 Payment Approved - Premium Unlock Code Ready!',
-                    message: `Your payment has been approved! Your ${tier} premium unlock code is ready. Enter it on your profile page to unlock premium features!`,
-                    code: code,
-                    tier: tier,
-                    timestamp: serverTimestamp(),
-                    read: false,
-                    priority: 'high'
-                };
-
-                // Send to user's notifications
-                const userNotificationsRef = collection(db, 'artifacts', appId, 'users', userId, 'notifications');
-                await addDoc(userNotificationsRef, notificationData);
-
-                // Send to public notifications
-                const publicNotificationsRef = collection(db, 'artifacts', appId, 'public', 'data', 'notifications');
-                await addDoc(publicNotificationsRef, {
-                    ...notificationData,
-                    global: true,
-                    targetUserId: userId
-                });
-                
-            } catch (error) {
-                console.error('Error sending notification:', error);
-                throw error;
-            }
-        }
-
-        function filterSubmissions() {
-            const status = document.getElementById('statusFilter').value;
-            // Implementation for filtering submissions
-            loadPaymentSubmissions(); // For now, just reload all
-        }
-
-        function refreshSubmissions() {
-            loadPaymentSubmissions();
-        }
-
-        function viewSubmissionDetails(submissionId) {
-            // Implementation for viewing detailed submission info
-            alert('Detailed view feature coming soon!');
-        }
 
 
     </script>
