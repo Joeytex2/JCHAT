@@ -5934,6 +5934,82 @@
                 }
             });
         })();
+
+        // ---- Stickers: Packs + Builder ----
+        (function defineStickerPacks(){
+            const STICKER_PACKS = [
+                { id: 'smileys', name: 'Smileys', emojis: ['😀','😁','😂','🤣','😃','😄','😅','😉','😊','😍','😘','🥰','🙂','🙃','😌','😋','😎','🤩','🥳','😏'] },
+                { id: 'hands', name: 'Hands', emojis: ['👍','👎','👏','🙌','🙏','💪','✌️','🤞','👌','🤟','👋','👉','👈','👇','👆','☝️'] },
+                { id: 'hearts', name: 'Hearts', emojis: ['❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💔','❣️','💖','💗','💓','💞','💕','💘','💝'] },
+                { id: 'party', name: 'Party', emojis: ['🎉','🎊','🎈','✨','⭐','🌟','🔥','💯','🎁','🎂','🥳','🎆','🎇'] },
+                { id: 'animals', name: 'Animals', emojis: ['🐶','🐱','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐵','🐸','🐤','🦄'] },
+                { id: 'food', name: 'Food', emojis: ['🍎','🍊','🍌','🍉','🍇','🍓','🍒','🍑','🥭','🍍','🥥','🍔','🍟','🍕','🌮','🍣'] },
+                { id: 'misc', name: 'More', emojis: ['🚀','💡','📌','📎','✏️','🧸','🏆','🎧','🎮','📱','💻','🖥️','🎬','🎵'] },
+                { id: 'travel', name: 'Travel', emojis: ['✈️','🛫','🛬','🚗','🚕','🚙','🚌','🚎','🚓','🚑','🚒','🚐','🚚','🚢'] },
+                { id: 'nature', name: 'Nature', emojis: ['🌸','🌼','🌻','🌹','🌷','🌱','🌿','🍀','🌵','🌴','🌲','🌳','🌈','☀️','🌙','⭐'] },
+                { id: 'sports', name: 'Sports', emojis: ['⚽','🏀','🏈','⚾','🎾','🏐','🎱','🏓','🏸','🥊','🥅','⛳'] },
+                { id: 'music', name: 'Music', emojis: ['🎧','🎤','🎼','🎹','🥁','🎷','🎺','🎸','🎻'] },
+                { id: 'objects', name: 'Objects', emojis: ['🔑','💳','💼','⌚','📱','💾','💿','🔋','🔌','💡','🔦','🕯️','🧯'] },
+                { id: 'food2', name: 'Foods 2', emojis: ['🍗','🌯','🌭','🥪','🍝','🍜','🍲','🍣','🍱','🍤','🍙','🍚','🍰','🧁'] },
+                { id: 'faces2', name: 'Faces 2', emojis: ['🤓','🫠','🫢','🫣','🫡','🥸','🧐','🤥','🤫','🤭','😮‍💨','😵‍💫'] },
+                { id: 'activity', name: 'Activities', emojis: ['🎯','🎲','🧩','🪀','🪁','🎳','🪄','🎽','🎒','🎟️','🎭','🎨'] },
+            ];
+            const emojiToCodePoints = (emoji) => Array.from(emoji).map(ch => ch.codePointAt(0).toString(16)).join('-');
+            const getTwemojiUrl = (emoji) => `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${emojiToCodePoints(emoji)}.png`;
+
+            window.buildStickerPicker = function buildStickerPicker(){
+                const tabs = document.getElementById('stickerTabs');
+                const grid = document.getElementById('stickerGrid');
+                if (!tabs || !grid) return;
+                tabs.innerHTML = '';
+                function renderPack(pack){
+                    grid.innerHTML = '';
+                    pack.emojis.forEach((emoji, idx) => {
+                        const isFree = idx < 3;
+                        const url = getTwemojiUrl(emoji);
+                        const wrap = document.createElement('div');
+                        wrap.style.position = 'relative';
+                        const img = document.createElement('img');
+                        img.src = url;
+                        img.alt = 'sticker';
+                        img.loading = 'lazy';
+                        img.style.cssText = `width:56px;height:56px;object-fit:contain;border-radius:12px;background:#f8f9fa;padding:6px;transition:all .15s ease;${isFree ? 'cursor:pointer;' : 'filter: grayscale(100%); opacity:.6; cursor:not-allowed;'}`;
+                        if (isFree) {
+                            img.addEventListener('mouseenter', ()=>{ img.style.transform = 'scale(1.08)'; img.style.background='#e9ecef'; });
+                            img.addEventListener('mouseleave', ()=>{ img.style.transform = 'scale(1)'; img.style.background='#f8f9fa'; });
+                            img.addEventListener('click', async ()=>{
+                                try { await sendMessage('image', url); } catch (e) { console.error(e); showMessageBox('Failed to send sticker','error'); }
+                            });
+                        } else {
+                            const lock = document.createElement('div');
+                            lock.innerHTML = '<i class="fas fa-lock"></i>';
+                            lock.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border-radius:8px;padding:2px 4px;font-size:10px;';
+                            wrap.appendChild(lock);
+                            img.title = 'Locked. Unlock this category in Store.';
+                        }
+                        wrap.appendChild(img);
+                        grid.appendChild(wrap);
+                    });
+                }
+                STICKER_PACKS.forEach((p, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = p.name;
+                    btn.style.cssText = 'flex:0 0 auto; padding:8px 12px; border:none; background:#f5f5f5; color:#666; border-radius:16px; font-size:13px; font-weight:600; cursor:pointer;';
+                    if (idx === 0) { btn.classList.add('active'); btn.style.background = '#25D366'; btn.style.color = '#fff'; renderPack(p); }
+                    btn.addEventListener('click', ()=>{
+                        [...tabs.children].forEach(ch => { ch.classList.remove('active'); ch.style.background='#f5f5f5'; ch.style.color='#666'; });
+                        btn.classList.add('active'); btn.style.background='#25D366'; btn.style.color='#fff';
+                        renderPack(p);
+                    });
+                    tabs.appendChild(btn);
+                });
+                const prev = document.getElementById('tabsPrev');
+                const next = document.getElementById('tabsNext');
+                prev?.addEventListener('click', ()=> tabs.scrollBy({left: -Math.max(200, tabs.clientWidth/2), behavior:'smooth'}));
+                next?.addEventListener('click', ()=> tabs.scrollBy({left:  Math.max(200, tabs.clientWidth/2), behavior:'smooth'}));
+            };
+        })();
         // ... existing code ...
         // ... existing code ...
     </script>
