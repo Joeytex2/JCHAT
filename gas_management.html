@@ -4968,6 +4968,65 @@
             showMessageBox('WhatsApp opened with your message!', 'success');
         });
 
+        // Add contact information display
+        function showContactInfo() {
+            const contactInfo = `
+                <div class="contact-info-display">
+                    <h4>📞 Contact Information</h4>
+                    <div class="contact-details">
+                        <p><i class="fas fa-envelope"></i> <strong>Email:</strong> jchatguide@gmail.com</p>
+                        <p><i class="fab fa-whatsapp"></i> <strong>WhatsApp:</strong> +2349013790707</p>
+                        <p><i class="fas fa-phone"></i> <strong>Phone:</strong> +2348111609765</p>
+                    </div>
+                    <div class="contact-actions">
+                        <button onclick="openWhatsApp()" class="contact-btn whatsapp-btn">
+                            <i class="fab fa-whatsapp"></i> Open WhatsApp
+                        </button>
+                        <button onclick="openEmail()" class="contact-btn email-btn">
+                            <i class="fas fa-envelope"></i> Send Email
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add contact info to the page
+            const contactSection = document.createElement('div');
+            contactSection.innerHTML = contactInfo;
+            contactSection.style.cssText = `
+                background: rgba(255,255,255,0.05);
+                padding: 20px;
+                border-radius: 12px;
+                margin: 20px 0;
+                border: 1px solid var(--border-light);
+            `;
+            
+            // Insert after the premium code generator section
+            const premiumSection = document.getElementById('premiumCodeGeneratorSection');
+            if (premiumSection) {
+                premiumSection.appendChild(contactSection);
+            }
+        }
+
+        // Open WhatsApp function
+        function openWhatsApp() {
+            const message = "Hello! I need help with JCHAT Premium.";
+            const whatsappUrl = `https://wa.me/2349013790707?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Open Email function
+        function openEmail() {
+            const subject = "JCHAT Premium Support";
+            const body = "Hello! I need help with JCHAT Premium.";
+            const emailUrl = `mailto:jchatguide@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.open(emailUrl, '_blank');
+        }
+
+        // Show contact info when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(showContactInfo, 1000); // Show after 1 second
+        });
+
         // Generate unique unlock code
         function generateUnlockCode(tier) {
             const timestamp = Date.now().toString(36);
