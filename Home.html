@@ -3427,6 +3427,20 @@
                 font-size: 1.3rem;
             }
         }
+        /* Donation Flower Widget */
+        .donation-flower-wrapper { position: fixed; left: 22px; bottom: 22px; z-index: 9; }
+        .donation-flower-btn { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--border-light); background: radial-gradient(circle at 30% 30%, #ff8ec3, #ff2e92 60%, #d4006d); color: #fff; box-shadow: 0 10px 24px rgba(255,46,146,.35); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; position: relative; }
+        .donation-flower-btn::before, .donation-flower-btn::after { content: ""; position: absolute; width: 100%; height: 100%; border-radius: 50%; inset: 0; background: radial-gradient(circle at 70% 70%, rgba(255,255,255,.6), transparent 60%); mix-blend-mode: screen; pointer-events: none; }
+        .donation-flower-btn:hover { transform: scale(1.05) rotate(-2deg); box-shadow: 0 12px 28px rgba(255,46,146,.5); }
+        .donation-flower-btn i { font-size: 22px; }
+        .donation-modal .modal-content { max-width: 460px; background: var(--card-background); color: var(--white); border: 1px solid var(--border-light); border-radius: 16px; }
+        .donation-list { display: grid; gap: 10px; margin-top: 8px; }
+        .donation-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 10px; border: 1px solid var(--border-light); border-radius: 10px; background: rgba(255,255,255,.03); }
+        .donation-item .label { opacity: .75; font-size: .85rem; }
+        .donation-item .value { word-break: break-all; font-weight: 600; }
+        .donation-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+        .copy-btn { padding: 6px 10px; border-radius: 8px; background: var(--button-background); color: #fff; border: none; cursor: pointer; }
+        .copy-btn:hover { filter: brightness(1.05); }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -4016,6 +4030,49 @@
 
     <!-- Smart Scroll Button -->
     <button id="smartScrollBtn" aria-label="Smart Scroll"><i class="fas fa-arrow-down"></i><span class="label">Bottom</span></button>
+
+    <!-- Donation Flower Widget (left bottom, unobtrusive) -->
+    <div class="donation-flower-wrapper">
+        <button id="donationFlowerBtn" class="donation-flower-btn" aria-label="Support Developer">
+            <i class="fas fa-seedling"></i>
+        </button>
+    </div>
+
+    <!-- Donation Modal (reuses modal styles) -->
+    <div id="donationModal" class="modal-overlay donation-modal" role="dialog" aria-modal="true" aria-labelledby="donationTitle" style="display:none;">
+        <div class="modal-content">
+            <h3 id="donationTitle">Support Development</h3>
+            <div class="donation-list">
+                <div class="donation-item">
+                    <div class="label">Bank Name</div>
+                    <div class="value" id="donationBankName"></div>
+                    <button class="copy-btn" data-copy="donationBankName"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="donation-item">
+                    <div class="label">Account Name</div>
+                    <div class="value" id="donationAccountName"></div>
+                    <button class="copy-btn" data-copy="donationAccountName"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="donation-item">
+                    <div class="label">Account Number</div>
+                    <div class="value" id="donationAccountNumber"></div>
+                    <button class="copy-btn" data-copy="donationAccountNumber"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="donation-item">
+                    <div class="label">SWIFT / IBAN</div>
+                    <div class="value" id="donationSwift"></div>
+                    <button class="copy-btn" data-copy="donationSwift"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="donation-item">
+                    <div class="label">Note</div>
+                    <div class="value" id="donationNote"></div>
+                </div>
+            </div>
+            <div class="donation-actions">
+                <button id="donationCloseBtn" class="modal-button cancel-button">Close</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Compact Story Viewer -->
     <div id="storyViewer" aria-live="polite">
@@ -9629,6 +9686,35 @@
             window.addEventListener('resize', updateSmartScrollState);
             document.addEventListener('DOMContentLoaded', updateSmartScrollState);
         }
+        // Donation widget logic
+        (function setupDonationWidget(){
+            const btn = document.getElementById('donationFlowerBtn');
+            const modal = document.getElementById('donationModal');
+            const closeBtn = document.getElementById('donationCloseBtn');
+            const map = {
+                donationBankName: (typeof __donation_bank_name !== 'undefined' ? __donation_bank_name : ''),
+                donationAccountName: (typeof __donation_account_name !== 'undefined' ? __donation_account_name : ''),
+                donationAccountNumber: (typeof __donation_account_number !== 'undefined' ? __donation_account_number : ''),
+                donationSwift: (typeof __donation_swift !== 'undefined' ? __donation_swift : ''),
+                donationNote: (typeof __donation_note !== 'undefined' ? __donation_note : '')
+            };
+            Object.entries(map).forEach(([id, val])=>{
+                const el = document.getElementById(id);
+                if (el) el.textContent = val || '';
+            });
+            document.addEventListener('click', (e)=>{
+                const copyBtn = e.target.closest('.copy-btn');
+                if (copyBtn) {
+                    const targetId = copyBtn.getAttribute('data-copy');
+                    const valueEl = document.getElementById(targetId);
+                    const text = valueEl ? valueEl.textContent.trim() : '';
+                    if (text) navigator.clipboard.writeText(text).then(()=> showMessageBox('Copied', 'success')).catch(()=> showMessageBox('Copy failed', 'error'));
+                }
+            });
+            if (btn) btn.addEventListener('click', ()=> { if (modal){ modal.style.display='block'; modal.offsetHeight; modal.classList.add('show'); }});
+            if (closeBtn) closeBtn.addEventListener('click', ()=> { if (modal){ modal.classList.remove('show'); modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true }); }});
+            if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) closeBtn?.click(); });
+        })();
         // Global UI helpers for consistent dialogs
         function customConfirm(message, title = 'Confirm Action') {
             return new Promise((resolve) => {
