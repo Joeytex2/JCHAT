@@ -8396,7 +8396,7 @@
             initialize() {
                 this.loadUserInterests();
                 this.setupEventListeners();
-                this.loadSampleGroups();
+                this.subscribeToGroups();
             }
 
             setupEventListeners() {
@@ -8436,36 +8436,31 @@
                 }
             }
 
-            loadSampleGroups() {
-                this.groups = [
-                    {
-                        id: 'gaming',
-                        name: 'Gaming Enthusiasts',
-                        description: 'Connect with fellow gamers',
-                        memberCount: 1200,
-                        status: 'trending',
-                        icon: 'fas fa-gamepad',
-                        featured: true
-                    },
-                    {
-                        id: 'tech',
-                        name: 'Tech Developers',
-                        description: 'Share coding tips & projects',
-                        memberCount: 856,
-                        status: 'active',
-                        icon: 'fas fa-code',
-                        featured: false
-                    },
-                    {
-                        id: 'art',
-                        name: 'Creative Artists',
-                        description: 'Showcase your artwork',
-                        memberCount: 432,
-                        status: 'new',
-                        icon: 'fas fa-palette',
-                        featured: false
-                    }
-                ];
+            subscribeToGroups() {
+                try {
+                    const groupsRef = collection(db, 'artifacts', appId, 'public', 'data', 'groups');
+                    const q = query(groupsRef, orderBy('lastActivity','desc'));
+                    onSnapshot(q, (snap) => {
+                        this.groups = snap.docs.map(d => ({ id: d.id, ...d.data(), memberCount: (d.data().members||[]).length }));
+                        // Re-render basic discover list in Home widget if present
+                        const grid = document.getElementById('groupsGrid');
+                        if (grid) {
+                            grid.innerHTML = '';
+                            this.groups.slice(0, 6).forEach(g => this.addGroupToDOM({
+                                id: g.id,
+                                name: g.name || 'Group',
+                                description: g.description || '',
+                                memberCount: g.memberCount || 0,
+                                status: g.isPublic === false ? 'private' : 'active',
+                                icon: 'fas fa-users',
+                                featured: false
+                            }));
+                        }
+                    });
+                } catch (e) {
+                    console.warn('Failed to subscribe to groups on Home:', e);
+                    this.groups = [];
+                }
             }
 
             joinGroup(groupId) {
