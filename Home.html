@@ -2303,10 +2303,24 @@
         color: var(--blue);
     }
 
-    .quick-action-item span {
-        font-weight: 500;
-        font-size: 14px;
-    }
+            .quick-action-item span {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .quick-action-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--status-offline);
+            margin-left: auto;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-status.active {
+            background: var(--status-online);
+            box-shadow: 0 0 8px var(--status-online);
+        }
 
     /* Mobile Responsiveness for Quick Actions */
     @media (max-width: 768px) {
@@ -3311,6 +3325,85 @@
             color: white;
         }
 
+        /* Feature Recommendations */
+        .feature-recommendations {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .recommendation-header {
+            margin-bottom: 1rem;
+        }
+
+        .recommendation-header h4 {
+            color: var(--white);
+            font-size: 1rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recommendation-header h4 i {
+            color: var(--pink);
+        }
+
+        .recommendation-content p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin: 0 0 12px 0;
+        }
+
+        .recommendation-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .recommendation-item {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .recommendation-item:hover {
+            background: var(--glass-blue);
+            border-color: var(--blue);
+        }
+
+        .recommendation-item i {
+            color: var(--blue);
+            font-size: 1rem;
+        }
+
+        .recommendation-item .recommendation-text {
+            flex: 1;
+            color: var(--white);
+            font-size: 0.85rem;
+        }
+
+        .recommendation-item .recommendation-action {
+            background: var(--blue);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .recommendation-item .recommendation-action:hover {
+            background: var(--accent-color-dark);
+            transform: scale(1.05);
+        }
+
         /* Hidden class for sections */
         .hidden {
             display: none !important;
@@ -3471,14 +3564,17 @@
                     <div class="quick-action-item" data-action="communities">
                         <i class="fas fa-users"></i>
                         <span>Communities</span>
+                        <div class="quick-action-status" id="quickCommunitiesStatus"></div>
                     </div>
                     <div class="quick-action-item" data-action="ai-feed">
                         <i class="fas fa-brain"></i>
                         <span>AI Smart Feed</span>
+                        <div class="quick-action-status" id="quickAiFeedStatus"></div>
                     </div>
                     <div class="quick-action-item" data-action="mobile-features">
                         <i class="fas fa-mobile-alt"></i>
                         <span>Mobile Features</span>
+                        <div class="quick-action-status" id="quickMobileStatus"></div>
                     </div>
                     <div class="quick-action-item" data-action="profile">
                         <i class="fas fa-user"></i>
@@ -3541,6 +3637,18 @@
                         <span>Mobile Features</span>
                         <div class="toggle-status">OFF</div>
                     </button>
+                </div>
+                
+                <div class="feature-recommendations" id="featureRecommendations">
+                    <div class="recommendation-header">
+                        <h4><i class="fas fa-lightbulb"></i> Smart Recommendations</h4>
+                    </div>
+                    <div class="recommendation-content">
+                        <p>Based on your activity, we recommend:</p>
+                        <div class="recommendation-items" id="recommendationItems">
+                            <!-- Dynamic recommendations will be added here -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -8071,6 +8179,191 @@
                     statusElement.style.color = 'var(--status-online)';
                 }
             }
+            
+            // Track feature usage
+            const featureType = button.dataset.feature;
+            trackFeatureUsage(featureType, !isHidden);
+            
+            // Update Quick Action status
+            updateQuickActionStatus(featureType, !isHidden);
+        }
+
+        function updateQuickActionStatus(featureType, isActive) {
+            const statusMap = {
+                'community': 'quickCommunitiesStatus',
+                'smartFeed': 'quickAiFeedStatus',
+                'mobileFeatures': 'quickMobileStatus'
+            };
+            
+            const statusElement = document.getElementById(statusMap[featureType]);
+            if (statusElement) {
+                if (isActive) {
+                    statusElement.classList.add('active');
+                } else {
+                    statusElement.classList.remove('active');
+                }
+            }
+        }
+
+        function trackFeatureUsage(featureType, isEnabled) {
+            try {
+                const usageData = JSON.parse(localStorage.getItem('jchat-feature-usage') || '{}');
+                if (!usageData[featureType]) {
+                    usageData[featureType] = {
+                        enabled: 0,
+                        disabled: 0,
+                        lastUsed: null
+                    };
+                }
+                
+                if (isEnabled) {
+                    usageData[featureType].enabled++;
+                    usageData[featureType].lastUsed = Date.now();
+                } else {
+                    usageData[featureType].disabled++;
+                }
+                
+                localStorage.setItem('jchat-feature-usage', JSON.stringify(usageData));
+                
+                // Show usage notification for first-time users
+                if (usageData[featureType].enabled === 1 && window.notificationsManager) {
+                    window.notificationsManager.addNotification(
+                        'success',
+                        'Feature Activated!',
+                        `You've enabled ${getFeatureDisplayName(featureType)}. Enjoy exploring!`
+                    );
+                }
+            } catch (error) {
+                console.warn('Failed to track feature usage:', error);
+            }
+        }
+
+        function getFeatureDisplayName(featureType) {
+            const names = {
+                'community': 'Communities',
+                'smartFeed': 'AI Smart Feed',
+                'mobileFeatures': 'Mobile Features'
+            };
+            return names[featureType] || featureType;
+        }
+
+        function generateSmartRecommendations() {
+            const recommendationItems = document.getElementById('recommendationItems');
+            if (!recommendationItems) return;
+
+            const recommendations = [];
+            const usageData = JSON.parse(localStorage.getItem('jchat-feature-usage') || '{}');
+            const currentTime = Date.now();
+
+            // Check for new users (no features used yet)
+            const totalUsage = Object.values(usageData).reduce((sum, data) => sum + data.enabled + data.disabled, 0);
+            if (totalUsage === 0) {
+                recommendations.push({
+                    icon: 'fas fa-users',
+                    text: 'Start with Communities to connect with like-minded people',
+                    action: 'Try Now',
+                    feature: 'community'
+                });
+                recommendations.push({
+                    icon: 'fas fa-brain',
+                    text: 'Enable AI Smart Feed for personalized content',
+                    action: 'Enable',
+                    feature: 'smartFeed'
+                });
+            } else {
+                // Check for inactive features
+                Object.entries(usageData).forEach(([feature, data]) => {
+                    if (data.enabled === 0 && data.disabled === 0) {
+                        recommendations.push({
+                            icon: getFeatureIcon(feature),
+                            text: `Try ${getFeatureDisplayName(feature)} to enhance your experience`,
+                            action: 'Enable',
+                            feature: feature
+                        });
+                    } else if (data.enabled > 0 && data.lastUsed) {
+                        const daysSinceLastUse = (currentTime - data.lastUsed) / (1000 * 60 * 60 * 24);
+                        if (daysSinceLastUse > 7) {
+                            recommendations.push({
+                                icon: getFeatureIcon(feature),
+                                text: `You haven't used ${getFeatureDisplayName(feature)} in a while`,
+                                action: 'Revisit',
+                                feature: feature
+                            });
+                        }
+                    }
+                });
+
+                // Add mobile-specific recommendations
+                if (window.innerWidth <= 768) {
+                    recommendations.push({
+                        icon: 'fas fa-mobile-alt',
+                        text: 'Mobile features are optimized for your device',
+                        action: 'Learn More',
+                        feature: 'mobileFeatures'
+                    });
+                }
+
+                // Add community recommendations if user is active
+                if (usageData.community && usageData.community.enabled > 0) {
+                    recommendations.push({
+                        icon: 'fas fa-plus',
+                        text: 'Create your own community group',
+                        action: 'Create',
+                        feature: 'community'
+                    });
+                }
+            }
+
+            // Limit to 3 recommendations
+            const limitedRecommendations = recommendations.slice(0, 3);
+            
+            if (limitedRecommendations.length === 0) {
+                recommendationItems.innerHTML = '<p style="color: var(--text-light); font-style: italic; text-align: center;">All features are optimized for you!</p>';
+                return;
+            }
+
+            recommendationItems.innerHTML = limitedRecommendations
+                .map(rec => `
+                    <div class="recommendation-item">
+                        <i class="${rec.icon}"></i>
+                        <div class="recommendation-text">${rec.text}</div>
+                        <button class="recommendation-action" onclick="handleRecommendationAction('${rec.feature}')">
+                            ${rec.action}
+                        </button>
+                    </div>
+                `)
+                .join('');
+        }
+
+        function getFeatureIcon(feature) {
+            const icons = {
+                'community': 'fas fa-users',
+                'smartFeed': 'fas fa-brain',
+                'mobileFeatures': 'fas fa-mobile-alt'
+            };
+            return icons[feature] || 'fas fa-star';
+        }
+
+        function handleRecommendationAction(feature) {
+            // Enable the recommended feature
+            const toggleBtn = document.getElementById(`toggle${feature.charAt(0).toUpperCase() + feature.slice(1)}Btn`);
+            if (toggleBtn) {
+                toggleBtn.click();
+            }
+
+            // Add haptic feedback
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+
+            // Show success notification
+            if (window.notificationsManager) {
+                window.notificationsManager.addNotification(
+                    'success',
+                    'Feature Enabled!',
+                    `${getFeatureDisplayName(feature)} has been activated based on our recommendation.`
+                );
+            }
         }
 
         // Community Groups & Interest Hubs Manager
@@ -8632,6 +8925,12 @@
             
             // Setup feature toggle buttons
             setupFeatureToggles();
+            
+            // Generate initial smart recommendations
+            generateSmartRecommendations();
+            
+            // Update recommendations periodically
+            setInterval(generateSmartRecommendations, 300000); // Every 5 minutes
             
             // Initially disable interactive elements until authentication state is confirmed.
             toggleInteractiveElements(false, false);
