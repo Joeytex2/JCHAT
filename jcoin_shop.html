@@ -77,6 +77,12 @@
     /* Pulse highlight for preselected items */
     @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(37,211,102,0.6)} 70%{box-shadow:0 0 0 10px rgba(37,211,102,0)} 100%{box-shadow:0 0 0 0 rgba(37,211,102,0)} }
     .highlight { animation: pulse 1.6s ease-out 2; border-color: #25d366 !important; }
+
+    /* Receipt upload styles */
+    .file-input-wrapper { display:flex; align-items:center; gap:8px; border:1px dashed var(--border); padding:8px 10px; border-radius:10px; cursor:pointer; }
+    .file-input-wrapper i { color: var(--pink); }
+    .file-input-wrapper .file-name { font-size:.85rem; color:var(--muted); }
+    .receipt-preview { width:100%; max-height:160px; object-fit:contain; margin-top:8px; border:1px solid var(--border); border-radius:10px; }
   </style>
 </head>
 <body>
@@ -126,8 +132,13 @@
             </div>
           </div>
           <div class="info">
-            <label for="receiptPath" style="display:block; font-weight:700; margin-bottom:6px">Step 2: Enter receipt reference/URL (optional)</label>
-            <input id="receiptPath" type="text" placeholder="Receipt URL or reference" />
+            <label for="receiptUploadInput" style="display:block; font-weight:700; margin-bottom:6px">Step 2: Upload payment receipt (optional)</label>
+            <div class="file-input-wrapper">
+              <input type="file" id="receiptUploadInput" accept="image/*,.pdf" style="display:none;">
+              <i class="fas fa-upload"></i>
+              <span class="file-name" id="receiptFileName">No file chosen</span>
+            </div>
+            <img id="receiptPreview" class="receipt-preview" style="display:none;">
             <div id="checkoutError" class="muted" style="color:#ffb4b4"></div>
           </div>
           <button id="submitBtn" class="btn primary block"><span class="text">Submit Order</span></button>
@@ -153,6 +164,7 @@
       appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
       measurementId: "G-S6Z9GG0R9P"
     };
+    const cloudinaryConfig = { cloudName: "dxld01rcp", uploadPreset: "Storage_preset" };
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
     const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? initialAuthToken : null;
 
@@ -192,7 +204,15 @@
     const submitBtn = document.getElementById('submitBtn');
     const checkoutError = document.getElementById('checkoutError');
     const toast = document.getElementById('toast');
-    const receiptInput = document.getElementById('receiptPath');
+    const receiptUploadInput = document.getElementById('receiptUploadInput');
+    const receiptFileNameSpan = document.getElementById('receiptFileName');
+    const receiptPreviewImg = document.getElementById('receiptPreview');
+    let selectedReceiptFile = null;
+    if (receiptUploadInput) {
+      const fileInputWrapper = document.querySelector('.file-input-wrapper');
+      fileInputWrapper?.addEventListener('click', () => receiptUploadInput.click());
+      receiptUploadInput.addEventListener('change', handleReceiptUpload);
+    }
 
     let currentUser = null;
 
@@ -279,12 +299,43 @@
       if (t) navigator.clipboard.writeText(t).then(() => showToast('Keystone account copied', 'success'));
     });
 
+    async function handleReceiptUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        selectedReceiptFile = file;
+        if (receiptFileNameSpan) receiptFileNameSpan.textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (receiptPreviewImg) { receiptPreviewImg.src = e.target.result; receiptPreviewImg.style.display = 'block'; }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        selectedReceiptFile = null;
+        if (receiptFileNameSpan) receiptFileNameSpan.textContent = 'No file chosen';
+        if (receiptPreviewImg) { receiptPreviewImg.style.display = 'none'; receiptPreviewImg.src = ''; }
+      }
+    }
+
     async function submitOrder() {
       checkoutError.textContent = '';
       const selected = getSelectedPackIds();
       if (selected.length === 0) { checkoutError.textContent = 'Please select at least one emoji category.'; return; }
       const orderId = orderIdEl.textContent || generateOrderId();
       const amount = selected.length * PACK_PRICE;
+      let uploadedReceiptUrl = null;
+      if (selectedReceiptFile) {
+        try {
+          const formData = new FormData();
+          formData.append('file', selectedReceiptFile);
+          formData.append('upload_preset', cloudinaryConfig.uploadPreset);
+          const resp = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`, { method:'POST', body: formData });
+          if (!resp.ok) throw new Error('Receipt upload failed');
+          const data = await resp.json();
+          uploadedReceiptUrl = data.secure_url;
+        } catch (e) {
+          console.error('Cloudinary upload failed:', e);
+        }
+      }
       if (!currentUser) { showToast('Please log in.', 'error'); return; }
 
       try {
@@ -299,13 +350,12 @@
           showToast('Order submitted. Complete transfer and wait for approval.', 'success');
           playTransactionSound();
           orderIdEl.textContent = generateOrderId();
-          if (receiptInput) receiptInput.value = '';
+          if (receiptUploadInput) receiptUploadInput.value = '';
         };
         const uiTimeout = setTimeout(finalizeUI, 3000);
 
         // Create order immediately for fast submission
         const orderRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'));
-        const receiptPath = receiptInput?.value?.trim();
         const orderData = {
           orderId,
           userId: currentUser.uid,
@@ -315,7 +365,7 @@
           currency: 'NGN',
           status: 'pending',
           createdAt: serverTimestamp(),
-          ...(receiptPath ? { receiptPath } : {})
+          ...(uploadedReceiptUrl ? { receiptImageUrl: uploadedReceiptUrl } : {})
         };
         await setDoc(orderRef, orderData);
 
@@ -323,7 +373,7 @@
         clearTimeout(uiTimeout);
         finalizeUI();
 
-        // Receipt upload feature removed. Receipt reference is stored directly if provided.
+        // Cloudinary upload handled above; nothing else to do here.
       } catch (e) {
         console.error(e);
         checkoutError.textContent = e?.message || 'Failed to submit order';
