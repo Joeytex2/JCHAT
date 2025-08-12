@@ -1847,19 +1847,23 @@
                 <!-- Generated Code Display -->
                 <div id="generatedCodeSection" style="display:none; margin-top:20px; padding:20px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid var(--border-light);">
                     <h3 style="color:var(--accent-color); margin-bottom:15px;">🔑 Generated Unlock Code</h3>
-                    <div style="display:grid; grid-template-columns: 1fr auto; gap:15px; align-items:center;">
-                        <div>
-                            <p style="margin:5px 0;"><strong>User:</strong> <span id="generatedCodeUser"></span></p>
-                            <p style="margin:5px 0;"><strong>Tier:</strong> <span id="generatedCodeTier"></span></p>
-                            <p style="margin:5px 0;"><strong>Code:</strong> <span id="generatedCodeText" style="font-family:monospace; font-size:18px; color:var(--accent-color); font-weight:bold;"></span></p>
-                            <p style="margin:5px 0;"><strong>Expires:</strong> <span id="generatedCodeExpiry"></span></p>
-                        </div>
+                                            <div style="display:grid; grid-template-columns: 1fr auto; gap:15px; align-items:center;">
+                            <div>
+                                <p style="margin:5px 0;"><strong>User:</strong> <span id="generatedCodeUser"></span></p>
+                                <p style="margin:5px 0;"><strong>Tier:</strong> <span id="generatedCodeTier"></span></p>
+                                <p style="margin:5px 0;"><strong>Code:</strong> <span id="generatedCodeText" style="font-family:monospace; font-size:18px; color:var(--accent-color); font-weight:bold;"></span></p>
+                                <p style="margin:5px 0;"><strong>Expires:</strong> <span id="generatedCodeExpiry"></span></p>
+                                <p style="margin:5px 0;"><strong>Status:</strong> <span id="notificationStatus" style="color:var(--accent-color);">Ready to send</span></p>
+                            </div>
                         <div style="display:flex; flex-direction:column; gap:8px;">
                             <button id="copyCodeBtn" class="admin-button" style="background:var(--accent-color);">
                                 <i class="fas fa-copy"></i> Copy Code
                             </button>
                             <button id="sendCodeBtn" class="admin-button" style="background:var(--accent-color);">
-                                <i class="fas fa-paper-plane"></i> Send Code
+                                <i class="fas fa-paper-plane"></i> Send via WhatsApp
+                            </button>
+                            <button id="sendNotificationBtn" class="admin-button" style="background:var(--accent-color);">
+                                <i class="fas fa-bell"></i> Send to Notifications
                             </button>
                         </div>
                     </div>
@@ -4902,6 +4906,18 @@
             }
 
             try {
+                // First, verify the user exists
+                const userRef = doc(db, 'artifacts', appId, 'users', userId);
+                const userDoc = await getDoc(userRef);
+                
+                if (!userDoc.exists()) {
+                    showMessageBox(`User ${userId} not found. Please check the user ID.`, 'error');
+                    return;
+                }
+
+                const userData = userDoc.data();
+                const username = userData.username || userData.displayName || userId;
+
                 // Generate unique unlock code
                 const unlockCode = generateUnlockCode(tier);
                 const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
@@ -4911,22 +4927,37 @@
                 await setDoc(codeRef, {
                     code: unlockCode,
                     userId: userId,
+                    username: username,
                     tier: tier,
                     generatedAt: serverTimestamp(),
                     expiresAt: Timestamp.fromDate(expiryDate),
                     status: 'active',
-                    used: false
+                    used: false,
+                    notificationSent: false
                 }, { merge: true });
 
-                // Display generated code
-                document.getElementById('generatedCodeUser').textContent = userId;
+                // Display generated code with enhanced user info
+                document.getElementById('generatedCodeUser').innerHTML = `
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="${userData.profilePicId ? getCloudinaryImageUrl(userData.profilePicId, 'w_40,h_40,c_fill,g_face,r_max') : 'https://placehold.co/40x40/CCCCCC/000000?text=' + username.charAt(0).toUpperCase()}" 
+                             alt="${username}" 
+                             style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-color);"
+                             onerror="this.src='https://placehold.co/40x40/CCCCCC/000000?text=${username.charAt(0).toUpperCase()}'">
+                        <div>
+                            <div style="font-weight:bold; color:var(--white);">${username}</div>
+                            <div style="font-size:0.8rem; color:var(--text-light);">ID: ${userId}</div>
+                        </div>
+                    </div>
+                `;
                 document.getElementById('generatedCodeTier').textContent = `${tier.charAt(0).toUpperCase() + tier.slice(1)} Premium`;
                 document.getElementById('generatedCodeText').textContent = unlockCode;
                 document.getElementById('generatedCodeExpiry').textContent = expiryDate.toLocaleDateString();
+                document.getElementById('notificationStatus').textContent = 'Ready to send';
+                document.getElementById('notificationStatus').style.color = 'var(--accent-color)';
                 
                 document.getElementById('generatedCodeSection').style.display = 'block';
                 
-                showMessageBox(`Premium code generated successfully for ${userId}`, 'success');
+                showMessageBox(`Premium code generated successfully for ${username}`, 'success');
                 
                 // Update stats
                 updatePremiumStats();
@@ -4971,6 +5002,83 @@
             showMessageBox('WhatsApp opened with your message!', 'success');
         });
 
+        // Send notification button (sends code to user's notifications)
+        document.getElementById('sendNotificationBtn')?.addEventListener('click', async () => {
+            const codeText = document.getElementById('generatedCodeText').textContent;
+            const user = document.getElementById('generatedCodeUser').textContent;
+            const tier = document.getElementById('generatedCodeTier').textContent;
+            const userId = document.getElementById('premiumUserId').value.trim();
+            
+            if (!userId) {
+                showMessageBox('Please enter a valid user ID first', 'error');
+                return;
+            }
+
+            try {
+                // Show loading state
+                const sendNotificationBtn = document.getElementById('sendNotificationBtn');
+                const originalText = sendNotificationBtn.innerHTML;
+                sendNotificationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                sendNotificationBtn.disabled = true;
+
+                // Create notification data
+                const notificationData = {
+                    userId: userId,
+                    type: 'premium_code',
+                    title: '🎉 Premium Unlock Code Ready!',
+                    message: `Your ${tier} premium unlock code is ready. Enter it on your profile page to unlock premium features!`,
+                    code: codeText,
+                    tier: tier,
+                    timestamp: serverTimestamp(),
+                    read: false,
+                    priority: 'high'
+                };
+
+                // Send to user's notifications collection
+                const userNotificationsRef = collection(db, 'artifacts', appId, 'users', userId, 'notifications');
+                await addDoc(userNotificationsRef, notificationData);
+
+                // Also send to public notifications for real-time updates
+                const publicNotificationsRef = collection(db, 'artifacts', appId, 'public', 'data', 'notifications');
+                await addDoc(publicNotificationsRef, {
+                    ...notificationData,
+                    global: true,
+                    targetUserId: userId
+                });
+
+                // Update the code status to indicate notification sent
+                const codesRef = collection(db, 'artifacts', appId, 'public', 'data', 'premium_codes');
+                const q = query(codesRef, where('code', '==', codeText));
+                const querySnapshot = await getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    const codeRef = doc(db, 'artifacts', appId, 'public', 'data', 'premium_codes', querySnapshot.docs[0].id);
+                    await updateDoc(codeRef, {
+                        notificationSent: true,
+                        notificationSentAt: serverTimestamp()
+                    });
+                }
+
+                showMessageBox(`Premium code notification sent successfully to ${user}!`, 'success');
+                
+                // Update notification status
+                document.getElementById('notificationStatus').textContent = '✅ Notification sent';
+                document.getElementById('notificationStatus').style.color = '#4CAF50';
+                
+                // Update stats
+                updatePremiumStats();
+
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                showMessageBox(`Failed to send notification: ${error.message}`, 'error');
+            } finally {
+                // Restore button state
+                const sendNotificationBtn = document.getElementById('sendNotificationBtn');
+                sendNotificationBtn.innerHTML = originalText;
+                sendNotificationBtn.disabled = false;
+            }
+        });
+
 
 
         // Generate unique unlock code
@@ -4979,6 +5087,13 @@
             const random = Math.random().toString(36).substr(2, 6);
             const tierPrefix = tier.charAt(0).toUpperCase();
             return `JCHAT${tierPrefix}${timestamp}${random}`.toUpperCase();
+        }
+
+        // Helper function for Cloudinary image URLs
+        function getCloudinaryImageUrl(imageId, transformation = '') {
+            if (!imageId) return '';
+            const baseUrl = 'https://res.cloudinary.com/dxld01rcp/image/upload';
+            return `${baseUrl}/${transformation}/${imageId}`;
         }
 
         // Update premium statistics
