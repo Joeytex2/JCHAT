@@ -5985,7 +5985,15 @@
                 { id: 'activity', name: 'Activities', emojis: ['🎯','🎲','🧩','🪀','🪁','🎳','🪄','🎽','🎒','🎟️','🎭','🎨'] },
             ];
             const emojiToCodePoints = (emoji) => Array.from(emoji).map(ch => ch.codePointAt(0).toString(16)).join('-');
-            const getTwemojiUrl = (emoji) => `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${emojiToCodePoints(emoji)}.png`;
+            const getTwemojiUrl = (emoji) => {
+    const cp = emojiToCodePoints(emoji);
+    const urls = [
+        `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${cp}.png`,
+        `https://twemoji.maxcdn.com/v/latest/72x72/${cp}.png`,
+        `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/${cp}.png`
+    ];
+    return urls[0];
+};
 
             window.buildStickerPicker = function buildStickerPicker(){
                 const tabs = document.getElementById('stickerTabs');
@@ -6003,7 +6011,20 @@
                         img.src = url;
                         img.alt = 'sticker';
                         img.loading = 'lazy';
-                        img.style.cssText = `width:56px;height:56px;object-fit:contain;border-radius:12px;background:#f8f9fa;padding:6px;transition:all .15s ease;${isFree ? 'cursor:pointer;' : 'filter: grayscale(100%); opacity:.6; cursor:not-allowed;'}`;
+                        img.style.cssText = `width:32px;height:32px;object-fit:contain;border-radius:8px;background:#f8f9fa;padding:3px;transition:all .12s ease;${isFree ? 'cursor:pointer;' : 'filter: grayscale(100%); opacity:.6; cursor:not-allowed;'}`;
+                        // Fallback through CDNs on error
+                        img.onerror = (() => {
+                            const cp = emojiToCodePoints(emoji);
+                            const fallbacks = [
+                                `https://twemoji.maxcdn.com/v/latest/72x72/${cp}.png`,
+                                `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/${cp}.png`
+                            ];
+                            let i = 0;
+                            return () => {
+                                if (i < fallbacks.length) { img.src = fallbacks[i++]; }
+                                else { wrap.style.display = 'none'; }
+                            };
+                        })();
                         if (isFree) {
                             img.addEventListener('mouseenter', ()=>{ img.style.transform = 'scale(1.08)'; img.style.background='#e9ecef'; });
                             img.addEventListener('mouseleave', ()=>{ img.style.transform = 'scale(1)'; img.style.background='#f8f9fa'; });
