@@ -1034,27 +1034,29 @@
             display: flex;
             gap: 10px;
             width: 100%;
-            align-items: flex-end;
-            padding: 0 4px;
+            align-items: center;
+            padding: 8px 10px;
+            background: #f8fafc;
+            border-top: 1px solid #e5e7eb;
         }
 
         .chat-input-area textarea {
             flex-grow: 1;
             padding: 12px 16px;
-            border-radius: 24px;
-            border: 1px solid #e0e0e0;
+            border-radius: 22px;
+            border: 1px solid #dfe1e5;
             background-color: #ffffff;
-            color: #1a1a1a;
-            font-size: 15px;
+            color: #1f2937;
+            font-size: 16px;
             outline: none;
-            resize: none; /* Disable manual resize */
-            min-height: 44px; /* Minimum height */
-            max-height: 120px; /* Max height before scroll */
-            overflow-y: auto; /* Enable scroll if content exceeds max-height */
-            transition: all 0.2s ease;
+            resize: none;
+            min-height: 46px;
+            max-height: 140px;
+            overflow-y: auto;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
             line-height: 1.4;
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
         }
 
         .chat-input-area textarea::placeholder {
@@ -1062,8 +1064,8 @@
         }
 
         .chat-input-area textarea:focus {
-            border-color: #25D366;
-            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.2);
+            border-color: #c7e9d6;
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
         }
 
         .chat-input-area #sendMessageBtn {
@@ -1073,17 +1075,16 @@
             border-radius: 50%;
             width: 44px;
             height: 44px;
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 18px;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0;
-            flex-shrink: 0; /* Prevent button from shrinking */
+            flex-shrink: 0;
         }
+        .chat-input-area #sendMessageBtn i { margin: 0; }
 
         .chat-input-area #sendMessageBtn:hover:not(:disabled) {
             background: #128C7E;
@@ -1133,6 +1134,8 @@
         @media (max-width: 768px) {
             .chat-input-row {
                 gap: 8px;
+                padding: 6px 8px;
+                background: #ffffff;
             }
             
             .chat-input-area textarea {
@@ -2603,8 +2606,8 @@
                 </div>
 
                 <div class="chat-input-row">
-                    <textarea id="messageInput" placeholder="Type your message..." rows="1"></textarea>
-                    <button id="sendMessageBtn"><i class="fas fa-paper-plane"></i> Send</button>
+                    <textarea id="messageInput" placeholder="Type a message" rows="1"></textarea>
+                    <button id="sendMessageBtn" aria-label="Send message"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
@@ -6264,11 +6267,11 @@
             // TODO: Implement message reaction system
         }
 
-        // Enhanced message input handling
-        const messageInput = document.getElementById('messageInput');
-        if (messageInput) {
-            messageInput.addEventListener('input', handleTyping);
-            messageInput.addEventListener('keydown', (e) => {
+        // Enhanced message input handling (reuse existing reference if defined)
+        const messageInputEl = (typeof messageInput !== 'undefined' && messageInput) ? messageInput : document.getElementById('messageInput');
+        if (messageInputEl) {
+            messageInputEl.addEventListener('input', handleTyping);
+            messageInputEl.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     // Send message logic here
@@ -6314,14 +6317,14 @@
         let touchEndX = 0;
         let touchEndY = 0;
 
-        const messagesDisplay = document.getElementById('messagesDisplay');
-        if (messagesDisplay) {
-            messagesDisplay.addEventListener('touchstart', (e) => {
+        const messagesDisplayEl = (typeof messagesDisplay !== 'undefined' && messagesDisplay) ? messagesDisplay : document.getElementById('messagesDisplay');
+        if (messagesDisplayEl) {
+            messagesDisplayEl.addEventListener('touchstart', (e) => {
                 touchStartX = e.changedTouches[0].screenX;
                 touchStartY = e.changedTouches[0].screenY;
             });
 
-            messagesDisplay.addEventListener('touchend', (e) => {
+            messagesDisplayEl.addEventListener('touchend', (e) => {
                 touchEndX = e.changedTouches[0].screenX;
                 touchEndY = e.changedTouches[0].screenY;
                 handleSwipe();
@@ -6370,7 +6373,7 @@
             refreshIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
             refreshIndicator.style.cssText = 'text-align:center; padding:20px; color:var(--text-secondary);';
             
-            messagesDisplay.insertBefore(refreshIndicator, messagesDisplay.firstChild);
+            (messagesDisplayEl || document.getElementById('messagesDisplay')).insertBefore(refreshIndicator, (messagesDisplayEl || document.getElementById('messagesDisplay')).firstChild);
             
             // Simulate refresh delay
             setTimeout(() => {
