@@ -326,6 +326,20 @@
 
     renderPacks();
     updateSummary();
+
+    // Preselect from URL params ?select=smileys,hands
+    (function preselectFromUrl(){
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const sel = (params.get('select') || '').split(',').map(s => s.trim()).filter(Boolean);
+        if (sel.length === 0) return;
+        const inputs = packsEl.querySelectorAll('input[type="checkbox"]');
+        inputs.forEach((inp) => {
+          if (sel.includes(inp.value)) { inp.checked = true; }
+        });
+        updateSummary();
+      } catch (_) {}
+    })();
   </script>
 </body>
 </html>
