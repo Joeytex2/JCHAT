@@ -6144,14 +6144,16 @@
                     const btn = panel.querySelector('#flowerSubmit');
                     const textEl = btn.querySelector('.button-text');
                     const loader = btn.querySelector('.button-loader');
-                    const orderId = (panel.querySelector('#flowerOrderId')?.value || '').trim();
-                    const note = (panel.querySelector('#flowerItemNote')?.value || '').trim();
-                    const amountRaw = panel.querySelector('#flowerAmount')?.value || '';
+                    const flowerCategory = panel.querySelector('#flowerCategory');
+                    const flowerOrderIdText = panel.querySelector('#flowerOrderIdText');
+                    const orderId = flowerOrderIdText?.textContent || `EMOJI-${Date.now()}`;
+                    const note = flowerCategory?.value || '';
+                    const amountRaw = '300';
                     const receiptFile = panel.querySelector('#flowerReceipt')?.files?.[0] || null;
                     err.style.display = 'none';
 
                     if (!auth?.currentUser) { showMessageBox('Please log in.', 'error'); return; }
-                    if (!orderId) { err.textContent = 'Order ID is required'; err.style.display = 'block'; return; }
+                    if (!note) { err.textContent = 'Select a category.'; err.style.display = 'block'; return; }
 
                     try {
                         btn.disabled = true; textEl.textContent = 'Submitting...'; loader.style.display = 'inline-block';
@@ -6168,10 +6170,10 @@
                         const payload = {
                             orderId,
                             userId: auth.currentUser.uid,
-                            itemType: 'manual',
-                            itemNote: note || 'premium',
-                            itemIds: note ? [note] : [],
-                            amount: amountRaw ? `₦${Number(amountRaw)}` : '',
+                            itemType: 'emoji_packs',
+                            itemNote: note,
+                            itemIds: [note],
+                            amount: `₦${Number(amountRaw)}`,
                             currency: 'NGN',
                             status: 'pending',
                             assignedAdminId: adminUid,
