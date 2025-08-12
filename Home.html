@@ -3468,6 +3468,18 @@
                         <i class="fas fa-gift"></i>
                         <span>Daily Bonus</span>
                     </div>
+                    <div class="quick-action-item" data-action="communities">
+                        <i class="fas fa-users"></i>
+                        <span>Communities</span>
+                    </div>
+                    <div class="quick-action-item" data-action="ai-feed">
+                        <i class="fas fa-brain"></i>
+                        <span>AI Smart Feed</span>
+                    </div>
+                    <div class="quick-action-item" data-action="mobile-features">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Mobile Features</span>
+                    </div>
                     <div class="quick-action-item" data-action="profile">
                         <i class="fas fa-user"></i>
                         <span>Profile</span>
@@ -7508,6 +7520,21 @@
                     }
                     break;
                     
+                case 'communities':
+                    // Toggle communities section
+                    toggleFeatureSection('community');
+                    break;
+                    
+                case 'ai-feed':
+                    // Toggle AI smart feed section
+                    toggleFeatureSection('smartFeed');
+                    break;
+                    
+                case 'mobile-features':
+                    // Toggle mobile features section
+                    toggleFeatureSection('mobileFeatures');
+                    break;
+                    
                 case 'profile':
                     // Navigate to profile page
                     window.location.href = './Profile.html';
@@ -7909,6 +7936,9 @@
 
             showNotificationPanel() {
                 if (this.notificationsPanel) {
+                    this.notificationsPanel.style.display = 'block';
+                    // Force reflow to ensure transition works
+                    this.notificationsPanel.offsetHeight;
                     this.notificationsPanel.classList.add('show');
                 }
             }
@@ -7916,6 +7946,12 @@
             hideNotificationPanel() {
                 if (this.notificationsPanel) {
                     this.notificationsPanel.classList.remove('show');
+                    // Wait for transition to complete before hiding
+                    setTimeout(() => {
+                        if (this.notificationsPanel && !this.notificationsPanel.classList.contains('show')) {
+                            this.notificationsPanel.style.display = 'none';
+                        }
+                    }, 300); // Match the CSS transition duration
                 }
             }
 
@@ -7965,6 +8001,74 @@
                 
                 if (lastClaimed !== now) {
                     this.addNotification('success', 'Daily Bonus Ready!', 'You can claim your daily bonus now.');
+                }
+            }
+        }
+
+        // Feature Toggle Manager
+        function toggleFeatureSection(featureType) {
+            const featureToggleBtn = document.getElementById(`toggle${featureType.charAt(0).toUpperCase() + featureType.slice(1)}Btn`);
+            if (featureToggleBtn) {
+                featureToggleBtn.click();
+            }
+        }
+
+        function setupFeatureToggles() {
+            // Community toggle
+            const toggleCommunityBtn = document.getElementById('toggleCommunityBtn');
+            if (toggleCommunityBtn) {
+                toggleCommunityBtn.addEventListener('click', () => {
+                    const communitiesSection = document.getElementById('communityGroupsSection');
+                    if (communitiesSection) {
+                        communitiesSection.classList.toggle('hidden');
+                        toggleCommunityBtn.classList.toggle('active');
+                        updateToggleStatus(toggleCommunityBtn, communitiesSection.classList.contains('hidden'));
+                    }
+                });
+            }
+
+            // Smart Feed toggle
+            const toggleSmartFeedBtn = document.getElementById('toggleSmartFeedBtn');
+            if (toggleSmartFeedBtn) {
+                toggleSmartFeedBtn.addEventListener('click', () => {
+                    const smartFeedSection = document.getElementById('smartFeedSection');
+                    if (smartFeedSection) {
+                        smartFeedSection.classList.toggle('hidden');
+                        toggleSmartFeedBtn.classList.toggle('active');
+                        updateToggleStatus(toggleSmartFeedBtn, smartFeedSection.classList.contains('hidden'));
+                    }
+                });
+            }
+
+            // Mobile Features toggle
+            const toggleMobileFeaturesBtn = document.getElementById('toggleMobileFeaturesBtn');
+            if (toggleMobileFeaturesBtn) {
+                toggleMobileFeaturesBtn.addEventListener('click', () => {
+                    // For mobile features, we just show a notification since they're always active
+                    if (window.notificationsManager) {
+                        window.notificationsManager.addNotification(
+                            'info',
+                            'Mobile Features',
+                            'Mobile features are always active! Try swiping, double-tapping, and pull-to-refresh.'
+                        );
+                    }
+                    toggleMobileFeaturesBtn.classList.toggle('active');
+                    updateToggleStatus(toggleMobileFeaturesBtn, !toggleMobileFeaturesBtn.classList.contains('active'));
+                });
+            }
+        }
+
+        function updateToggleStatus(button, isHidden) {
+            const statusElement = button.querySelector('.toggle-status');
+            if (statusElement) {
+                if (isHidden) {
+                    statusElement.textContent = 'OFF';
+                    statusElement.style.background = 'var(--glass-blue)';
+                    statusElement.style.color = 'var(--blue)';
+                } else {
+                    statusElement.textContent = 'ON';
+                    statusElement.style.background = 'rgba(76, 175, 80, 0.2)';
+                    statusElement.style.color = 'var(--status-online)';
                 }
             }
         }
@@ -8525,6 +8629,9 @@
                     }
                 });
             }
+            
+            // Setup feature toggle buttons
+            setupFeatureToggles();
             
             // Initially disable interactive elements until authentication state is confirmed.
             toggleInteractiveElements(false, false);
