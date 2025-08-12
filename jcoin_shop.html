@@ -126,8 +126,8 @@
             </div>
           </div>
           <div class="info">
-            <label for="receipt" style="display:block; font-weight:700; margin-bottom:6px">Step 2: Upload payment receipt (optional)</label>
-            <input id="receipt" type="file" accept="image/*,.pdf" />
+            <label for="receiptPath" style="display:block; font-weight:700; margin-bottom:6px">Step 2: Enter receipt reference/URL (optional)</label>
+            <input id="receiptPath" type="text" placeholder="Receipt URL or reference" />
             <div id="checkoutError" class="muted" style="color:#ffb4b4"></div>
           </div>
           <button id="submitBtn" class="btn primary block"><span class="text">Submit Order</span></button>
@@ -192,7 +192,7 @@
     const submitBtn = document.getElementById('submitBtn');
     const checkoutError = document.getElementById('checkoutError');
     const toast = document.getElementById('toast');
-    const receiptInput = document.getElementById('receipt');
+    const receiptInput = document.getElementById('receiptPath');
 
     let currentUser = null;
 
@@ -299,12 +299,14 @@
           showToast('Order submitted. Complete transfer and wait for approval.', 'success');
           playTransactionSound();
           orderIdEl.textContent = generateOrderId();
+          if (receiptInput) receiptInput.value = '';
         };
         const uiTimeout = setTimeout(finalizeUI, 3000);
 
         // Create order immediately for fast submission
         const orderRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'));
-        await setDoc(orderRef, {
+        const receiptPath = receiptInput?.value?.trim();
+        const orderData = {
           orderId,
           userId: currentUser.uid,
           itemType: 'emoji_packs',
@@ -313,27 +315,15 @@
           currency: 'NGN',
           status: 'pending',
           createdAt: serverTimestamp(),
-        });
+          ...(receiptPath ? { receiptPath } : {})
+        };
+        await setDoc(orderRef, orderData);
 
         // Finalize UI now (or by timeout if already elapsed)
         clearTimeout(uiTimeout);
         finalizeUI();
 
-        // Upload receipt in background and merge the URL
-        const file = receiptInput?.files?.[0] || null;
-        if (file) {
-          (async () => {
-            try {
-              const path = `orders/${currentUser.uid}/${orderId}/${encodeURIComponent(file.name)}`;
-              const storageRefRef = ref(storage, path);
-              await uploadBytes(storageRefRef, file);
-              const receiptUrl = await getDownloadURL(storageRefRef);
-              await setDoc(orderRef, { receiptUrl }, { merge: true });
-            } catch (e) {
-              console.error('Receipt upload failed:', e);
-            }
-          })();
-        }
+        // Receipt upload feature removed. Receipt reference is stored directly if provided.
       } catch (e) {
         console.error(e);
         checkoutError.textContent = e?.message || 'Failed to submit order';
