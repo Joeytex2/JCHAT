@@ -6061,6 +6061,153 @@
                 next?.addEventListener('click', ()=> tabs.scrollBy({left:  Math.max(200, tabs.clientWidth/2), behavior:'smooth'}));
             };
         })();
+
+        // ---- Tiny Floating Flower: Bank + Quick Receipt Upload ----
+        (function setupFloatingFlower(){
+            try {
+                const adminUid = 'cc96gdhCRPO72NFZtleRCujHvIq2';
+                const opayAcct = '8111609765';
+                const keystoneAcct = '6042862356';
+
+                const container = document.createElement('div');
+                container.id = 'flowerWidget';
+                container.style.cssText = 'position:fixed; right:14px; bottom:14px; z-index:9999; display:flex; flex-direction:column; align-items:flex-end; gap:8px; pointer-events:none;';
+
+                const button = document.createElement('button');
+                button.id = 'flowerButton';
+                button.setAttribute('aria-label', 'Support & Premium');
+                button.style.cssText = 'pointer-events:auto; width:24px; height:24px; border:none; border-radius:50%; background:#fff; color:#e91e63; box-shadow:0 4px 12px rgba(0,0,0,.2); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1;';
+                button.textContent = '🌸';
+
+                const panel = document.createElement('div');
+                panel.id = 'flowerPanel';
+                panel.style.cssText = 'pointer-events:auto; display:none; width:280px; background:var(--card-background); border:1px solid var(--border-light); border-radius:12px; padding:10px; color:var(--white); box-shadow:0 10px 25px rgba(0,0,0,.35)';
+                panel.innerHTML = `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:6px;">
+                        <div style="display:flex; align-items:center; gap:6px; font-weight:700;"><span>🌸</span><span>Premium & Payments</span></div>
+                        <button id=\"flowerClose\" style=\"background:transparent;border:none;color:var(--white);cursor:pointer\"><i class=\"fas fa-times\"></i></button>
+                    </div>
+                    <div style=\"display:grid; gap:8px;\">
+                        <div style=\"font-size:12px; color:var(--text-light)\">Transfer to any bank below. Use your Order ID as reference.</div>
+                        <div style=\"padding:6px; border:1px solid var(--border-light); border-radius:8px;\">
+                            <div style=\"display:flex;align-items:center;gap:6px;font-size:13px\"><i class=\"fas fa-university\" style=\"color:#ffd700\"></i><strong>OPay</strong></div>
+                            <div style=\"font-size:12px\">Name: ELECHI JOSHUA</div>
+                            <div style=\"font-size:12px\">Acct: <span>${opayAcct}</span> <button data-copy=\"${opayAcct}\" class=\"copyBtn\" style=\"margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 2px 6px; cursor: pointer; font-size:11px;\">Copy</button></div>
+                        </div>
+                        <div style=\"padding:6px; border:1px solid var(--border-light); border-radius:8px;\">
+                            <div style=\"display:flex;align-items:center;gap:6px;font-size:13px\"><i class=\"fas fa-university\" style=\"color:#ffd700\"></i><strong>Keystone Bank</strong></div>
+                            <div style=\"font-size:12px\">Name: ELECHI OSOUNDU JOSHUA</div>
+                            <div style=\"font-size:12px\">Acct: <span>${keystoneAcct}</span> <button data-copy=\"${keystoneAcct}\" class=\"copyBtn\" style=\"margin-left:6px; background: transparent; border: 1px solid var(--border-light); color: var(--white); border-radius: 8px; padding: 2px 6px; cursor: pointer; font-size:11px;\">Copy</button></div>
+                        </div>
+                        <a href=\"/jcoin_shop.html\" target=\"_blank\" style=\"display:inline-flex;align-items:center;gap:6px; font-size:12px; text-decoration:none; color:#25D366;\"><i class=\"fas fa-store\"></i> Pick category to pay</a>
+                        <div style=\"border-top:1px solid var(--border-light); padding-top:8px; display:grid; gap:6px;\">
+                            <div style=\"font-weight:700; font-size:13px;\">Upload Receipt</div>
+                            <input id=\"flowerOrderId\" type=\"text\" placeholder=\"Order ID (e.g., EMOJI-...)\" style=\"width:100%; padding:8px; border-radius:8px; border:1px solid var(--border-light); background:transparent; color:var(--white); font-size:12px;\" />
+                            <input id=\"flowerItemNote\" type=\"text\" placeholder=\"Category / Note (optional)\" style=\"width:100%; padding:8px; border-radius:8px; border:1px solid var(--border-light); background:transparent; color:var(--white); font-size:12px;\" />
+                            <input id=\"flowerAmount\" type=\"number\" placeholder=\"Amount (NGN) optional\" style=\"width:100%; padding:8px; border-radius:8px; border:1px solid var(--border-light); background:transparent; color:var(--white); font-size:12px;\" />
+                            <input id=\"flowerReceipt\" type=\"file\" accept=\"image/*,.pdf\" style=\"font-size:12px; color:var(--text-light)\" />
+                            <div style=\"display:flex; justify-content:flex-end; gap:8px;\">
+                                <button id=\"flowerSubmit\" class=\"modal-button save-button\" style=\"padding:6px 10px; font-size:12px;\"><span class=\"button-text\">Submit</span><div class=\"button-loader\" style=\"margin-left:6px\"></div></button>
+                            </div>
+                            <div id=\"flowerError\" style=\"display:none; color:#ff6b6b; font-size:12px;\"></div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(panel);
+                container.appendChild(button);
+                document.body.appendChild(container);
+
+                const togglePanel = (show) => { panel.style.display = show ? 'block' : 'none'; };
+                let lastAutoOpen = 0;
+                let userDismissedUntil = 0;
+                const autoOpenMs = 10000; // 10s
+                const autoVisibleMs = 5000;
+
+                button.addEventListener('click', ()=>{
+                    const isVisible = panel.style.display === 'block';
+                    togglePanel(!isVisible);
+                });
+                panel.querySelector('#flowerClose')?.addEventListener('click', ()=>{
+                    togglePanel(false);
+                    userDismissedUntil = Date.now() + 60000; // 1 min snooze
+                });
+                panel.querySelectorAll('.copyBtn').forEach(btn => btn.addEventListener('click', (e)=>{
+                    const val = e.currentTarget.getAttribute('data-copy');
+                    navigator.clipboard?.writeText(val).then(()=> showMessageBox('Copied', 'success')).catch(()=>{});
+                }));
+
+                // Auto-open every 10s (respect snooze)
+                setInterval(()=>{
+                    const now = Date.now();
+                    if (now < userDismissedUntil) return;
+                    if (now - lastAutoOpen < autoOpenMs) return;
+                    lastAutoOpen = now;
+                    togglePanel(true);
+                    setTimeout(()=>{ togglePanel(false); }, autoVisibleMs);
+                }, 1000);
+
+                async function submitFlowerReceipt(){
+                    const err = panel.querySelector('#flowerError');
+                    const btn = panel.querySelector('#flowerSubmit');
+                    const textEl = btn.querySelector('.button-text');
+                    const loader = btn.querySelector('.button-loader');
+                    const orderId = (panel.querySelector('#flowerOrderId')?.value || '').trim();
+                    const note = (panel.querySelector('#flowerItemNote')?.value || '').trim();
+                    const amountRaw = panel.querySelector('#flowerAmount')?.value || '';
+                    const receiptFile = panel.querySelector('#flowerReceipt')?.files?.[0] || null;
+                    err.style.display = 'none';
+
+                    if (!auth?.currentUser) { showMessageBox('Please log in.', 'error'); return; }
+                    if (!orderId) { err.textContent = 'Order ID is required'; err.style.display = 'block'; return; }
+
+                    try {
+                        btn.disabled = true; textEl.textContent = 'Submitting...'; loader.style.display = 'inline-block';
+
+                        let receiptUrl = '';
+                        if (receiptFile) {
+                            const path = `orders/${auth.currentUser.uid}/${orderId}/${encodeURIComponent(receiptFile.name)}`;
+                            const storageRef = ref(storage, path);
+                            await uploadBytes(storageRef, receiptFile);
+                            receiptUrl = await getDownloadURL(storageRef);
+                        }
+
+                        const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+                        const payload = {
+                            orderId,
+                            userId: auth.currentUser.uid,
+                            itemType: 'manual',
+                            itemNote: note || 'premium',
+                            itemIds: note ? [note] : [],
+                            amount: amountRaw ? `₦${Number(amountRaw)}` : '',
+                            currency: 'NGN',
+                            status: 'pending',
+                            assignedAdminId: adminUid,
+                            source: 'flower_widget',
+                            receiptUrl: receiptUrl || '',
+                            createdAt: serverTimestamp(),
+                        };
+                        await addDoc(ordersRef, payload);
+
+                        showMessageBox('Submitted to Admin. You will be notified after approval.', 'success');
+                        togglePanel(false);
+                    } catch (e) {
+                        console.error(e);
+                        err.textContent = 'Failed to submit. Try again.';
+                        err.style.display = 'block';
+                    } finally {
+                        btn.disabled = false; textEl.textContent = 'Submit'; loader.style.display = '';
+                    }
+                }
+
+                panel.querySelector('#flowerSubmit')?.addEventListener('click', (e)=>{
+                    e.preventDefault();
+                    submitFlowerReceipt();
+                });
+            } catch (e) {
+                console.warn('Flower widget init failed', e);
+            }
+        })();
         // ... existing code ...
         // ... existing code ...
     </script>
