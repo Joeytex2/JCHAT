@@ -3685,6 +3685,38 @@
             document.body.removeChild(a);
             showMessageBox(`Downloading ${filename}...`, 'info');
         }
+
+        // --- Unlock Preview + Entitlements (global, before any use) ---
+        const UNLOCK_ALL_PREVIEW = false;
+        let userEntitlements = {
+            stickersUnlocked: false,
+            reactionsUnlocked: false,
+            effectsUnlocked: false,
+            quickRepliesUnlocked: false,
+            mediaTier: 'basic',
+            packs: []
+        };
+        function isUnlocked(feature) {
+            if (UNLOCK_ALL_PREVIEW) return true;
+            switch (feature) {
+                case 'stickers': return !!(userEntitlements.stickersUnlocked || (userEntitlements.packs || []).some(p => p.startsWith('stickers:')));
+                case 'reactions': return !!(userEntitlements.reactionsUnlocked || (userEntitlements.packs || []).some(p => p.startsWith('reactions:')));
+                case 'effects': return !!userEntitlements.effectsUnlocked;
+                case 'quickReplies': return !!userEntitlements.quickRepliesUnlocked;
+                case 'mediaPro': return userEntitlements.mediaTier === 'pro';
+                default: return false;
+            }
+        }
+        function setGatedUI() {
+            const stickersBtn = document.getElementById('stickersBtn');
+            if (stickersBtn) {
+                const badge = stickersBtn.querySelector('.lock-badge');
+                const unlocked = isUnlocked('stickers');
+                if (badge) badge.style.display = unlocked ? 'none' : 'inline-flex';
+                stickersBtn.dataset.locked = unlocked ? '0' : '1';
+                stickersBtn.style.opacity = unlocked ? '1' : '0.85';
+            }
+        }
         /**
          * Fetches and displays messages for the current chat.
          */
