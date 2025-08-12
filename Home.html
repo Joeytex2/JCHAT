@@ -3424,15 +3424,16 @@
                 font-size: 1.3rem;
             }
         }
-        /* Donation Widget (header button uses existing .theme-switcher-btn styles) */
-        .donation-modal .modal-content { max-width: 460px; background: var(--card-background); color: var(--white); border: 1px solid var(--border-light); border-radius: 16px; }
-        .donation-list { display: grid; gap: 10px; margin-top: 8px; }
-        .donation-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 10px; border: 1px solid var(--border-light); border-radius: 10px; background: rgba(255,255,255,.03); }
-        .donation-item .label { opacity: .75; font-size: .85rem; }
-        .donation-item .value { word-break: break-all; font-weight: 600; }
-        .donation-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
-        .copy-btn { padding: 6px 10px; border-radius: 8px; background: var(--button-background); color: #fff; border: none; cursor: pointer; }
-        .copy-btn:hover { filter: brightness(1.05); }
+                 /* Donation Widget (header button uses existing .theme-switcher-btn styles) */
+         .donation-modal .modal-content { max-width: 460px; background: var(--card-background); color: var(--white); border: 1px solid var(--border-light); border-radius: 16px; }
+         .donation-dropdown { position: absolute; top: 120%; right: 0; min-width: 320px; background: var(--card-background); border: 1px solid var(--border-light); border-radius: 14px; padding: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.3); z-index: 20; }
+         .donation-list { display: grid; gap: 10px; margin-top: 8px; }
+         .donation-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 10px; border: 1px solid var(--border-light); border-radius: 10px; background: rgba(255,255,255,.03); }
+         .donation-item .label { opacity: .75; font-size: .85rem; }
+         .donation-item .value { word-break: break-all; font-weight: 600; }
+         .donation-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+         .copy-btn { padding: 6px 10px; border-radius: 8px; background: var(--button-background); color: #fff; border: none; cursor: pointer; }
+         .copy-btn:hover { filter: brightness(1.05); }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -3446,9 +3447,37 @@
             <a href="/home.html" class="logo">JCHAT</a>
             <!-- Removed Header Navigation (Home, Profile) -->
             <div class="user-profile-header" style="display:flex;align-items:center;gap:10px;">
-                <div style="display:flex;align-items:center;gap:8px;margin-right:6px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-right:6px; position: relative;">
                     <button id="headerSupportBtn" class="theme-switcher-btn" title="Support" aria-label="Donate"><i class="fas fa-seedling"></i></button>
                     <span style="font-size:0.85rem;opacity:.8;">Support</span>
+                    <div id="donationDropdown" class="donation-dropdown" aria-label="Donation Panel" style="display:none;">
+                        <div class="donation-list">
+                            <div class="donation-item">
+                                <div class="label">Bank Name</div>
+                                <div class="value" id="donationBankName"></div>
+                                <button class="copy-btn" data-copy="donationBankName"><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="donation-item">
+                                <div class="label">Account Name</div>
+                                <div class="value" id="donationAccountName"></div>
+                                <button class="copy-btn" data-copy="donationAccountName"><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="donation-item">
+                                <div class="label">Account Number</div>
+                                <div class="value" id="donationAccountNumber"></div>
+                                <button class="copy-btn" data-copy="donationAccountNumber"><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="donation-item">
+                                <div class="label">SWIFT / IBAN</div>
+                                <div class="value" id="donationSwift"></div>
+                                <button class="copy-btn" data-copy="donationSwift"><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="donation-item">
+                                <div class="label">Note</div>
+                                <div class="value" id="donationNote"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <!-- Theme Switcher Button -->
                 <button id="themeSwitcherBtn" class="theme-switcher-btn" aria-label="Switch Theme">
@@ -7884,10 +7913,7 @@
                 this.displayNotifications();
                 this.showNotificationPanel();
                 
-                // Auto-hide after 5 seconds
-                setTimeout(() => {
-                    this.hideNotificationPanel();
-                }, 5000);
+                // Keep panel open until user closes it manually
 
                 return notification.id;
             }
@@ -8905,8 +8931,17 @@
                 headerNotificationsBtn.addEventListener('click', () => {
                     const notificationsPanel = document.getElementById('notificationsPanel');
                     if (notificationsPanel) {
-                        notificationsPanel.classList.toggle('show');
-                        headerNotificationsBtn.classList.toggle('active');
+                        const willShow = !notificationsPanel.classList.contains('show');
+                        if (willShow) {
+                            notificationsPanel.style.display = 'block';
+                            notificationsPanel.offsetHeight;
+                            notificationsPanel.classList.add('show');
+                            headerNotificationsBtn.classList.add('active');
+                        } else {
+                            notificationsPanel.classList.remove('show');
+                            headerNotificationsBtn.classList.remove('active');
+                            setTimeout(()=>{ if(!notificationsPanel.classList.contains('show')) notificationsPanel.style.display='none'; }, 300);
+                        }
                     }
                 });
             }
@@ -9679,21 +9714,22 @@
                     if (text) navigator.clipboard.writeText(text).then(()=> showMessageBox('Copied', 'success')).catch(()=> showMessageBox('Copy failed', 'error'));
                 }
             });
-            if (btn) btn.addEventListener('click', ()=> { 
-                if (modal){ 
-                    // Refresh details from profile at open time
-                    const bd = currentUserProfileData?.bankDetails || {};
-                    const apply = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = val || ''; };
-                    apply('donationBankName', bd.bankName || map.donationBankName);
-                    apply('donationAccountName', bd.accountName || map.donationAccountName);
-                    apply('donationAccountNumber', bd.accountNumber || map.donationAccountNumber);
-                    apply('donationSwift', map.donationSwift);
-                    apply('donationNote', map.donationNote);
-                    modal.style.display='block'; modal.offsetHeight; modal.classList.add('show'); 
-                }
+            const dropdown = document.getElementById('donationDropdown');
+            if (btn) btn.addEventListener('click', (e)=> { 
+                e.stopPropagation();
+                // Refresh details from profile
+                const bd = currentUserProfileData?.bankDetails || {};
+                const apply = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = val || ''; };
+                apply('donationBankName', bd.bankName || map.donationBankName);
+                apply('donationAccountName', bd.accountName || map.donationAccountName);
+                apply('donationAccountNumber', bd.accountNumber || map.donationAccountNumber);
+                apply('donationSwift', map.donationSwift);
+                apply('donationNote', map.donationNote);
+                if (dropdown){ dropdown.style.display = (dropdown.style.display === 'none' || dropdown.style.display === '') ? 'block' : 'none'; }
             });
-            if (closeBtn) closeBtn.addEventListener('click', ()=> { if (modal){ modal.classList.remove('show'); modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true }); }});
-            if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) closeBtn?.click(); });
+            document.addEventListener('click', (e)=>{
+                if (dropdown && !dropdown.contains(e.target) && e.target !== btn) dropdown.style.display = 'none';
+            });
         })();
         // Global UI helpers for consistent dialogs
         function customConfirm(message, title = 'Confirm Action') {
