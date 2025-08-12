@@ -6078,10 +6078,28 @@
             if (!tabs || !grid) return;
             tabs.innerHTML = '';
             function renderPack(pack) {
+                // Create or update inline price bar
+                let priceBar = document.getElementById('stickerPriceBar');
+                if (!priceBar) {
+                    priceBar = document.createElement('div');
+                    priceBar.id = 'stickerPriceBar';
+                    priceBar.style.cssText = 'display:none; margin:8px 0; padding:8px; border:1px solid #eee; border-radius:10px; background:#fafafa; color:#333;';
+                    container.insertBefore(priceBar, grid);
+                }
                 grid.innerHTML = '';
                 grid.innerHTML = '';
                 const unlockedKey = `stickers:${pack.id}`;
                 const allowed = 3;
+                const isPackUnlocked = UNLOCK_ALL_PREVIEW || userEntitlements.packs?.includes(unlockedKey) || userEntitlements.stickersUnlocked;
+                if (!isPackUnlocked) {
+                    priceBar.style.display = 'flex';
+                    priceBar.style.alignItems = 'center';
+                    priceBar.style.justifyContent = 'space-between';
+                    priceBar.innerHTML = `<div><strong>${pack.name}</strong> — Unlock full pack</div><div style=\"display:flex;align-items:center;gap:8px;\"><span style=\"display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:#eef2ff;border:1px solid #dde3ff;color:#334155;font-weight:700\">₦300</span><button id=\"unlockCatBtn\" style=\"background:#25D366;color:#fff;border:none;border-radius:8px;padding:6px 10px;cursor:pointer\">Unlock</button></div>`;
+                    document.getElementById('unlockCatBtn')?.addEventListener('click', ()=> openUnlock(`stickers:${pack.id}`));
+                } else {
+                    priceBar.style.display = 'none';
+                }
                 pack.emojis.forEach((em, idx) => {
                     const url = getTwemojiUrl(em);
                     if (!url) return;
