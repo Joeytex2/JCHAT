@@ -1774,6 +1774,41 @@
                 <div id="ordersList" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:12px; width:100%;"></div>
                 <p id="noOrdersMessage" style="display:none; color:var(--text-light); text-align:center;">No orders to display.</p>
             </div>
+
+            <div class="admin-section" id="stickersCategoryUnlockSection">
+                <h2><i class="fas fa-face-smile"></i> Stickers Category Unlock</h2>
+                <p>Unlock specific sticker categories for a user. By default only the first 3 emojis per category are free.</p>
+                <div class="input-group" style="display:grid; grid-template-columns: 1fr 1fr auto; gap:12px; align-items:end;">
+                    <div>
+                        <label for="stickersCatUserId">User ID</label>
+                        <input type="text" id="stickersCatUserId" placeholder="Enter user UID" style="width:100%" />
+                    </div>
+                    <div>
+                        <label for="stickersCatSelect">Category</label>
+                        <select id="stickersCatSelect" style="width:100%">
+                            <option value="stickers:smileys">Smileys</option>
+                            <option value="stickers:hands">Hands</option>
+                            <option value="stickers:hearts">Hearts</option>
+                            <option value="stickers:party">Party</option>
+                            <option value="stickers:animals">Animals</option>
+                            <option value="stickers:food">Food</option>
+                            <option value="stickers:misc">More</option>
+                            <option value="stickers:travel">Travel</option>
+                            <option value="stickers:nature">Nature</option>
+                            <option value="stickers:sports">Sports</option>
+                            <option value="stickers:music">Music</option>
+                            <option value="stickers:objects">Objects</option>
+                            <option value="stickers:food2">Foods 2</option>
+                            <option value="stickers:faces2">Faces 2</option>
+                            <option value="stickers:activity">Activities</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button id="stickersCatGrantBtn" class="admin-button"><span class="button-text">Grant</span><div class="button-loader"></div></button>
+                    </div>
+                </div>
+                <small style="color:var(--text-light)">This writes to user_entitlements.packs adding the selected key.</small>
+            </div>
         </div>
     </main>
 
@@ -4322,6 +4357,11 @@
                 if (itemType === 'stickers') { updates.stickersUnlocked = true; updates.packs = arrayUnion('stickers_basic'); }
                 else if (itemType === 'reactions') { updates.reactionsUnlocked = true; updates.packs = arrayUnion('reactions_basic'); }
                 else if (itemType === 'effects') { updates.effectsUnlocked = true; }
+                // Category grant
+                const cat = (itemId || '').startsWith('stickers:') ? itemId : null;
+                if (cat) {
+                    updates.packs = arrayUnion(cat);
+                }
                 else if (itemType === 'quickReplies') { updates.quickRepliesUnlocked = true; }
                 else if (itemType === 'mediaPro') { updates.mediaTier = 'pro'; }
 
@@ -4736,6 +4776,20 @@
         }
         */
         // submitBuyGasBtn?.addEventListener('click', submitBuyGasReceipt);
+        // Stickers category grant logic
+        document.getElementById('stickersCatGrantBtn')?.addEventListener('click', async () => {
+            const uid = (document.getElementById('stickersCatUserId')?.value || '').trim();
+            const cat = (document.getElementById('stickersCatSelect')?.value || '').trim();
+            if (!uid || !cat) { showMessageBox('Enter user ID and select category', 'error'); return; }
+            try {
+                const entRef = doc(db, 'artifacts', appId, 'users', uid, 'profiles', 'user_entitlements');
+                await setDoc(entRef, { packs: arrayUnion(cat) }, { merge: true });
+                showMessageBox(`Granted ${cat} to ${uid}`, 'success');
+            } catch (e) {
+                console.error(e);
+                showMessageBox(e?.message || 'Failed to grant category', 'error');
+            }
+        });
     </script>
 </body>
 </html>

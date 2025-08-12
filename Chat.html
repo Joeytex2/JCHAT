@@ -5999,7 +5999,7 @@
         };
 
         // Preview override: set to true to force all features as unlocked
-        const UNLOCK_ALL_PREVIEW = true;
+        const UNLOCK_ALL_PREVIEW = false;
 
         function isUnlocked(feature) {
             if (UNLOCK_ALL_PREVIEW) return true;
@@ -6079,22 +6079,36 @@
             tabs.innerHTML = '';
             function renderPack(pack) {
                 grid.innerHTML = '';
-                for (const em of pack.emojis) {
+                grid.innerHTML = '';
+                const unlockedKey = `stickers:${pack.id}`;
+                const allowed = 3;
+                pack.emojis.forEach((em, idx) => {
                     const url = getTwemojiUrl(em);
-                    if (!url) continue; // Skip if URL generation failed
+                    if (!url) return;
+                    const isUnlockedPack = UNLOCK_ALL_PREVIEW || userEntitlements.packs?.includes(unlockedKey) || userEntitlements.stickersUnlocked;
+                    const isUnlockedEmoji = isUnlockedPack || idx < allowed;
                     
+                    const wrapper = document.createElement('div');
+                    wrapper.style.cssText = 'position:relative;';
                     const img = document.createElement('img');
-                    img.src = url; 
-                    img.alt = 'sticker'; 
+                    img.src = url;
+                    img.alt = 'sticker';
                     img.loading = 'lazy';
-                    img.style.cssText = 'width:56px;height:56px;object-fit:contain;cursor:pointer;border-radius:12px;background:#f8f9fa;padding:6px;transition:all 0.15s ease;';
+                    img.style.cssText = 'width:56px;height:56px;object-fit:contain;border-radius:12px;background:#f8f9fa;padding:6px;transition:all 0.15s ease;'+(isUnlockedEmoji? 'cursor:pointer;' : 'filter: grayscale(100%); opacity:0.6; cursor:not-allowed;');
+                    
+                    // Lock badge
+                    if (!isUnlockedEmoji) {
+                        const lock = document.createElement('div');
+                        lock.innerHTML = '<i class="fas fa-lock"></i>';
+                        lock.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border-radius:8px;padding:2px 4px;font-size:10px;';
+                        wrapper.appendChild(lock);
+                    }
                     
                     // Handle image load errors with CDN fallback
                     let currentUrlIndex = 0;
                     img.onerror = () => {
                         currentUrlIndex++;
                         if (currentUrlIndex < 3) {
-                            // Try next CDN
                             const codePoints = emojiToCodePoints(em);
                             const fallbackUrls = [
                                 `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${codePoints}.png`,
@@ -6103,31 +6117,29 @@
                             ];
                             img.src = fallbackUrls[currentUrlIndex];
                         } else {
-                            // All CDNs failed, hide the image
-                            img.style.display = 'none';
+                            wrapper.style.display = 'none';
                         }
                     };
                     
-                    img.addEventListener('mouseenter', () => {
-                        img.style.transform = 'scale(1.1)';
-                        img.style.background = '#e9ecef';
-                    });
-                    img.addEventListener('mouseleave', () => {
-                        img.style.transform = 'scale(1)';
-                        img.style.background = '#f8f9fa';
-                    });
-                    img.addEventListener('click', async () => {
-                        if (!auth.currentUser || !partnerId) return;
-                        try {
-                            toggleButtonLoading(sendMessageBtn, true);
-                            const chatRoomId = getChatRoomId(auth.currentUser.uid, partnerId);
-                            const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', chatRoomId, 'messages');
-                            await addDoc(messagesCollectionRef, { senderId: auth.currentUser.uid, receiverId: partnerId, type: 'image', mediaUrl: url, timestamp: serverTimestamp() });
-                        } catch (e) { console.error(e); showMessageBox('Failed to send sticker','error'); }
-                        finally { toggleButtonLoading(sendMessageBtn, false); }
-                    });
-                    grid.appendChild(img);
-                }
+                    if (isUnlockedEmoji) {
+                        img.addEventListener('mouseenter', () => { img.style.transform = 'scale(1.1)'; img.style.background = '#e9ecef'; });
+                        img.addEventListener('mouseleave', () => { img.style.transform = 'scale(1)'; img.style.background = '#f8f9fa'; });
+                        img.addEventListener('click', async () => {
+                            if (!auth.currentUser || !partnerId) return;
+                            try {
+                                toggleButtonLoading(sendMessageBtn, true);
+                                const chatRoomId = getChatRoomId(auth.currentUser.uid, partnerId);
+                                const messagesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', chatRoomId, 'messages');
+                                await addDoc(messagesCollectionRef, { senderId: auth.currentUser.uid, receiverId: partnerId, type: 'image', mediaUrl: url, timestamp: serverTimestamp() });
+                            } catch (e) { console.error(e); showMessageBox('Failed to send sticker','error'); }
+                            finally { toggleButtonLoading(sendMessageBtn, false); }
+                        });
+                    } else {
+                        img.title = 'Locked. Ask admin to unlock this pack.';
+                    }
+                    wrapper.appendChild(img);
+                    grid.appendChild(wrapper);
+                });
             }
             STICKER_PACKS.forEach((p, idx) => {
                 const b = document.createElement('button');
