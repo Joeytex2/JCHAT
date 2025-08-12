@@ -138,6 +138,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
       apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
@@ -154,6 +155,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     const PACK_PRICE = 300; // NGN per pack
     const PACKS = [
@@ -186,6 +188,7 @@
     const submitBtn = document.getElementById('submitBtn');
     const checkoutError = document.getElementById('checkoutError');
     const toast = document.getElementById('toast');
+    const receiptInput = document.getElementById('receipt');
 
     let currentUser = null;
 
@@ -254,6 +257,16 @@
       try {
         submitBtn.disabled = true; submitBtn.querySelector('.text').textContent = 'Submitting...';
 
+        // Optional receipt upload
+        let receiptUrl = '';
+        const file = receiptInput?.files?.[0] || null;
+        if (file) {
+          const path = `orders/${currentUser.uid}/${orderId}/${encodeURIComponent(file.name)}`;
+          const storageRefRef = ref(storage, path);
+          await uploadBytes(storageRefRef, file);
+          receiptUrl = await getDownloadURL(storageRefRef);
+        }
+
         const orderRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'));
         await setDoc(orderRef, {
           orderId,
@@ -262,6 +275,7 @@
           itemIds: selected.map(id => `stickers:${id}`),
           amount: `₦${amount}`,
           currency: 'NGN',
+          receiptUrl,
           status: 'pending',
           createdAt: serverTimestamp(),
         });
