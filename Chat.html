@@ -5845,6 +5845,78 @@
                 speakerBtn.innerHTML = `<i class="fas ${speakerIcon}"></i>`;
             }
         }
+        // ---- UI Toggles Wiring ----
+        (function wireToggles(){
+            // Friend selector button
+            const selectFriendBtn = document.getElementById('selectFriendBtn');
+            if (selectFriendBtn) {
+                selectFriendBtn.addEventListener('click', openSelectFriendModal);
+            }
+            // Theme switcher
+            const themeSwitcherBtn = document.getElementById('themeSwitcherBtn');
+            function applyTheme(theme){
+                const themes = ['theme-light-mode', 'theme-dark-mode'];
+                document.body.classList.remove(...themes);
+                document.body.classList.add(theme);
+                localStorage.setItem('jchat-theme', theme);
+                const icon = themeSwitcherBtn?.querySelector('i');
+                if (icon) icon.className = theme === 'theme-light-mode' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            const savedTheme = localStorage.getItem('jchat-theme') || 'theme-dark-mode';
+            applyTheme(savedTheme);
+            themeSwitcherBtn?.addEventListener('click', ()=>{
+                const next = document.body.classList.contains('theme-dark-mode') ? 'theme-light-mode' : 'theme-dark-mode';
+                applyTheme(next);
+            });
+            // Sound toggle
+            const soundToggleIcon = document.getElementById('soundToggleIcon');
+            if (soundToggleIcon) {
+                const savedSoundPreference = localStorage.getItem('jchat-sound-enabled');
+                if (savedSoundPreference !== null) {
+                    notificationSoundEnabled = JSON.parse(savedSoundPreference);
+                }
+                const setSoundIcon = () => {
+                    soundToggleIcon.classList.toggle('active', !!notificationSoundEnabled);
+                    soundToggleIcon.classList.remove(notificationSoundEnabled ? 'fa-volume-mute' : 'fa-volume-up');
+                    soundToggleIcon.classList.add(notificationSoundEnabled ? 'fa-volume-up' : 'fa-volume-mute');
+                };
+                setSoundIcon();
+                soundToggleIcon.addEventListener('click', () => {
+                    notificationSoundEnabled = !notificationSoundEnabled;
+                    localStorage.setItem('jchat-sound-enabled', JSON.stringify(notificationSoundEnabled));
+                    setSoundIcon();
+                    showMessageBox(`Notification sounds ${notificationSoundEnabled ? 'ON' : 'OFF'}`, 'info');
+                });
+            }
+            // Stickers toggle
+            const stickersBtn = document.getElementById('stickersBtn');
+            const stickerPicker = document.getElementById('stickerPicker');
+            const stickerPickerClose = document.getElementById('stickerPickerClose');
+            function openStickerPicker() {
+                if (!stickerPicker) return;
+                stickerPicker.style.display = 'block';
+                stickerPicker.scrollTop = 0;
+            }
+            function closeStickerPicker() {
+                if (!stickerPicker) return;
+                stickerPicker.style.display = 'none';
+            }
+            stickersBtn?.addEventListener('click', ()=>{
+                if (!stickersBtn) return;
+                const locked = stickersBtn.dataset.locked === '1';
+                if (locked && !UNLOCK_ALL_PREVIEW) {
+                    showMessageBox('Stickers are locked. Visit Store to unlock.', 'info');
+                    return;
+                }
+                if (stickerPicker?.style.display === 'block') closeStickerPicker(); else openStickerPicker();
+            });
+            stickerPickerClose?.addEventListener('click', closeStickerPicker);
+            document.addEventListener('click', (ev)=>{
+                if (stickerPicker && stickersBtn && stickerPicker.style.display === 'block' && !stickerPicker.contains(ev.target) && ev.target !== stickersBtn) {
+                    closeStickerPicker();
+                }
+            });
+        })();
         // ... existing code ...
         // ... existing code ...
     </script>
