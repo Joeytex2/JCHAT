@@ -3454,6 +3454,7 @@
             <a href="/home.html" class="logo">JCHAT</a>
             <!-- Removed Header Navigation (Home, Profile) -->
             <div class="user-profile-header" style="display:flex;align-items:center;gap:10px;">
+                <button id="donationHeaderBtn" class="theme-switcher-btn" title="Support" aria-label="Donate"><i class="fas fa-seedling"></i></button>
                 <!-- Theme Switcher Button -->
                 <button id="themeSwitcherBtn" class="theme-switcher-btn" aria-label="Switch Theme">
                     <i class="fas fa-key"></i>
@@ -9683,15 +9684,15 @@
         }
         // Donation widget logic
         (function setupDonationWidget(){
-            const btn = document.getElementById('donationFlowerBtn');
+            const btn = document.getElementById('donationHeaderBtn') || document.getElementById('donationFlowerBtn');
             const modal = document.getElementById('donationModal');
             const closeBtn = document.getElementById('donationCloseBtn');
             const map = {
-                donationBankName: (typeof __donation_bank_name !== 'undefined' ? __donation_bank_name : ''),
-                donationAccountName: (typeof __donation_account_name !== 'undefined' ? __donation_account_name : ''),
-                donationAccountNumber: (typeof __donation_account_number !== 'undefined' ? __donation_account_number : ''),
+                donationBankName: currentUserProfileData?.bankDetails?.bankName || (typeof __donation_bank_name !== 'undefined' ? __donation_bank_name : ''),
+                donationAccountName: currentUserProfileData?.bankDetails?.accountName || (typeof __donation_account_name !== 'undefined' ? __donation_account_name : ''),
+                donationAccountNumber: currentUserProfileData?.bankDetails?.accountNumber || (typeof __donation_account_number !== 'undefined' ? __donation_account_number : ''),
                 donationSwift: (typeof __donation_swift !== 'undefined' ? __donation_swift : ''),
-                donationNote: (typeof __donation_note !== 'undefined' ? __donation_note : '')
+                donationNote: (typeof __donation_note !== 'undefined' ? __donation_note : 'If you love JCHAT, consider a small donation to support continued development. Thank you!')
             };
             Object.entries(map).forEach(([id, val])=>{
                 const el = document.getElementById(id);
@@ -9706,7 +9707,17 @@
                     if (text) navigator.clipboard.writeText(text).then(()=> showMessageBox('Copied', 'success')).catch(()=> showMessageBox('Copy failed', 'error'));
                 }
             });
-            if (btn) btn.addEventListener('click', ()=> { if (modal){ modal.style.display='block'; modal.offsetHeight; modal.classList.add('show'); }});
+            if (btn) btn.addEventListener('click', ()=> { 
+                if (modal){ 
+                    // Refresh details from profile at open time
+                    const bd = currentUserProfileData?.bankDetails || {};
+                    const apply = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = val || ''; };
+                    apply('donationBankName', bd.bankName || map.donationBankName);
+                    apply('donationAccountName', bd.accountName || map.donationAccountName);
+                    apply('donationAccountNumber', bd.accountNumber || map.donationAccountNumber);
+                    modal.style.display='block'; modal.offsetHeight; modal.classList.add('show'); 
+                }
+            });
             if (closeBtn) closeBtn.addEventListener('click', ()=> { if (modal){ modal.classList.remove('show'); modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true }); }});
             if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) closeBtn?.click(); });
         })();
