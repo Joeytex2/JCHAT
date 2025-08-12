@@ -646,7 +646,6 @@
             border-radius: 4px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .notifications-list::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, 
                 rgba(255, 255, 255, 0.4) 0%, 
@@ -1945,8 +1944,6 @@
         #callOverlay.voice-call .video-streams {
             display: none; /* Hide video streams for voice calls */
         }
-
-
         /* Responsive Adjustments */
         @media (max-width: 600px) {
             header .header-content-wrapper {
@@ -2596,7 +2593,6 @@
     .no-notifications span {
         font-size: 0.9rem;
     }
-
             /* Mobile responsiveness for notifications */
         @media (max-width: 768px) {
             .notifications-panel {
@@ -3238,7 +3234,6 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
         }
-
         .toggle-feature-btn {
             background: var(--card-background);
             border: 1px solid var(--border-light);
@@ -5181,7 +5176,6 @@
                 return null;
             }
         }
-
         /**
          * Applies the selected theme to the document body.
          * @param {string} themeName - The CSS class name for the theme (e.g., 'theme-dark-mode').
@@ -5813,7 +5807,6 @@
                 toggleButtonLoading(createPostButton, false); // Hide loading spinner.
             }
         }
-
         /**
          * Handles user reactions (like, love, haha) to a post.
          * Uses a transaction to update reaction counts and user's reaction status.
@@ -7634,7 +7627,6 @@
                     console.log('Unknown quick action:', action);
             }
         }
-
         // Enhanced Mobile Experience Functions
         function initializeTouchGestures() {
             let startY = 0;
@@ -8216,7 +8208,6 @@
             };
             return names[featureType] || featureType;
         }
-
         function generateSmartRecommendations() {
             const recommendationItems = document.getElementById('recommendationItems');
             if (!recommendationItems) return;
@@ -8462,16 +8453,16 @@
                     Description: ${group.description}
                 `;
                 
-                if (window.showMessageBox) {
-                    window.showMessageBox(message, 'info');
-                } else {
-                    alert(message);
-                }
+                showMessageBox(message, 'info');
             }
 
             showCreateGroupModal() {
                 // Simplified group creation - you can expand this later
-                const groupName = prompt('Enter group name:');
+                openCustomPrompt({
+                    title: 'Create Group',
+                    label: 'Enter group name',
+                    placeholder: 'e.g., Crypto Enthusiasts',
+                }).then(groupName => {
                 if (groupName && groupName.trim()) {
                     const newGroup = {
                         id: Date.now().toString(),
@@ -8494,6 +8485,7 @@
                         );
                     }
                 }
+                });
             }
 
             addGroupToDOM(group) {
@@ -8526,10 +8518,11 @@
             }
 
             showAddInterestModal() {
-                const interest = prompt('Add a new interest:');
+                openCustomPrompt({ title: 'Add Interest', label: 'Enter interest', placeholder: 'e.g., AI/ML' }).then(interest => {
                 if (interest && interest.trim()) {
                     this.addUserInterest(interest.trim());
                 }
+                });
             }
 
             addUserInterest(interest) {
@@ -8860,7 +8853,6 @@
                 this.saveUserPreferences();
             }
         }
-
         // --- Event Listeners for static elements ---
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize theme switcher
@@ -9071,10 +9063,11 @@
                 const text = `${inspirationQuoteElement ? inspirationQuoteElement.textContent : ''} ${inspirationAuthorElement ? inspirationAuthorElement.textContent : ''}`.trim();
                 postCreationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 postContentInput.value = text;
-                const addImg = confirm('Add an image to this post?');
+                customConfirm('Add an image to this post?').then(addImg => {
                 if (addImg && postMediaUpload) postMediaUpload.click();
                 closeShareInspirationModal();
                 showMessageBox('Composer prefilled. You can edit and post now.', 'info');
+                });
             } else {
                 showMessageBox('Post composer not available on this page.', 'warning');
             }
@@ -9476,7 +9469,6 @@
                 storiesBar.appendChild(item);
             });
         }
-
         // Story viewer refs/state
         const storyViewer = document.getElementById('storyViewer');
         const storyImageEl = document.getElementById('storyImage');
