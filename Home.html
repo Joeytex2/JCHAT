@@ -501,6 +501,30 @@
             animation-play-state: paused;
         }
 
+        /* Header Notification Button */
+        .header-notification-btn {
+            background: transparent;
+            border: none;
+            color: var(--white);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-notification-btn:hover {
+            background: var(--glass-blue);
+            color: var(--blue);
+        }
+
+        .header-notification-btn.active {
+            background: var(--glass-blue);
+            color: var(--blue);
+        }
+
         /* --- Comprehensive Notification System CSS --- */
         
         /* Toast Notifications */
@@ -2372,6 +2396,852 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
+    /* Smart Notifications Panel */
+    .notifications-panel {
+        background: var(--glass-black);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-blue);
+        border-radius: var(--radius);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+        padding: 1.5rem;
+        width: 90%;
+        max-width: 700px;
+        margin: 20px auto;
+        display: none;
+    }
+
+    .notifications-panel.show {
+        display: block;
+        animation: slideInUp 0.3s ease;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .notifications-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .notifications-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--white);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .notifications-title i {
+        color: var(--blue);
+        font-size: 1.2rem;
+    }
+
+    .notifications-count {
+        background: var(--pink);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    .clear-notifications-btn {
+        background: transparent;
+        border: 1px solid var(--border-light);
+        color: var(--text-light);
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .clear-notifications-btn:hover {
+        background: var(--glass-blue);
+        color: var(--white);
+        border-color: var(--blue);
+    }
+
+    .notifications-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+    }
+
+    .notification-item:hover {
+        background: var(--glass-blue);
+        transform: translateX(5px);
+    }
+
+    .notification-item.info {
+        border-left-color: var(--blue);
+        background: rgba(0, 213, 255, 0.1);
+    }
+
+    .notification-item.success {
+        border-left-color: var(--status-online);
+        background: rgba(76, 175, 80, 0.1);
+    }
+
+    .notification-item.warning {
+        border-left-color: var(--warning-color);
+        background: rgba(255, 193, 7, 0.1);
+    }
+
+    .notification-item.error {
+        border-left-color: var(--delete-button-color);
+        background: rgba(220, 53, 69, 0.1);
+    }
+
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .notification-item.info .notification-icon {
+        background: rgba(0, 213, 255, 0.2);
+        color: var(--blue);
+    }
+
+    .notification-item.success .notification-icon {
+        background: rgba(76, 175, 80, 0.2);
+        color: var(--status-online);
+    }
+
+    .notification-item.warning .notification-icon {
+        background: rgba(255, 193, 7, 0.2);
+        color: var(--warning-color);
+    }
+
+    .notification-item.error .notification-icon {
+        background: rgba(220, 53, 69, 0.2);
+        color: var(--delete-button-color);
+    }
+
+    .notification-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        color: var(--white);
+        margin-bottom: 4px;
+        font-size: 0.9rem;
+    }
+
+    .notification-message {
+        color: var(--text-light);
+        font-size: 0.85rem;
+        line-height: 1.4;
+        margin-bottom: 6px;
+    }
+
+    .notification-time {
+        color: var(--text-light);
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+
+    .remove-notification-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-light);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        opacity: 0.7;
+    }
+
+    .remove-notification-btn:hover {
+        color: var(--delete-button-color);
+        opacity: 1;
+        background: rgba(220, 53, 69, 0.1);
+    }
+
+    .no-notifications {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+    }
+
+    .no-notifications i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .no-notifications p {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: var(--white);
+    }
+
+    .no-notifications span {
+        font-size: 0.9rem;
+    }
+
+            /* Mobile responsiveness for notifications */
+        @media (max-width: 768px) {
+            .notifications-panel {
+                width: 95%;
+                padding: 1rem;
+            }
+
+            .notifications-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .notifications-title {
+                font-size: 1rem;
+            }
+
+            .notification-item {
+                padding: 10px;
+            }
+
+            .notification-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+        }
+
+        /* Community Groups & Interest Hubs */
+        .community-groups-section {
+            background: var(--glass-black);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-blue);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 700px;
+            margin: 20px auto;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .section-header h3 {
+            color: var(--white);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h3 i {
+            color: var(--blue);
+        }
+
+        .create-group-btn {
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .create-group-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 213, 255, 0.4);
+        }
+
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .group-card {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .group-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: var(--glass-blue);
+        }
+
+        .group-card.featured {
+            border-color: var(--pink);
+            background: linear-gradient(145deg, var(--card-background), rgba(255, 46, 146, 0.1));
+        }
+
+        .group-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .group-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .group-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .group-info h4 {
+            color: var(--white);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+
+        .group-info p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin: 0 0 6px 0;
+            line-height: 1.4;
+        }
+
+        .member-count {
+            color: var(--blue);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .group-status {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .status-badge.trending {
+            background: rgba(255, 46, 146, 0.2);
+            color: var(--pink);
+            border: 1px solid rgba(255, 46, 146, 0.3);
+        }
+
+        .status-badge.active {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--status-online);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .status-badge.new {
+            background: rgba(0, 213, 255, 0.2);
+            color: var(--blue);
+            border: 1px solid rgba(0, 213, 255, 0.3);
+        }
+
+        .group-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .join-group-btn, .group-preview-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .join-group-btn {
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            color: white;
+            border: none;
+        }
+
+        .join-group-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 213, 255, 0.4);
+        }
+
+        .group-preview-btn {
+            background: transparent;
+            color: var(--text-light);
+        }
+
+        .group-preview-btn:hover {
+            background: var(--glass-blue);
+            color: var(--white);
+            border-color: var(--blue);
+        }
+
+        .interests-tags {
+            border-top: 1px solid var(--border-light);
+            padding-top: 1rem;
+        }
+
+        .interests-tags h4 {
+            color: var(--white);
+            font-size: 1rem;
+            margin: 0 0 1rem 0;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .interest-tag {
+            padding: 6px 12px;
+            background: var(--glass-blue);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .interest-tag:hover {
+            background: var(--glass-blue);
+            border-color: var(--blue);
+            color: var(--white);
+        }
+
+        .interest-tag.active {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: white;
+        }
+
+        .add-interest-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--glass-blue);
+            border: 1px dashed var(--border-light);
+            color: var(--blue);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .add-interest-btn:hover {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+
+        /* Mobile responsiveness for community groups */
+        @media (max-width: 768px) {
+            .community-groups-section {
+                width: 95%;
+                padding: 1rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .groups-grid {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .group-card {
+                padding: 0.8rem;
+            }
+
+            .group-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+
+            .group-info h4 {
+                font-size: 1rem;
+            }
+
+            .group-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* AI-Powered Smart Feed */
+        .smart-feed-section {
+            background: var(--glass-black);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-blue);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 700px;
+            margin: 20px auto;
+        }
+
+        .feed-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feed-algorithm-select {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            color: var(--white);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .feed-algorithm-select:hover {
+            border-color: var(--blue);
+        }
+
+        .feed-algorithm-select:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 2px rgba(0, 213, 255, 0.2);
+        }
+
+        .refresh-feed-btn {
+            background: var(--glass-blue);
+            border: 1px solid var(--border-light);
+            color: var(--blue);
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .refresh-feed-btn:hover {
+            background: var(--blue);
+            color: white;
+            transform: rotate(180deg);
+        }
+
+        .refresh-feed-btn.loading {
+            animation: spin 1s linear infinite;
+        }
+
+        .feed-insights {
+            margin: 1.5rem 0;
+        }
+
+        .insight-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(0, 213, 255, 0.1), rgba(255, 46, 146, 0.1));
+            border: 1px solid var(--glass-blue);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .insight-card i {
+            font-size: 1.5rem;
+            color: var(--blue);
+        }
+
+        .insight-content h4 {
+            color: var(--white);
+            font-size: 1rem;
+            margin: 0 0 4px 0;
+        }
+
+        .insight-content p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .smart-filters {
+            margin: 1.5rem 0;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-tag {
+            padding: 6px 12px;
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-tag:hover {
+            background: var(--glass-blue);
+            border-color: var(--blue);
+            color: var(--white);
+        }
+
+        .filter-tag.active {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: white;
+        }
+
+        .ai-recommendations {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .recommendation-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .recommendation-header h4 {
+            color: var(--white);
+            font-size: 1rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recommendation-header h4 i {
+            color: var(--pink);
+        }
+
+        .ai-status {
+            background: var(--glass-blue);
+            color: var(--blue);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .ai-status.learning {
+            animation: pulse 2s infinite;
+        }
+
+        .ai-status.ready {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--status-online);
+        }
+
+        .recommendation-content p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin: 0 0 12px 0;
+        }
+
+        .recommendation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .recommendation-list li {
+            color: var(--white);
+            font-size: 0.9rem;
+            padding: 6px 0;
+            border-left: 2px solid var(--blue);
+            padding-left: 12px;
+            margin-bottom: 4px;
+        }
+
+        .recommendation-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Mobile responsiveness for smart feed */
+        @media (max-width: 768px) {
+            .smart-feed-section {
+                width: 95%;
+                padding: 1rem;
+            }
+
+            .feed-controls {
+                flex-direction: column;
+                gap: 8px;
+                align-items: stretch;
+            }
+
+            .feed-algorithm-select {
+                width: 100%;
+            }
+
+            .filter-tags {
+                gap: 6px;
+            }
+
+            .filter-tag {
+                padding: 5px 10px;
+                font-size: 0.8rem;
+            }
+
+            .insight-card {
+                padding: 0.8rem;
+            }
+
+            .insight-card i {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Pull-to-Refresh Indicator */
+        .pull-to-refresh-indicator {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--glass-black);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-blue);
+            border-radius: 0 0 20px 20px;
+            padding: 15px 25px;
+            color: var(--white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .pull-to-refresh-indicator i {
+            color: var(--blue);
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+            60% { transform: translateY(-3px); }
+        }
+
+        /* Mobile Device Specific Styles */
+        .mobile-device .quick-actions-toggle {
+            box-shadow: 0 6px 20px rgba(0, 213, 255, 0.5), 0 6px 20px rgba(255, 46, 146, 0.5);
+        }
+
+        .mobile-device .notifications-panel {
+            border-radius: 15px;
+        }
+
+        .mobile-device .community-groups-section {
+            border-radius: 15px;
+        }
+
+        .mobile-device .smart-feed-section {
+            border-radius: 15px;
+        }
+
+        /* Enhanced Mobile Touch Improvements */
+        .mobile-device .group-card,
+        .mobile-device .notification-item,
+        .mobile-device .quick-action-item {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .mobile-device .filter-tag,
+        .mobile-device .interest-tag {
+            min-height: 44px; /* iOS touch target minimum */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body class="theme-dark-mode">
@@ -2395,10 +3265,10 @@
                 </a>
                 <!-- Notification Icon with Badge -->
                 <div class="notification-icon-wrapper" style="position:relative;">
-                    <a href="/notifications.html" aria-label="Notifications">
+                    <button id="headerNotificationsBtn" class="header-notification-btn" aria-label="Toggle Notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationCount">0</span>
-                    </a>
+                        <span class="notification-badge" id="headerNotificationCount">0</span>
+                    </button>
                 </div>
                 <!-- Profile Link with Picture and Name -->
                 <a href="./Profile.html" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;">
@@ -2482,6 +3352,167 @@
                     <div class="quick-action-item" data-action="settings">
                         <i class="fas fa-cog"></i>
                         <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Smart Notifications Panel -->
+            <div class="notifications-panel" id="notificationsPanel">
+                <div class="notifications-header">
+                    <div class="notifications-title">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                        <span class="notifications-count" id="notificationsCount">0</span>
+                    </div>
+                    <button class="clear-notifications-btn" id="clearNotificationsBtn" aria-label="Clear All Notifications">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="notifications-list" id="notificationsList">
+                    <div class="no-notifications">
+                        <i class="fas fa-inbox"></i>
+                        <p>No notifications yet</p>
+                        <span>We'll notify you about important updates</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community Groups & Interest Hubs -->
+            <div class="community-groups-section" id="communityGroupsSection">
+                <div class="section-header">
+                    <h3><i class="fas fa-users"></i> Communities & Interests</h3>
+                    <button class="create-group-btn" id="createGroupBtn" aria-label="Create New Group">
+                        <i class="fas fa-plus"></i> Create Group
+                    </button>
+                </div>
+                
+                <div class="groups-grid" id="groupsGrid">
+                    <div class="group-card featured">
+                        <div class="group-header">
+                            <div class="group-icon">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <div class="group-info">
+                                <h4>Gaming Enthusiasts</h4>
+                                <p>Connect with fellow gamers</p>
+                                <span class="member-count">1.2k members</span>
+                            </div>
+                            <div class="group-status">
+                                <span class="status-badge trending">Trending</span>
+                            </div>
+                        </div>
+                        <div class="group-actions">
+                            <button class="join-group-btn" data-group="gaming">Join Group</button>
+                            <button class="group-preview-btn" data-group="gaming">Preview</button>
+                        </div>
+                    </div>
+
+                    <div class="group-card">
+                        <div class="group-header">
+                            <div class="group-icon">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="group-info">
+                                <h4>Tech Developers</h4>
+                                <p>Share coding tips & projects</p>
+                                <span class="member-count">856 members</span>
+                            </div>
+                            <div class="group-status">
+                                <span class="status-badge active">Active</span>
+                            </div>
+                        </div>
+                        <div class="group-actions">
+                            <button class="join-group-btn" data-group="tech">Join Group</button>
+                            <button class="group-preview-btn" data-group="tech">Preview</button>
+                        </div>
+                    </div>
+
+                    <div class="group-card">
+                        <div class="group-header">
+                            <div class="group-icon">
+                                <i class="fas fa-palette"></i>
+                            </div>
+                            <div class="group-info">
+                                <h4>Creative Artists</h4>
+                                <p>Showcase your artwork</p>
+                                <span class="member-count">432 members</span>
+                            </div>
+                            <div class="group-status">
+                                <span class="status-badge new">New</span>
+                            </div>
+                        </div>
+                        <div class="group-actions">
+                            <button class="join-group-btn" data-group="art">Join Group</button>
+                            <button class="group-preview-btn" data-group="art">Preview</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interests-tags" id="interestsTags">
+                    <h4>Your Interests</h4>
+                    <div class="tags-container">
+                        <span class="interest-tag active">Gaming</span>
+                        <span class="interest-tag">Technology</span>
+                        <span class="interest-tag">Music</span>
+                        <span class="interest-tag">Sports</span>
+                        <span class="interest-tag">Travel</span>
+                        <button class="add-interest-btn" id="addInterestBtn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI-Powered Smart Feed -->
+            <div class="smart-feed-section" id="smartFeedSection">
+                <div class="section-header">
+                    <h3><i class="fas fa-brain"></i> Smart Feed</h3>
+                    <div class="feed-controls">
+                        <select id="feedAlgorithm" class="feed-algorithm-select">
+                            <option value="smart">Smart Recommendations</option>
+                            <option value="recent">Most Recent</option>
+                            <option value="popular">Most Popular</option>
+                            <option value="friends">Friends Only</option>
+                            <option value="interests">Interest-Based</option>
+                        </select>
+                        <button class="refresh-feed-btn" id="refreshFeedBtn" aria-label="Refresh Feed">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="feed-insights" id="feedInsights">
+                    <div class="insight-card">
+                        <i class="fas fa-lightbulb"></i>
+                        <div class="insight-content">
+                            <h4>Feed Insights</h4>
+                            <p>AI is learning your preferences to show relevant content</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="smart-filters" id="smartFilters">
+                    <div class="filter-tags">
+                        <span class="filter-tag active" data-filter="all">All Posts</span>
+                        <span class="filter-tag" data-filter="text">Text Only</span>
+                        <span class="filter-tag" data-filter="media">Media Posts</span>
+                        <span class="filter-tag" data-filter="polls">Polls</span>
+                        <span class="filter-tag" data-filter="inspiration">Inspiration</span>
+                    </div>
+                </div>
+
+                <div class="ai-recommendations" id="aiRecommendations">
+                    <div class="recommendation-header">
+                        <h4><i class="fas fa-magic"></i> AI Recommendations</h4>
+                        <span class="ai-status">Learning...</span>
+                    </div>
+                    <div class="recommendation-content">
+                        <p>Based on your interests and activity, we recommend:</p>
+                        <ul class="recommendation-list">
+                            <li>Check out the Gaming Enthusiasts community</li>
+                            <li>Share your daily inspiration</li>
+                            <li>Connect with tech developers</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -6349,6 +7380,8 @@
             let startY = 0;
             let startTime = 0;
             let isScrolling = false;
+            let lastTapTime = 0;
+            let tapCount = 0;
 
             // Touch start
             document.addEventListener('touchstart', (e) => {
@@ -6388,6 +7421,20 @@
                         }
                     }
                 }
+
+                // Double tap detection for quick actions
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTapTime;
+                if (tapLength < 500 && tapLength > 0) {
+                    tapCount++;
+                    if (tapCount === 2) {
+                        this.handleDoubleTap(e);
+                        tapCount = 0;
+                    }
+                } else {
+                    tapCount = 1;
+                }
+                lastTapTime = currentTime;
             }, { passive: true });
 
             // Add haptic feedback to buttons
@@ -6398,6 +7445,897 @@
                     }
                 }
             });
+
+            // Initialize mobile-specific features
+            this.initializeMobileFeatures();
+        }
+
+        function handleDoubleTap(e) {
+            // Double tap to show notifications
+            const notificationsPanel = document.getElementById('notificationsPanel');
+            if (notificationsPanel) {
+                notificationsPanel.classList.add('show');
+                
+                // Add haptic feedback
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(100);
+                }
+            }
+        }
+
+        function initializeMobileFeatures() {
+            // Add mobile-specific CSS classes
+            if (window.innerWidth <= 768) {
+                document.body.classList.add('mobile-device');
+            }
+
+            // Handle orientation changes
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    this.updateMobileLayout();
+                }, 100);
+            });
+
+            // Handle resize for mobile
+            window.addEventListener('resize', () => {
+                this.updateMobileLayout();
+            });
+
+            // Initialize mobile-specific optimizations
+            this.optimizeForMobile();
+        }
+
+        function updateMobileLayout() {
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                document.body.classList.add('mobile-device');
+            } else {
+                document.body.classList.remove('mobile-device');
+            }
+
+            // Adjust quick actions position for mobile
+            const quickActionsMenu = document.getElementById('quickActionsMenu');
+            if (quickActionsMenu) {
+                if (isMobile) {
+                    quickActionsMenu.style.bottom = '20px';
+                    quickActionsMenu.style.right = '20px';
+                } else {
+                    quickActionsMenu.style.bottom = '30px';
+                    quickActionsMenu.style.right = '30px';
+                }
+            }
+        }
+
+        function optimizeForMobile() {
+            // Add mobile-specific optimizations
+            if (window.innerWidth <= 768) {
+                // Reduce animations for better performance
+                document.documentElement.style.setProperty('--transition', '0.2s ease');
+                
+                // Add mobile-specific touch improvements
+                this.addMobileTouchImprovements();
+            }
+        }
+
+        function addMobileTouchImprovements() {
+            // Improve touch scrolling
+            const scrollableElements = document.querySelectorAll('.notifications-list, .groups-grid, .posts-feed-section');
+            scrollableElements.forEach(element => {
+                element.style.webkitOverflowScrolling = 'touch';
+                element.style.overscrollBehavior = 'contain';
+            });
+
+            // Add pull-to-refresh functionality
+            this.initializePullToRefresh();
+        }
+
+        function initializePullToRefresh() {
+            let startY = 0;
+            let currentY = 0;
+            let pullDistance = 0;
+            const threshold = 80;
+
+            document.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0) {
+                    startY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchmove', (e) => {
+                if (window.scrollY === 0 && startY > 0) {
+                    currentY = e.touches[0].clientY;
+                    pullDistance = currentY - startY;
+                    
+                    if (pullDistance > 0) {
+                        e.preventDefault();
+                        this.showPullToRefreshIndicator(pullDistance);
+                    }
+                }
+            }, { passive: false });
+
+            document.addEventListener('touchend', (e) => {
+                if (pullDistance > threshold) {
+                    this.triggerPullToRefresh();
+                }
+                this.hidePullToRefreshIndicator();
+                startY = 0;
+                pullDistance = 0;
+            }, { passive: true });
+        }
+
+        function showPullToRefreshIndicator(distance) {
+            // Create or update pull-to-refresh indicator
+            let indicator = document.getElementById('pullToRefreshIndicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'pullToRefreshIndicator';
+                indicator.className = 'pull-to-refresh-indicator';
+                indicator.innerHTML = '<i class="fas fa-arrow-down"></i> Pull to refresh';
+                document.body.appendChild(indicator);
+            }
+            
+            indicator.style.transform = `translateY(${Math.min(distance, 100)}px)`;
+            indicator.style.opacity = Math.min(distance / threshold, 1);
+        }
+
+        function hidePullToRefreshIndicator() {
+            const indicator = document.getElementById('pullToRefreshIndicator');
+            if (indicator) {
+                indicator.style.transform = 'translateY(-100px)';
+                indicator.style.opacity = '0';
+            }
+        }
+
+        function triggerPullToRefresh() {
+            // Trigger refresh of content
+            if (window.smartFeedManager) {
+                window.smartFeedManager.refreshFeed();
+            }
+            
+            // Add haptic feedback
+            if ('vibrate' in navigator) {
+                navigator.vibrate(200);
+            }
+        }
+
+        // Smart Notifications System
+        class NotificationsManager {
+            constructor() {
+                this.notifications = [];
+                this.notificationsPanel = document.getElementById('notificationsPanel');
+                this.notificationsList = document.getElementById('notificationsList');
+                this.notificationsCount = document.getElementById('notificationsCount');
+                this.clearNotificationsBtn = document.getElementById('clearNotificationsBtn');
+                
+                this.initialize();
+            }
+
+            initialize() {
+                this.loadNotifications();
+                this.setupEventListeners();
+                this.startAutoNotifications();
+            }
+
+            setupEventListeners() {
+                if (this.clearNotificationsBtn) {
+                    this.clearNotificationsBtn.addEventListener('click', () => {
+                        this.clearAllNotifications();
+                    });
+                }
+            }
+
+            addNotification(type, title, message, data = {}) {
+                const notification = {
+                    id: Date.now() + Math.random(),
+                    type: type, // 'info', 'success', 'warning', 'error'
+                    title: title,
+                    message: message,
+                    timestamp: new Date(),
+                    data: data,
+                    read: false
+                };
+
+                this.notifications.unshift(notification);
+                this.saveNotifications();
+                this.displayNotifications();
+                this.showNotificationPanel();
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    this.hideNotificationPanel();
+                }, 5000);
+
+                return notification.id;
+            }
+
+            removeNotification(id) {
+                this.notifications = this.notifications.filter(n => n.id !== id);
+                this.saveNotifications();
+                this.displayNotifications();
+            }
+
+            clearAllNotifications() {
+                this.notifications = [];
+                this.saveNotifications();
+                this.displayNotifications();
+                this.hideNotificationPanel();
+            }
+
+            displayNotifications() {
+                if (!this.notificationsList) return;
+
+                if (this.notifications.length === 0) {
+                    this.notificationsList.innerHTML = `
+                        <div class="no-notifications">
+                            <i class="fas fa-inbox"></i>
+                            <p>No notifications yet</p>
+                            <span>We'll notify you about important updates</span>
+                        </div>
+                    `;
+                    this.updateCount(0);
+                    return;
+                }
+
+                this.notificationsList.innerHTML = this.notifications
+                    .map(notification => this.createNotificationElement(notification))
+                    .join('');
+
+                this.updateCount(this.notifications.length);
+            }
+
+            createNotificationElement(notification) {
+                const timeAgo = this.getTimeAgo(notification.timestamp);
+                const icon = this.getNotificationIcon(notification.type);
+                
+                return `
+                    <div class="notification-item ${notification.type}" data-id="${notification.id}">
+                        <div class="notification-icon">
+                            <i class="${icon}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">${notification.title}</div>
+                            <div class="notification-message">${notification.message}</div>
+                            <div class="notification-time">${timeAgo}</div>
+                        </div>
+                        <button class="remove-notification-btn" onclick="notificationsManager.removeNotification(${notification.id})" aria-label="Remove notification">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }
+
+            getNotificationIcon(type) {
+                const icons = {
+                    info: 'fas fa-info-circle',
+                    success: 'fas fa-check-circle',
+                    warning: 'fas fa-exclamation-triangle',
+                    error: 'fas fa-times-circle'
+                };
+                return icons[type] || icons.info;
+            }
+
+            getTimeAgo(timestamp) {
+                const now = new Date();
+                const diff = now - timestamp;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+                const days = Math.floor(diff / 86400000);
+
+                if (minutes < 1) return 'Just now';
+                if (minutes < 60) return `${minutes}m ago`;
+                if (hours < 24) return `${hours}h ago`;
+                return `${days}d ago`;
+            }
+
+            updateCount(count) {
+                if (this.notificationsCount) {
+                    this.notificationsCount.textContent = count;
+                    this.notificationsCount.style.display = count > 0 ? 'inline' : 'none';
+                }
+                
+                // Also update header notification count
+                const headerNotificationCount = document.getElementById('headerNotificationCount');
+                if (headerNotificationCount) {
+                    headerNotificationCount.textContent = count;
+                    headerNotificationCount.style.display = count > 0 ? 'inline' : 'none';
+                }
+                
+                // Update header notification wrapper class
+                const notificationWrapper = document.querySelector('.notification-icon-wrapper');
+                if (notificationWrapper) {
+                    if (count > 0) {
+                        notificationWrapper.classList.add('has-notifications');
+                    } else {
+                        notificationWrapper.classList.remove('has-notifications');
+                    }
+                }
+            }
+
+            showNotificationPanel() {
+                if (this.notificationsPanel) {
+                    this.notificationsPanel.classList.add('show');
+                }
+            }
+
+            hideNotificationPanel() {
+                if (this.notificationsPanel) {
+                    this.notificationsPanel.classList.remove('show');
+                }
+            }
+
+            saveNotifications() {
+                try {
+                    localStorage.setItem('jchat-notifications', JSON.stringify(this.notifications));
+                } catch (error) {
+                    console.warn('Failed to save notifications:', error);
+                }
+            }
+
+            loadNotifications() {
+                try {
+                    const saved = localStorage.getItem('jchat-notifications');
+                    if (saved) {
+                        this.notifications = JSON.parse(saved);
+                        this.displayNotifications();
+                    }
+                } catch (error) {
+                    console.warn('Failed to load notifications:', error);
+                    this.notifications = [];
+                }
+            }
+
+            startAutoNotifications() {
+                // Add some sample notifications for demonstration
+                setTimeout(() => {
+                    this.addNotification('info', 'Welcome to JCHAT!', 'Start exploring and connecting with others.');
+                }, 2000);
+
+                setTimeout(() => {
+                    this.addNotification('success', 'Daily Bonus Available', 'Claim your daily bonus to earn JCoins!');
+                }, 5000);
+
+                // Check for daily bonus eligibility
+                setInterval(() => {
+                    if (currentUser && isAuthReady) {
+                        this.checkDailyBonusEligibility();
+                    }
+                }, 300000); // Check every 5 minutes
+            }
+
+            checkDailyBonusEligibility() {
+                // This would integrate with your existing daily bonus system
+                const lastClaimed = localStorage.getItem('jchat-last-daily-bonus');
+                const now = new Date().toDateString();
+                
+                if (lastClaimed !== now) {
+                    this.addNotification('success', 'Daily Bonus Ready!', 'You can claim your daily bonus now.');
+                }
+            }
+        }
+
+        // Community Groups & Interest Hubs Manager
+        class CommunityGroupsManager {
+            constructor() {
+                this.groups = [];
+                this.userInterests = [];
+                this.initialize();
+            }
+
+            initialize() {
+                this.loadUserInterests();
+                this.setupEventListeners();
+                this.loadSampleGroups();
+            }
+
+            setupEventListeners() {
+                // Create group button
+                const createGroupBtn = document.getElementById('createGroupBtn');
+                if (createGroupBtn) {
+                    createGroupBtn.addEventListener('click', () => {
+                        this.showCreateGroupModal();
+                    });
+                }
+
+                // Join group buttons
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('join-group-btn')) {
+                        const groupId = e.target.dataset.group;
+                        this.joinGroup(groupId);
+                    } else if (e.target.classList.contains('group-preview-btn')) {
+                        const groupId = e.target.dataset.group;
+                        this.previewGroup(groupId);
+                    }
+                });
+
+                // Interest tags
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('interest-tag')) {
+                        e.target.classList.toggle('active');
+                        this.saveUserInterests();
+                    }
+                });
+
+                // Add interest button
+                const addInterestBtn = document.getElementById('addInterestBtn');
+                if (addInterestBtn) {
+                    addInterestBtn.addEventListener('click', () => {
+                        this.showAddInterestModal();
+                    });
+                }
+            }
+
+            loadSampleGroups() {
+                this.groups = [
+                    {
+                        id: 'gaming',
+                        name: 'Gaming Enthusiasts',
+                        description: 'Connect with fellow gamers',
+                        memberCount: 1200,
+                        status: 'trending',
+                        icon: 'fas fa-gamepad',
+                        featured: true
+                    },
+                    {
+                        id: 'tech',
+                        name: 'Tech Developers',
+                        description: 'Share coding tips & projects',
+                        memberCount: 856,
+                        status: 'active',
+                        icon: 'fas fa-code',
+                        featured: false
+                    },
+                    {
+                        id: 'art',
+                        name: 'Creative Artists',
+                        description: 'Showcase your artwork',
+                        memberCount: 432,
+                        status: 'new',
+                        icon: 'fas fa-palette',
+                        featured: false
+                    }
+                ];
+            }
+
+            joinGroup(groupId) {
+                const group = this.groups.find(g => g.id === groupId);
+                if (!group) return;
+
+                // Add haptic feedback
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(50);
+                }
+
+                // Update button state
+                const joinBtn = document.querySelector(`[data-group="${groupId}"]`);
+                if (joinBtn) {
+                    joinBtn.textContent = 'Joined';
+                    joinBtn.style.background = 'var(--status-online)';
+                    joinBtn.disabled = true;
+                }
+
+                // Add notification
+                if (window.notificationsManager) {
+                    window.notificationsManager.addNotification(
+                        'success',
+                        'Group Joined!',
+                        `Welcome to ${group.name}! Start connecting with other members.`
+                    );
+                }
+
+                // Save to localStorage
+                this.saveUserGroups(groupId);
+            }
+
+            previewGroup(groupId) {
+                const group = this.groups.find(g => g.id === groupId);
+                if (!group) return;
+
+                // Show group preview modal (simplified for now)
+                const message = `
+                    Group: ${group.name}
+                    Members: ${group.memberCount.toLocaleString()}
+                    Status: ${group.status}
+                    Description: ${group.description}
+                `;
+                
+                if (window.showMessageBox) {
+                    window.showMessageBox(message, 'info');
+                } else {
+                    alert(message);
+                }
+            }
+
+            showCreateGroupModal() {
+                // Simplified group creation - you can expand this later
+                const groupName = prompt('Enter group name:');
+                if (groupName && groupName.trim()) {
+                    const newGroup = {
+                        id: Date.now().toString(),
+                        name: groupName.trim(),
+                        description: 'A new community group',
+                        memberCount: 1,
+                        status: 'new',
+                        icon: 'fas fa-users',
+                        featured: false
+                    };
+
+                    this.groups.unshift(newGroup);
+                    this.addGroupToDOM(newGroup);
+                    
+                    if (window.notificationsManager) {
+                        window.notificationsManager.addNotification(
+                            'success',
+                            'Group Created!',
+                            `${groupName} has been created successfully.`
+                        );
+                    }
+                }
+            }
+
+            addGroupToDOM(group) {
+                const groupsGrid = document.getElementById('groupsGrid');
+                if (!groupsGrid) return;
+
+                const groupElement = document.createElement('div');
+                groupElement.className = 'group-card';
+                groupElement.innerHTML = `
+                    <div class="group-header">
+                        <div class="group-icon">
+                            <i class="${group.icon}"></i>
+                        </div>
+                        <div class="group-info">
+                            <h4>${group.name}</h4>
+                            <p>${group.description}</p>
+                            <span class="member-count">${group.memberCount} member${group.memberCount !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="group-status">
+                            <span class="status-badge ${group.status}">${group.status}</span>
+                        </div>
+                    </div>
+                    <div class="group-actions">
+                        <button class="join-group-btn" data-group="${group.id}">Join Group</button>
+                        <button class="group-preview-btn" data-group="${group.id}">Preview</button>
+                    </div>
+                `;
+
+                groupsGrid.insertBefore(groupElement, groupsGrid.firstChild);
+            }
+
+            showAddInterestModal() {
+                const interest = prompt('Add a new interest:');
+                if (interest && interest.trim()) {
+                    this.addUserInterest(interest.trim());
+                }
+            }
+
+            addUserInterest(interest) {
+                if (this.userInterests.includes(interest)) return;
+
+                this.userInterests.push(interest);
+                this.saveUserInterests();
+                this.displayUserInterests();
+            }
+
+            loadUserInterests() {
+                try {
+                    const saved = localStorage.getItem('jchat-user-interests');
+                    if (saved) {
+                        this.userInterests = JSON.parse(saved);
+                    } else {
+                        // Default interests
+                        this.userInterests = ['Gaming', 'Technology', 'Music', 'Sports', 'Travel'];
+                    }
+                    this.displayUserInterests();
+                } catch (error) {
+                    console.warn('Failed to load user interests:', error);
+                    this.userInterests = ['Gaming', 'Technology', 'Music', 'Sports', 'Travel'];
+                }
+            }
+
+            saveUserInterests() {
+                try {
+                    localStorage.setItem('jchat-user-interests', JSON.stringify(this.userInterests));
+                } catch (error) {
+                    console.warn('Failed to save user interests:', error);
+                }
+            }
+
+            displayUserInterests() {
+                const tagsContainer = document.querySelector('.tags-container');
+                if (!tagsContainer) return;
+
+                // Remove existing tags (except add button)
+                const existingTags = tagsContainer.querySelectorAll('.interest-tag');
+                existingTags.forEach(tag => tag.remove());
+
+                // Add user interests
+                this.userInterests.forEach(interest => {
+                    const tag = document.createElement('span');
+                    tag.className = 'interest-tag active';
+                    tag.textContent = interest;
+                    tagsContainer.insertBefore(tag, tagsContainer.lastElementChild);
+                });
+            }
+
+            saveUserGroups(groupId) {
+                try {
+                    const userGroups = JSON.parse(localStorage.getItem('jchat-user-groups') || '[]');
+                    if (!userGroups.includes(groupId)) {
+                        userGroups.push(groupId);
+                        localStorage.setItem('jchat-user-groups', JSON.stringify(userGroups));
+                    }
+                } catch (error) {
+                    console.warn('Failed to save user groups:', error);
+                }
+            }
+        }
+
+        // AI-Powered Smart Feed Manager
+        class SmartFeedManager {
+            constructor() {
+                this.currentAlgorithm = 'smart';
+                this.userPreferences = {};
+                this.feedHistory = [];
+                this.initialize();
+            }
+
+            initialize() {
+                this.loadUserPreferences();
+                this.setupEventListeners();
+                this.startAILearning();
+            }
+
+            setupEventListeners() {
+                // Feed algorithm selector
+                const feedAlgorithm = document.getElementById('feedAlgorithm');
+                if (feedAlgorithm) {
+                    feedAlgorithm.addEventListener('change', (e) => {
+                        this.currentAlgorithm = e.target.value;
+                        this.updateFeedAlgorithm();
+                    });
+                }
+
+                // Refresh feed button
+                const refreshFeedBtn = document.getElementById('refreshFeedBtn');
+                if (refreshFeedBtn) {
+                    refreshFeedBtn.addEventListener('click', () => {
+                        this.refreshFeed();
+                    });
+                }
+
+                // Smart filters
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('filter-tag')) {
+                        this.updateFilter(e.target.dataset.filter);
+                    }
+                });
+            }
+
+            loadUserPreferences() {
+                try {
+                    const saved = localStorage.getItem('jchat-feed-preferences');
+                    if (saved) {
+                        this.userPreferences = JSON.parse(saved);
+                    } else {
+                        // Default preferences
+                        this.userPreferences = {
+                            preferredContentTypes: ['text', 'media', 'polls', 'inspiration'],
+                            interests: ['gaming', 'technology', 'music'],
+                            activityLevel: 'medium',
+                            lastActive: Date.now()
+                        };
+                    }
+                } catch (error) {
+                    console.warn('Failed to load feed preferences:', error);
+                    this.userPreferences = {
+                        preferredContentTypes: ['text', 'media', 'polls', 'inspiration'],
+                        interests: ['gaming', 'technology', 'music'],
+                        activityLevel: 'medium',
+                        lastActive: Date.now()
+                    };
+                }
+            }
+
+            saveUserPreferences() {
+                try {
+                    localStorage.setItem('jchat-feed-preferences', JSON.stringify(this.userPreferences));
+                } catch (error) {
+                    console.warn('Failed to save feed preferences:', error);
+                }
+            }
+
+            updateFeedAlgorithm() {
+                // Update AI status based on algorithm
+                const aiStatus = document.querySelector('.ai-status');
+                if (aiStatus) {
+                    if (this.currentAlgorithm === 'smart') {
+                        aiStatus.textContent = 'Learning...';
+                        aiStatus.className = 'ai-status learning';
+                    } else {
+                        aiStatus.textContent = 'Ready';
+                        aiStatus.className = 'ai-status ready';
+                    }
+                }
+
+                // Add notification about algorithm change
+                if (window.notificationsManager) {
+                    window.notificationsManager.addNotification(
+                        'info',
+                        'Feed Algorithm Updated',
+                        `Switched to ${this.currentAlgorithm} algorithm`
+                    );
+                }
+
+                // Save preference
+                this.userPreferences.lastAlgorithm = this.currentAlgorithm;
+                this.saveUserPreferences();
+            }
+
+            updateFilter(filter) {
+                // Update active filter tag
+                const filterTags = document.querySelectorAll('.filter-tag');
+                filterTags.forEach(tag => {
+                    tag.classList.remove('active');
+                    if (tag.dataset.filter === filter) {
+                        tag.classList.add('active');
+                    }
+                });
+
+                // Apply filter to posts (this would integrate with your existing post system)
+                this.applyContentFilter(filter);
+
+                // Add haptic feedback
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(30);
+                }
+            }
+
+            applyContentFilter(filter) {
+                // This would integrate with your existing post filtering system
+                console.log(`Applying content filter: ${filter}`);
+                
+                // For now, just show a notification
+                if (window.notificationsManager) {
+                    window.notificationsManager.addNotification(
+                        'info',
+                        'Filter Applied',
+                        `Showing ${filter === 'all' ? 'all posts' : filter + ' posts'}`
+                    );
+                }
+            }
+
+            refreshFeed() {
+                const refreshBtn = document.getElementById('refreshFeedBtn');
+                if (refreshBtn) {
+                    refreshBtn.classList.add('loading');
+                    
+                    // Simulate refresh delay
+                    setTimeout(() => {
+                        refreshBtn.classList.remove('loading');
+                        
+                        // Add notification
+                        if (window.notificationsManager) {
+                            window.notificationsManager.addNotification(
+                                'success',
+                                'Feed Refreshed',
+                                'New content loaded based on your preferences'
+                            );
+                        }
+                        
+                        // Update AI recommendations
+                        this.updateAIRecommendations();
+                    }, 1500);
+                }
+            }
+
+            startAILearning() {
+                // Simulate AI learning process
+                setTimeout(() => {
+                    this.updateAIRecommendations();
+                }, 3000);
+
+                // Continue learning based on user activity
+                setInterval(() => {
+                    this.learnFromUserActivity();
+                }, 60000); // Every minute
+            }
+
+            learnFromUserActivity() {
+                // Simulate learning from user behavior
+                const activities = ['post_creation', 'group_joining', 'content_interaction'];
+                const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+                
+                this.userPreferences.lastActive = Date.now();
+                this.userPreferences.activityLevel = this.calculateActivityLevel();
+                this.saveUserPreferences();
+            }
+
+            calculateActivityLevel() {
+                const now = Date.now();
+                const timeSinceLastActive = now - this.userPreferences.lastActive;
+                const hoursSinceActive = timeSinceLastActive / (1000 * 60 * 60);
+                
+                if (hoursSinceActive < 1) return 'high';
+                if (hoursSinceActive < 24) return 'medium';
+                return 'low';
+            }
+
+            updateAIRecommendations() {
+                const aiStatus = document.querySelector('.ai-status');
+                if (aiStatus) {
+                    aiStatus.textContent = 'Ready';
+                    aiStatus.className = 'ai-status ready';
+                }
+
+                // Update recommendations based on user preferences
+                this.updateRecommendationList();
+            }
+
+            updateRecommendationList() {
+                const recommendationList = document.querySelector('.recommendation-list');
+                if (!recommendationList) return;
+
+                const recommendations = this.generateRecommendations();
+                
+                recommendationList.innerHTML = recommendations
+                    .map(rec => `<li>${rec}</li>`)
+                    .join('');
+            }
+
+            generateRecommendations() {
+                const baseRecommendations = [
+                    'Check out the Gaming Enthusiasts community',
+                    'Share your daily inspiration',
+                    'Connect with tech developers'
+                ];
+
+                // Add personalized recommendations based on user preferences
+                if (this.userPreferences.interests.includes('gaming')) {
+                    baseRecommendations.push('Join gaming tournaments and events');
+                }
+
+                if (this.userPreferences.interests.includes('technology')) {
+                    baseRecommendations.push('Share your latest coding project');
+                }
+
+                if (this.userPreferences.activityLevel === 'high') {
+                    baseRecommendations.push('You\'re very active! Consider creating a group');
+                }
+
+                return baseRecommendations.slice(0, 4); // Show max 4 recommendations
+            }
+
+            trackUserInteraction(contentType, contentId) {
+                // Track user interactions for AI learning
+                this.feedHistory.push({
+                    type: contentType,
+                    id: contentId,
+                    timestamp: Date.now(),
+                    algorithm: this.currentAlgorithm
+                });
+
+                // Keep only last 100 interactions
+                if (this.feedHistory.length > 100) {
+                    this.feedHistory = this.feedHistory.slice(-100);
+                }
+
+                // Update preferences based on interaction
+                this.updatePreferencesFromInteraction(contentType);
+            }
+
+            updatePreferencesFromInteraction(contentType) {
+                if (!this.userPreferences.contentTypePreferences) {
+                    this.userPreferences.contentTypePreferences = {};
+                }
+
+                if (!this.userPreferences.contentTypePreferences[contentType]) {
+                    this.userPreferences.contentTypePreferences[contentType] = 0;
+                }
+
+                this.userPreferences.contentTypePreferences[contentType]++;
+                this.saveUserPreferences();
+            }
         }
 
         // --- Event Listeners for static elements ---
@@ -6411,6 +8349,27 @@
             
             // Initialize Enhanced Mobile Experience
             initializeTouchGestures();
+            
+            // Initialize Smart Notifications System
+            window.notificationsManager = new NotificationsManager();
+            
+            // Initialize Community Groups Manager
+            window.communityGroupsManager = new CommunityGroupsManager();
+            
+            // Initialize AI Smart Feed Manager
+            window.smartFeedManager = new SmartFeedManager();
+            
+            // Setup header notification button
+            const headerNotificationsBtn = document.getElementById('headerNotificationsBtn');
+            if (headerNotificationsBtn) {
+                headerNotificationsBtn.addEventListener('click', () => {
+                    const notificationsPanel = document.getElementById('notificationsPanel');
+                    if (notificationsPanel) {
+                        notificationsPanel.classList.toggle('show');
+                        headerNotificationsBtn.classList.toggle('active');
+                    }
+                });
+            }
             
             // Initially disable interactive elements until authentication state is confirmed.
             toggleInteractiveElements(false, false);
