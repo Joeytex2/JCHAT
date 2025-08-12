@@ -6096,7 +6096,17 @@
                     priceBar.style.alignItems = 'center';
                     priceBar.style.justifyContent = 'space-between';
                     priceBar.innerHTML = `<div><strong>${pack.name}</strong> — Unlock full pack</div><div style=\"display:flex;align-items:center;gap:8px;\"><span style=\"display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:#eef2ff;border:1px solid #dde3ff;color:#334155;font-weight:700\">₦300</span><button id=\"unlockCatBtn\" style=\"background:#25D366;color:#fff;border:none;border-radius:8px;padding:6px 10px;cursor:pointer\">Unlock</button></div>`;
-                    document.getElementById('unlockCatBtn')?.addEventListener('click', ()=> openUnlock(`stickers:${pack.id}`));
+                    document.getElementById('unlockCatBtn')?.addEventListener('click', ()=> {
+                        unlockTitle.textContent = `Unlock ${pack.name}`;
+                        unlockDescription.textContent = `Unlock all emojis in ${pack.name}.`;
+                        orderAmountText.textContent = '₦300';
+                        orderIdText.textContent = `CAT-${pack.id}-${Date.now()}`;
+                        const modal = document.getElementById('unlockModal');
+                        modal.dataset.sku = `stickers:${pack.id}`;
+                        modal.dataset.amount = '300';
+                        modal.dataset.title = pack.name;
+                        modal.style.display = 'flex';
+                    });
                 } else {
                     priceBar.style.display = 'none';
                 }
@@ -6191,8 +6201,31 @@
                 tabsNext.addEventListener('click', ()=> { tabs.scrollBy({left:  Math.max(200, tabs.clientWidth/2), behavior: 'smooth'}); });
             }
         }
-        function closeUnlock(){ const m=document.getElementById('unlockModal'); if(m) m.style.display='none'; }
-        function submitUnlockReceipt(){ try { showMessageBox('Unlock flow is disabled in this build.', 'info'); } catch(_) {} }
+        function closeUnlock(){ const m=document.getElementById('unlockModal'); if(m) { m.style.display='none'; delete m.dataset.sku; delete m.dataset.amount; delete m.dataset.title; } }
+        async function submitUnlockReceipt(){
+            try {
+                if (!auth?.currentUser) { showMessageBox('Sign in required', 'error'); return; }
+                const receiptFile = unlockReceiptInput?.files?.[0] || null;
+                const orderId = orderIdText?.textContent || '';
+                if (!orderId) { showMessageBox('No order to submit', 'error'); return; }
+                // Save a request message into orders collection
+                const reqRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+                await addDoc(reqRef, {
+                    type: 'stickers_unlock',
+                    userId: auth.currentUser.uid,
+                    category: (unlockModal.dataset?.sku || ''),
+                    amount: orderAmountText?.textContent || '₦300',
+                    orderId,
+                    status: 'pending',
+                    createdAt: serverTimestamp(),
+                });
+                showMessageBox('Request sent to admin. We will review your receipt.', 'success');
+                closeUnlock();
+            } catch (e) {
+                console.error(e);
+                showMessageBox('Failed to send request', 'error');
+            }
+        }
         function openStickerPicker() {
             buildStickerPackTabs(stickerPicker, stickerGrid);
             // Defer to next frame so tabs are present before measuring
