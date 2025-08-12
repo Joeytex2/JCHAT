@@ -3909,6 +3909,17 @@
             });
             submitCreateGroupBtn.addEventListener('click', handleCreateGroup);
 
+            // Open create modal when deep-linking with #create
+            if (window.location.hash === '#create') {
+                if (!currentUser || !currentUserProfileData) {
+                    showMessageBox("Please log in to create a group.", "error");
+                } else if (currentUserProfileData.jCoins < GROUP_CREATION_COST) {
+                    showMessageBox(`You need ${GROUP_CREATION_COST} JCoins to create a group. You have ${currentUserProfileData.jCoins}.`, "error");
+                } else {
+                    createGroupModal.classList.add('active');
+                }
+            }
+
             // Close modal if clicking outside content
             createGroupModal.addEventListener('click', (e) => {
                 if (e.target === createGroupModal) {
