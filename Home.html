@@ -3210,6 +3210,112 @@
             60% { transform: translateY(-3px); }
         }
 
+        /* Feature Toggle Section */
+        .feature-toggle-section {
+            background: var(--glass-black);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-blue);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 700px;
+            margin: 20px auto;
+        }
+
+        .toggle-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .toggle-header h3 {
+            color: var(--white);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .toggle-header h3 i {
+            color: var(--blue);
+        }
+
+        .toggle-header p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .toggle-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .toggle-feature-btn {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: var(--white);
+        }
+
+        .toggle-feature-btn:hover {
+            background: var(--glass-blue);
+            border-color: var(--blue);
+            transform: translateY(-2px);
+        }
+
+        .toggle-feature-btn.active {
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            border-color: var(--blue);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 213, 255, 0.4);
+        }
+
+        .toggle-feature-btn i {
+            font-size: 1.5rem;
+            color: var(--blue);
+        }
+
+        .toggle-feature-btn.active i {
+            color: white;
+        }
+
+        .toggle-feature-btn span {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .toggle-status {
+            background: var(--glass-blue);
+            color: var(--blue);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .toggle-feature-btn.active .toggle-status {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Hidden class for sections */
+        .hidden {
+            display: none !important;
+        }
+
         /* Mobile Device Specific Styles */
         .mobile-device .quick-actions-toggle {
             box-shadow: 0 6px 20px rgba(0, 213, 255, 0.5), 0 6px 20px rgba(255, 46, 146, 0.5);
@@ -3241,6 +3347,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        /* Mobile responsiveness for feature toggle */
+        @media (max-width: 768px) {
+            .feature-toggle-section {
+                width: 95%;
+                padding: 1rem;
+            }
+
+            .toggle-buttons {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .toggle-feature-btn {
+                padding: 0.8rem;
+            }
+
+            .toggle-feature-btn i {
+                font-size: 1.3rem;
+            }
         }
     </style>
 </head>
@@ -3377,8 +3504,36 @@
                 </div>
             </div>
 
-            <!-- Community Groups & Interest Hubs -->
-            <div class="community-groups-section" id="communityGroupsSection">
+            <!-- Feature Toggle Section -->
+            <div class="feature-toggle-section" id="featureToggleSection">
+                <div class="toggle-header">
+                    <h3><i class="fas fa-cogs"></i> Advanced Features</h3>
+                    <p>Toggle these features on/off as needed</p>
+                </div>
+                
+                <div class="toggle-buttons">
+                    <button class="toggle-feature-btn" id="toggleCommunityBtn" data-feature="community">
+                        <i class="fas fa-users"></i>
+                        <span>Communities</span>
+                        <div class="toggle-status">OFF</div>
+                    </button>
+                    
+                    <button class="toggle-feature-btn" id="toggleSmartFeedBtn" data-feature="smartFeed">
+                        <i class="fas fa-brain"></i>
+                        <span>AI Smart Feed</span>
+                        <div class="toggle-status">OFF</div>
+                    </button>
+                    
+                    <button class="toggle-feature-btn" id="toggleMobileFeaturesBtn" data-feature="mobileFeatures">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Mobile Features</span>
+                        <div class="toggle-status">OFF</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Community Groups & Interest Hubs (Hidden by default) -->
+            <div class="community-groups-section hidden" id="communityGroupsSection">
                 <div class="section-header">
                     <h3><i class="fas fa-users"></i> Communities & Interests</h3>
                     <button class="create-group-btn" id="createGroupBtn" aria-label="Create New Group">
@@ -3463,8 +3618,8 @@
                 </div>
             </div>
 
-            <!-- AI-Powered Smart Feed -->
-            <div class="smart-feed-section" id="smartFeedSection">
+            <!-- AI-Powered Smart Feed (Hidden by default) -->
+            <div class="smart-feed-section hidden" id="smartFeedSection">
                 <div class="section-header">
                     <h3><i class="fas fa-brain"></i> Smart Feed</h3>
                     <div class="feed-controls">
