@@ -6382,29 +6382,66 @@
             }
         }
 
-        function unlockPremium() {
+        async function unlockPremium() {
             const code = document.getElementById('unlockCodeInput').value;
             
-            // Simple unlock codes (change these to your own)
-            if (code === 'PREMIUM2024' || code === 'JCHATPRO' || code === 'UNLOCKNOW') {
+            if (!code) {
+                alert('❌ Please enter an unlock code');
+                return;
+            }
+
+            try {
+                // Check if code exists in database
+                const codesRef = collection(db, 'artifacts', appId, 'public', 'data', 'premium_codes');
+                const q = query(codesRef, where('code', '==', code), where('status', '==', 'active'));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    alert('❌ Invalid or expired unlock code. Please check and try again.');
+                    return;
+                }
+                
+                const codeData = querySnapshot.docs[0].data();
+                
+                // Check if code is already used
+                if (codeData.used) {
+                    alert('❌ This code has already been used. Please contact support for a new code.');
+                    return;
+                }
+                
+                // Check if code has expired
+                if (codeData.expiresAt && new Date() > codeData.expiresAt.toDate()) {
+                    alert('❌ This code has expired. Please contact support for a new code.');
+                    return;
+                }
+                
+                // Mark code as used
+                const codeRef = doc(db, 'artifacts', appId, 'public', 'data', 'premium_codes', querySnapshot.docs[0].id);
+                await updateDoc(codeRef, { 
+                    used: true, 
+                    usedAt: serverTimestamp(),
+                    usedBy: currentUser?.uid || 'unknown'
+                });
+                
                 // Unlock premium
-                localStorage.setItem('premium-tier', 'basic');
+                localStorage.setItem('premium-tier', codeData.tier);
                 localStorage.setItem('premium-date', new Date().toISOString());
                 localStorage.setItem('premium-expires', new Date(Date.now() + 30*24*60*60*1000).toISOString());
                 
                 // Unlock features
-                unlockPremiumFeatures('basic');
+                unlockPremiumFeatures(codeData.tier);
                 
                 // Hide unlock section
                 hidePremiumUnlockSection();
                 
-                alert('🎉 Premium unlocked successfully! Your premium features are now active for 30 days!');
+                alert(`🎉 Premium unlocked successfully! Your ${codeData.tier} premium features are now active for 30 days!`);
                 
                 // Clear input
                 document.getElementById('unlockCodeInput').value = '';
                 
-            } else {
-                alert('❌ Wrong code. Please check and try again.\n\nValid codes: PREMIUM2024, JCHATPRO, UNLOCKNOW');
+            } catch (error) {
+                console.error('Error unlocking premium:', error);
+                alert('❌ Error unlocking premium. Please try again or contact support.');
             }
         }
 
