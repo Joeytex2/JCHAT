@@ -221,7 +221,8 @@
             --delete-button-color: #dc143c;
             --warning-color: #ffd700;
         }
-        /* Glass Mode specific variables */
+
+/* Glass Mode specific variables */
         body.theme-glass-mode {
             --background-main: rgba(10, 10, 10, 0.75);
             background-image: url('https://source.unsplash.com/random/1920x1080?abstract,blur') !important; /* Added !important */
@@ -256,38 +257,7 @@
             --active-item-background: rgba(0, 213, 255, 0.1);
         }
 
-        /* Sunset Theme */
-        body.theme-sunset-mode {
-            background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
-            background-color: transparent !important;
-            background-image: linear-gradient(to top, #ff7e5f, #feb47b) !important;
-            --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
-            --card-background: rgba(255, 255, 255, 0.15);
-            --white: #fff;
-            --text-light: rgba(255, 255, 255, 0.8);
-            --input-background: rgba(255, 255, 255, 0.1);
-            --border-light: rgba(255, 255, 255, 0.3);
-            --button-background: linear-gradient(90deg, #fd746c, #ff9068);
-            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 4px 15px rgba(255, 144, 104, 0.4);
-            --background-color-primary: #ff7e5f;
-            --background-color-secondary: #feb47b;
-            --header-background-color: rgba(255, 126, 95, 0.9);
-            --footer-background-color: rgba(255, 126, 95, 0.9);
-            --content-background-color: rgba(255, 126, 95, 0.85);
-            --card-background-color: rgba(255, 255, 255, 0.15);
-            --text-color-primary: #fff;
-            --text-color-secondary: rgba(255, 255, 255, 0.8);
-            --accent-color: #fd746c;
-            --accent-color-dark: #ff9068;
-            --border-color: rgba(255, 255, 255, 0.3);
-            --input-background-color: rgba(255, 255, 255, 0.1);
-            --button-background: linear-gradient(90deg, #fd746c, #ff9068);
-            --button-hover-background: #ff9068;
-            --active-item-background: rgba(253, 116, 108, 0.2);
-            /* --notification-badge-color: Hardcoded for visibility */
-            --delete-button-color: #dc143c;
-            --warning-color: #ffd700;
-        }
+
 
         /* Always show scrollbar to prevent layout shifts */
         html {
@@ -4081,13 +4051,13 @@
         // Firebase configuration, dynamically loaded from Canvas environment variables if available.
         // Provides fallback values for local development if environment variables are not set.
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
-            authDomain: "jchat-1.firebaseapp.com",
-            projectId: "jchat-1",
-            storageBucket: "jchat-1.firebasestorage.app",
+            apiKey: typeof __firebase_api_key !== 'undefined' ? __firebase_api_key : "",
+            authDomain: typeof __firebase_auth_domain !== 'undefined' ? __firebase_auth_domain : "",
+            projectId: typeof __firebase_project_id !== 'undefined' ? __firebase_project_id : "",
+            storageBucket: typeof __firebase_storage_bucket !== 'undefined' ? __firebase_storage_bucket : "",
             messagingSenderId: "328479683167",
-            appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
-            measurementId: "G-S6Z9GG0R9P"
+            appId: typeof __firebase_app_id !== 'undefined' ? __firebase_app_id : "",
+            measurementId: typeof __firebase_measurement_id !== 'undefined' ? __firebase_measurement_id : ""
         };
         // Application ID, dynamically loaded from Canvas environment or defaults for local.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -4229,7 +4199,7 @@
                 headerProfilePic = document.getElementById('headerProfilePic');
                 headerAvatarIcon = document.getElementById('headerAvatarIcon');
                 headerDisplayName = document.getElementById('headerDisplayName');
-                notificationCountElement = document.getElementById('notificationCount');
+                notificationCountElement = document.getElementById('headerNotificationCount');
                 adminIconLink = document.getElementById('adminIconLink');
                 profileLink = document.getElementById('profileLink');
 
@@ -4341,7 +4311,7 @@
         // --- Notification Badge Management ---
         function updateNotificationBadge(count) {
             const notificationWrapper = document.querySelector('.notification-icon-wrapper');
-            const badge = document.getElementById('notificationCount');
+            const badge = document.getElementById('headerNotificationCount');
             
             if (badge && notificationWrapper) {
                 if (count > 0) {
