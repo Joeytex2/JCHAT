@@ -3686,6 +3686,21 @@
             showMessageBox(`Downloading ${filename}...`, 'info');
         }
 
+        // Render inline reactions row below a message
+        function updateReactionsRow(container, message) {
+            if (!container) return;
+            const counts = message?.reactions || {};
+            container.innerHTML = '';
+            Object.keys(counts).forEach(key => {
+                if (!counts[key]) return;
+                const pill = document.createElement('span');
+                pill.className = 'reaction-pill';
+                pill.innerHTML = `${key} <span>${counts[key]}</span>`;
+                container.appendChild(pill);
+            });
+            container.style.display = container.children.length ? 'flex' : 'none';
+        }
+
         // --- Unlock Preview + Entitlements (global, before any use) ---
         const UNLOCK_ALL_PREVIEW = false;
         let userEntitlements = {
@@ -3710,11 +3725,11 @@
         function setGatedUI() {
             const stickersBtn = document.getElementById('stickersBtn');
             if (stickersBtn) {
+                // Always allow opening the stickers panel. Packs themselves will be partially locked (first 3 free)
                 const badge = stickersBtn.querySelector('.lock-badge');
-                const unlocked = isUnlocked('stickers');
-                if (badge) badge.style.display = unlocked ? 'none' : 'inline-flex';
-                stickersBtn.dataset.locked = unlocked ? '0' : '1';
-                stickersBtn.style.opacity = unlocked ? '1' : '0.85';
+                if (badge) badge.style.display = 'none';
+                stickersBtn.dataset.locked = '0';
+                stickersBtn.style.opacity = '1';
             }
         }
         /**
