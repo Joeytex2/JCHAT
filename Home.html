@@ -2167,6 +2167,22 @@
         .story-avatar img { width:100%; height:100%; object-fit:cover; }
         .add-story-button { background: var(--button-background); color: var(--white); border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
 
+        /* Home Chips and Strips */
+        .home-chips-row { display:flex; gap:10px; margin:10px 0; }
+        .chip { display:flex; align-items:center; gap:8px; background: var(--card-background); border:1px solid var(--glass-blue); padding:8px 10px; border-radius:10px; text-decoration:none; color:inherit; }
+        .chip i { background-image: linear-gradient(90deg, var(--blue), var(--pink)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+        .chip-text { display:flex; flex-direction:column; gap:4px; }
+        .chip-progress { width:140px; height:6px; background: rgba(255,255,255,0.1); border-radius:6px; overflow:hidden; }
+        .chip-progress > div { height:100%; background: linear-gradient(90deg, var(--blue), var(--pink)); width:0%; }
+        .section-title { font-weight:700; margin:12px 0 6px; display:flex; align-items:center; gap:8px; }
+        .scroll-row { display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; }
+        .scroll-row::-webkit-scrollbar { height:6px; }
+        .scroll-row::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius:6px; }
+        .highlight-card, .friend-card { flex:0 0 auto; width:160px; border:1px solid var(--glass-blue); background: var(--card-background); border-radius:10px; overflow:hidden; }
+        .highlight-card img, .friend-card img { width:100%; height:100px; object-fit:cover; display:block; }
+        .friend-card .meta { padding:8px; display:flex; align-items:center; gap:8px; }
+        .friend-card .meta img { width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid var(--border-light); } 
+
         /* Engagement Panel */
         .engagement-panel { display:grid; grid-template-columns: 1fr; gap: 12px; margin: 10px 0; }
         .engage-card { background: var(--card-background); border:1px solid var(--glass-blue); border-radius: 15px; padding: 12px; }
@@ -2290,6 +2306,34 @@
                     </div>
                 </div>
             </div>
+            </div>
+
+            <!-- Home Chips: Level and Wallet -->
+            <div class="home-chips-row" id="homeChipsRow" style="display:none;">
+                <div class="chip level-chip">
+                    <i class="fas fa-star"></i>
+                    <div class="chip-text">
+                        <div id="levelChipName">Level 1</div>
+                        <div class="chip-progress"><div id="levelChipProgressFill"></div></div>
+                    </div>
+                </div>
+                <a href="/Wallet.html" class="chip wallet-chip">
+                    <i class="fas fa-wallet"></i>
+                    <div class="chip-text">
+                        <div><span id="walletChipAmount">0</span> JCoins</div>
+                        <div class="chip-sub">Rate: ₦<span id="jcoinRate">0</span>/J</div>
+                    </div>
+                </a>
+            </div>
+            <!-- Highlights Strip -->
+            <div class="highlights-section" id="highlightsSection" style="display:none;">
+                <div class="section-title"><i class="fas fa-bookmark"></i> Highlights</div>
+                <div class="scroll-row" id="highlightsStrip"></div>
+            </div>
+            <!-- Friends Suggestions -->
+            <div class="friends-suggestions-section" id="friendsSuggestionsSection" style="display:none;">
+                <div class="section-title"><i class="fas fa-user-friends"></i> Friends you may know</div>
+                <div class="scroll-row" id="friendsSuggestions"></div>
             </div>
 
             <!-- Post Creation Section -->
@@ -2746,6 +2790,16 @@
                 headerProfilePic = document.getElementById('headerProfilePic');
                 headerAvatarIcon = document.getElementById('headerAvatarIcon');
                 headerDisplayName = document.getElementById('headerDisplayName');
+                // home chips & strips
+                window.homeChipsRow = document.getElementById('homeChipsRow');
+                window.levelChipName = document.getElementById('levelChipName');
+                window.levelChipProgressFill = document.getElementById('levelChipProgressFill');
+                window.walletChipAmount = document.getElementById('walletChipAmount');
+                window.jcoinRateSpan = document.getElementById('jcoinRate');
+                window.highlightsSection = document.getElementById('highlightsSection');
+                window.highlightsStrip = document.getElementById('highlightsStrip');
+                window.friendsSuggestionsSection = document.getElementById('friendsSuggestionsSection');
+                window.friendsSuggestions = document.getElementById('friendsSuggestions');
                 notificationCountElement = document.getElementById('notificationCount');
                 adminIconLink = document.getElementById('adminIconLink');
                 profileLink = document.getElementById('profileLink');
@@ -5992,13 +6046,19 @@
                 await fetchAndDisplayHeaderProfile(user); // This sets currentUserProfileData and updates UI.
                 console.log("JCHAT_DEBUG: Auth is ready. User ID:", currentUser.uid, "isAuthReady:", isAuthReady);
 
-                // Start listening to system settings in real-time and render announcement immediately.
+                // Start listening to system settings in real-time and render announcement & chips
                 const unsubscribeSettings = onSnapshot(SYSTEM_SETTINGS_DOC_REF, (docSnap) => {
                     if (docSnap.exists()) {
                         currentSystemSettings = docSnap.data();
                         console.log("JCHAT_DEBUG: Real-time system settings update:", currentSystemSettings);
                         // Delay announcement render by 5 seconds after login to avoid late flicker
                         setTimeout(() => applySystemSettings(currentSystemSettings), 5000);
+                        // Update wallet chip
+                        if (homeChipsRow && walletChipAmount && jcoinRateSpan) {
+                            walletChipAmount.textContent = String(currentUserProfileData?.jCoins || 0);
+                            jcoinRateSpan.textContent = String(currentSystemSettings?.jcoinNairaRate || 0);
+                            homeChipsRow.style.display = 'flex';
+                        }
                         // Start listening for calls only after settings are loaded and calls are enabled.
                         if (currentSystemSettings.enableCalls) {
                             listenForIncomingCalls();
@@ -6023,6 +6083,61 @@
                 unsubscribeListeners.push(unsubscribeSettings); // Add to list to unsubscribe on unload.
 
                 await fetchSystemSettings(); // Initial fetch of system settings.
+                // Level chip
+                try {
+                    const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
+                    const snap = await getDoc(userRef);
+                    const data = snap.exists() ? snap.data() : null;
+                    if (data && homeChipsRow && levelChipName && levelChipProgressFill) {
+                        const info = getLevelInfo(data.level || 1);
+                        levelChipName.textContent = `${info.name}`;
+                        const have = data.currentXp || 0;
+                        const need = info.xpToNextLevel || 1;
+                        levelChipProgressFill.style.width = Math.max(0, Math.min(100, Math.round((have/need)*100))) + '%';
+                        homeChipsRow.style.display = 'flex';
+                    }
+                } catch(e) { console.warn('level chip load', e); }
+                // Highlights and Friends suggestions (best-effort)
+                try {
+                    if (highlightsSection && highlightsStrip) {
+                        const ref = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'highlights');
+                        const snap = await getDocs(ref);
+                        if (!snap.empty) {
+                            highlightsSection.style.display = 'block';
+                            highlightsStrip.innerHTML='';
+                            snap.forEach(d => {
+                                const h = d.data();
+                                const card = document.createElement('a');
+                                card.href = `/Profile.html?userId=${currentUser.uid}&tab=highlights`;
+                                card.className = 'highlight-card';
+                                const cover = h.coverPicId ? getCloudinaryImageUrl(h.coverPicId,'w_600,h_240,c_fill,q_auto') : '';
+                                card.innerHTML = cover ? `<img src="${cover}" alt="cover">` : `<div style="height:100px;display:flex;align-items:center;justify-content:center;opacity:.8;">${h.title||'Highlight'}</div>`;
+                                highlightsStrip.appendChild(card);
+                            });
+                        }
+                    }
+                } catch(e) { console.warn('highlights load', e); }
+                try {
+                    if (friendsSuggestionsSection && friendsSuggestions) {
+                        const publicUsersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+                        const q = query(publicUsersRef, where(documentId(), '!=', currentUser.uid));
+                        const snap = await getDocs(q);
+                        const users=[]; snap.forEach(d=>users.push({id:d.id,...d.data()}));
+                        const subset = users.slice(0,8);
+                        if (subset.length>0) {
+                            friendsSuggestionsSection.style.display='block';
+                            friendsSuggestions.innerHTML='';
+                            subset.forEach(u=>{
+                                const card = document.createElement('a');
+                                card.className='friend-card';
+                                card.href=`/Profile.html?userId=${u.id}`;
+                                const p = u.profilePicId ? getCloudinaryImageUrl(u.profilePicId,'w_300,h_150,c_fill,q_auto') : '';
+                                card.innerHTML = `${p?`<img src="${p}" alt="${u.username}">`:''}<div class="meta"><img src="${p||'https://placehold.co/64x64'}" alt="${u.username}"><div>${u.username||'User'}</div></div>`;
+                                friendsSuggestions.appendChild(card);
+                            });
+                        }
+                    }
+                } catch(e) { console.warn('friends suggest load', e); }
                 await fetchAndDisplayPosts(); // This will setup all real-time listeners for posts and comments.
                 fetchNotificationCount(user.uid);
 
