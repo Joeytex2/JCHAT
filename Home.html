@@ -45,7 +45,7 @@
         :root {
             --header-height: 55px;
             --brand-banner-gap: 6px;
-            --brand-banner-height: 86px;
+            --brand-banner-height: 64px;
             --pink: #ff2e92;
             --blue: #00d5ff;
             --glass-black: rgba(10, 10, 10, .75);
@@ -311,7 +311,7 @@
 
         .logo { display: none; }
         .brand-banner { width: 100%; height: var(--brand-banner-height); padding: 16px 0; background: linear-gradient(90deg, var(--blue), var(--pink)); color:#fff; text-align:center; position: sticky; top: calc(var(--header-height) + var(--brand-banner-gap)); z-index: 9; border-bottom: 1px solid var(--border-light); display:flex; flex-direction:column; align-items:center; justify-content:center; }
-        .brand-banner .brand-title { font-family: 'Poppins', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+        .brand-banner .brand-title { font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; background-image: linear-gradient(90deg, var(--blue), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .brand-banner .brand-sub { opacity: .9; font-size: .95rem; margin-top: 6px; white-space: nowrap; overflow: hidden; }
         .announcement-ticker { position: relative; width: 100%; height: 22px; overflow: hidden; }
         .announcement-track { display: inline-block; white-space: nowrap; will-change: transform; }
@@ -7860,11 +7860,12 @@
             initializePullToRefresh();
         }
 
+        const PULL_TO_REFRESH_THRESHOLD = 80;
         function initializePullToRefresh() {
             let startY = 0;
             let currentY = 0;
             let pullDistance = 0;
-            const threshold = 80;
+            const threshold = PULL_TO_REFRESH_THRESHOLD;
 
             document.addEventListener('touchstart', (e) => {
                 if (window.scrollY === 0) {
@@ -7906,7 +7907,7 @@
             }
             
             indicator.style.transform = `translateY(${Math.min(distance, 100)}px)`;
-            indicator.style.opacity = Math.min(distance / threshold, 1);
+            indicator.style.opacity = Math.min(distance / PULL_TO_REFRESH_THRESHOLD, 1);
         }
         function hidePullToRefreshIndicator() {
             const indicator = document.getElementById('pullToRefreshIndicator');
