@@ -2173,7 +2173,7 @@
         .chip i { background-image: linear-gradient(90deg, var(--blue), var(--pink)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
         .chip-text { display:flex; flex-direction:column; gap:4px; }
         .chip-progress { width:140px; height:6px; background: rgba(255,255,255,0.1); border-radius:6px; overflow:hidden; }
-        .chip-progress > div { height:100%; background: linear-gradient(90deg, var(--blue), var(--pink)); width:0%; }
+        .chip-progress > div { height:100%; width:100%; background-image: linear-gradient(90deg, #ff4757 0%, #ff6b35 25%, #ffa726 50%, #ffd700 75%, #4caf50 100%); background-size:200% 100%; background-position:right; transition: background-position 0.8s ease-out; }
         .section-title { font-weight:700; margin:12px 0 6px; display:flex; align-items:center; gap:8px; }
         .scroll-row { display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; }
         .scroll-row::-webkit-scrollbar { height:6px; }
@@ -2313,7 +2313,11 @@
                 <div class="chip level-chip">
                     <i class="fas fa-star"></i>
                     <div class="chip-text">
-                        <div id="levelChipName">Level 1</div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <i id="levelChipIcon" class="fas fa-question-circle"></i>
+                            <div id="levelChipName">Level 1</div>
+                            <div id="levelChipPercent" style="opacity:.85;font-size:.85rem;">0%</div>
+                        </div>
                         <div class="chip-progress"><div id="levelChipProgressFill"></div></div>
                     </div>
                 </div>
@@ -2797,7 +2801,9 @@
                 headerDisplayName = document.getElementById('headerDisplayName');
                 // home chips & strips
                 window.homeChipsRow = document.getElementById('homeChipsRow');
+                window.levelChipIcon = document.getElementById('levelChipIcon');
                 window.levelChipName = document.getElementById('levelChipName');
+                window.levelChipPercent = document.getElementById('levelChipPercent');
                 window.levelChipProgressFill = document.getElementById('levelChipProgressFill');
                 window.walletChipAmount = document.getElementById('walletChipAmount');
                 window.jcoinRateSpan = document.getElementById('jcoinRate');
@@ -3064,6 +3070,9 @@
             let xpToNextLevel;
 
             if (level < 1) level = 1;
+
+            // Total Gas required to reach level N - mirrors Profile.html
+            function getTotalGasRequiredToReachLevel(level) { if (level <= 0) return 0; return 1500 * level * (level + 1) / 2; }
 
             // XP Calculation Logic - CHALLENGING progression system
             // Uses the same formula as Profile.html: 1500 * level * (level + 1) / 2
@@ -6104,17 +6113,38 @@
                 unsubscribeListeners.push(unsubscribeSettings); // Add to list to unsubscribe on unload.
 
                 if (navigator.onLine) { try { await fetchSystemSettings(); } catch(_){} } else { console.warn('JCHAT_WARN: offline, skipping system settings fetch'); } // Initial fetch of system settings.
-                // Level chip
+                // Level chip mirrors Profile.html calculation
                 try {
                     const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
                     const snap = await getDoc(userRef);
                     const data = snap.exists() ? snap.data() : null;
                     if (data && homeChipsRow && levelChipName && levelChipProgressFill) {
-                        const info = getLevelInfo(data.level || 1);
-                        levelChipName.textContent = `${info.name}`;
-                        const have = data.currentXp || 0;
-                        const need = info.xpToNextLevel || 1;
-                        levelChipProgressFill.style.width = Math.max(0, Math.min(100, Math.round((have/need)*100))) + '%';
+                        const totalGasEarned = data.totalGasEarned ?? 0;
+                        // compute level by cumulative thresholds
+                        let currentLevel = 1;
+                        for (let i = 1; i <= 500; i++) {
+                            const needed = getTotalGasRequiredToReachLevel(i);
+                            if (totalGasEarned >= needed) currentLevel = i; else break;
+                        }
+                        currentLevel = Math.max(1, currentLevel);
+                        const info = getLevelInfo(currentLevel);
+                        if (levelChipIcon) levelChipIcon.className = `${info.icon}`;
+                        levelChipName.textContent = info.name;
+                        const gasNeededCurr = getTotalGasRequiredToReachLevel(currentLevel);
+                        const gasNeededNext = getTotalGasRequiredToReachLevel(currentLevel + 1);
+                        let progressPct = 0;
+                        if (currentLevel < 500) {
+                            const inSeg = totalGasEarned - gasNeededCurr;
+                            const segSize = gasNeededNext - gasNeededCurr;
+                            progressPct = segSize > 0 ? Math.min(100, (inSeg / segSize) * 100) : 100;
+                        } else {
+                            progressPct = 100;
+                            levelChipName.textContent = `MAX Level (${info.name})`;
+                        }
+                        if (levelChipPercent) levelChipPercent.textContent = `${Math.round(progressPct)}%`;
+                        // Move gradient like Profile: background-position from right to left
+                        const backgroundPosition = 100 - Math.round(progressPct);
+                        levelChipProgressFill.style.backgroundPosition = `${backgroundPosition}% 0`;
                         homeChipsRow.style.display = 'flex';
                     }
                 } catch(e) { console.warn('level chip load', e); }
@@ -6921,7 +6951,13 @@
             }
         });
 
-        // Modify posts onSnapshot to compute trending + filter saved only
+                    // Clickable: level chip progress opens Levels
+            document.addEventListener('click', (ev) => {
+                const el = ev.target.closest('.chip.level-chip .chip-progress');
+                if (el) window.location.href = '/Levels.html';
+            });
+
+            // Modify posts onSnapshot to compute trending + filter saved only
         const _origFetchAndDisplayPosts = fetchAndDisplayPosts;
         fetchAndDisplayPosts = async function() {
             await _origFetchAndDisplayPosts();
