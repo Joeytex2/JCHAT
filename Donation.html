@@ -130,6 +130,52 @@
         </div>
         <div class="note" id="donationNote">Your support keeps JCHAT improving for everyone. Every contribution, no matter the amount, helps us maintain servers, build new features, and keep JCHAT free for the community. Thank you for believing in this project.</div>
       </div>
+      <div class="card">
+        <div class="bank-badge"><i class="fas fa-building-columns"></i><span>OPay Details</span></div>
+        <div class="list">
+          <div class="item">
+            <div class="label">Bank</div>
+            <div class="value">OPay</div>
+            <button class="btn" data-copy-static="OPay"><i class="fas fa-copy"></i></button>
+          </div>
+          <div class="item">
+            <div class="label">Account Name</div>
+            <div class="value" id="opayAccountName">ELECHI JOSHUA</div>
+            <button class="btn" data-copy="opayAccountName"><i class="fas fa-copy"></i></button>
+          </div>
+          <div class="item">
+            <div class="label">Account Number</div>
+            <div class="value" id="opayAccountNumber">8111609765</div>
+            <button class="btn" data-copy="opayAccountNumber"><i class="fas fa-copy"></i></button>
+          </div>
+          <div class="item">
+            <div class="label">Reference (Your JCHAT User ID)</div>
+            <div class="value" id="opayReference">Loading...</div>
+            <button class="btn" data-copy="opayReference"><i class="fas fa-copy"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="bank-badge"><i class="fas fa-building"></i><span>Bank Transfer (Keystone Bank)</span></div>
+        <div class="list">
+          <div class="item">
+            <div class="label">Bank</div>
+            <div class="value">Keystone Bank</div>
+            <button class="btn" data-copy-static="Keystone Bank"><i class="fas fa-copy"></i></button>
+          </div>
+          <div class="item">
+            <div class="label">Account Name</div>
+            <div class="value" id="keystoneAccountName">ELECHI OSOUNDU JOSHUA</div>
+            <button class="btn" data-copy="keystoneAccountName"><i class="fas fa-copy"></i></button>
+          </div>
+          <div class="item">
+            <div class="label">Account Number</div>
+            <div class="value" id="keystoneAccountNumber">6042862356</div>
+            <button class="btn" data-copy="keystoneAccountNumber"><i class="fas fa-copy"></i></button>
+          </div>
+        </div>
+      </div>
+
       <div class="card qr" id="qrPanel" style="display:none;">
         <h3 class="qr-title">Quick Donate (QR)</h3>
         <div class="qr-box"><img id="qrImage" class="qr-img" alt="Donation QR" /></div>
@@ -174,7 +220,12 @@
       qrPanel: document.getElementById('qrPanel'),
       qrImage: document.getElementById('qrImage'),
       qrNote: document.getElementById('qrNote'),
-      toast: document.getElementById('toast')
+      toast: document.getElementById('toast'),
+      opayAccountName: document.getElementById('opayAccountName'),
+      opayAccountNumber: document.getElementById('opayAccountNumber'),
+      opayReference: document.getElementById('opayReference'),
+      keystoneAccountName: document.getElementById('keystoneAccountName'),
+      keystoneAccountNumber: document.getElementById('keystoneAccountNumber')
     };
 
     function apply(id, val) { if (els[id]) els[id].textContent = val || ''; }
@@ -198,7 +249,9 @@
 
     async function loadBankDetails(user) {
       let bank = {};
+      let uid = '';
       if (user) {
+        uid = user.uid || '';
         try {
           const profileRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profiles', 'user_profile');
           const snap = await getDoc(profileRef);
@@ -207,12 +260,18 @@
           }
         } catch {}
       }
-      // Fallbacks
+      // Primary donation bank details (from profile/globals)
       apply('bankName', bank.bankName || (typeof __donation_bank_name !== 'undefined' ? __donation_bank_name : ''));
       apply('accountName', bank.accountName || (typeof __donation_account_name !== 'undefined' ? __donation_account_name : ''));
       apply('accountNumber', bank.accountNumber || (typeof __donation_account_number !== 'undefined' ? __donation_account_number : ''));
       apply('swift', (typeof __donation_swift !== 'undefined' ? __donation_swift : ''));
       if (typeof __donation_note !== 'undefined') apply('note', __donation_note);
+      // OPay & Keystone exact details (static per Wallet.html)
+      apply('opayAccountName', 'ELECHI JOSHUA');
+      apply('opayAccountNumber', '8111609765');
+      apply('opayReference', uid || 'Your UID');
+      apply('keystoneAccountName', 'ELECHI OSOUNDU JOSHUA');
+      apply('keystoneAccountNumber', '6042862356');
       renderQRIfProvided();
     }
 
@@ -225,10 +284,14 @@
 
     document.addEventListener('click', (e)=>{
       const copyBtn = e.target.closest('[data-copy]');
+      const copyStatic = e.target.closest('[data-copy-static]');
       if (copyBtn) {
         const id = copyBtn.getAttribute('data-copy');
         const el = els[id];
         const txt = el ? el.textContent.trim() : '';
+        if (txt) navigator.clipboard.writeText(txt).then(()=> showToast('Copied')).catch(()=>{});
+      } else if (copyStatic) {
+        const txt = copyStatic.getAttribute('data-copy-static');
         if (txt) navigator.clipboard.writeText(txt).then(()=> showToast('Copied')).catch(()=>{});
       }
     });
