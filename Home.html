@@ -2325,7 +2325,7 @@
                         <div class="chip-progress"><div id="levelChipProgressFill"></div></div>
                     </div>
                 </div>
-                <a href="/Wallet.html" class="chip wallet-chip">
+                <a href="#" id="walletChipLink" class="chip wallet-chip">
                     <i class="fas fa-wallet"></i>
                     <div class="chip-text">
                         <div><span id="walletChipAmount">0</span> JCoins</div>
@@ -2454,7 +2454,19 @@
         </div>
     </div>
 
-    <!-- Filters Modal -->
+                <!-- Wallet Locked Modal -->
+            <div id="walletLockedModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="walletLockedTitle" style="display:none;">
+                <div class="modal-content">
+                    <h3 id="walletLockedTitle"><i class="fas fa-lock"></i> Wallet Locked</h3>
+                    <p style="color:var(--text-light);">Your wallet is locked. Pay ₦5000 to request unlock. A developer will unlock it after confirming your payment.</p>
+                    <div class="button-group" style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button id="closeWalletLockedBtn" class="modal-button cancel-button">Close</button>
+                        <a id="walletPayBtn" href="/premium_subscriptions.html?unlockWallet=1&amount=5000" class="modal-button confirm-button">Pay ₦5000</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Modal -->
     <div id="filtersModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="filtersModalTitle" style="display:none;">
         <div class="modal-content">
             <h3 id="filtersModalTitle">Feed Filters</h3>
@@ -2809,6 +2821,7 @@
                 window.levelChipName = document.getElementById('levelChipName');
                 window.levelChipPercent = document.getElementById('levelChipPercent');
                 window.levelChipProgressFill = document.getElementById('levelChipProgressFill');
+                window.walletChipLink = document.getElementById('walletChipLink');
                 window.walletChipAmount = document.getElementById('walletChipAmount');
                 window.jcoinRateSpan = document.getElementById('jcoinRate');
                 window.highlightsSection = document.getElementById('highlightsSection');
@@ -6087,12 +6100,30 @@
                         console.log("JCHAT_DEBUG: Real-time system settings update:", currentSystemSettings);
                         // Delay announcement render by 5 seconds after login to avoid late flicker
                         setTimeout(() => applySystemSettings(currentSystemSettings), 5000);
-                        // Update wallet chip
-                        if (homeChipsRow && walletChipAmount && jcoinRateSpan) {
-                            walletChipAmount.textContent = String(currentUserProfileData?.jCoins || 0);
-                            jcoinRateSpan.textContent = String(currentSystemSettings?.jcoinNairaRate || 0);
-                            homeChipsRow.style.display = 'flex';
+                                        // Update wallet chip
+                if (homeChipsRow && walletChipAmount && jcoinRateSpan) {
+                    walletChipAmount.textContent = String(currentUserProfileData?.jCoins || 0);
+                    jcoinRateSpan.textContent = String(currentSystemSettings?.jcoinNairaRate || 0);
+                    homeChipsRow.style.display = 'flex';
+                }
+                // Wallet chip click: gate by walletUnlocked
+                if (walletChipLink) {
+                    walletChipLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const unlocked = !!currentUserProfileData?.walletUnlocked;
+                        if (unlocked) {
+                            window.location.href = '/Wallet.html';
+                        } else {
+                            const m = document.getElementById('walletLockedModal');
+                            if (m) { m.style.display='block'; setTimeout(()=>m.classList.add('active'),0); }
                         }
+                    });
+                }
+                const closeWalletLockedBtn = document.getElementById('closeWalletLockedBtn');
+                if (closeWalletLockedBtn) closeWalletLockedBtn.addEventListener('click', ()=>{
+                    const m = document.getElementById('walletLockedModal');
+                    if (m) { m.classList.remove('active'); setTimeout(()=>m.style.display='none',200); }
+                });
                         // Start listening for calls only after settings are loaded and calls are enabled.
                         if (currentSystemSettings.enableCalls) {
                             listenForIncomingCalls();
@@ -6178,6 +6209,12 @@
                         const q = query(publicUsersRef, where(documentId(), '!=', currentUser.uid));
                         const snap = await getDocs(q);
                         const users=[]; snap.forEach(d=>users.push({id:d.id,...d.data()}));
+                        // Fetch my friends to hide add for existing
+                        const myFriendsSnap = await getDocs(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'friends'));
+                        const myFriends = new Set(); myFriendsSnap.forEach(f=>myFriends.add(f.id));
+                        // Fetch sent requests to hide duplicate
+                        const sentSnap = await getDocs(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'friend_requests', 'sent'));
+                        const sentSet = new Set(); sentSnap.forEach(s=>sentSet.add(s.data().receiverId||s.id));
                         const subset = users.slice(0,8);
                         if (subset.length>0) {
                             friendsSuggestionsSection.style.display='block';
