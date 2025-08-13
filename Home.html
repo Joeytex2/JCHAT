@@ -2382,30 +2382,35 @@
 
     /* Smart Notifications Panel */
     .notifications-panel {
+        position: fixed;
+        top: var(--header-height);
+        right: 12px;
+        bottom: 12px;
+        width: 360px;
+        max-width: calc(100% - 24px);
+        margin: 0;
+        padding: 12px;
         background: var(--glass-black);
         backdrop-filter: blur(15px);
         border: 1px solid var(--glass-blue);
-        border-radius: var(--radius);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, .3);
-        padding: 1.5rem;
-        width: 90%;
-        max-width: 700px;
-        margin: 20px auto;
+        border-radius: 14px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, .35);
         display: none;
+        z-index: 40;
     }
 
     .notifications-panel.show {
         display: block;
-        animation: slideInUp 0.3s ease;
+        animation: slideInRight 0.25s ease;
     }
-    @keyframes slideInUp {
+    @keyframes slideInRight {
         from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateX(14px);
         }
         to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateX(0);
         }
     }
 
@@ -2413,10 +2418,21 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
         border-bottom: 1px solid var(--border-light);
+        position: sticky;
+        top: 0;
+        background: transparent;
+        z-index: 1;
     }
+
+    .filter-tabs .filter-tag { padding: 4px 10px; font-size: 0.8rem; }
+    .filter-tabs .filter-tag.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+    #notificationSearch { height: 32px; border-radius: 10px; background: rgba(255,255,255,.06); border: 1px solid var(--border-light); color: var(--white); }
+
+    .notifications-list { max-height: calc(100% - 56px); overflow-y: auto; }
 
     .notifications-title {
         display: flex;
@@ -3665,6 +3681,16 @@
                         <span class="notifications-count" id="notificationsCount">0</span>
                     </div>
                     <div style="display:flex;gap:8px;align-items:center;">
+                        <div class="filter-tabs" id="notificationTabs" role="tablist" aria-label="Notification filters" style="display:flex;gap:6px;margin-right:8px;">
+                            <button class="filter-tag active" data-filter="all" role="tab" aria-selected="true">All</button>
+                            <button class="filter-tag" data-filter="unread" role="tab" aria-selected="false">Unread</button>
+                            <button class="filter-tag" data-filter="mentions" role="tab" aria-selected="false">Mentions</button>
+                            <button class="filter-tag" data-filter="system" role="tab" aria-selected="false">System</button>
+                        </div>
+                        <div class="search-input" style="position:relative;">
+                            <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.6;"></i>
+                            <input id="notificationSearch" type="text" placeholder="Search" aria-label="Search notifications" style="padding-left:30px;min-width:160px;">
+                        </div>
                         <button class="clear-notifications-btn" id="saveNotificationsBtn" title="Save" aria-label="Save Notifications"><i class="fas fa-save"></i></button>
                         <button class="clear-notifications-btn" id="downloadNotificationsBtn" title="Download" aria-label="Download Notifications"><i class="fas fa-download"></i></button>
                         <button class="clear-notifications-btn" id="shareNotificationsBtn" title="Share" aria-label="Share Notifications"><i class="fas fa-share-alt"></i></button>
