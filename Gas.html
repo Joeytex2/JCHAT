@@ -1482,6 +1482,31 @@
                             <input type="number" id="profanityFilterSensitivityInput" min="1" max="10">
                         </div>
                     </div>
+
+                    <div class="management-card">
+                        <h4>Admin Announcement</h4>
+                        <div class="input-group">
+                            <label for="announcementEnabledToggle">Enable Announcement:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="announcementEnabledToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label for="announcementTextInput">Announcement Text:</label>
+                            <textarea id="announcementTextInput" placeholder="Type the public announcement" rows="3"></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="announcementDurationInput">Display Duration (minutes):</label>
+                            <input type="number" id="announcementDurationInput" min="1" max="60" placeholder="5">
+                        </div>
+                        <div class="input-group">
+                            <label>Preview:</label>
+                            <div class="announcement-ticker" style="border:1px solid var(--border-light);border-radius:10px;padding:6px;">
+                                <div class="announcement-track" id="announcementPreviewTrack"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <button id="saveSystemSettingsButton" class="admin-button">
                     <span class="button-text">Save System Settings</span>
@@ -3734,6 +3759,13 @@
 
             if (maintenanceModeToggle) maintenanceModeToggle.checked = settings.maintenanceMode ?? false;
             if (globalAnnouncementInput) globalAnnouncementInput.value = settings.globalAnnouncement ?? '';
+            // Admin announcement fields
+            const annEnabledToggle = document.getElementById('announcementEnabledToggle');
+            const annTextInput = document.getElementById('announcementTextInput');
+            const annDurationInput = document.getElementById('announcementDurationInput');
+            if (annEnabledToggle) annEnabledToggle.checked = settings.announcementEnabled ?? false;
+            if (annTextInput) annTextInput.value = settings.announcementText ?? '';
+            if (annDurationInput) annDurationInput.value = settings.announcementDurationMs ? Math.round((settings.announcementDurationMs)/60000) : 5;
 
             // Set datetime-local inputs
             if (announcementStartTimeInput) {
@@ -3771,6 +3803,9 @@
                     globalAnnouncement: globalAnnouncementInput.value.trim(),
                     announcementStartTime: startTime ? Timestamp.fromDate(startTime) : null,
                     announcementEndTime: endTime ? Timestamp.fromDate(endTime) : null,
+                    announcementEnabled: !!document.getElementById('announcementEnabledToggle')?.checked,
+                    announcementText: (document.getElementById('announcementTextInput')?.value || '').trim(),
+                    announcementDurationMs: Math.max(60000, parseInt(document.getElementById('announcementDurationInput')?.value || '5') * 60000),
                     updatedAt: serverTimestamp()
                 };
 
@@ -4479,6 +4514,26 @@
                 }
             }
         });
+
+        // Preview announcement ticker
+        function updateAnnouncementPreview() {
+            const track = document.getElementById('announcementPreviewTrack');
+            const txt = (document.getElementById('announcementTextInput')?.value || '').trim();
+            if (!track) return;
+            if (!txt) { track.textContent=''; track.style.animation='none'; return; }
+            track.textContent = `   ${txt}   `;
+            // Alternate directions using a simple flip
+            const width = track.scrollWidth || 600;
+            const rtl = Math.min(30, Math.max(10, width / 60));
+            const ltr = Math.min(45, Math.max(15, width / 40));
+            // Start with RTL then LTR
+            track.style.animation = `ticker-rtl ${rtl}s linear infinite`;
+            setTimeout(()=> { track.style.animation = `ticker-ltr ${ltr}s linear infinite`; }, rtl*1000);
+        }
+        document.addEventListener('input', (e)=>{
+            if (e.target && (e.target.id === 'announcementTextInput')) updateAnnouncementPreview();
+        });
+        document.addEventListener('DOMContentLoaded', updateAnnouncementPreview);
     </script>
 </body>
 </html>
