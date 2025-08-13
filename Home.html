@@ -7988,6 +7988,10 @@
                 this.notificationsCount = document.getElementById('notificationsCount');
                 this.clearNotificationsBtn = document.getElementById('clearNotificationsBtn');
                 
+                // Filters/search state
+                this.activeFilter = 'all';
+                this.searchQuery = '';
+
                 this.initialize();
             }
 
@@ -8008,6 +8012,24 @@
                 if (saveBtn) saveBtn.addEventListener('click', ()=> this.saveNotifications());
                 if (downloadBtn) downloadBtn.addEventListener('click', ()=> this.downloadNotifications());
                 if (shareBtn) shareBtn.addEventListener('click', ()=> this.shareNotifications());
+
+                const tabs = document.getElementById('notificationTabs');
+                if (tabs) {
+                    tabs.addEventListener('click', (e)=>{
+                        const btn = e.target.closest('[data-filter]');
+                        if (!btn) return;
+                        this.activeFilter = btn.getAttribute('data-filter');
+                        Array.from(tabs.querySelectorAll('.filter-tag')).forEach(b=> b.classList.toggle('active', b === btn));
+                        this.displayNotifications();
+                    });
+                }
+                const searchInput = document.getElementById('notificationSearch');
+                if (searchInput) {
+                    searchInput.addEventListener('input', ()=>{
+                        this.searchQuery = searchInput.value.trim().toLowerCase();
+                        this.displayNotifications();
+                    });
+                }
             }
 
             addNotification(type, title, message, data = {}) {
@@ -8059,11 +8081,21 @@
                     return;
                 }
 
-                this.notificationsList.innerHTML = this.notifications
+                const filtered = this.notifications.filter(n => {
+                    if (this.activeFilter === 'unread' && n.read) return false;
+                    if (['message','friend_request','group','activity','system'].includes(this.activeFilter) && n.type !== this.activeFilter) return false;
+                    if (this.searchQuery) {
+                        const hay = `${n.title} ${n.message}`.toLowerCase();
+                        if (!hay.includes(this.searchQuery)) return false;
+                    }
+                    return true;
+                });
+
+                this.notificationsList.innerHTML = filtered
                     .map(notification => this.createNotificationElement(notification))
                     .join('');
 
-                this.updateCount(this.notifications.length);
+                this.updateCount(filtered.length);
             }
 
             createNotificationElement(notification) {
@@ -8088,12 +8120,17 @@
             }
 
             getNotificationIcon(type) {
-                const icons = {
-                    info: 'fas fa-info-circle',
-                    success: 'fas fa-check-circle',
-                    warning: 'fas fa-exclamation-triangle',
-                    error: 'fas fa-times-circle'
-                };
+                                 const icons = {
+                     message: 'fas fa-envelope',
+                     friend_request: 'fas fa-user-plus',
+                     group: 'fas fa-users',
+                     activity: 'fas fa-bolt',
+                     system: 'fas fa-gear',
+                     info: 'fas fa-info-circle',
+                     success: 'fas fa-check-circle',
+                     warning: 'fas fa-exclamation-triangle',
+                     error: 'fas fa-times-circle'
+                 };
                 return icons[type] || icons.info;
             }
 
