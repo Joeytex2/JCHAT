@@ -361,7 +361,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         .announcement-content { height: 100%; display: flex; align-items: center; gap: 12px; padding: 0 16px; }
-        .announcement-icon { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; box-shadow: 0 0 10px rgba(255,46,146,0.6), 0 0 10px rgba(0,213,255,0.6); }
+                 .announcement-icon { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; box-shadow: 0 0 12px rgba(255,46,146,0.6), 0 0 12px rgba(0,213,255,0.6); }
         .announcement-ticker { position: relative; overflow: hidden; flex: 1; height: 100%; }
         .announcement-track { white-space: nowrap; display: inline-block; will-change: transform; }
         @keyframes jchat-scroll-left {
@@ -5984,7 +5984,7 @@
                 await fetchAndDisplayHeaderProfile(user); // This sets currentUserProfileData and updates UI.
                 console.log("JCHAT_DEBUG: Auth is ready. User ID:", currentUser.uid, "isAuthReady:", isAuthReady);
 
-                // Start listening to system settings in real-time.
+                // Start listening to system settings in real-time and render announcement immediately.
                 const unsubscribeSettings = onSnapshot(SYSTEM_SETTINGS_DOC_REF, (docSnap) => {
                     if (docSnap.exists()) {
                         currentSystemSettings = docSnap.data();
@@ -6652,6 +6652,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             setupMentionsAutocomplete();
             requestNotificationPermissionIfNeeded();
+            // Fetch system settings early to render announcement ASAP
+            fetchSystemSettings().catch(()=>{});
         });
 
         // Comment like/unlike with user-specific toggle
