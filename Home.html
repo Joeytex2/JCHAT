@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JCHAT - Home</title>
     <link rel="canonical" href="https://jchat.app/Home.html">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/1a1a2e/ffffff?text=J">
+    <meta name="apple-mobile-web-app-title" content="JCHAT">
     
     <!-- Security Meta Tags -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -2541,6 +2546,12 @@
     </div>
     <script type="module">
         console.log("JCHAT_DEBUG: Home.html script started.");
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed', err));
+            });
+        }
 
         // Import Firebase modules (Updated to v11.8.0 - Latest Stable)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
