@@ -350,25 +350,25 @@
         /* Announcement Header below main header */
         .announcement-header {
             position: fixed;
-            top: 55px;
+            top: 60px; /* add tiny spacing below first header */
             left: 0;
             right: 0;
             height: 34px;
-            z-index: 10;
+            z-index: 11;
             display: none; /* toggled on when announcement active */
             border-bottom: 1px solid var(--border-light);
             background: var(--header-background);
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         .announcement-content { height: 100%; display: flex; align-items: center; gap: 12px; padding: 0 16px; }
-        .announcement-logo { font-family: 'Poppins', sans-serif; font-weight: 800; background-clip: text; color: transparent; background-image: linear-gradient(90deg, var(--blue), var(--pink)); }
+                 .announcement-icon { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; box-shadow: 0 0 12px rgba(255,46,146,0.6), 0 0 12px rgba(0,213,255,0.6); }
         .announcement-ticker { position: relative; overflow: hidden; flex: 1; height: 100%; }
-        .announcement-track { white-space: nowrap; display: inline-block; will-change: transform; }
+        .announcement-track { white-space: nowrap; display: inline-block; will-change: transform; padding-left: 100%; animation: jchat-scroll-left var(--ann-duration, 30s) linear infinite; background-image: linear-gradient(90deg, var(--pink), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
         @keyframes jchat-scroll-left {
             0% { transform: translateX(100%); }
             100% { transform: translateX(-100%); }
         }
-        body.has-announcement main { margin-top: 34px; }
+        body.has-announcement main { margin-top: 40px; }
 
         /* User Profile Header Styling */
         .user-profile-header {
@@ -2167,6 +2167,26 @@
         .story-avatar img { width:100%; height:100%; object-fit:cover; }
         .add-story-button { background: var(--button-background); color: var(--white); border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
 
+        /* Home Chips and Strips */
+        .home-chips-row { display:flex; gap:10px; margin:10px 0; }
+        .chip { display:flex; align-items:center; gap:8px; background: var(--card-background); border:1px solid var(--glass-blue); padding:8px 10px; border-radius:10px; text-decoration:none; color:inherit; }
+        .chip i { background-image: linear-gradient(90deg, var(--blue), var(--pink)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+        .chip-text { display:flex; flex-direction:column; gap:4px; }
+        .chip-progress { width:140px; height:6px; background: rgba(255,255,255,0.1); border-radius:6px; overflow:hidden; }
+        .chip-progress > div { height:100%; width:100%; background-image: linear-gradient(90deg, #ff4757 0%, #ff6b35 25%, #ffa726 50%, #ffd700 75%, #4caf50 100%); background-size:200% 100%; background-position:right; transition: background-position 0.8s ease-out; }
+        .section-title { font-weight:700; margin:12px 0 6px; display:flex; align-items:center; gap:8px; }
+        .scroll-row { display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; }
+        .scroll-row::-webkit-scrollbar { height:6px; }
+        .scroll-row::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius:6px; }
+        .highlight-card, .friend-card, .saved-card { flex:0 0 auto; width:160px; border:1px solid var(--glass-blue); background: var(--card-background); border-radius:10px; overflow:hidden; }
+        .friend-card { width:88px; border-radius:999px; padding:6px; display:flex; flex-direction:column; align-items:center; gap:6px; }
+        .friend-card img { width:48px; height:48px; border-radius:50%; object-fit:cover; border:1px solid var(--border-light); }
+        .friend-card .name { font-size:.72rem; text-align:center; line-height:1.1; background-image: linear-gradient(90deg, var(--pink), var(--blue)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+        .friend-card .actions { display:none; position:absolute; top:54px; left:50%; transform:translateX(-50%); background:var(--card-background); border:1px solid var(--glass-blue); border-radius:10px; padding:6px; gap:6px; z-index:5; }
+        .friend-card .actions button { font-size:.7rem; padding:6px 8px; border:1px solid var(--border-light); border-radius:8px; background:var(--button-background); color:#fff; cursor:pointer; }
+        .highlight-card img, .saved-card img { width:100%; height:100px; object-fit:cover; display:block; }
+        .friend-card .meta { display:none; } 
+
         /* Engagement Panel */
         .engagement-panel { display:grid; grid-template-columns: 1fr; gap: 12px; margin: 10px 0; }
         .engage-card { background: var(--card-background); border:1px solid var(--glass-blue); border-radius: 15px; padding: 12px; }
@@ -2229,8 +2249,8 @@
                 </div>
                 <!-- Profile Link with Picture and Name -->
                 <a href="./Profile.html" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;">
-                    <img id="headerProfilePic" src="" alt="Profile Picture" loading="lazy" decoding="async" style="display:none;width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);">
-                    <i id="headerAvatarIcon" class="fas fa-user-circle" role="img" aria-label="User Avatar" style="font-size:28px;"></i>
+                    <img id="headerProfilePic" src="" alt="Profile Picture" loading="lazy" decoding="async" style="display:none;width:44px;height:44px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light); box-shadow: 0 0 10px rgba(255,46,146,0.6), 0 0 10px rgba(0,213,255,0.6);">
+                    <i id="headerAvatarIcon" class="fas fa-user-circle" role="img" aria-label="User Avatar" style="font-size:36px; box-shadow: 0 0 10px rgba(255,46,146,0.6), 0 0 10px rgba(0,213,255,0.6); border-radius:50%;"></i>
                     <span id="headerDisplayName">Loading...</span>
                 </a>
             </div>
@@ -2240,7 +2260,7 @@
     <!-- Announcement Header (Developer announcements) -->
     <div id="announcementHeader" class="announcement-header" role="region" aria-label="Developer Announcement">
         <div class="announcement-content">
-            <span class="announcement-logo">JCHAT</span>
+            <img src="/icon.png" alt="Announcement" class="announcement-icon" loading="lazy" decoding="async">
             <div class="announcement-ticker">
                 <div id="announcementTrack" class="announcement-track"></div>
             </div>
@@ -2290,6 +2310,43 @@
                     </div>
                 </div>
             </div>
+            </div>
+
+            <!-- Home Chips: Level and Wallet -->
+            <div class="home-chips-row" id="homeChipsRow" style="display:none;">
+                <div class="chip level-chip">
+                    <i class="fas fa-star"></i>
+                    <div class="chip-text">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <i id="levelChipIcon" class="fas fa-question-circle"></i>
+                            <div id="levelChipName">Level 1</div>
+                            <div id="levelChipPercent" style="opacity:.85;font-size:.85rem;">0%</div>
+                        </div>
+                        <div class="chip-progress"><div id="levelChipProgressFill"></div></div>
+                    </div>
+                </div>
+                <a href="#" id="walletChipLink" class="chip wallet-chip">
+                    <i class="fas fa-wallet"></i>
+                    <div class="chip-text">
+                        <div><span id="walletChipAmount">0</span> JCoins</div>
+                        <div class="chip-sub">Rate: ₦<span id="jcoinRate">0</span>/J</div>
+                    </div>
+                </a>
+            </div>
+            <!-- Highlights Strip -->
+            <div class="highlights-section" id="highlightsSection" style="display:none;">
+                <div class="section-title"><i class="fas fa-bookmark"></i> Highlights</div>
+                <div class="scroll-row" id="highlightsStrip"></div>
+            </div>
+            <!-- Friends Suggestions -->
+            <div class="friends-suggestions-section" id="friendsSuggestionsSection" style="display:none;">
+                <div class="section-title" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;"><i class="fas fa-user-friends"></i> People you may know</div>
+                <div class="scroll-row" id="friendsSuggestions"></div>
+            </div>
+            <!-- Saved Widget -->
+            <div class="saved-widget-section" id="savedWidgetSection" style="display:none;">
+                <div class="section-title"><i class="fas fa-bookmark"></i> Saved</div>
+                <div class="scroll-row" id="savedWidget"></div>
             </div>
 
             <!-- Post Creation Section -->
@@ -2397,7 +2454,19 @@
         </div>
     </div>
 
-    <!-- Filters Modal -->
+                <!-- Wallet Locked Modal -->
+            <div id="walletLockedModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="walletLockedTitle" style="display:none;">
+                <div class="modal-content">
+                    <h3 id="walletLockedTitle"><i class="fas fa-lock"></i> Wallet Locked</h3>
+                    <p style="color:var(--text-light);">Your wallet is locked. Pay ₦5000 to request unlock. A developer will unlock it after confirming your payment.</p>
+                    <div class="button-group" style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button id="closeWalletLockedBtn" class="modal-button cancel-button">Close</button>
+                        <a id="walletPayBtn" href="/Wallet.html?unlock=1&amount=5000" class="modal-button confirm-button">Pay ₦5000</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Modal -->
     <div id="filtersModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="filtersModalTitle" style="display:none;">
         <div class="modal-content">
             <h3 id="filtersModalTitle">Feed Filters</h3>
@@ -2592,7 +2661,7 @@
         // Import Firebase modules (Updated to v11.8.0 - Latest Stable)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, where, getDocs, addDoc, runTransaction, writeBatch, serverTimestamp, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, where, getDocs, addDoc, runTransaction, writeBatch, serverTimestamp, arrayUnion, arrayRemove, onSnapshot, documentId } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         // Firebase configuration, dynamically loaded from Canvas environment variables if available.
@@ -2746,6 +2815,21 @@
                 headerProfilePic = document.getElementById('headerProfilePic');
                 headerAvatarIcon = document.getElementById('headerAvatarIcon');
                 headerDisplayName = document.getElementById('headerDisplayName');
+                // home chips & strips
+                window.homeChipsRow = document.getElementById('homeChipsRow');
+                window.levelChipIcon = document.getElementById('levelChipIcon');
+                window.levelChipName = document.getElementById('levelChipName');
+                window.levelChipPercent = document.getElementById('levelChipPercent');
+                window.levelChipProgressFill = document.getElementById('levelChipProgressFill');
+                window.walletChipLink = document.getElementById('walletChipLink');
+                window.walletChipAmount = document.getElementById('walletChipAmount');
+                window.jcoinRateSpan = document.getElementById('jcoinRate');
+                window.highlightsSection = document.getElementById('highlightsSection');
+                window.highlightsStrip = document.getElementById('highlightsStrip');
+                window.friendsSuggestionsSection = document.getElementById('friendsSuggestionsSection');
+                window.friendsSuggestions = document.getElementById('friendsSuggestions');
+                window.savedWidgetSection = document.getElementById('savedWidgetSection');
+                window.savedWidget = document.getElementById('savedWidget');
                 notificationCountElement = document.getElementById('notificationCount');
                 adminIconLink = document.getElementById('adminIconLink');
                 profileLink = document.getElementById('profileLink');
@@ -2952,6 +3036,11 @@
          * @param {number} level - The current level of the user.
          * @returns {object} An object containing level details.
          */
+        // Global cumulative Gas helper matching Profile.html
+        function getTotalGasRequiredToReachLevel(level) {
+            if (level <= 0) return 0;
+            return 1500 * level * (level + 1) / 2;
+        }
         function getLevelInfo(level) {
             // CHALLENGING SYSTEM - Dynamic calculation matching Profile.html
             let jCoinReward = 0;
@@ -3003,6 +3092,9 @@
             let xpToNextLevel;
 
             if (level < 1) level = 1;
+
+            // Total Gas required to reach level N - mirrors Profile.html
+            function getTotalGasRequiredToReachLevel(level) { if (level <= 0) return 0; return 1500 * level * (level + 1) / 2; }
 
             // XP Calculation Logic - CHALLENGING progression system
             // Uses the same formula as Profile.html: 1500 * level * (level + 1) / 2
@@ -4886,6 +4978,9 @@
                         <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Share Post">
                             <i class="fas fa-share"></i> Share
                         </button>
+                        <button class="add-to-highlights-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''} aria-label="Add to Highlights">
+                            <i class="fas fa-bookmark"></i> Add to Highlights
+                        </button>
                     </div>
                     ` : ''}
                 </div>
@@ -5297,6 +5392,17 @@
                     } catch(e) { console.error(e); showMessageBox('Failed to delete post.', 'error'); }
                 })();
             }
+            else if (event.target.closest('.add-to-highlights-button')) {
+                const button = event.target.closest('.add-to-highlights-button');
+                if (!isAuthReady || !currentUser) { showMessageBox('Please log in.', 'warning'); return; }
+                const postId = button.dataset.postId;
+                (async ()=>{
+                    try {
+                        await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'highlights'), { postId, createdAt: serverTimestamp() });
+                        showMessageBox('Added to highlights.', 'success');
+                    } catch (e) { console.error(e); showMessageBox('Failed to add to highlights.', 'error'); }
+                })();
+            }
             else if (event.target.closest('.edit-post-button')) {
                 const button = event.target.closest('.edit-post-button');
                 if (!isAuthReady) { showMessageBox("Please log in to edit posts.", 'error'); return; }
@@ -5446,7 +5552,15 @@
                         const spacer = ' \u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0 ';
                         const repeated = `${text}${spacer}${text}${spacer}${text}`;
                         trackEl.textContent = repeated;
-                        trackEl.style.animation = `jchat-scroll-left ${durationMs}ms linear infinite`;
+                        // Compute duration based on actual width for a smooth px/sec speed
+                        requestAnimationFrame(() => {
+                            const ticker = annEl.querySelector('.announcement-ticker');
+                            const containerWidth = ticker ? ticker.offsetWidth : annEl.offsetWidth;
+                            const travel = (trackEl.scrollWidth || 600) + containerWidth; // px to travel
+                            const pxPerSec = 20; // 3x slower than previous ~60px/s
+                            const durationSec = Math.max(36, Math.round(travel / pxPerSec));
+                            trackEl.style.setProperty('--ann-duration', `${durationSec}s`);
+                        });
                         annEl.style.display = 'block';
                         document.body.classList.add('has-announcement');
                     } else {
@@ -5984,12 +6098,37 @@
                 await fetchAndDisplayHeaderProfile(user); // This sets currentUserProfileData and updates UI.
                 console.log("JCHAT_DEBUG: Auth is ready. User ID:", currentUser.uid, "isAuthReady:", isAuthReady);
 
-                // Start listening to system settings in real-time.
+                // Start listening to system settings in real-time and render announcement & chips
                 const unsubscribeSettings = onSnapshot(SYSTEM_SETTINGS_DOC_REF, (docSnap) => {
                     if (docSnap.exists()) {
                         currentSystemSettings = docSnap.data();
                         console.log("JCHAT_DEBUG: Real-time system settings update:", currentSystemSettings);
-                        applySystemSettings(currentSystemSettings); // Apply settings on every change.
+                        // Delay announcement render by 5 seconds after login to avoid late flicker
+                        setTimeout(() => applySystemSettings(currentSystemSettings), 5000);
+                                        // Update wallet chip
+                if (homeChipsRow && walletChipAmount && jcoinRateSpan) {
+                    walletChipAmount.textContent = String(currentUserProfileData?.jCoins || 0);
+                    jcoinRateSpan.textContent = String(currentSystemSettings?.jcoinNairaRate || 0);
+                    homeChipsRow.style.display = 'flex';
+                }
+                // Wallet chip click: gate by walletUnlocked
+                if (walletChipLink) {
+                    walletChipLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const unlocked = !!currentUserProfileData?.walletUnlocked;
+                        if (unlocked) {
+                            window.location.href = '/Wallet.html';
+                        } else {
+                            const m = document.getElementById('walletLockedModal');
+                            if (m) { m.style.display='block'; setTimeout(()=>m.classList.add('active'),0); }
+                        }
+                    });
+                }
+                const closeWalletLockedBtn = document.getElementById('closeWalletLockedBtn');
+                if (closeWalletLockedBtn) closeWalletLockedBtn.addEventListener('click', ()=>{
+                    const m = document.getElementById('walletLockedModal');
+                    if (m) { m.classList.remove('active'); setTimeout(()=>m.style.display='none',200); }
+                });
                         // Start listening for calls only after settings are loaded and calls are enabled.
                         if (currentSystemSettings.enableCalls) {
                             listenForIncomingCalls();
@@ -6005,7 +6144,7 @@
                         }
                     } else {
                         console.warn("JCHAT_WARNING: System settings document not found during snapshot. Re-fetching.");
-                        fetchSystemSettings(); // Re-fetch if document disappears.
+                        if (navigator.onLine) fetchSystemSettings().catch(()=>{});
                     }
                 }, (error) => {
                     console.error("JCHAT_ERROR: Error listening to system settings:", error);
@@ -6013,7 +6152,157 @@
                 });
                 unsubscribeListeners.push(unsubscribeSettings); // Add to list to unsubscribe on unload.
 
-                await fetchSystemSettings(); // Initial fetch of system settings.
+                if (navigator.onLine) { try { await fetchSystemSettings(); } catch(_){} } else { console.warn('JCHAT_WARN: offline, skipping system settings fetch'); } // Initial fetch of system settings.
+                // Level chip mirrors Profile.html calculation
+                try {
+                    const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
+                    const snap = await getDoc(userRef);
+                    const data = snap.exists() ? snap.data() : null;
+                    if (data && homeChipsRow && levelChipName && levelChipProgressFill) {
+                        const totalGasEarned = data.totalGasEarned ?? 0;
+                        // compute level by cumulative thresholds
+                        let currentLevel = 1;
+                        for (let i = 1; i <= 500; i++) {
+                            const needed = getTotalGasRequiredToReachLevel(i);
+                            if (totalGasEarned >= needed) currentLevel = i; else break;
+                        }
+                        currentLevel = Math.max(1, currentLevel);
+                        const info = getLevelInfo(currentLevel);
+                        if (levelChipIcon) levelChipIcon.className = `${info.icon}`;
+                        levelChipName.textContent = info.name; // e.g., Novice, Explorer
+                        const gasNeededCurr = getTotalGasRequiredToReachLevel(currentLevel);
+                        const gasNeededNext = getTotalGasRequiredToReachLevel(currentLevel + 1);
+                        let progressPct = 0;
+                        if (currentLevel < 500) {
+                            const inSeg = totalGasEarned - gasNeededCurr;
+                            const segSize = gasNeededNext - gasNeededCurr;
+                            progressPct = segSize > 0 ? Math.min(100, (inSeg / segSize) * 100) : 100;
+                        } else {
+                            progressPct = 100;
+                            levelChipName.textContent = info.name;
+                        }
+                        if (levelChipPercent) levelChipPercent.textContent = `${Math.round(progressPct)}%`;
+                        // Move gradient like Profile: background-position from right to left
+                        const backgroundPosition = 100 - Math.round(progressPct);
+                        levelChipProgressFill.style.backgroundPosition = `${backgroundPosition}% 0`;
+                        homeChipsRow.style.display = 'flex';
+                    }
+                } catch(e) { console.warn('level chip load', e); }
+                // Highlights and Friends suggestions (best-effort)
+                try {
+                    if (highlightsSection && highlightsStrip) {
+                        const ref = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'highlights');
+                        const snap = await getDocs(ref);
+                        if (!snap.empty) {
+                            highlightsSection.style.display = 'block';
+                            highlightsStrip.innerHTML='';
+                            snap.forEach(d => {
+                                const h = d.data();
+                                const card = document.createElement('a');
+                                card.href = `/Profile.html?userId=${currentUser.uid}&tab=highlights`;
+                                card.className = 'highlight-card';
+                                const cover = h.coverPicId ? getCloudinaryImageUrl(h.coverPicId,'w_600,h_240,c_fill,q_auto') : '';
+                                card.innerHTML = cover ? `<img src="${cover}" alt="cover">` : `<div style="height:100px;display:flex;align-items:center;justify-content:center;opacity:.8;">${h.title||'Highlight'}</div>`;
+                                highlightsStrip.appendChild(card);
+                            });
+                        }
+                    }
+                } catch(e) { console.warn('highlights load', e); }
+                try {
+                    if (friendsSuggestionsSection && friendsSuggestions) {
+                        const publicUsersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+                        const q = query(publicUsersRef, where(documentId(), '!=', currentUser.uid));
+                        const snap = await getDocs(q);
+                        const users=[]; snap.forEach(d=>users.push({id:d.id,...d.data()}));
+                        // Fetch my friends to hide add for existing
+                        const myFriendsSnap = await getDocs(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'friends'));
+                        const myFriends = new Set(); myFriendsSnap.forEach(f=>myFriends.add(f.id));
+                        // Fetch sent requests to hide duplicate
+                        const sentSnap = await getDocs(query(collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests'), where('senderId','==', currentUser.uid)));
+                        const sentSet = new Set(); sentSnap.forEach(s=>sentSet.add(s.data().receiverId||s.id));
+                        const subset = users.slice(0,8);
+                        if (subset.length>0) {
+                            friendsSuggestionsSection.style.display='block';
+                            friendsSuggestions.innerHTML='';
+                            subset.forEach(u=>{
+                                const card = document.createElement('div');
+                                card.className='friend-card';
+                                card.style.position='relative';
+                                const p = u.profilePicId ? getCloudinaryImageUrl(u.profilePicId,'w_96,h_96,c_fill,g_face,r_max') : '';
+                                card.innerHTML = `${p?`<img src=\"${p}\" alt=\"${u.username}\">`:`<i class=\"fas fa-user-circle\" style=\"font-size:42px;opacity:.8;\"></i>`}
+                                    <div class=\"name\">${u.username||'User'}</div>
+                                    <div class=\"actions\">
+                                        ${myFriends.has(u.id) ? '' : (sentSet.has(u.id) ? '' : `<button class=\"friend-add-btn\" data-user-id=\"${u.id}\"><i class=\"fas fa-user-plus\"></i></button>`)}
+                                        <button class=\"friend-msg-btn\" data-user-id=\"${u.id}\"><i class=\"fas fa-paper-plane\"></i></button>
+                                    </div>`;
+                                friendsSuggestions.appendChild(card);
+                            });
+                        }
+                    }
+                } catch(e) { console.warn('friends suggest load', e); }
+                // Friends suggestions: toggle actions on click
+                try {
+                    friendsSuggestions?.addEventListener('click', (ev)=>{
+                        const card = ev.target.closest('.friend-card');
+                        if (!card) return;
+                        const actions = card.querySelector('.actions');
+                        if (actions) actions.style.display = actions.style.display==='flex'?'none':'flex';
+                    });
+                    friendsSuggestions?.addEventListener('click', async (ev)=>{
+                        const addBtn = ev.target.closest('.friend-add-btn');
+                        const msgBtn = ev.target.closest('.friend-msg-btn');
+                        if (addBtn) {
+                            if (!isAuthReady || !currentUser) return showMessageBox('Please log in.', 'warning');
+                            const userId = addBtn.dataset.userId;
+                            try {
+                                // Write public friend request (single collection)
+                                const req = {
+                                    senderId: currentUser.uid,
+                                    receiverId: userId,
+                                    senderUsername: currentUserProfileData?.username || 'User',
+                                    status: 'pending',
+                                    timestamp: serverTimestamp()
+                                };
+                                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests'), req);
+                                addBtn.remove();
+                                showMessageBox('Friend request sent', 'success');
+                            } catch(e){ console.error(e); showMessageBox('Failed to send request','error'); }
+                            return;
+                        }
+                        if (msgBtn) {
+                            const uid = msgBtn.dataset.userId;
+                            window.location.href = `/Private_Chat.html?partnerId=${encodeURIComponent(uid)}`;
+                            return;
+                        }
+                    });
+                } catch(e) { console.warn('friends suggest actions', e); }
+                // Saved widget (recent saved)
+                try {
+                    if (savedWidgetSection && savedWidget) {
+                        const savedRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'saved_posts');
+                        const savedSnap = await getDocs(savedRef);
+                        const ids = [];
+                        savedSnap.forEach(d => ids.push(d.id));
+                        if (ids.length) {
+                            const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+                            const postsSnap = await getDocs(postsRef);
+                            const items = [];
+                            postsSnap.forEach(p => { if (ids.includes(p.id)) items.push({id:p.id, ...p.data()}); });
+                            if (items.length) {
+                                savedWidgetSection.style.display='block';
+                                savedWidget.innerHTML='';
+                                items.slice(0,10).forEach(p => {
+                                    const a = document.createElement('a');
+                                    a.className='saved-card';
+                                    a.href=`/Home.html#post-${p.id}`;
+                                    const cover = p.mediaType==='image'? p.mediaUrl : '';
+                                    a.innerHTML = `${cover?`<img src=\"${cover}\" alt=\"saved\">`:''}<div style=\"padding:8px;opacity:.85;\">${(p.content||'').slice(0,60)}</div>`;
+                                    savedWidget.appendChild(a);
+                                });
+                            }
+                        }
+                    }
+                } catch(e) { console.warn('saved widget load', e); }
                 await fetchAndDisplayPosts(); // This will setup all real-time listeners for posts and comments.
                 fetchNotificationCount(user.uid);
 
@@ -6049,12 +6338,12 @@
                         if (docSnap.exists()) {
                             currentSystemSettings = docSnap.data();
                             console.log("JCHAT_DEBUG: Real-time system settings update for anonymous user:", currentSystemSettings);
-                            applySystemSettings(currentSystemSettings);
+                            setTimeout(() => applySystemSettings(currentSystemSettings), 5000);
                             // Calls are disabled for anonymous users by default by applySystemSettings, so no need to start listener.
-                        } else {
-                            console.warn("JCHAT_WARNING: System settings document not found during snapshot for anonymous user. Re-fetching.");
-                            fetchSystemSettings();
-                        }
+                                            } else {
+                        console.warn("JCHAT_WARNING: System settings document not found during snapshot for anonymous user. Re-fetching.");
+                        if (navigator.onLine) fetchSystemSettings().catch(()=>{});
+                    }
                     }, (error) => {
                         console.error("JCHAT_ERROR: Error listening to system settings for anonymous user:", error);
                         showMessageBox("Failed to get real-time settings updates.", 'error', true);
@@ -6652,6 +6941,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             setupMentionsAutocomplete();
             requestNotificationPermissionIfNeeded();
+            // Fetch system settings early to render announcement ASAP
+            if (navigator.onLine) fetchSystemSettings().catch(()=>{});
         });
 
         // Comment like/unlike with user-specific toggle
@@ -6747,7 +7038,13 @@
             }
         });
 
-        // Modify posts onSnapshot to compute trending + filter saved only
+                    // Clickable: level chip progress opens Levels
+            document.addEventListener('click', (ev) => {
+                const el = ev.target.closest('.chip.level-chip .chip-progress');
+                if (el) window.location.href = '/Levels.html';
+            });
+
+            // Modify posts onSnapshot to compute trending + filter saved only
         const _origFetchAndDisplayPosts = fetchAndDisplayPosts;
         fetchAndDisplayPosts = async function() {
             await _origFetchAndDisplayPosts();
