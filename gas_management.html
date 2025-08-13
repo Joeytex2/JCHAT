@@ -2198,7 +2198,21 @@
         function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
             if (imgElement) {
                 if (profilePicId) {
-                    const imageUrl = profilePicId ? `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${profilePicId}` : null;
+                    let imageUrl = null;
+                    if (/^https?:\/\//i.test(profilePicId)) {
+                        // Full URL provided
+                        const m = profilePicId.match(/^https?:\/\/res\.cloudinary\.com\/([^/]+)\/image\/upload\//i);
+                        if (m) {
+                            // Insert transformations after /upload/
+                            imageUrl = profilePicId.replace(/\/image\/upload\//, `/image/upload/${transformations}/`);
+                        } else {
+                            // Non-cloudinary URL; use as-is
+                            imageUrl = profilePicId;
+                        }
+                    } else {
+                        // Cloudinary public ID
+                        imageUrl = `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${profilePicId}`;
+                    }
                     imgElement.src = imageUrl;
                     imgElement.style.display = 'block';
                     if (iconElement) iconElement.style.display = 'none';
