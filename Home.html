@@ -3452,7 +3452,7 @@
             <!-- Removed Header Navigation (Home, Profile) -->
             <div class="user-profile-header" style="display:flex;align-items:center;gap:10px;">
                 <div style="display:flex;align-items:center;gap:8px;margin-right:6px; position: relative;">
-                    <button id="headerSupportBtn" class="theme-switcher-btn" title="Support" aria-label="Donate"><i class="fas fa-seedling"></i></button>
+                    <a id="headerSupportBtn" href="/Donation.html" class="theme-switcher-btn" title="Support" aria-label="Donate"><i class="fas fa-seedling"></i></a>
                     <span style="font-size:0.85rem;opacity:.8;">Support</span>
                     <div id="donationDropdown" class="donation-dropdown" aria-label="Donation Panel" style="display:none;">
                         <div class="donation-list">
@@ -9764,30 +9764,7 @@
                 }
             });
             const dropdown = document.getElementById('donationDropdown');
-            if (btn) btn.addEventListener('click', async (e)=> { 
-                e.stopPropagation();
-                // Refresh details from local profile, or fetch if missing
-                let bd = currentUserProfileData?.bankDetails || {};
-                if ((!bd.bankName || !bd.accountName || !bd.accountNumber) && currentUser) {
-                    try {
-                        const profileRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
-                        const snap = await getDoc(profileRef);
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            currentUserProfileData = { ...(currentUserProfileData||{}), ...data };
-                            bd = data.bankDetails || bd;
-                        }
-                    } catch {}
-                }
-                const apply = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = val || ''; };
-                apply('donationBankName', bd.bankName || map.donationBankName);
-                apply('donationAccountName', bd.accountName || map.donationAccountName);
-                apply('donationAccountNumber', bd.accountNumber || map.donationAccountNumber);
-                apply('donationSwift', map.donationSwift);
-                apply('donationNote', map.donationNote);
-                // Open centered modal with blur
-                if (modal){ modal.style.display='flex'; modal.classList.add('show'); }
-            });
+            if (btn) btn.addEventListener('click', async (e)=> { /* link navigates to Donation.html */ });
             if (closeBtn) closeBtn.addEventListener('click', ()=> { if (modal){ modal.classList.remove('show'); modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true }); }});
             if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) { modal.classList.remove('show'); modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true }); }});
         })();

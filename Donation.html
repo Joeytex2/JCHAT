@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Donate - JCHAT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <style>
+    :root {
+      --pink: #ff2e92;
+      --blue: #00d5ff;
+      --white: #e0e0e0;
+      --text-light: #a0a0a0;
+      --border-light: rgba(255, 255, 255, 0.12);
+      --card-background: rgba(25, 25, 40, 0.7);
+      --accent: linear-gradient(90deg, var(--blue), var(--pink));
+      --glass: rgba(255,255,255,0.06);
+      --bg: #0e0f16;
+    }
+    body {
+      margin: 0; padding: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(60rem 60rem at -10% -10%, #19213a 0%, transparent 60%),
+                  radial-gradient(60rem 60rem at 110% -10%, #261635 0%, transparent 60%),
+                  var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(0,0,0,0.6);
+      border-bottom: 1px solid var(--border-light);
+      backdrop-filter: blur(8px);
+    }
+    .header-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; max-width: 1000px; margin: 0 auto;
+    }
+    .back-link { color: var(--white); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+    .back-link i { color: var(--white); }
+    .title {
+      font-family: Poppins, sans-serif; font-weight: 800; letter-spacing: -0.02em;
+      background-image: var(--accent); -webkit-background-clip: text; background-clip: text; color: transparent;
+      font-size: 1.1rem;
+    }
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+    .card {
+      width: 100%; max-width: 640px; background: var(--card-background);
+      border: 1px solid var(--border-light); border-radius: 16px; padding: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .card h2 { margin: 0 0 4px 0; font-family: Poppins, sans-serif; font-size: 1.35rem; }
+    .subtitle { margin: 0 0 16px 0; color: var(--text-light); font-size: 0.95rem; }
+    .list { display: grid; gap: 10px; }
+    .item { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px;
+      background: var(--glass); border: 1px solid var(--border-light); border-radius: 10px; padding: 10px; }
+    .label { opacity: .8; font-size: .9rem; }
+    .value { font-weight: 600; word-break: break-all; }
+    .actions { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+    .btn { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border-light);
+      color: #fff; background: var(--glass); cursor: pointer; }
+    .btn.primary { background: var(--accent); border: none; }
+    .note { margin-top: 12px; color: var(--text-light); font-size: .95rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a class="back-link" href="/Home.html" aria-label="Back to Home"><i class="fas fa-arrow-left"></i><span>Back</span></a>
+      <div class="title">Support JCHAT</div>
+      <span></span>
+    </div>
+  </header>
+  <main>
+    <div class="card">
+      <h2>Bank Details</h2>
+      <p class="subtitle">Use the details below to support development. Thank you!</p>
+      <div class="list">
+        <div class="item">
+          <div class="label">Bank Name</div>
+          <div class="value" id="bankName"></div>
+          <button class="btn" data-copy="bankName"><i class="fas fa-copy"></i></button>
+        </div>
+        <div class="item">
+          <div class="label">Account Name</div>
+          <div class="value" id="accountName"></div>
+          <button class="btn" data-copy="accountName"><i class="fas fa-copy"></i></button>
+        </div>
+        <div class="item">
+          <div class="label">Account Number</div>
+          <div class="value" id="accountNumber"></div>
+          <button class="btn" data-copy="accountNumber"><i class="fas fa-copy"></i></button>
+        </div>
+        <div class="item">
+          <div class="label">SWIFT / IBAN</div>
+          <div class="value" id="swift"></div>
+          <button class="btn" data-copy="swift"><i class="fas fa-copy"></i></button>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
+        <button class="btn primary" id="copyAllBtn"><i class="fas fa-clipboard-check"></i> Copy All</button>
+      </div>
+      <div class="note" id="donationNote">Your support keeps JCHAT improving for everyone.</div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
+
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+      apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+      authDomain: "jchat-1.firebaseapp.com",
+      projectId: "jchat-1",
+      storageBucket: "jchat-1.firebasestorage.app",
+      messagingSenderId: "328479683167",
+      appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+      measurementId: "G-S6Z9GG0R9P"
+    };
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const els = {
+      bankName: document.getElementById('bankName'),
+      accountName: document.getElementById('accountName'),
+      accountNumber: document.getElementById('accountNumber'),
+      swift: document.getElementById('swift'),
+      note: document.getElementById('donationNote')
+    };
+
+    function apply(id, val) { if (els[id]) els[id].textContent = val || ''; }
+
+    async function loadBankDetails(user) {
+      let bank = {};
+      if (user) {
+        try {
+          const profileRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profiles', 'user_profile');
+          const snap = await getDoc(profileRef);
+          if (snap.exists()) {
+            bank = snap.data().bankDetails || {};
+          }
+        } catch {}
+      }
+      // Fallback to globals if provided
+      apply('bankName', bank.bankName || (typeof __donation_bank_name !== 'undefined' ? __donation_bank_name : ''));
+      apply('accountName', bank.accountName || (typeof __donation_account_name !== 'undefined' ? __donation_account_name : ''));
+      apply('accountNumber', bank.accountNumber || (typeof __donation_account_number !== 'undefined' ? __donation_account_number : ''));
+      apply('swift', (typeof __donation_swift !== 'undefined' ? __donation_swift : ''));
+      if (typeof __donation_note !== 'undefined') apply('note', __donation_note);
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        try { await signInAnonymously(auth); } catch {}
+      }
+      await loadBankDetails(user || auth.currentUser || null);
+    });
+
+    document.addEventListener('click', (e)=>{
+      const copyBtn = e.target.closest('[data-copy]');
+      if (copyBtn) {
+        const id = copyBtn.getAttribute('data-copy');
+        const el = els[id];
+        const txt = el ? el.textContent.trim() : '';
+        if (txt) navigator.clipboard.writeText(txt).catch(()=>{});
+      }
+    });
+    document.getElementById('copyAllBtn')?.addEventListener('click', ()=>{
+      const txt = `Bank: ${els.bankName?.textContent}\nAccount Name: ${els.accountName?.textContent}\nAccount Number: ${els.accountNumber?.textContent}\nSWIFT/IBAN: ${els.swift?.textContent}`;
+      navigator.clipboard.writeText(txt).catch(()=>{});
+    });
+    document.getElementById('shareBtn')?.addEventListener('click', ()=>{
+      const text = `Support JCHAT\nBank: ${els.bankName?.textContent}\nAccount Name: ${els.accountName?.textContent}\nAccount Number: ${els.accountNumber?.textContent}\nSWIFT/IBAN: ${els.swift?.textContent}`;
+      if (navigator.share) navigator.share({ text }).catch(()=>{}); else navigator.clipboard.writeText(text).catch(()=>{});
+    });
+  </script>
+</body>
+</html>
