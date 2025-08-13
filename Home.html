@@ -799,7 +799,6 @@
             flex-wrap: wrap;
             justify-content: center;
         }
-
         .inspiration-action-button {
             background: var(--button-background);
             color: var(--white);
@@ -2467,6 +2466,10 @@
             <a href="/Home.html" class="sidebar-nav-item active" aria-current="page">
                 <i class="fas fa-home"></i>
                 <span>Home</span>
+            </a>
+            <a href="/Explore.html" class="sidebar-nav-item">
+                <i class="fas fa-hashtag"></i>
+                <span>Explore</span>
             </a>
             <a href="/Profile.html" class="sidebar-nav-item">
                 <i class="fas fa-user"></i>
@@ -4425,6 +4428,7 @@
          * @param {string} commentText - The content of the comment.
          */
         async function addComment(postId, commentText) {
+            const replyingTo = (addComment.replyContext && addComment.replyContext.postId===postId) ? addComment.replyContext.commentId : null;
             if (!isAuthReady || !currentUser || !currentUserProfileData) {
                 showMessageBox("You must be logged in to comment.", 'error');
                 return;
@@ -4457,7 +4461,8 @@
                         username: currentUserProfileData.username || "JCHAT User",
                         profilePhoto: currentUserProfileData.profilePicId || null,
                         content: commentText.trim(),
-                        timestamp: serverTimestamp()
+                        timestamp: serverTimestamp(),
+                        replyingTo: replyingTo || null
                     };
                     transaction.set(newCommentRef, newComment); // Set the new comment data.
                     commentId = newCommentRef.id; // Get the ID of the new comment.
@@ -4482,6 +4487,7 @@
                     );
                 }
 
+                addComment.replyContext = null;
                 showMessageBox("Comment added! 2 XP and 4 JCoins are pending admin review.", 'success');
                 playNotificationSound('success');
             } catch (error) {
@@ -4932,6 +4938,10 @@
                     <a href="./Profile.html?userId=${comment.userId}" class="comment-author-name">${comment.username || 'Anonymous'}</a>
                     <span class="comment-text">${comment.content}</span>
                     <span class="comment-timestamp">${comment.timestamp ? new Date(comment.timestamp.toDate()).toLocaleString() : 'N/A'}</span>
+                    <div class="comment-actions" style="display:inline-flex; gap:8px; margin-left:10px;">
+                        <button class="comment-reply-button" data-post-id="${postId}" data-comment-id="${commentId}"><i class="fas fa-reply"></i> Reply</button>
+                        <button class="comment-like-button" data-post-id="${postId}" data-comment-id="${commentId}"><i class="fas fa-thumbs-up"></i> <span class="comment-like-count">${comment.likes||0}</span></button>
+                    </div>
                     ${isCommentOwner || (currentUser && currentUser.uid === ADMIN_UID) ? `<button class="delete-comment-button" data-post-id="${postId}" data-comment-id="${commentId}" data-comment-author-id="${comment.userId}" ${!isAuthReady || (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) || (!isCommentOwner && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Delete Comment"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
             `;
@@ -5079,11 +5089,18 @@
                                 if (commentsSnapshot.empty) {
                                     commentsListElement.innerHTML = '<p style="font-size:0.85rem; color:var(--text-light); text-align:left; margin-left:10px;" class="no-comments-message">No comments yet.</p>';
                                 } else {
-                                    commentsSnapshot.forEach(commentDoc => {
-                                        const comment = commentDoc.data();
-                                        const commentId = commentDoc.id;
-                                        commentsListElement.appendChild(renderComment(comment, commentId, postId));
-                                    });
+                                                                         commentsSnapshot.forEach(commentDoc => {
+                                         const comment = commentDoc.data();
+                                         const commentId = commentDoc.id;
+                                         const el = renderComment(comment, commentId, postId);
+                                         if (comment.replyingTo) {
+                                             const replyBadge = document.createElement('div');
+                                             replyBadge.style.cssText = 'font-size:0.8rem;color:var(--text-light);margin-top:2px;';
+                                             replyBadge.textContent = 'Replying to a comment';
+                                             el.querySelector('.comment-content-wrapper').appendChild(replyBadge);
+                                         }
+                                         commentsListElement.appendChild(el);
+                                     });
                                 }
                                 // Re-apply disabled state to delete comment buttons after rendering.
                                 commentsListElement.querySelectorAll('.delete-comment-button').forEach(button => {
@@ -6426,7 +6443,6 @@
                 trendingHashtagsDiv.innerHTML = 'Trending: ' + top.map(([tag]) => `<a href="#" class="hashtag-link" data-tag="${tag.substring(1)}">${tag}</a>`).join(' • ');
             }
         }
-
         // Extend renderPost to link hashtags and mentions
         const _origRenderPost = renderPost;
         renderPost = function(post, postId) {
@@ -6579,12 +6595,33 @@
                 const saved = saveBtn.classList.toggle('saved');
                 localStorage.setItem(`saved-post-${pid}`, saved ? '1' : '0');
                 toggleSavePost(pid, saved);
+                return;
             }
             const tagLink = ev.target.closest('.hashtag-link');
             if (tagLink) {
                 const tag = tagLink.dataset.tag;
                 if (postSearchInput) postSearchInput.value = `#${tag}`;
                 fetchAndDisplayPosts();
+                return;
+            }
+            const replyBtn = ev.target.closest('.comment-reply-button');
+            if (replyBtn) {
+                const postId = replyBtn.dataset.postId;
+                const commentId = replyBtn.dataset.commentId;
+                addComment.replyContext = { postId, commentId };
+                const input = document.querySelector(`.comment-input[data-post-id="${postId}"]`);
+                if (input) {
+                    input.focus();
+                    input.placeholder = 'Replying...';
+                }
+                return;
+            }
+            const likeBtn = ev.target.closest('.comment-like-button');
+            if (likeBtn) {
+                const postId = likeBtn.dataset.postId;
+                const commentId = likeBtn.dataset.commentId;
+                likeComment(postId, commentId, likeBtn);
+                return;
             }
         });
 
