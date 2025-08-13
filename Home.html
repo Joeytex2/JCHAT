@@ -9764,10 +9764,21 @@
                 }
             });
             const dropdown = document.getElementById('donationDropdown');
-            if (btn) btn.addEventListener('click', (e)=> { 
+            if (btn) btn.addEventListener('click', async (e)=> { 
                 e.stopPropagation();
-                // Refresh details from profile
-                const bd = currentUserProfileData?.bankDetails || {};
+                // Refresh details from local profile, or fetch if missing
+                let bd = currentUserProfileData?.bankDetails || {};
+                if ((!bd.bankName || !bd.accountName || !bd.accountNumber) && currentUser) {
+                    try {
+                        const profileRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
+                        const snap = await getDoc(profileRef);
+                        if (snap.exists()) {
+                            const data = snap.data();
+                            currentUserProfileData = { ...(currentUserProfileData||{}), ...data };
+                            bd = data.bankDetails || bd;
+                        }
+                    } catch {}
+                }
                 const apply = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = val || ''; };
                 apply('donationBankName', bd.bankName || map.donationBankName);
                 apply('donationAccountName', bd.accountName || map.donationAccountName);
