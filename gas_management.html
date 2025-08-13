@@ -1719,6 +1719,42 @@
                     <!-- Pending requests will be dynamically loaded here -->
                 </div>
 
+                <!-- NEW: Billing Approval Queues -->
+                <h3>Wallet Unlock Requests</h3>
+                <div id="walletUnlockQueue"></div>
+                <p id="noWalletUnlockMsg" class="no-requests-message" style="display:none;">No pending unlocks.</p>
+
+                <h3>Premium Subscription Requests</h3>
+                <div id="premiumReqQueue"></div>
+                <p id="noPremiumReqMsg" class="no-requests-message" style="display:none;">No pending subscriptions.</p>
+
+                <!-- NEW: Plan Limits Editor -->
+                <h3>Premium Plan Limits</h3>
+                <div class="card" style="padding:12px; margin-bottom:16px;">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <label><span>Plan:</span>
+                            <select id="planKeySelect">
+                                <option value="starter">Starter</option>
+                                <option value="pro">Pro</option>
+                                <option value="creator">Creator</option>
+                                <option value="business">Business</option>
+                            </select>
+                        </label>
+                        <label>Chat media MB <input id="limit_chatMediaMaxMB" type="number" min="1"></label>
+                        <label>Voice seconds <input id="limit_voiceNoteSeconds" type="number" min="10"></label>
+                        <label>Edit window (min) <input id="limit_chatEditWindowMin" type="number" min="1"></label>
+                        <label>Delete window (min) <input id="limit_chatDeleteWindowMin" type="number" min="1"></label>
+                        <label>Pinned per chat <input id="limit_pinnedPerChat" type="number" min="0"></label>
+                        <label>Post media MB <input id="limit_postMediaMaxMB" type="number" min="1"></label>
+                        <label>Groups create max <input id="limit_groupsCreateMax" type="number" min="0"></label>
+                        <label>Group members cap <input id="limit_groupMembersCap" type="number" min="50"></label>
+                        <label>Monthly JCoins <input id="limit_monthlyJCoins" type="number" min="0"></label>
+                        <label>XP multiplier <input id="limit_xpMultiplier" type="number" step="0.1" min="1"></label>
+                        <button id="savePlanLimitsBtn" class="admin-button"><span class="button-text">Save Limits</span><div class="button-loader"></div></button>
+                    </div>
+                    <small style="color:var(--text-light)">Saves to artifacts/{appId}/billing/plan_limits</small>
+                </div>
+
                 <!-- Pending Activity Rewards Section -->
                 <h3>Pending Activity Rewards</h3>
                 <div class="bulk-actions-container">
@@ -4893,6 +4929,137 @@
             if (e.target && (e.target.id === 'announcementTextInput')) updateAnnouncementPreview();
         });
         document.addEventListener('DOMContentLoaded', updateAnnouncementPreview);
+
+        // Load Wallet Unlock + Premium Requests queues
+        async function loadBillingQueues() {
+            try {
+                const unlockQ = document.getElementById('walletUnlockQueue');
+                const noUnlock = document.getElementById('noWalletUnlockMsg');
+                const premQ = document.getElementById('premiumReqQueue');
+                const noPrem = document.getElementById('noPremiumReqMsg');
+                if (!unlockQ || !premQ) return;
+                unlockQ.innerHTML = ''; premQ.innerHTML = '';
+                const [unlockSnap, premSnap] = await Promise.all([
+                    getDocs(query(collection(db, 'artifacts', appId, 'billing', 'wallet_unlock_requests'), where('status','==','pending'), orderBy('createdAt','desc'))),
+                    getDocs(query(collection(db, 'artifacts', appId, 'billing', 'premium_requests'), where('status','==','pending'), orderBy('createdAt','desc')))
+                ]);
+                if (unlockSnap.empty) { if (noUnlock) noUnlock.style.display='block'; } else { if (noUnlock) noUnlock.style.display='none'; }
+                unlockSnap.forEach(d=>{
+                    const r=d.data();
+                    const div=document.createElement('div');
+                    div.className='req';
+                    div.innerHTML = `<div><div class="label">${d.id}</div><div>User: ${r.userId}</div><div>Amount: ₦${r.amount||0}</div>${r.receiptUrl?`<div><a href="${r.receiptUrl}" target="_blank">Receipt</a></div>`:''}</div>
+                    <div style="display:flex;gap:6px;">
+                        <button class="admin-button" data-approve-unlock="${d.id}"><span class="button-text">Approve</span><div class="button-loader"></div></button>
+                        <button class="admin-button secondary" data-reject-unlock="${d.id}"><span class="button-text">Reject</span><div class="button-loader"></div></button>
+                    </div>`;
+                    unlockQ.appendChild(div);
+                });
+                if (premSnap.empty) { if (noPrem) noPrem.style.display='block'; } else { if (noPrem) noPrem.style.display='none'; }
+                premSnap.forEach(d=>{
+                    const r=d.data();
+                    const div=document.createElement('div');
+                    div.className='req';
+                    div.innerHTML = `<div><div class="label">${d.id}</div><div>User: ${r.userId}</div><div>Plan: ${r.plan}</div><div>Amount: ₦${r.amount||0}</div>${r.receiptUrl?`<div><a href="${r.receiptUrl}" target="_blank">Receipt</a></div>`:''}</div>
+                    <div style="display:flex;gap:6px;">
+                        <button class="admin-button" data-approve-premium="${d.id}"><span class="button-text">Approve</span><div class="button-loader"></div></button>
+                        <button class="admin-button secondary" data-reject-premium="${d.id}"><span class="button-text">Reject</span><div class="button-loader"></div></button>
+                    </div>`;
+                    premQ.appendChild(div);
+                });
+            } catch (e) { console.error(e); }
+        }
+        document.addEventListener('click', async (e)=>{
+            const approveUnlock = e.target.closest?.('[data-approve-unlock]');
+            const rejectUnlock = e.target.closest?.('[data-reject-unlock]');
+            const approvePrem = e.target.closest?.('[data-approve-premium]');
+            const rejectPrem = e.target.closest?.('[data-reject-premium]');
+            try {
+                if (approveUnlock) {
+                    const id = approveUnlock.getAttribute('data-approve-unlock');
+                    const ref = doc(db, 'artifacts', appId, 'billing', 'wallet_unlock_requests', id);
+                    const snap = await getDoc(ref); if (!snap.exists()) return;
+                    const { userId } = snap.data();
+                    // set walletUnlocked true on user_profile
+                    const profileRef = doc(db, 'artifacts', appId, 'users', userId, 'profiles', 'user_profile');
+                    await updateDoc(profileRef, { walletUnlocked: true });
+                    await updateDoc(ref, { status: 'approved', approvedAt: serverTimestamp(), approvedBy: auth.currentUser?.uid||'' });
+                    showMessageBox('Wallet unlocked.', 'success');
+                    loadBillingQueues();
+                }
+                if (rejectUnlock) {
+                    const id = rejectUnlock.getAttribute('data-reject-unlock');
+                    const ref = doc(db, 'artifacts', appId, 'billing', 'wallet_unlock_requests', id);
+                    await updateDoc(ref, { status: 'rejected', decidedAt: serverTimestamp(), decidedBy: auth.currentUser?.uid||'' });
+                    showMessageBox('Unlock rejected.', 'info');
+                    loadBillingQueues();
+                }
+                if (approvePrem) {
+                    const id = approvePrem.getAttribute('data-approve-premium');
+                    const ref = doc(db, 'artifacts', appId, 'billing', 'premium_requests', id);
+                    const snap = await getDoc(ref); if (!snap.exists()) return;
+                    const { userId, plan } = snap.data();
+                    const profileRef = doc(db, 'artifacts', appId, 'users', userId, 'profiles', 'user_profile');
+                    const expiry = new Date(); expiry.setMonth(expiry.getMonth()+1);
+                    await updateDoc(profileRef, { premiumStatus: { status: 'active', plan: (plan||'starter'), cycle: 'monthly', startedAt: serverTimestamp(), expiry } });
+                    await updateDoc(ref, { status: 'approved', approvedAt: serverTimestamp(), approvedBy: auth.currentUser?.uid||'' });
+                    showMessageBox('Premium activated.', 'success');
+                    loadBillingQueues();
+                }
+                if (rejectPrem) {
+                    const id = rejectPrem.getAttribute('data-reject-premium');
+                    const ref = doc(db, 'artifacts', appId, 'billing', 'premium_requests', id);
+                    await updateDoc(ref, { status: 'rejected', decidedAt: serverTimestamp(), decidedBy: auth.currentUser?.uid||'' });
+                    showMessageBox('Subscription rejected.', 'info');
+                    loadBillingQueues();
+                }
+            } catch (err) { console.error(err); showMessageBox(err?.message||'Action failed', 'error'); }
+        });
+
+        // Plan limits editor
+        async function loadPlanLimitsEditor() {
+            try {
+                const refDoc = doc(db, 'artifacts', appId, 'billing', 'plan_limits');
+                const snap = await getDoc(refDoc).catch(()=>null);
+                const data = snap && snap.exists() ? snap.data() : {};
+                window.__plan_limits_cache = data;
+                const planSel = document.getElementById('planKeySelect');
+                const inputs = [
+                    'chatMediaMaxMB','voiceNoteSeconds','chatEditWindowMin','chatDeleteWindowMin','pinnedPerChat','postMediaMaxMB','groupsCreateMax','groupMembersCap','monthlyJCoins','xpMultiplier'
+                ];
+                function fill(plan){
+                    const pl = (data[plan] || {});
+                    inputs.forEach(k=>{
+                        const el = document.getElementById('limit_'+k);
+                        if (el) el.value = (pl[k] ?? '');
+                    });
+                }
+                planSel?.addEventListener('change', ()=> fill(planSel.value));
+                fill(planSel?.value||'starter');
+                document.getElementById('savePlanLimitsBtn')?.addEventListener('click', async ()=>{
+                    try {
+                        const plan = planSel.value;
+                        const payload = {};
+                        inputs.forEach(k=>{
+                            const el = document.getElementById('limit_'+k);
+                            const val = el && el.value !== '' ? Number(el.value) : null;
+                            if (val !== null && !Number.isNaN(val)) payload[k] = val;
+                        });
+                        const refDoc2 = doc(db, 'artifacts', appId, 'billing', 'plan_limits');
+                        await setDoc(refDoc2, { [plan]: payload }, { merge: true });
+                        showMessageBox('Plan limits saved.', 'success');
+                    } catch (e) { console.error(e); showMessageBox(e?.message||'Failed to save', 'error'); }
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        // Hook into existing auth ready branch
+        // After admin login, also load queues and editor
+        unsubscribeListeners.push?.(()=>{});
+        // Invoke after auth state is ready in existing code paths
+        document.addEventListener('DOMContentLoaded', ()=>{
+            setTimeout(()=>{ loadBillingQueues(); loadPlanLimitsEditor(); }, 1000);
+        });
 
     </script>
 </body>

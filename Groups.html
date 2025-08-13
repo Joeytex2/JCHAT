@@ -1990,6 +1990,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, runTransaction, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // orderBy added here!
+        import { resolvePlanKey, getLimit, DEFAULT_LIMITS } from "/entitlements.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -2545,6 +2546,10 @@
          * Fetches and displays groups the current user is a member of.
          */
         function fetchMyGroups() {
+            // plan context available after auth
+            const planKey = resolvePlanKey(currentUserProfileData || {});
+            window.__groups_planKey = planKey;
+            window.__groups_limits = window.__groups_limits || DEFAULT_LIMITS;
             if (!currentUser) {
                 loadingMyGroupsMessage.textContent = "Please log in to see your groups.";
                 return;
@@ -2780,6 +2785,13 @@
 
             try {
                 const groupRef = doc(db, "artifacts", appId, "public", "data", "groups", groupId);
+                // enforce group members cap
+                const groupSnap = await getDoc(groupRef);
+                const gData = groupSnap.data() || {};
+                const planKey = resolvePlanKey(currentUserProfileData || {});
+                const cap = getLimit(window.__groups_limits || DEFAULT_LIMITS, planKey, 'groupMembersCap', DEFAULT_LIMITS.free.groupMembersCap);
+                const currentCount = Array.isArray(gData.members) ? gData.members.length : 0;
+                if (currentCount >= cap) { throw new Error(`Group is full for your plan (cap ${cap}).`); }
                 await updateDoc(groupRef, {
                     members: arrayUnion(currentUser.uid) // Add current user to members array
                 });
@@ -3844,6 +3856,12 @@
                 isAuthReady = true;
                 await fetchAndDisplayHeaderProfile(user);
                 fetchNotificationCount(user.uid);
+                // load plan limits doc
+                try {
+                    const planRef = doc(db, 'artifacts', appId, 'billing', 'plan_limits');
+                    const snap = await getDoc(planRef).catch(()=>null);
+                    window.__groups_limits = snap && snap.exists() ? snap.data() : DEFAULT_LIMITS;
+                } catch (_) { window.__groups_limits = DEFAULT_LIMITS; }
                 fetchMyGroups(); // Start fetching user's groups
                 fetchDiscoverGroups(); // Start fetching discoverable groups
                 checkDailyCheckinStatus(); // Check daily check-in status
@@ -3896,6 +3914,13 @@
             createGroupFab.addEventListener('click', () => {
                 if (!currentUser || !currentUserProfileData) {
                     showMessageBox("Please log in to create a group.", "error");
+                    return;
+                }
+                const planKey = resolvePlanKey(currentUserProfileData || {});
+                const maxCreate = getLimit(window.__groups_limits || DEFAULT_LIMITS, planKey, 'groupsCreateMax', DEFAULT_LIMITS.free.groupsCreateMax);
+                const myOwned = myGroupsData.filter(g=> (g.admin === currentUser.uid)).length;
+                if (myOwned >= maxCreate) {
+                    showMessageBox(`Limit reached. Your plan allows ${maxCreate} groups.`, "warning");
                     return;
                 }
                 if (currentUserProfileData.jCoins < GROUP_CREATION_COST) {
