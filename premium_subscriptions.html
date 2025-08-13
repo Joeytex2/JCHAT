@@ -444,7 +444,7 @@
 
         <div class="subscription-grid">
             <!-- Basic Premium -->
-            <div class="subscription-card">
+            <div class="subscription-card" data-plan="basic">
                 <div class="plan-name">Basic Premium</div>
                 <div class="plan-price">
                     <span class="currency">₦</span>499
@@ -460,13 +460,11 @@
                     <li><i class="fas fa-check"></i> 100 JCoins monthly bonus</li>
                 </ul>
                 
-                <button class="subscribe-btn" onclick="subscribeToPlan('basic')">
-                    Subscribe Now
-                </button>
+                <button id="basicBtn" class="subscribe-btn" onclick="subscribeToPlan('basic')"><span class="btn-text">Subscribe Now</span> <span class="loading-spinner" style="display:none;margin-left:8px;"><i class="fas fa-spinner fa-spin"></i></span></button>
             </div>
 
             <!-- Pro Premium -->
-            <div class="subscription-card featured">
+            <div class="subscription-card featured" data-plan="pro">
                 <div class="plan-name">Pro Premium</div>
                 <div class="plan-price">
                     <span class="currency">₦</span>999
@@ -484,13 +482,11 @@
                     <li><i class="fas fa-check"></i> Priority chat features</li>
                 </ul>
                 
-                <button class="subscribe-btn" onclick="subscribeToPlan('pro')">
-                    Subscribe Now
-                </button>
+                <button id="proBtn" class="subscribe-btn" onclick="subscribeToPlan('pro')"><span class="btn-text">Subscribe Now</span> <span class="loading-spinner" style="display:none;margin-left:8px;"><i class="fas fa-spinner fa-spin"></i></span></button>
             </div>
 
             <!-- Enterprise -->
-            <div class="subscription-card">
+            <div class="subscription-card" data-plan="enterprise">
                 <div class="plan-name">Enterprise</div>
                 <div class="plan-price">
                     <span class="currency">₦</span>1999
@@ -508,9 +504,7 @@
                     <li><i class="fas fa-check"></i> Dedicated support</li>
                 </ul>
                 
-                <button class="subscribe-btn" onclick="subscribeToPlan('enterprise')">
-                    Subscribe Now
-                </button>
+                <button id="enterpriseBtn" class="subscribe-btn" onclick="subscribeToPlan('enterprise')"><span class="btn-text">Subscribe Now</span> <span class="loading-spinner" style="display:none;margin-left:8px;"><i class="fas fa-spinner fa-spin"></i></span></button>
             </div>
         </div>
 
@@ -559,7 +553,7 @@
 
     <div id="messageBox" class="message-box"></div>
 
-    <script>
+    <script type="text/disabled">
         // Check if user is logged in and has premium status
         let currentUser = null;
         let userPremiumStatus = null;
@@ -692,16 +686,15 @@
             console.log('User authenticated:', currentUser);
         }
 
-        // Show message
+        // Show message (module-safe)
         function showMessage(message, type = 'info') {
-            const messageBox = document.getElementById('messageBox');
-            messageBox.textContent = message;
-            messageBox.className = `message-box show ${type}`;
-            
-            setTimeout(() => {
-                messageBox.classList.remove('show');
-            }, 5000);
+            const box = document.getElementById('messageBox');
+            if (!box) return alert(message);
+            box.textContent = message;
+            box.className = `message-box show ${type}`;
+            setTimeout(() => { box.classList.remove('show'); }, 5000);
         }
+        window.showMessage = showMessage;
     </script>
 
     <!-- Firebase SDK -->
@@ -756,8 +749,17 @@
         };
 
         // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
+                 document.addEventListener('DOMContentLoaded', function() {
             checkUserAuth();
+            // expose handlers for inline onclick
+            window.subscribeToPlan = subscribeToPlan;
+            window.manageSubscription = manageSubscription;
+            window.purchaseJCoins = purchaseJCoins;
+            // allow deep link for wallet unlock
+            const params = new URLSearchParams(location.search);
+            if (params.get('unlockWallet') === '1') {
+                alert('To unlock your wallet, pay ₦' + (params.get('amount')||'5000') + ' to Opay 8111609765 (Elechi Joshua) and send proof to WhatsApp 08111609765. A developer will unlock after verification.');
+            }
         });
 
         // Check user authentication
@@ -769,7 +771,7 @@
                     updateSubscriptionUI();
                 } else {
                     // Redirect to login if not authenticated
-                    window.location.href = '/Login.html';
+                    window.location.href = '/login.html';
                 }
             });
         }
@@ -1019,7 +1021,7 @@ Please contact support to complete your payment and activate your subscription.`
         // Logout
         function handleLogout() {
             signOut(auth).then(() => {
-                window.location.href = '/Login.html';
+                window.location.href = '/login.html';
             }).catch((error) => {
                 console.error('Error signing out:', error);
                 showMessage('Error signing out', 'error');
