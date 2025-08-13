@@ -5446,7 +5446,15 @@
                         const spacer = ' \u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0 ';
                         const repeated = `${text}${spacer}${text}${spacer}${text}`;
                         trackEl.textContent = repeated;
-                        trackEl.style.setProperty('--ann-duration', `${Math.round(durationMs/1000)}s`);
+                        // Compute duration based on actual width for a smooth px/sec speed
+                        requestAnimationFrame(() => {
+                            const ticker = annEl.querySelector('.announcement-ticker');
+                            const containerWidth = ticker ? ticker.offsetWidth : annEl.offsetWidth;
+                            const travel = (trackEl.scrollWidth || 600) + containerWidth; // px to travel
+                            const pxPerSec = 40; // lower = slower
+                            const durationSec = Math.max(20, Math.round(travel / pxPerSec));
+                            trackEl.style.setProperty('--ann-duration', `${durationSec}s`);
+                        });
                         annEl.style.display = 'block';
                         document.body.classList.add('has-announcement');
                     } else {
