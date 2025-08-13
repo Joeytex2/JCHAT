@@ -1474,8 +1474,13 @@
                 <!-- Messages will be loaded here dynamically -->
                 <p id="loadingMessages" style="text-align: center; color: var(--text-light);">Loading messages...</p>
                 <p id="noMessages" style="text-align: center; color: var(--text-light); display: none;">No messages yet. Start a conversation!</p>
+                <p id="typingIndicator" style="display:none; color: var(--text-light); font-style: italic; margin: 6px 12px;">Typing...</p>
             </div>
             <div class="chat-input-area">
+                <div id="replyPreview" style="display:none; margin: 6px 0; padding: 6px 8px; border-left: 3px solid var(--accent-color); color: var(--text-light); background: rgba(255,255,255,0.05); border-radius: 6px;">
+                    <span id="replyPreviewText"></span>
+                    <button id="cancelReplyBtn" style="float:right; background:none; border:none; color: var(--text-light); cursor:pointer;">Cancel</button>
+                </div>
                 <div class="chat-actions-top">
                     <input type="file" id="mediaInput" accept="image/*,video/*" style="display: none;">
                     <button id="mediaShareBtn" title="Share Media"><i class="fas fa-image"></i> Media</button>
@@ -1587,6 +1592,10 @@
         const sendMessageBtn = document.getElementById('sendMessageBtn');
         const loadingMessages = document.getElementById('loadingMessages');
         const noMessages = document.getElementById('noMessages');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const replyPreview = document.getElementById('replyPreview');
+        const replyPreviewText = document.getElementById('replyPreviewText');
+        const cancelReplyBtn = document.getElementById('cancelReplyBtn');
 
         // New elements for media/voice/calls
         const mediaInput = document.getElementById('mediaInput');
@@ -1633,6 +1642,8 @@
         let isRecording = false;
         let recordingStartTime;
         let recordingInterval;
+        let currentReplyContext = null; // { messageId, text, senderId }
+        let typingUnsubscribe = null;
 
         // New global variables for managing unread counts and their listeners
         let unreadMessageCountsByFriendId = {}; // Stores {friendId: count}
@@ -2094,6 +2105,21 @@
                 messageBubble.appendChild(messageInfo);
             }
 
+            // Reply/quote affordance
+            if (message.type === 'text') {
+                const replyBtn = document.createElement('button');
+                replyBtn.className = 'message-reply-btn';
+                replyBtn.style.cssText = 'background:none;border:none;color:var(--text-light);font-size:0.8rem;margin-top:2px;cursor:pointer;';
+                replyBtn.textContent = 'Reply';
+                replyBtn.addEventListener('click', () => {
+                    currentReplyContext = { messageId: message.id, text: message.text, senderId: message.senderId };
+                    replyPreviewText.textContent = message.text.slice(0, 120);
+                    replyPreview.style.display = 'block';
+                    messageInput.focus();
+                });
+                messageBubble.appendChild(replyBtn);
+            }
+
             // Add message options (edit/delete) if sent by current user and not a call status message
             if (isSentByCurrentUser && message.type !== 'call_status') {
                 const optionsBtn = document.createElement('button');
@@ -2351,6 +2377,15 @@
                     noMessages.textContent = "Failed to load messages. Please try again.";
                 }
             });
+
+            // Typing indicator listener
+            if (typingUnsubscribe) typingUnsubscribe();
+            const typingDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'chats', chatRoomId, 'typing');
+            typingUnsubscribe = onSnapshot(typingDocRef, (snap) => {
+                const data = snap.data() || {};
+                const partnerTyping = data[partnerId] === true;
+                typingIndicator.style.display = partnerTyping ? 'block' : 'none';
+            });
         }
 
         /**
@@ -2391,6 +2426,10 @@
 
                 if (type === 'text') {
                     messageData.text = content;
+                    if (currentReplyContext) {
+                        messageData.replyTo = currentReplyContext.messageId;
+                        messageData.replyPreview = (currentReplyContext.text || '').slice(0, 180);
+                    }
                 } else if (type === 'image' || type === 'video' || type === 'audio') {
                     messageData.mediaUrl = content;
                 } else if (type === 'call_status') {
@@ -2402,6 +2441,8 @@
                 if (type === 'text') {
                     messageInput.value = ''; // Clear input field
                     messageInput.style.height = 'auto'; // Reset textarea height
+                    currentReplyContext = null;
+                    replyPreview.style.display = 'none';
                 }
 
                 // Send notification to the receiver for new messages (not call status)
@@ -3354,6 +3395,23 @@
             if (recordingInterval) {
                 clearInterval(recordingInterval); // Clear timer on unload
             }
+        });
+
+        // Typing status: set flag on input and clear after idle
+        let typingTimeout;
+        function setTyping(active) {
+            try {
+                if (!currentUser || !partnerId) return;
+                const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                const typingDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'chats', chatRoomId, 'typing');
+                setDoc(typingDocRef, { [currentUser.uid]: !!active }, { merge: true });
+            } catch (_) {}
+        }
+
+        messageInput.addEventListener('input', () => {
+            setTyping(true);
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => setTyping(false), 1200);
         });
     </script>
 </body>

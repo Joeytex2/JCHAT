@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>JCHAT - Explore</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+	<style>
+		body { margin:0; font-family: Inter, system-ui, sans-serif; background:#121212; color:#eee; }
+		header { position:sticky; top:0; background:#1e1e1e; border-bottom:1px solid #333; padding:10px 16px; display:flex; align-items:center; gap:12px; z-index:2; }
+		.logo { font-weight:800; letter-spacing:-0.02em; text-decoration:none; color:transparent; background-image:linear-gradient(90deg,#00d5ff,#ff2e92); -webkit-background-clip:text; background-clip:text; }
+		main { max-width:1100px; margin:0 auto; padding:16px; }
+		.grid { display:grid; grid-template-columns: 260px 1fr; gap:16px; }
+		.card { background:#1e1e1e; border:1px solid #333; border-radius:12px; padding:12px; }
+		.tag { display:inline-block; margin:4px 6px 0 0; padding:6px 10px; border-radius:20px; background:#232323; border:1px solid #333; color:#cfefff; cursor:pointer; }
+		.post { background:#1b1b1b; border:1px solid #333; border-radius:12px; padding:12px; margin-bottom:10px; }
+		.post-header { display:flex; align-items:center; gap:10px; }
+		.post-body { margin-top:8px; white-space:pre-wrap; }
+		.search { width:100%; padding:8px 10px; border-radius:8px; border:1px solid #333; background:#222; color:#eee; }
+	</style>
+</head>
+<body>
+	<header>
+		<a href="/Home.html" class="logo">JCHAT</a>
+		<h1 style="margin:0;font-size:1.1rem; color:#ddd;">Explore</h1>
+	</header>
+	<main>
+		<div class="grid">
+			<aside class="card">
+				<h3 style="margin-top:0">Trending tags</h3>
+				<div id="tags"></div>
+			</aside>
+			<section>
+				<div class="card" style="margin-bottom:10px;">
+					<input id="search" class="search" placeholder="Search #tag or text..." />
+				</div>
+				<div id="feed"></div>
+			</section>
+		</div>
+	</main>
+	<script type="module">
+		import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
+		import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
+
+		const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+			apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+			authDomain: "jchat-1.firebaseapp.com",
+			projectId: "jchat-1",
+			storageBucket: "jchat-1.firebasestorage.app",
+			messagingSenderId: "328479683167",
+			appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+			measurementId: "G-S6Z9GG0R9P"
+		};
+		const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+		const app = initializeApp(firebaseConfig);
+		const db = getFirestore(app);
+
+		const feed = document.getElementById('feed');
+		const tagsWrap = document.getElementById('tags');
+		const search = document.getElementById('search');
+
+		function linkHashtags(text){
+			return (text||'').replace(/(^|\s)#(\w{2,30})/g,(m,p1,tag)=>`${p1}<a href="#" data-tag="${tag}">#${tag}</a>`)
+		}
+		function renderPost(p){
+			const el = document.createElement('div'); el.className='post';
+			el.innerHTML = `<div class="post-header"><strong>${p.username||'Anonymous'}</strong><span style="color:#888;font-size:.85rem;">${p.timestamp?new Date(p.timestamp.toDate()).toLocaleString():''}</span></div><div class="post-body">${linkHashtags(p.content)}</div>`;
+			return el;
+		}
+		async function load(){
+			const postsRef = collection(db,'artifacts',appId,'public','data','posts');
+			const snap = await getDocs(query(postsRef, orderBy('timestamp','desc')));
+			const posts = snap.docs.map(d=>d.data());
+			// trending
+			const counts = new Map();
+			for(const p of posts){
+				const m = (p.content||'').match(/#\w{2,30}/g);
+				if(m) m.forEach(t=>counts.set(t,(counts.get(t)||0)+1));
+			}
+			const top = [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,20).map(x=>x[0].slice(1));
+			tagsWrap.innerHTML = top.map(t=>`<button class="tag" data-tag="${t}">#${t}</button>`).join('') || '<div style="color:#888">No trending tags</div>';
+			// feed
+			function apply(){
+				const q = (search.value||'').trim().toLowerCase();
+				feed.innerHTML = '';
+				for(const p of posts){
+					if(q){
+						if(q.startsWith('#')){ if(!(p.content||'').toLowerCase().includes(q)) continue; }
+						else { if(!(p.content||'').toLowerCase().includes(q)) continue; }
+					}
+					feed.appendChild(renderPost(p));
+				}
+			}
+			apply();
+			search.addEventListener('input', apply);
+			tagsWrap.addEventListener('click', (e)=>{ const btn=e.target.closest('[data-tag]'); if(!btn) return; search.value = '#'+btn.dataset.tag; apply(); window.scrollTo({top:0,behavior:'smooth'}); });
+		}
+		load().catch(console.error);
+	</script>
+</body>
+</html>
