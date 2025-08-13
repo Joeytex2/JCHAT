@@ -5989,7 +5989,8 @@
                     if (docSnap.exists()) {
                         currentSystemSettings = docSnap.data();
                         console.log("JCHAT_DEBUG: Real-time system settings update:", currentSystemSettings);
-                        applySystemSettings(currentSystemSettings); // Apply settings on every change.
+                        // Delay announcement render by 5 seconds after login to avoid late flicker
+                        setTimeout(() => applySystemSettings(currentSystemSettings), 5000);
                         // Start listening for calls only after settings are loaded and calls are enabled.
                         if (currentSystemSettings.enableCalls) {
                             listenForIncomingCalls();
@@ -6049,7 +6050,7 @@
                         if (docSnap.exists()) {
                             currentSystemSettings = docSnap.data();
                             console.log("JCHAT_DEBUG: Real-time system settings update for anonymous user:", currentSystemSettings);
-                            applySystemSettings(currentSystemSettings);
+                            setTimeout(() => applySystemSettings(currentSystemSettings), 5000);
                             // Calls are disabled for anonymous users by default by applySystemSettings, so no need to start listener.
                         } else {
                             console.warn("JCHAT_WARNING: System settings document not found during snapshot for anonymous user. Re-fetching.");
