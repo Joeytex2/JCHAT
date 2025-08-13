@@ -48,7 +48,7 @@
     }
     main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
     .card {
-      width: 100%; max-width: 640px; background: var(--card-background);
+      width: 100%; max-width: 720px; background: var(--card-background);
       border: 1px solid var(--border-light); border-radius: 16px; padding: 18px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     }
@@ -59,6 +59,11 @@
       background: var(--glass); border: 1px solid var(--border-light); border-radius: 10px; padding: 10px; }
     .label { opacity: .8; font-size: .9rem; }
     .value { font-weight: 600; word-break: break-all; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    @media (min-width: 720px) { .grid { grid-template-columns: 1fr 280px; align-items: start; } }
+    .qr-panel { background: var(--glass); border: 1px solid var(--border-light); border-radius: 12px; padding: 12px; display:flex; flex-direction:column; gap:10px; align-items:center; }
+    .qr-panel h3 { margin: 0; font-size: 1rem; font-family: Poppins, sans-serif; }
+    .qr-img { width: 240px; height: 240px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border-light); background: rgba(0,0,0,.25); }
     .actions { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
     .btn { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border-light);
       color: #fff; background: var(--glass); cursor: pointer; }
@@ -76,35 +81,44 @@
   </header>
   <main>
     <div class="card">
-      <h2>Bank Details</h2>
-      <p class="subtitle">Use the details below to support development. Thank you!</p>
-      <div class="list">
-        <div class="item">
-          <div class="label">Bank Name</div>
-          <div class="value" id="bankName"></div>
-          <button class="btn" data-copy="bankName"><i class="fas fa-copy"></i></button>
+      <div class="grid">
+        <div>
+          <h2>Bank Details</h2>
+          <p class="subtitle">Use the details below to support development. Thank you!</p>
+          <div class="list">
+            <div class="item">
+              <div class="label">Bank Name</div>
+              <div class="value" id="bankName"></div>
+              <button class="btn" data-copy="bankName"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="item">
+              <div class="label">Account Name</div>
+              <div class="value" id="accountName"></div>
+              <button class="btn" data-copy="accountName"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="item">
+              <div class="label">Account Number</div>
+              <div class="value" id="accountNumber"></div>
+              <button class="btn" data-copy="accountNumber"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="item">
+              <div class="label">SWIFT / IBAN</div>
+              <div class="value" id="swift"></div>
+              <button class="btn" data-copy="swift"><i class="fas fa-copy"></i></button>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
+            <button class="btn primary" id="copyAllBtn"><i class="fas fa-clipboard-check"></i> Copy All</button>
+          </div>
+          <div class="note" id="donationNote">Your support keeps JCHAT improving for everyone.</div>
         </div>
-        <div class="item">
-          <div class="label">Account Name</div>
-          <div class="value" id="accountName"></div>
-          <button class="btn" data-copy="accountName"><i class="fas fa-copy"></i></button>
-        </div>
-        <div class="item">
-          <div class="label">Account Number</div>
-          <div class="value" id="accountNumber"></div>
-          <button class="btn" data-copy="accountNumber"><i class="fas fa-copy"></i></button>
-        </div>
-        <div class="item">
-          <div class="label">SWIFT / IBAN</div>
-          <div class="value" id="swift"></div>
-          <button class="btn" data-copy="swift"><i class="fas fa-copy"></i></button>
+        <div class="qr-panel" id="qrPanel" style="display:none;">
+          <h3>Quick Donate (QR)</h3>
+          <img id="qrImage" class="qr-img" alt="Donation QR" />
+          <div class="note" id="qrNote">Scan this code in your banking app.</div>
         </div>
       </div>
-      <div class="actions">
-        <button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
-        <button class="btn primary" id="copyAllBtn"><i class="fas fa-clipboard-check"></i> Copy All</button>
-      </div>
-      <div class="note" id="donationNote">Your support keeps JCHAT improving for everyone.</div>
     </div>
   </main>
 
@@ -113,6 +127,7 @@
     import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
+    // Use app-injected Firebase config if available, fallback to known defaults
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
       apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
       authDomain: "jchat-1.firebaseapp.com",
@@ -124,6 +139,12 @@
     };
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
+    // Cloudinary (optional) for QR or images
+    const cloudinaryConfig = {
+      cloudName: (typeof __cloudinary_cloud_name !== 'undefined' ? __cloudinary_cloud_name : 'dxld01rcp'),
+      uploadPreset: (typeof __cloudinary_upload_preset !== 'undefined' ? __cloudinary_upload_preset : 'Storage_preset')
+    };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -133,10 +154,22 @@
       accountName: document.getElementById('accountName'),
       accountNumber: document.getElementById('accountNumber'),
       swift: document.getElementById('swift'),
-      note: document.getElementById('donationNote')
+      note: document.getElementById('donationNote'),
+      qrPanel: document.getElementById('qrPanel'),
+      qrImage: document.getElementById('qrImage'),
+      qrNote: document.getElementById('qrNote')
     };
 
     function apply(id, val) { if (els[id]) els[id].textContent = val || ''; }
+
+    function renderQRIfProvided() {
+      const pubId = (typeof __donation_qr_public_id !== 'undefined' ? __donation_qr_public_id : '');
+      if (!pubId) return;
+      if (!els.qrPanel || !els.qrImage) return;
+      const url = `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/w_520,h_520,c_fit,q_auto,f_auto/${pubId}`;
+      els.qrImage.src = url;
+      els.qrPanel.style.display = 'flex';
+    }
 
     async function loadBankDetails(user) {
       let bank = {};
@@ -155,6 +188,7 @@
       apply('accountNumber', bank.accountNumber || (typeof __donation_account_number !== 'undefined' ? __donation_account_number : ''));
       apply('swift', (typeof __donation_swift !== 'undefined' ? __donation_swift : ''));
       if (typeof __donation_note !== 'undefined') apply('note', __donation_note);
+      renderQRIfProvided();
     }
 
     onAuthStateChanged(auth, async (user) => {
