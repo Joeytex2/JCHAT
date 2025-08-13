@@ -4437,6 +4437,10 @@
         let currentUserProfileData = null; // Stores the authenticated user's own profile data from Firestore.
         let inspirationIntervalId = null; // Interval ID for refreshing daily inspiration.
         let dailyBonusCountdownInterval = null; // Interval for daily bonus cooldown countdown.
+        // Notifications subscription state
+        let unsubscribeNotifications = null;
+        let notificationsInitialLoadDone = false;
+        let lastNotificationSnapshotTs = 0;
         let currentMediaFile = null; // Stores the file object for new post media.
         let currentEditPostId = null; // Stores the ID of the post being edited.
         let currentEditMediaFile = null; // Stores the new file object for edited post media.
@@ -7597,6 +7601,7 @@
                 await fetchSystemSettings(); // Initial fetch of system settings.
                 await fetchAndDisplayPosts(); // This will setup all real-time listeners for posts and comments.
                 fetchNotificationCount(user.uid);
+                if (typeof subscribeToUserNotifications === 'function') { subscribeToUserNotifications(user.uid); }
 
 
             } else {
