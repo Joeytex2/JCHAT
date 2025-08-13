@@ -495,7 +495,6 @@
         .notification-icon-wrapper.has-notifications a:hover i {
             animation-play-state: paused;
         }
-
         /* --- Comprehensive Notification System CSS --- */
         
         /* Toast Notifications */
@@ -997,7 +996,6 @@
             border: 2px solid var(--blue);
             flex-shrink: 0;
         }
-
         .post-header .author-pic {
             width: 100%;
             height: 100%;
@@ -1497,7 +1495,6 @@
             border: 1px solid var(--border-light);
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
         }
-
         .modal-content .cancel-button:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: translateY(-1px);
@@ -1946,8 +1943,6 @@
         #callOverlay.voice-call .video-streams {
             display: none; /* Hide video streams for voice calls */
         }
-
-
         /* Responsive Adjustments */
         @media (max-width: 600px) {
             header .header-content-wrapper {
@@ -2442,7 +2437,6 @@
         <h2 id="maintenanceOverlayTitle">Maintenance Mode</h2>
         <p id="maintenanceAnnouncementText">JCHAT is currently undergoing scheduled maintenance. We'll be back online shortly!</p>
     </div>
-
     <!-- Call Overlay (NEW) -->
     <div id="callOverlay" role="dialog" aria-modal="true" aria-labelledby="callStatusText">
         <div class="video-streams">
@@ -2909,7 +2903,6 @@
                 { quote: "Choose love, even on the small days.", author: "JCHAT" },
             ]
         };
-
         // --- Level and XP Progression Logic ---
         /**
          * Provides information about user levels, XP requirements, and rewards.
@@ -3405,7 +3398,6 @@
         function stopRingingSound() {
             ringingPattern.stop();
         }
-
         // --- Utility Functions ---
         /**
          * Displays a custom message box with a given message, type, and persistence.
@@ -3879,7 +3871,6 @@
                 console.error("JCHAT_ERROR: Error updating posts with new profile picture:", error);
             }
         }
-
         /**
          * Fetches and displays the current user's profile information in the header.
          * Creates a new profile if one doesn't exist.
@@ -4324,7 +4315,6 @@
                 toggleButtonLoading(createPostButton, false); // Hide loading spinner.
             }
         }
-
         /**
          * Handles user reactions (like, love, haha) to a post.
          * Uses a transaction to update reaction counts and user's reaction status.
@@ -4811,7 +4801,6 @@
                 playNotificationSound('error');
             }
         }
-
         /**
          * Renders a single post HTML element.
          * @param {object} post - The post data object from Firestore.
@@ -5308,7 +5297,6 @@
         // NEW: System Settings Logic
         // Document reference for global system settings in Firestore.
         const SYSTEM_SETTINGS_DOC_REF = doc(db, "artifacts", appId, "public", "data", "settings", "system_settings");
-
         /**
          * Fetches global system settings from Firestore.
          * If settings document doesn't exist, it creates it with default values.
@@ -5805,7 +5793,6 @@
                 });
             }
         }
-
         /**
          * Toggles video on/off during a call.
          */
@@ -6303,7 +6290,6 @@
             for (const r of rows) lines.push(headers.map(h => escape(r[h])).join(','));
             return lines.join('\n');
         }
-
         async function fetchAllPostsForExport(filters) {
             const postsCollectionRef = collection(db, "artifacts", appId, "public", "data", "posts");
             const qAll = query(postsCollectionRef, orderBy("timestamp", "desc"));
@@ -6412,14 +6398,19 @@
             return text.replace(/(^|\s)#(\w{2,30})/g, (m, p1, tag) => `${p1}<a href="#" class="hashtag-link" data-tag="${tag}">#${tag}</a>`);
         }
 
+        // Link @mentions to Profile
+        function linkMentions(text) {
+            if (!text) return '';
+            return text.replace(/(^|\s)@(\w{2,30})/g, (m, p1, handle) => `${p1}<a href="/Profile.html?handle=${handle}" class="mention-link" data-handle="${handle}">@${handle}</a>`);
+        }
+
         // Track hashtags for trending display
         function updateTrendingHashtags(allPosts) {
             const counts = new Map();
             allPosts.forEach(p => {
-                const content = p.content || '';
-                const matches = content.match(/#\w{2,30}/g) || [];
-                matches.forEach(tag => {
-                    counts.set(tag, (counts.get(tag) || 0) + 1);
+                const matches = (p.content || '').match(/#\w{2,30}/g);
+                if (matches) matches.forEach(t => {
+                    counts.set(t, (counts.get(t) || 0) + 1);
                 });
             });
             const top = [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -6429,16 +6420,150 @@
             }
         }
 
-        // Extend renderPost to link hashtags
+        // Extend renderPost to link hashtags and mentions
         const _origRenderPost = renderPost;
         renderPost = function(post, postId) {
             const el = _origRenderPost(post, postId);
             const textDiv = el.querySelector('.post-content-text p');
-            if (textDiv) {
-                textDiv.innerHTML = linkHashtags(post.content);
+            if (textDiv && textDiv.textContent) {
+                const linked = linkMentions(linkHashtags(textDiv.textContent));
+                textDiv.innerHTML = linked;
             }
             return el;
         }
+
+        // Mentions autocomplete (basic)
+        function setupMentionsAutocomplete() {
+            if (!postContentInput) return;
+            let dropdown;
+            postContentInput.addEventListener('input', async () => {
+                const value = postContentInput.value;
+                const atIdx = value.lastIndexOf('@');
+                if (atIdx === -1) { if (dropdown) dropdown.remove(); return; }
+                const fragment = value.slice(atIdx + 1);
+                if (!/^\w{1,30}$/.test(fragment)) { if (dropdown) dropdown.remove(); return; }
+                // Query top users by prefix (fallback local placeholder if Firestore unavailable)
+                let suggestions = [];
+                try {
+                    const usersRef = collection(db, 'artifacts', appId, 'public', 'users');
+                    // Simple contains filter (limit): Firestore doesn't support prefix easily; fetch limited and filter client-side
+                    const snap = await getDocs(query(usersRef, orderBy('username'), limit(20)));
+                    suggestions = snap.docs
+                        .map(d => d.data())
+                        .filter(u => (u.username || '').toLowerCase().startsWith(fragment.toLowerCase()))
+                        .slice(0, 5)
+                        .map(u => ({ username: u.username, handle: (u.handle || u.username || '').replace(/\s+/g,'') }));
+                } catch (_) {
+                    suggestions = [];
+                }
+                if (!dropdown) {
+                    dropdown = document.createElement('div');
+                    dropdown.style.cssText = 'position:absolute; z-index:1000; background: var(--card-background); border:1px solid var(--border-light); border-radius:8px; padding:6px; display:flex; flex-direction:column; gap:4px; max-height:180px; overflow:auto;';
+                    postContentInput.parentElement.style.position = 'relative';
+                    postContentInput.parentElement.appendChild(dropdown);
+                }
+                dropdown.innerHTML = suggestions.map(s => `<button type="button" class="mention-suggestion" data-handle="${s.handle}">@${s.username}</button>`).join('') || '<div style="color:var(--text-light);padding:6px;">No matches</div>';
+                dropdown.querySelectorAll('.mention-suggestion').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const handle = btn.dataset.handle;
+                        postContentInput.value = value.slice(0, atIdx) + '@' + handle + ' ' + value.slice(atIdx + 1 + fragment.length);
+                        dropdown.remove(); dropdown = null;
+                        postContentInput.focus();
+                    });
+                });
+            });
+            document.addEventListener('click', (e) => {
+                if (dropdown && !e.target.closest('.mention-suggestion') && e.target !== postContentInput) {
+                    dropdown.remove(); dropdown = null;
+                }
+            });
+        }
+
+        // Offline post queue with background retry
+        const OFFLINE_POST_QUEUE_KEY = 'jchat_offline_post_queue_v1';
+        function enqueueOfflinePost(data) {
+            try {
+                const q = JSON.parse(localStorage.getItem(OFFLINE_POST_QUEUE_KEY) || '[]');
+                q.push({ ...data, queuedAt: Date.now() });
+                localStorage.setItem(OFFLINE_POST_QUEUE_KEY, JSON.stringify(q));
+                showMessageBox('Post queued. It will be sent when you are online.', 'info');
+            } catch (_) {}
+        }
+        async function flushOfflineQueue() {
+            try {
+                const q = JSON.parse(localStorage.getItem(OFFLINE_POST_QUEUE_KEY) || '[]');
+                if (!q.length) return;
+                const remaining = [];
+                for (const item of q) {
+                    try {
+                        await createNewPostDirect(item.content, item.mediaUrl, item.mediaType, item.pollOptions || null);
+                    } catch (_) {
+                        remaining.push(item);
+                    }
+                }
+                localStorage.setItem(OFFLINE_POST_QUEUE_KEY, JSON.stringify(remaining));
+                if (remaining.length === 0) showMessageBox('All queued posts sent.', 'success');
+            } catch (_) {}
+        }
+        window.addEventListener('online', flushOfflineQueue);
+
+        // Wrapper used by queue to bypass UI state
+        async function createNewPostDirect(content, mediaUrl, mediaType, pollOptions) {
+            if (!isAuthReady || !currentUser || !currentUserProfileData) throw new Error('not ready');
+            const postsRef = collection(db, 'artifacts', appId, 'public', 'posts');
+            const newPost = {
+                authorId: currentUser.uid,
+                username: currentUserProfileData.displayName || 'Anonymous',
+                profilePhoto: currentUserProfileData.profilePicId || null,
+                content: content,
+                mediaUrl: mediaUrl || null,
+                mediaType: mediaType || null,
+                pollOptions: pollOptions || null,
+                reactions: {},
+                commentsCount: 0,
+                createdAt: serverTimestamp(),
+                isEdited: false
+            };
+            await addDoc(postsRef, newPost);
+        }
+
+        // Hook into existing post create to handle offline mode
+        const _origCreateNewPost = createNewPost;
+        createNewPost = async function() {
+            try {
+                await _origCreateNewPost();
+            } catch (err) {
+                if (!navigator.onLine) {
+                    // Gather current composer state
+                    const content = (postContentInput && postContentInput.value) || '';
+                    const mediaUrl = (mediaImagePreview && mediaImagePreview.src && mediaImagePreview.style.display !== 'none') ? mediaImagePreview.src : ((mediaVideoPreview && mediaVideoPreview.src && mediaVideoPreview.style.display !== 'none') ? mediaVideoPreview.src : null);
+                    const mediaType = mediaUrl ? (mediaImagePreview && mediaImagePreview.style.display !== 'none' ? 'image' : 'video') : null;
+                    enqueueOfflinePost({ content, mediaUrl, mediaType });
+                } else {
+                    throw err;
+                }
+            }
+        }
+
+        // Notification permission prompt (deferred)
+        async function requestNotificationPermissionIfNeeded() {
+            try {
+                if (!('Notification' in window)) return;
+                if (Notification.permission === 'default') {
+                    // Ask only after some engagement: e.g., after first post list render
+                    setTimeout(() => {
+                        Notification.requestPermission().catch(()=>{});
+                    }, 3000);
+                }
+            } catch (_) {}
+        }
+
+        // Initialize enhancements on DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            setupMentionsAutocomplete();
+            requestNotificationPermissionIfNeeded();
+        });
+
         // Hook into document click for save and hashtag
         document.addEventListener('click', (ev) => {
             const saveBtn = ev.target.closest('.save-post-button');
