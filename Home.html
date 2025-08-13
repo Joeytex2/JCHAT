@@ -2179,9 +2179,13 @@
         .scroll-row::-webkit-scrollbar { height:6px; }
         .scroll-row::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius:6px; }
         .highlight-card, .friend-card, .saved-card { flex:0 0 auto; width:160px; border:1px solid var(--glass-blue); background: var(--card-background); border-radius:10px; overflow:hidden; }
-        .highlight-card img, .friend-card img, .saved-card img { width:100%; height:100px; object-fit:cover; display:block; }
-        .friend-card .meta { padding:8px; display:flex; align-items:center; gap:8px; }
-        .friend-card .meta img { width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid var(--border-light); } 
+        .friend-card { width:88px; border-radius:999px; padding:6px; display:flex; flex-direction:column; align-items:center; gap:6px; }
+        .friend-card img { width:48px; height:48px; border-radius:50%; object-fit:cover; border:1px solid var(--border-light); }
+        .friend-card .name { font-size:.72rem; text-align:center; line-height:1.1; background-image: linear-gradient(90deg, var(--pink), var(--blue)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+        .friend-card .actions { display:none; position:absolute; top:54px; left:50%; transform:translateX(-50%); background:var(--card-background); border:1px solid var(--glass-blue); border-radius:10px; padding:6px; gap:6px; z-index:5; }
+        .friend-card .actions button { font-size:.7rem; padding:6px 8px; border:1px solid var(--border-light); border-radius:8px; background:var(--button-background); color:#fff; cursor:pointer; }
+        .highlight-card img, .saved-card img { width:100%; height:100px; object-fit:cover; display:block; }
+        .friend-card .meta { display:none; } 
 
         /* Engagement Panel */
         .engagement-panel { display:grid; grid-template-columns: 1fr; gap: 12px; margin: 10px 0; }
@@ -2336,7 +2340,7 @@
             </div>
             <!-- Friends Suggestions -->
             <div class="friends-suggestions-section" id="friendsSuggestionsSection" style="display:none;">
-                <div class="section-title"><i class="fas fa-user-friends"></i> Friends you may know</div>
+                <div class="section-title" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;"><i class="fas fa-user-friends"></i> People you may know</div>
                 <div class="scroll-row" id="friendsSuggestions"></div>
             </div>
             <!-- Saved Widget -->
@@ -6179,16 +6183,44 @@
                             friendsSuggestionsSection.style.display='block';
                             friendsSuggestions.innerHTML='';
                             subset.forEach(u=>{
-                                const card = document.createElement('a');
+                                const card = document.createElement('div');
                                 card.className='friend-card';
-                                card.href=`/Profile.html?userId=${u.id}`;
-                                const p = u.profilePicId ? getCloudinaryImageUrl(u.profilePicId,'w_300,h_150,c_fill,q_auto') : '';
-                                card.innerHTML = `${p?`<img src=\"${p}\" alt=\"${u.username}\">`:''}<div class=\"meta\"><img src=\"${p||'https://placehold.co/64x64'}\" alt=\"${u.username}\"><div>${u.username||'User'}</div></div>`;
+                                card.style.position='relative';
+                                const p = u.profilePicId ? getCloudinaryImageUrl(u.profilePicId,'w_96,h_96,c_fill,g_face,r_max') : '';
+                                card.innerHTML = `${p?`<img src=\"${p}\" alt=\"${u.username}\">`:`<i class=\"fas fa-user-circle\" style=\"font-size:42px;opacity:.8;\"></i>`}
+                                    <div class=\"name\">${u.username||'User'}</div>
+                                    <div class=\"actions\">
+                                        <button class=\"friend-add-btn\" data-user-id=\"${u.id}\"><i class=\"fas fa-user-plus\"></i></button>
+                                        <button class=\"friend-msg-btn\" data-user-id=\"${u.id}\"><i class=\"fas fa-paper-plane\"></i></button>
+                                    </div>`;
                                 friendsSuggestions.appendChild(card);
                             });
                         }
                     }
                 } catch(e) { console.warn('friends suggest load', e); }
+                // Friends suggestions: toggle actions on click
+                try {
+                    friendsSuggestions?.addEventListener('click', (ev)=>{
+                        const card = ev.target.closest('.friend-card');
+                        if (!card) return;
+                        const actions = card.querySelector('.actions');
+                        if (actions) actions.style.display = actions.style.display==='flex'?'none':'flex';
+                    });
+                    friendsSuggestions?.addEventListener('click', async (ev)=>{
+                        const addBtn = ev.target.closest('.friend-add-btn');
+                        const msgBtn = ev.target.closest('.friend-msg-btn');
+                        if (addBtn) {
+                            if (!isAuthReady || !currentUser) return showMessageBox('Please log in.', 'warning');
+                            const userId = addBtn.dataset.userId;
+                            try { await sendFriendRequest(userId, addBtn); } catch(e){ console.error(e);} return;
+                        }
+                        if (msgBtn) {
+                            const uid = msgBtn.dataset.userId;
+                            window.location.href = `/Private_Chat.html?partnerId=${encodeURIComponent(uid)}`;
+                            return;
+                        }
+                    });
+                } catch(e) { console.warn('friends suggest actions', e); }
                 // Saved widget (recent saved)
                 try {
                     if (savedWidgetSection && savedWidget) {
