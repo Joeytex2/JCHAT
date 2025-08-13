@@ -2641,7 +2641,7 @@
         // Import Firebase modules (Updated to v11.8.0 - Latest Stable)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, where, getDocs, addDoc, runTransaction, writeBatch, serverTimestamp, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, where, getDocs, addDoc, runTransaction, writeBatch, serverTimestamp, arrayUnion, arrayRemove, onSnapshot, documentId } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         // Firebase configuration, dynamically loaded from Canvas environment variables if available.
@@ -6095,7 +6095,7 @@
                         }
                     } else {
                         console.warn("JCHAT_WARNING: System settings document not found during snapshot. Re-fetching.");
-                        fetchSystemSettings(); // Re-fetch if document disappears.
+                        if (navigator.onLine) fetchSystemSettings().catch(()=>{});
                     }
                 }, (error) => {
                     console.error("JCHAT_ERROR: Error listening to system settings:", error);
@@ -6103,7 +6103,7 @@
                 });
                 unsubscribeListeners.push(unsubscribeSettings); // Add to list to unsubscribe on unload.
 
-                await fetchSystemSettings(); // Initial fetch of system settings.
+                if (navigator.onLine) { try { await fetchSystemSettings(); } catch(_){} } else { console.warn('JCHAT_WARN: offline, skipping system settings fetch'); } // Initial fetch of system settings.
                 // Level chip
                 try {
                     const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profiles', 'user_profile');
@@ -6223,10 +6223,10 @@
                             console.log("JCHAT_DEBUG: Real-time system settings update for anonymous user:", currentSystemSettings);
                             setTimeout(() => applySystemSettings(currentSystemSettings), 5000);
                             // Calls are disabled for anonymous users by default by applySystemSettings, so no need to start listener.
-                        } else {
-                            console.warn("JCHAT_WARNING: System settings document not found during snapshot for anonymous user. Re-fetching.");
-                            fetchSystemSettings();
-                        }
+                                            } else {
+                        console.warn("JCHAT_WARNING: System settings document not found during snapshot for anonymous user. Re-fetching.");
+                        if (navigator.onLine) fetchSystemSettings().catch(()=>{});
+                    }
                     }, (error) => {
                         console.error("JCHAT_ERROR: Error listening to system settings for anonymous user:", error);
                         showMessageBox("Failed to get real-time settings updates.", 'error', true);
@@ -6825,7 +6825,7 @@
             setupMentionsAutocomplete();
             requestNotificationPermissionIfNeeded();
             // Fetch system settings early to render announcement ASAP
-            fetchSystemSettings().catch(()=>{});
+            if (navigator.onLine) fetchSystemSettings().catch(()=>{});
         });
 
         // Comment like/unlike with user-specific toggle
