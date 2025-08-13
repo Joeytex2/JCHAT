@@ -3036,6 +3036,11 @@
          * @param {number} level - The current level of the user.
          * @returns {object} An object containing level details.
          */
+        // Global cumulative Gas helper matching Profile.html
+        function getTotalGasRequiredToReachLevel(level) {
+            if (level <= 0) return 0;
+            return 1500 * level * (level + 1) / 2;
+        }
         function getLevelInfo(level) {
             // CHALLENGING SYSTEM - Dynamic calculation matching Profile.html
             let jCoinReward = 0;
@@ -6213,7 +6218,7 @@
                         const myFriendsSnap = await getDocs(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'friends'));
                         const myFriends = new Set(); myFriendsSnap.forEach(f=>myFriends.add(f.id));
                         // Fetch sent requests to hide duplicate
-                        const sentSnap = await getDocs(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'friend_requests', 'sent'));
+                        const sentSnap = await getDocs(query(collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests'), where('senderId','==', currentUser.uid)));
                         const sentSet = new Set(); sentSnap.forEach(s=>sentSet.add(s.data().receiverId||s.id));
                         const subset = users.slice(0,8);
                         if (subset.length>0) {
@@ -6227,7 +6232,7 @@
                                 card.innerHTML = `${p?`<img src=\"${p}\" alt=\"${u.username}\">`:`<i class=\"fas fa-user-circle\" style=\"font-size:42px;opacity:.8;\"></i>`}
                                     <div class=\"name\">${u.username||'User'}</div>
                                     <div class=\"actions\">
-                                        <button class=\"friend-add-btn\" data-user-id=\"${u.id}\"><i class=\"fas fa-user-plus\"></i></button>
+                                        ${myFriends.has(u.id) ? '' : (sentSet.has(u.id) ? '' : `<button class=\"friend-add-btn\" data-user-id=\"${u.id}\"><i class=\"fas fa-user-plus\"></i></button>`)}
                                         <button class=\"friend-msg-btn\" data-user-id=\"${u.id}\"><i class=\"fas fa-paper-plane\"></i></button>
                                     </div>`;
                                 friendsSuggestions.appendChild(card);
@@ -6249,7 +6254,20 @@
                         if (addBtn) {
                             if (!isAuthReady || !currentUser) return showMessageBox('Please log in.', 'warning');
                             const userId = addBtn.dataset.userId;
-                            try { await sendFriendRequest(userId, addBtn); } catch(e){ console.error(e);} return;
+                            try {
+                                // Write public friend request (single collection)
+                                const req = {
+                                    senderId: currentUser.uid,
+                                    receiverId: userId,
+                                    senderUsername: currentUserProfileData?.username || 'User',
+                                    status: 'pending',
+                                    timestamp: serverTimestamp()
+                                };
+                                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'friend_requests'), req);
+                                addBtn.remove();
+                                showMessageBox('Friend request sent', 'success');
+                            } catch(e){ console.error(e); showMessageBox('Failed to send request','error'); }
+                            return;
                         }
                         if (msgBtn) {
                             const uid = msgBtn.dataset.userId;
