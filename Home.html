@@ -799,7 +799,6 @@
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
             margin: 0;
         }
-
         .daily-inspiration-section .quote-text {
             font-size: 0.9rem;
             color: var(--white);
@@ -2237,6 +2236,16 @@
             </div>
         </div>
     </header>
+
+    <!-- Announcement Header (Developer announcements) -->
+    <div id="announcementHeader" class="announcement-header" role="region" aria-label="Developer Announcement">
+        <div class="announcement-content">
+            <span class="announcement-logo">JCHAT</span>
+            <div class="announcement-ticker">
+                <div id="announcementTrack" class="announcement-track"></div>
+            </div>
+        </div>
+    </div>
 
     <a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">Skip to main content</a>
 
@@ -4164,7 +4173,6 @@
         function closeCustomizeModal() {
             if (customizeInspirationModal) customizeInspirationModal.classList.remove('active');
         }
-
         /**
          * Saves the selected inspiration type to Firestore.
          */
@@ -4934,9 +4942,7 @@
         }
         /**
          * Renders a single comment HTML element.
-         * @param {object} comment - The comment data object from Firestore.
-         * @param {string} commentId - The ID of the comment.
-         * @param {string} postId - The ID of the post the comment belongs to.
+         * @param {object} comment, commentId, postId
          * @returns {HTMLElement} The created comment HTML element.
          */
         function renderComment(comment, commentId, postId) {
@@ -5423,6 +5429,34 @@
                 document.body.style.overflow = 'auto';
                 toggleInteractiveElements(true, isCurrentUserAdmin); // Enable all interactions initially, pass isAdmin.
             }
+
+            // Developer Announcement Header toggle
+            try {
+                const annEl = document.getElementById('announcementHeader');
+                const trackEl = document.getElementById('announcementTrack');
+                if (annEl && trackEl) {
+                    const enabled = settings.announcementEnabled ?? true; // default to true if not specified
+                    const text = (settings.announcementText && settings.announcementText.trim()) || (settings.globalAnnouncement || '').trim();
+                    const now = new Date();
+                    const startOk = !settings.announcementStartTime || (settings.announcementStartTime.toDate ? settings.announcementStartTime.toDate() <= now : true);
+                    const endOk = !settings.announcementEndTime || (settings.announcementEndTime.toDate ? settings.announcementEndTime.toDate() >= now : true);
+                    const shouldShow = enabled && !!text && startOk && endOk;
+                    if (shouldShow) {
+                        const durationMs = Math.max(15000, parseInt(settings.announcementDurationMs || 45000));
+                        const spacer = ' \u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0 ';
+                        const repeated = `${text}${spacer}${text}${spacer}${text}`;
+                        trackEl.textContent = repeated;
+                        trackEl.style.animation = `jchat-scroll-left ${durationMs}ms linear infinite`;
+                        annEl.style.display = 'block';
+                        document.body.classList.add('has-announcement');
+                    } else {
+                        annEl.style.display = 'none';
+                        document.body.classList.remove('has-announcement');
+                        trackEl.textContent = '';
+                        trackEl.style.animation = '';
+                    }
+                }
+            } catch (e) { console.warn('JCHAT_WARN: Announcement toggle failed', e); }
 
             // Now, apply individual feature toggles.
             // These will refine the state set by the maintenance mode logic above.
