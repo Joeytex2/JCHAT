@@ -3452,7 +3452,7 @@
             <!-- Removed Header Navigation (Home, Profile) -->
             <div class="user-profile-header" style="display:flex;align-items:center;gap:10px;">
                 <div style="display:flex;align-items:center;gap:8px;margin-right:6px; position: relative;">
-                    <a id="headerSupportBtn" href="/Donation.html" class="theme-switcher-btn" title="Support" aria-label="Donate"><i class="fas fa-seedling"></i></a>
+                    <a id="headerSupportBtn" href="#" class="theme-switcher-btn" title="Support" aria-label="Donate"><i class="fas fa-seedling"></i></a>
                     <span style="font-size:0.85rem;opacity:.8;">Support</span>
                     <div id="donationDropdown" class="donation-dropdown" aria-label="Donation Panel" style="display:none;">
                         <div class="donation-list">
@@ -4045,6 +4045,52 @@
                 <div class="donation-item">
                     <div class="label">Note</div>
                     <div class="value" id="donationNote"></div>
+                </div>
+                
+                <!-- Exact Wallet Bank Sections -->
+                <div class="donation-item" style="grid-template-columns:1fr auto; grid-column: 1 / -1; margin-top: 8px;">
+                    <div style="font-weight:700;">OPay Details</div>
+                    <div></div>
+                </div>
+                <div class="donation-item">
+                    <div class="label">Bank</div>
+                    <div class="value">OPay</div>
+                    <button class="copy-btn" data-copy-static="OPay"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="donation-item">
+                    <div class="label">Account Name</div>
+                    <div class="value" id="opayAccountName">ELECHI JOSHUA</div>
+                    <button class="copy-btn" data-copy="opayAccountName"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="donation-item">
+                    <div class="label">Account Number</div>
+                    <div class="value" id="opayAccountNumber">8111609765</div>
+                    <button class="copy-btn" data-copy="opayAccountNumber"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="donation-item">
+                    <div class="label">Reference (Your JCHAT User ID)</div>
+                    <div class="value" id="opayReference"></div>
+                    <button class="copy-btn" data-copy="opayReference"><i class="fas fa-copy"></i></button>
+                </div>
+                
+                <div class="donation-item" style="grid-template-columns:1fr auto; grid-column: 1 / -1; margin-top: 8px;">
+                    <div style="font-weight:700;">Bank Transfer (Keystone Bank)</div>
+                    <div></div>
+                </div>
+                <div class="donation-item">
+                    <div class="label">Bank</div>
+                    <div class="value">Keystone Bank</div>
+                    <button class="copy-btn" data-copy-static="Keystone Bank"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="donation-item">
+                    <div class="label">Account Name</div>
+                    <div class="value" id="keystoneAccountName">ELECHI OSOUNDU JOSHUA</div>
+                    <button class="copy-btn" data-copy="keystoneAccountName"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="donation-item">
+                    <div class="label">Account Number</div>
+                    <div class="value" id="keystoneAccountNumber">6042862356</div>
+                    <button class="copy-btn" data-copy="keystoneAccountNumber"><i class="fas fa-copy"></i></button>
                 </div>
             </div>
             <div class="donation-actions">
@@ -9757,6 +9803,11 @@
             document.addEventListener('click', (e)=>{
                 const copyBtn = e.target.closest('.copy-btn');
                 if (copyBtn) {
+                    const staticVal = copyBtn.getAttribute('data-copy-static');
+                    if (staticVal) {
+                        navigator.clipboard.writeText(staticVal).then(()=> showMessageBox('Copied', 'success')).catch(()=> showMessageBox('Copy failed', 'error'));
+                        return;
+                    }
                     const targetId = copyBtn.getAttribute('data-copy');
                     const valueEl = document.getElementById(targetId);
                     const text = valueEl ? valueEl.textContent.trim() : '';
@@ -9764,7 +9815,11 @@
                 }
             });
             const dropdown = document.getElementById('donationDropdown');
-            if (btn) btn.addEventListener('click', async (e)=> { /* link navigates to Donation.html */ });
+            if (btn) btn.addEventListener('click', async (e)=> { e.preventDefault(); if (!modal) return; // ensure latest user UID for reference
+                const uid = (auth && auth.currentUser && auth.currentUser.uid) ? auth.currentUser.uid : (currentUser && currentUser.uid ? currentUser.uid : '');
+                const refEl = document.getElementById('opayReference'); if (refEl) refEl.textContent = uid || '';
+                modal.style.display = 'flex'; modal.offsetHeight; modal.classList.add('show');
+            });
             if (closeBtn) closeBtn.addEventListener('click', ()=> { if (modal){ modal.classList.remove('show'); modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true }); }});
             if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) { modal.classList.remove('show'); modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true }); }});
         })();
