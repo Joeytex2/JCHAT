@@ -879,7 +879,9 @@
                 return;
             }
             
-            processSubscription(planType, plans[planType]);
+            // Redirect to Wallet payment hub with prefilled plan
+            const p = plans[planType];
+            window.location.href = `/Wallet.html?subscribe=1&plan=${encodeURIComponent(planType)}&amount=${encodeURIComponent(p.price)}&currency=NGN`;
         }
 
         // Process subscription - integrated with Home.html JCoin system
@@ -982,6 +984,8 @@ Please contact support to complete your payment and activate your subscription.`
 
         // Purchase JCoins - integrated with Home.html JCoin system
         async function purchaseJCoins(amount, price) {
+            window.location.href = `/Wallet.html?buyJCoins=1&amount=${encodeURIComponent(price)}&j=${encodeURIComponent(amount)}&currency=NGN`;
+            return;
             if (isProcessing) return;
             if (!currentUser) {
                 showMessage('Please log in to purchase JCoins', 'error');
