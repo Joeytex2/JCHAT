@@ -15,6 +15,14 @@
     <meta name="description" content="JCHAT - Modern social chat platform with levels, JCoins, and community features">
     <meta name="keywords" content="chat, social, messaging, community, levels, gaming">
     <meta name="author" content="JCHAT Team">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta property="og:title" content="JCHAT - Home">
+    <meta property="og:description" content="Modern social chat platform with levels, JCoins, and community features">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://placehold.co/1200x630/1a1a2e/ffffff?text=JCHAT">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Poppins, Arial, sans-serif' font-size='28' fill='%23ffffff'%3EJ%3C/text%3E%3C/svg%3E">
 
     <!-- Google Fonts: Poppins for headings, Inter for body text -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -109,6 +117,20 @@
 
         .theme-switcher-btn:active {
             transform: scale(0.98);
+        }
+
+        /* Skip link focus for accessibility */
+        .skip-link:focus {
+            position: static !important;
+            left: auto !important;
+            width: auto !important;
+            height: auto !important;
+            padding: 8px 12px;
+            background: var(--button-background);
+            color: var(--white);
+            border-radius: 8px;
+            outline: 2px solid var(--accent-color);
+            z-index: 9999;
         }
         /* --- Theme Definitions (Light and Dark Mode) --- */
         /* Light Mode */
@@ -254,39 +276,6 @@
             --button-background: rgba(0, 213, 255, 0.15); /* Glassy button */
             --button-hover-background: rgba(0, 213, 255, 0.25);
             --active-item-background: rgba(0, 213, 255, 0.1);
-        }
-
-        /* Sunset Theme */
-        body.theme-sunset-mode {
-            background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
-            background-color: transparent !important;
-            background-image: linear-gradient(to top, #ff7e5f, #feb47b) !important;
-            --background-main: linear-gradient(to top, #ff7e5f, #feb47b);
-            --card-background: rgba(255, 255, 255, 0.15);
-            --white: #fff;
-            --text-light: rgba(255, 255, 255, 0.8);
-            --input-background: rgba(255, 255, 255, 0.1);
-            --border-light: rgba(255, 255, 255, 0.3);
-            --button-background: linear-gradient(90deg, #fd746c, #ff9068);
-            --button-shadow: 0 4px 15px rgba(253, 116, 108, 0.4), 0 4px 15px rgba(255, 144, 104, 0.4);
-            --background-color-primary: #ff7e5f;
-            --background-color-secondary: #feb47b;
-            --header-background-color: rgba(255, 126, 95, 0.9);
-            --footer-background-color: rgba(255, 126, 95, 0.9);
-            --content-background-color: rgba(255, 126, 95, 0.85);
-            --card-background-color: rgba(255, 255, 255, 0.15);
-            --text-color-primary: #fff;
-            --text-color-secondary: rgba(255, 255, 255, 0.8);
-            --accent-color: #fd746c;
-            --accent-color-dark: #ff9068;
-            --border-color: rgba(255, 255, 255, 0.3);
-            --input-background-color: rgba(255, 255, 255, 0.1);
-            --button-background: linear-gradient(90deg, #fd746c, #ff9068);
-            --button-hover-background: #ff9068;
-            --active-item-background: rgba(253, 116, 108, 0.2);
-            /* --notification-badge-color: Hardcoded for visibility */
-            --delete-button-color: #dc143c;
-            --warning-color: #ffd700;
         }
 
         /* Always show scrollbar to prevent layout shifts */
@@ -2199,7 +2188,7 @@
             <button id="sidebarToggleFab" aria-label="Toggle Navigation">
                 <i class="fas fa-bars"></i>
             </button>
-            <a href="/home.html" class="logo">JCHAT</a>
+            <a href="/Home.html" class="logo">JCHAT</a>
             <!-- Removed Header Navigation (Home, Profile) -->
             <div class="user-profile-header" style="display:flex;align-items:center;gap:10px;">
                 <!-- Theme Switcher Button -->
@@ -2219,7 +2208,7 @@
                 </div>
                 <!-- Profile Link with Picture and Name -->
                 <a href="./Profile.html" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;">
-                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display:none;width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);">
+                    <img id="headerProfilePic" src="" alt="Profile Picture" loading="lazy" decoding="async" style="display:none;width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);">
                     <i id="headerAvatarIcon" class="fas fa-user-circle" role="img" aria-label="User Avatar" style="font-size:28px;"></i>
                     <span id="headerDisplayName">Loading...</span>
                 </a>
@@ -2227,7 +2216,9 @@
         </div>
     </header>
 
-    <main>
+    <a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">Skip to main content</a>
+
+    <main id="main-content">
         <div class="content-wrapper">
             <!-- Daily Inspiration Section -->
             <div class="daily-inspiration-section">
@@ -2279,8 +2270,8 @@
                         <i class="fas fa-image"></i> Add Media
                     </label>
                     <input type="file" id="postMediaUpload" accept="image/*,video/*" disabled>
-                    <img id="mediaImagePreview" class="media-preview" src="" alt="Image Preview" style="display: none;">
-                    <video id="mediaVideoPreview" class="media-preview" src="" controls style="display: none;"></video>
+                    <img id="mediaImagePreview" class="media-preview" src="" alt="Image Preview" loading="lazy" decoding="async" style="display: none;">
+                    <video id="mediaVideoPreview" class="media-preview" src="" controls preload="metadata" playsinline style="display: none;"></video>
                 </div>
                 <div style="margin:8px 0; display:flex; align-items:center; gap:10px;">
                     <label style="display:flex; align-items:center; gap:6px;">
@@ -2410,8 +2401,8 @@
                     <i class="fas fa-image"></i> Change Media
                 </label>
                 <input type="file" id="editPostMediaUpload" accept="image/*,video/*">
-                <img id="editMediaImagePreview" class="media-preview" src="" alt="Image Preview" style="display: none;">
-                <video id="editMediaVideoPreview" class="media-preview" src="" controls style="display: none;"></video>
+                <img id="editMediaImagePreview" class="media-preview" src="" alt="Image Preview" loading="lazy" decoding="async" style="display: none;">
+                <video id="editMediaVideoPreview" class="media-preview" src="" controls preload="metadata" playsinline style="display: none;"></video>
                 <button id="removeEditMedia" class="modal-button cancel-button" style="display: none;" aria-label="Remove Media from Post">Remove Media</button>
             </div>
             <div class="button-group">
@@ -2449,8 +2440,8 @@
     <!-- Call Overlay (NEW) -->
     <div id="callOverlay" role="dialog" aria-modal="true" aria-labelledby="callStatusText">
         <div class="video-streams">
-            <video id="remoteVideo" autoplay playsinline aria-label="Remote Video Stream"></video>
-            <video id="localVideo" autoplay playsinline muted aria-label="Local Video Stream"></video>
+            <video id="remoteVideo" autoplay playsinline preload="metadata" aria-label="Remote Video Stream"></video>
+            <video id="localVideo" autoplay playsinline muted preload="metadata" aria-label="Local Video Stream"></video>
         </div>
         <i id="callStatusIcon" class="fas fa-phone" role="img" aria-label="Call Status Icon"></i>
         <p id="callStatusText" class="call-status-text">Calling...</p>
@@ -2473,11 +2464,11 @@
             </button>
         </div>
         <div class="sidebar-links">
-            <a href="/home.html" class="sidebar-nav-item active" aria-current="page">
+            <a href="/Home.html" class="sidebar-nav-item active" aria-current="page">
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
-            <a href="/profile.html" class="sidebar-nav-item">
+            <a href="/Profile.html" class="sidebar-nav-item">
                 <i class="fas fa-user"></i>
                 <span>Profile</span>
             </a>
@@ -2485,19 +2476,19 @@
                 <i class="fas fa-comment-dots"></i>
                 <span>Chat</span>
             </a>
-            <a href="/find_friends.html" class="sidebar-nav-item" id="findFriendsLink">
+            <a href="/Find_Friends.html" class="sidebar-nav-item" id="findFriendsLink">
                 <i class="fas fa-users"></i>
                 <span>Users</span>
             </a>
-            <a href="/friends.html" class="sidebar-nav-item" id="friendsLink">
+            <a href="/Friends.html" class="sidebar-nav-item" id="friendsLink">
                 <i class="fas fa-user-friends"></i>
                 <span>Friends</span>
             </a>
-            <a href="/groups.html" class="sidebar-nav-item" id="groupsLink">
+            <a href="/Groups.html" class="sidebar-nav-item" id="groupsLink">
                 <i class="fas fa-layer-group"></i> <!-- New Groups icon -->
                 <span>Groups</span>
             </a>
-            <a href="/settings.html" class="sidebar-nav-item">
+            <a href="/Settings.html" class="sidebar-nav-item">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
             </a>
@@ -2510,7 +2501,7 @@
                 <span>Solution Center</span>
             </a>
             <!-- NEW: Guide Link - moved inside sidebar-links -->
-            <a href="/guide.html" class="sidebar-nav-item">
+            <a href="/Guide.html" class="sidebar-nav-item">
                 <i class="fas fa-book"></i>
                 <span>Guide</span>
                 </a>
@@ -2538,8 +2529,8 @@
                 <button class="viewer-close" id="closeStoryViewer" aria-label="Close"><i class="fas fa-times"></i></button>
             </div>
             <div class="viewer-media">
-                <img id="storyImage" alt="story image" />
-                <video id="storyVideo" controls playsinline></video>
+                <img id="storyImage" alt="story image" loading="lazy" decoding="async" />
+                <video id="storyVideo" controls playsinline preload="metadata"></video>
             </div>
             <div class="viewer-footer">
                 <button id="prevStoryBtn"><i class="fas fa-chevron-left"></i> Prev</button>
@@ -3807,7 +3798,7 @@
             }
 
             // Guide link - also controlled by global enable state.
-            const guideLink = document.querySelector('.sidebar-nav-item[href="/guide.html"]');
+            const guideLink = document.querySelector('.sidebar-nav-item[href="/Guide.html"]');
             if (guideLink) {
                 guideLink.style.pointerEvents = finalEnableState ? 'auto' : 'none';
                 guideLink.style.opacity = finalEnableState ? '1' : '0.5';
@@ -4826,16 +4817,16 @@
             // Construct the inner HTML for the post card.
             postElement.innerHTML = `
                 <div class="post-header">
-                    <a href="/profile.html?userId=${post.authorId}" aria-label="View ${post.username || 'Anonymous'}'s Profile">
+                    <a href="/Profile.html?userId=${post.authorId}" aria-label="View ${post.username || 'Anonymous'}'s Profile">
                         <div class="author-pic-wrapper">
                             ${post.profilePhoto ?
-                                `<img src="${getCloudinaryImageUrl(post.profilePhoto, 'w_80,h_80,c_fill,g_face,r_max')}" alt="Author Pic" class="author-pic" onerror="this.onerror=null; this.src='https://placehold.co/80x80/CCCCCC/000000?text=${authorInitial}';">` :
+                                `<img src="${getCloudinaryImageUrl(post.profilePhoto, 'w_80,h_80,c_fill,g_face,r_max')}" alt="Author Pic" class="author-pic" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='https://placehold.co/80x80/CCCCCC/000000?text=${authorInitial}';">` :
                                 `<i class="fas fa-user-circle author-pic-placeholder" role="img" aria-label="Author Avatar"></i>`
                             }
                         </div>
                     </a>
                     <div class="author-info">
-                        <a href="/profile.html?userId=${post.authorId}" class="author-name">${post.username || 'Anonymous'}</a>
+                        <a href="/Profile.html?userId=${post.authorId}" class="author-name">${post.username || 'Anonymous'}</a>
                         <p class="post-timestamp">${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : 'N/A'} ${post.isEdited ? '(Edited)' : ''}</p>
                     </div>
                     ${isAuthor || (currentUser && currentUser.uid === ADMIN_UID) ? `
@@ -4924,7 +4915,7 @@
                 <a href="./Profile.html?userId=${comment.userId}" aria-label="View ${comment.username || 'Anonymous'}'s Profile">
                     <div class="author-pic-wrapper" style="width:30px; height:30px; border-width:1px;">
                         ${comment.profilePhoto ?
-                            `<img src="${getCloudinaryImageUrl(comment.profilePhoto, 'w_60,h_60,c_fill,g_face,r_max')}" alt="Author Pic" class="comment-author-pic" onerror="this.onerror=null; this.src='https://placehold.co/60x60/CCCCCC/000000?text=${commentAuthorInitial}';">` :
+                            `<img src="${getCloudinaryImageUrl(comment.profilePhoto, 'w_60,h_60,c_fill,g_face,r_max')}" alt="Author Pic" class="comment-author-pic" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='https://placehold.co/60x60/CCCCCC/000000?text=${commentAuthorInitial}';">` :
                             `<i class="fas fa-user-circle comment-author-pic-placeholder" style="font-size:30px;" role="img" aria-label="Comment Author Avatar"></i>`
                         }
                     </div>
@@ -5026,8 +5017,8 @@
                                     postElement.insertBefore(postMediaDiv, postElement.querySelector('.post-reactions-summary'));
                                 }
                                 postMediaDiv.innerHTML = post.mediaType === 'image' ?
-                                    `<img src="${post.mediaUrl}" alt="Post Media" onerror="this.style.display='none';">` :
-                                    `<video src="${post.mediaUrl}" controls onerror="this.style.display='none';"></video>`;
+                                    `<img src="${post.mediaUrl}" alt="Post Media" loading="lazy" decoding="async" onerror="this.style.display='none';">` :
+                                    `<video src="${post.mediaUrl}" controls preload="metadata" playsinline onerror="this.style.display='none';"></video>`;
                                 postMediaDiv.style.display = 'block';
                             } else if (postMediaDiv) {
                                 postMediaDiv.remove(); // Remove media div if media was removed from post.
@@ -6170,7 +6161,7 @@
                     const imgUrl = profilePicId ? getCloudinaryImageUrl(profilePicId, 'w_60,h_60,c_fill,g_face,r_max') : `https://placehold.co/40x40/CCCCCC/000000?text=${usernameInitial}`;
                     const row = document.createElement('div');
                     row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:6px;gap:10px;';
-                    row.innerHTML = `<div style=\"display:flex;align-items:center;gap:10px;\"><img src=\"${imgUrl}\" alt=\"${username}\" style=\"width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);\"><span>${username}</span></div><button class=\"btn\" data-fid=\"${fid}\">Send</button>`;
+                    row.innerHTML = `<div style=\"display:flex;align-items:center;gap:10px;\"><img src=\"${imgUrl}\" alt=\"${username}\" loading=\"lazy\" decoding=\"async\" style=\"width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light);\"><span>${username}</span></div><button class=\"btn\" data-fid=\"${fid}\">Send</button>`;
                     row.querySelector('button').addEventListener('click', () => {
                         const msg = `${inspirationQuoteElement ? inspirationQuoteElement.textContent : ''} ${inspirationAuthorElement ? inspirationAuthorElement.textContent : ''}`.trim();
                         navigateToChatWithPrefill(fid, msg);
@@ -6596,7 +6587,7 @@
                 const avatar = document.createElement('div');
                 avatar.className = 'story-avatar';
                 if (s.mediaType==='image') {
-                    avatar.innerHTML = `<img src="${s.mediaUrl}" alt="story">`;
+                    avatar.innerHTML = `<img src="${s.mediaUrl}" alt="story" loading="lazy" decoding="async">`;
                 } else {
                     avatar.innerHTML = `<i class=\"fas fa-video\"></i>`;
                 }
