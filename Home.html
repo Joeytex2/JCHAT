@@ -2543,7 +2543,14 @@
         // Register service worker for PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed', err));
+                navigator.serviceWorker.register('/sw.js').then(reg => {
+                    // Listen for SW messages (e.g., background sync to flush post queue)
+                    navigator.serviceWorker.addEventListener('message', (event) => {
+                        if (event.data && event.data.type === 'FLUSH_POST_QUEUE') {
+                            flushOfflineQueue();
+                        }
+                    });
+                }).catch(err => console.log('SW registration failed', err));
             });
         }
 
