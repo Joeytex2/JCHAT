@@ -2178,8 +2178,8 @@
         .scroll-row { display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; }
         .scroll-row::-webkit-scrollbar { height:6px; }
         .scroll-row::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius:6px; }
-        .highlight-card, .friend-card { flex:0 0 auto; width:160px; border:1px solid var(--glass-blue); background: var(--card-background); border-radius:10px; overflow:hidden; }
-        .highlight-card img, .friend-card img { width:100%; height:100px; object-fit:cover; display:block; }
+        .highlight-card, .friend-card, .saved-card { flex:0 0 auto; width:160px; border:1px solid var(--glass-blue); background: var(--card-background); border-radius:10px; overflow:hidden; }
+        .highlight-card img, .friend-card img, .saved-card img { width:100%; height:100px; object-fit:cover; display:block; }
         .friend-card .meta { padding:8px; display:flex; align-items:center; gap:8px; }
         .friend-card .meta img { width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid var(--border-light); } 
 
@@ -2334,6 +2334,11 @@
             <div class="friends-suggestions-section" id="friendsSuggestionsSection" style="display:none;">
                 <div class="section-title"><i class="fas fa-user-friends"></i> Friends you may know</div>
                 <div class="scroll-row" id="friendsSuggestions"></div>
+            </div>
+            <!-- Saved Widget -->
+            <div class="saved-widget-section" id="savedWidgetSection" style="display:none;">
+                <div class="section-title"><i class="fas fa-bookmark"></i> Saved</div>
+                <div class="scroll-row" id="savedWidget"></div>
             </div>
 
             <!-- Post Creation Section -->
@@ -2800,6 +2805,8 @@
                 window.highlightsStrip = document.getElementById('highlightsStrip');
                 window.friendsSuggestionsSection = document.getElementById('friendsSuggestionsSection');
                 window.friendsSuggestions = document.getElementById('friendsSuggestions');
+                window.savedWidgetSection = document.getElementById('savedWidgetSection');
+                window.savedWidget = document.getElementById('savedWidget');
                 notificationCountElement = document.getElementById('notificationCount');
                 adminIconLink = document.getElementById('adminIconLink');
                 profileLink = document.getElementById('profileLink');
@@ -4940,6 +4947,9 @@
                         <button class="share-post-button" data-post-id="${postId}" data-content="${post.content}" ${!isAuthReady || (!currentSystemSettings.enablePostCreation && currentUser.uid !== ADMIN_UID) ? 'disabled' : ''} aria-label="Share Post">
                             <i class="fas fa-share"></i> Share
                         </button>
+                        <button class="add-to-highlights-button" data-post-id="${postId}" ${!isAuthReady ? 'disabled' : ''} aria-label="Add to Highlights">
+                            <i class="fas fa-bookmark"></i> Add to Highlights
+                        </button>
                     </div>
                     ` : ''}
                 </div>
@@ -5349,6 +5359,17 @@
                         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId));
                         showMessageBox('Post deleted.', 'success');
                     } catch(e) { console.error(e); showMessageBox('Failed to delete post.', 'error'); }
+                })();
+            }
+            else if (event.target.closest('.add-to-highlights-button')) {
+                const button = event.target.closest('.add-to-highlights-button');
+                if (!isAuthReady || !currentUser) { showMessageBox('Please log in.', 'warning'); return; }
+                const postId = button.dataset.postId;
+                (async ()=>{
+                    try {
+                        await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'highlights'), { postId, createdAt: serverTimestamp() });
+                        showMessageBox('Added to highlights.', 'success');
+                    } catch (e) { console.error(e); showMessageBox('Failed to add to highlights.', 'error'); }
                 })();
             }
             else if (event.target.closest('.edit-post-button')) {
@@ -6132,12 +6153,39 @@
                                 card.className='friend-card';
                                 card.href=`/Profile.html?userId=${u.id}`;
                                 const p = u.profilePicId ? getCloudinaryImageUrl(u.profilePicId,'w_300,h_150,c_fill,q_auto') : '';
-                                card.innerHTML = `${p?`<img src="${p}" alt="${u.username}">`:''}<div class="meta"><img src="${p||'https://placehold.co/64x64'}" alt="${u.username}"><div>${u.username||'User'}</div></div>`;
+                                card.innerHTML = `${p?`<img src=\"${p}\" alt=\"${u.username}\">`:''}<div class=\"meta\"><img src=\"${p||'https://placehold.co/64x64'}\" alt=\"${u.username}\"><div>${u.username||'User'}</div></div>`;
                                 friendsSuggestions.appendChild(card);
                             });
                         }
                     }
                 } catch(e) { console.warn('friends suggest load', e); }
+                // Saved widget (recent saved)
+                try {
+                    if (savedWidgetSection && savedWidget) {
+                        const savedRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'saved_posts');
+                        const savedSnap = await getDocs(savedRef);
+                        const ids = [];
+                        savedSnap.forEach(d => ids.push(d.id));
+                        if (ids.length) {
+                            const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+                            const postsSnap = await getDocs(postsRef);
+                            const items = [];
+                            postsSnap.forEach(p => { if (ids.includes(p.id)) items.push({id:p.id, ...p.data()}); });
+                            if (items.length) {
+                                savedWidgetSection.style.display='block';
+                                savedWidget.innerHTML='';
+                                items.slice(0,10).forEach(p => {
+                                    const a = document.createElement('a');
+                                    a.className='saved-card';
+                                    a.href=`/Home.html#post-${p.id}`;
+                                    const cover = p.mediaType==='image'? p.mediaUrl : '';
+                                    a.innerHTML = `${cover?`<img src=\"${cover}\" alt=\"saved\">`:''}<div style=\"padding:8px;opacity:.85;\">${(p.content||'').slice(0,60)}</div>`;
+                                    savedWidget.appendChild(a);
+                                });
+                            }
+                        }
+                    }
+                } catch(e) { console.warn('saved widget load', e); }
                 await fetchAndDisplayPosts(); // This will setup all real-time listeners for posts and comments.
                 fetchNotificationCount(user.uid);
 
