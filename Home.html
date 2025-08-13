@@ -3443,7 +3443,9 @@
             }
         }
                  /* Donation Widget (header button uses existing .theme-switcher-btn styles) */
-                   .donation-dropdown { position: absolute; top: 120%; right: 0; min-width: 320px; background: var(--card-background); border: 1px solid var(--border-light); border-radius: 14px; padding: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.3); z-index: 20; display: none; }
+          .donation-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); z-index: 50; }
+          .donation-modal.show { display: flex; }
+          .donation-modal .modal-content { max-width: 560px; width: calc(100% - 32px); background: var(--card-background); color: var(--white); border: 1px solid var(--border-light); border-radius: 16px; padding: 16px; }
           .donation-list { display: grid; gap: 10px; margin-top: 8px; }
           .donation-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 10px; border: 1px solid var(--border-light); border-radius: 10px; background: rgba(255,255,255,.03); }
           .donation-item .label { opacity: .75; font-size: .85rem; }
@@ -4033,16 +4035,21 @@
     <!-- Smart Scroll Button -->
     <button id="smartScrollBtn" aria-label="Smart Scroll"><i class="fas fa-arrow-down"></i><span class="label">Bottom</span></button>
 
-                <div class="donation-item">
-                    <div class="label">Bank Name</div>
-                    <div class="value" id="donationBankName"></div>
-                    <button class="copy-btn" data-copy="donationBankName"><i class="fas fa-copy"></i></button>
-                </div>
-                <div class="donation-item">
-                    <div class="label">Account Name</div>
-                    <div class="value" id="donationAccountName"></div>
-                    <button class="copy-btn" data-copy="donationAccountName"><i class="fas fa-copy"></i></button>
-                </div>
+    <!-- Donation Modal (centered) -->
+    <div id="donationModal" class="modal-overlay donation-modal" role="dialog" aria-modal="true" aria-labelledby="donationTitle" style="display:none;">
+      <div class="modal-content" style="max-width:560px;width:calc(100% - 32px);">
+        <h3 id="donationTitle">Support Development</h3>
+        <div class="donation-list">
+          <div class="donation-item">
+            <div class="label">Bank Name</div>
+            <div class="value" id="donationBankName"></div>
+            <button class="copy-btn" data-copy="donationBankName"><i class="fas fa-copy"></i></button>
+          </div>
+          <div class="donation-item">
+            <div class="label">Account Name</div>
+            <div class="value" id="donationAccountName"></div>
+            <button class="copy-btn" data-copy="donationAccountName"><i class="fas fa-copy"></i></button>
+          </div>
                 <div class="donation-item">
                     <div class="label">Account Number</div>
                     <div class="value" id="donationAccountNumber"></div>
@@ -9797,24 +9804,19 @@
                     if (text) navigator.clipboard.writeText(text).then(()=> showMessageBox('Copied', 'success')).catch(()=> showMessageBox('Copy failed', 'error'));
                 }
             });
-            const dropdown = document.getElementById('donationDropdown');
+            const modal = document.getElementById('donationModal');
             if (btn) btn.addEventListener('click', async (e)=> { e.preventDefault();
                 const uid = (auth && auth.currentUser && auth.currentUser.uid) ? auth.currentUser.uid : (currentUser && currentUser.uid ? currentUser.uid : '');
                 const refEl = document.getElementById('opayReference'); if (refEl) refEl.textContent = uid || '';
-                if (!dropdown) return;
-                const isOpen = dropdown.style.display !== 'none';
-                dropdown.style.display = isOpen ? 'none' : 'block';
+                if (!modal) return;
+                modal.style.display = 'flex'; modal.offsetHeight; modal.classList.add('show');
             });
-            // Close on outside click / ESC
-            document.addEventListener('click', (evt)=>{
-                const trigger = evt.target.closest('#headerSupportBtn');
-                if (!trigger && dropdown && dropdown.style.display !== 'none' && !evt.target.closest('#donationDropdown')) {
-                    dropdown.style.display = 'none';
-                }
-            });
+            // Close modal on backdrop or ESC
+            if (modal) modal.addEventListener('click', (evt)=>{ if (evt.target === modal){ modal.classList.remove('show'); modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true }); }});
             document.addEventListener('keydown', (evt)=>{
-                if (evt.key === 'Escape' && dropdown && dropdown.style.display !== 'none') {
-                    dropdown.style.display = 'none';
+                if (evt.key === 'Escape' && modal && modal.classList.contains('show')) {
+                    modal.classList.remove('show');
+                    modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true });
                 }
             });
         })();
