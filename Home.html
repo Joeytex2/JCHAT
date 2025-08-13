@@ -2378,6 +2378,7 @@
             </div>
             <div class="input-group" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                 <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="filterSavedOnly"> Saved only</label>
+                <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="filterFollowedOnly"> Followed tags</label>
                 <input type="date" id="filterDateFrom" placeholder="From">
                 <input type="date" id="filterDateTo" placeholder="To">
             </div>
@@ -2652,7 +2653,7 @@
         let postCreationSection, postContentInput, postMediaUpload, mediaImagePreview, mediaVideoPreview;
         let createPostButton, postsFeed, loadingPostsMessage, postTypeFilter, postSearchInput;
         let postDateFromInput, postDateToInput, exportPostsCsvButton, exportPostsJsonButton;
-        let showSavedOnlyCheckbox, trendingHashtagsDiv, editPostModal, editPostContentInput;
+        let showSavedOnlyCheckbox, showFollowedOnlyCheckbox, trendingHashtagsDiv, editPostModal, editPostContentInput;
         let editPostMediaUpload, editMediaImagePreview, editMediaVideoPreview, removeEditMediaButton;
         let cancelEditPostButton, saveEditedPostButton;
         // Theme switcher functionality
@@ -2744,6 +2745,7 @@
                 postSearchInput = document.getElementById('postSearchInput');
                 postDateFromInput = document.getElementById('postDateFrom');
                 postDateToInput = document.getElementById('postDateTo');
+                showFollowedOnlyCheckbox = document.getElementById('filterFollowedOnly');
                 exportPostsCsvButton = document.getElementById('exportPostsCsvButton');
                 exportPostsJsonButton = document.getElementById('exportPostsJsonButton');
                 showSavedOnlyCheckbox = document.getElementById('showSavedOnly');
@@ -4992,6 +4994,8 @@
                     const fromDate = postDateFromInput?.value ? new Date(postDateFromInput.value + 'T00:00:00') : null;
                     const toDate = postDateToInput?.value ? new Date(postDateToInput.value + 'T23:59:59.999') : null;
                     const savedOnly = !!(showSavedOnlyCheckbox && showSavedOnlyCheckbox.checked);
+                    const followedOnly = !!(showFollowedOnlyCheckbox && showFollowedOnlyCheckbox.checked);
+                    const followedSet = new Set(JSON.parse(localStorage.getItem('jchat_followed_tags')||'[]').map(t=>t.toLowerCase()));
 
                     const newOrderedPostIds = []; // To maintain the correct order of posts in the DOM.
 
@@ -5005,6 +5009,10 @@
                             if (pType !== typeFilter) return;
                         }
                         if (textSearch && !(post.content || '').toLowerCase().includes(textSearch)) return;
+                        if (followedOnly) {
+                            const tags = ((post.content||'').match(/#\w{2,30}/g)||[]).map(t=>t.toLowerCase());
+                            if (!tags.some(t=>followedSet.has(t))) return;
+                        }
                         const ts = post.timestamp ? post.timestamp.toDate() : null;
                         if (fromDate && (!ts || ts < fromDate)) return;
                         if (toDate && (!ts || ts > toDate)) return;
@@ -6348,6 +6356,7 @@
             if (postSearchInput) postSearchInput.addEventListener('input', fetchAndDisplayPosts);
             if (postDateFromInput) postDateFromInput.addEventListener('change', fetchAndDisplayPosts);
             if (postDateToInput) postDateToInput.addEventListener('change', fetchAndDisplayPosts);
+            if (showFollowedOnlyCheckbox) showFollowedOnlyCheckbox.addEventListener('change', fetchAndDisplayPosts);
             if (exportPostsCsvButton) exportPostsCsvButton.addEventListener('click', async () => {
                 if (!currentUser && !isAuthReady) return showMessageBox('Please log in.', 'warning');
                 showMessageBox('Preparing CSV export...', 'loading', true);
@@ -6440,7 +6449,12 @@
             const top = [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
             if (trendingHashtagsDiv) {
                 if (top.length === 0) { trendingHashtagsDiv.textContent = ''; return; }
-                trendingHashtagsDiv.innerHTML = 'Trending: ' + top.map(([tag]) => `<a href="#" class="hashtag-link" data-tag="${tag.substring(1)}">${tag}</a>`).join(' • ');
+                const followed = new Set(JSON.parse(localStorage.getItem('jchat_followed_tags')||'[]').map(t=>t.toLowerCase()));
+                trendingHashtagsDiv.innerHTML = 'Trending: ' + top.map(([tag]) => {
+                    const t = tag.substring(1).toLowerCase();
+                    const isFollowed = followed.has('#'+t);
+                    return `<a href="#" class="hashtag-link" data-tag="${t}">${tag}</a> <button class="follow-tag-btn" data-tag="${t}">${isFollowed?'Unfollow':'Follow'}</button>`;
+                }).join(' • ');
             }
         }
         // Extend renderPost to link hashtags and mentions
@@ -6601,6 +6615,16 @@
             if (tagLink) {
                 const tag = tagLink.dataset.tag;
                 if (postSearchInput) postSearchInput.value = `#${tag}`;
+                fetchAndDisplayPosts();
+                return;
+            }
+            const followBtn = ev.target.closest('.follow-tag-btn');
+            if (followBtn) {
+                const tag = '#' + followBtn.dataset.tag.toLowerCase();
+                const followed = new Set(JSON.parse(localStorage.getItem('jchat_followed_tags')||'[]').map(t=>t.toLowerCase()));
+                if (followed.has(tag)) followed.delete(tag); else followed.add(tag);
+                localStorage.setItem('jchat_followed_tags', JSON.stringify([...followed]));
+                updateTrendingHashtags([]); // Re-render controls with new button labels
                 fetchAndDisplayPosts();
                 return;
             }
