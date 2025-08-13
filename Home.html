@@ -311,7 +311,7 @@
 
         .logo { display: none; }
         .brand-banner { width: 100%; height: var(--brand-banner-height); padding: 8px 0; background: linear-gradient(90deg, var(--blue), var(--pink)); color:#fff; text-align:center; position: sticky; top: calc(var(--header-height) + var(--brand-banner-gap)); z-index: 9; border-bottom: 1px solid var(--border-light); display:flex; flex-direction:column; align-items:center; justify-content:center; }
-        .brand-banner .brand-title { font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; color: var(--white); text-shadow: 0 1px 2px rgba(0,0,0,0.35); }
+        .brand-banner .brand-title { font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; background-image: linear-gradient(90deg, var(--blue), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .brand-banner .brand-sub { opacity: .9; font-size: .95rem; margin-top: 6px; white-space: nowrap; overflow: hidden; }
         .announcement-ticker { position: relative; width: 100%; height: 22px; overflow: hidden; }
         .announcement-track { display: inline-block; white-space: nowrap; will-change: transform; }
@@ -7015,25 +7015,11 @@
                     // Compute speed based on text length
                     requestAnimationFrame(() => {
                         const width = track.scrollWidth || 600;
-                        const cycleSecFast = Math.min(30, Math.max(10, width / 60));
-                        const cycleSecSlow = Math.min(45, Math.max(15, width / 40));
-                        let dir = 'rtl';
-                        const run = () => {
-                            if (dir === 'rtl') {
-                                track.style.animation = `ticker-rtl ${cycleSecFast}s linear infinite`;
-                                dir = 'ltr';
-                            } else {
-                                track.style.animation = `ticker-ltr ${cycleSecSlow}s linear infinite`;
-                                dir = 'rtl';
-                            }
-                        };
-                        run();
-                        // Alternate directions each cycle end using a timer approximation
-                        let altTimer = setInterval(run, (dir==='rtl'?cycleSecFast:cycleSecSlow) * 1000);
+                        const cycleSec = Math.min(30, Math.max(10, width / 60));
+                        track.style.animation = `ticker-rtl ${cycleSec}s linear infinite`;
                         // Auto-restore after duration
                         clearTimeout(window.__announcementTimer);
                         window.__announcementTimer = setTimeout(() => {
-                            clearInterval(altTimer);
                             track.style.animation = 'none';
                             ticker.style.display = 'none';
                             subtitleEl.style.display = 'inline';
