@@ -9791,8 +9791,8 @@
                 // Open centered modal with blur
                 if (modal){ modal.style.display='flex'; modal.classList.add('show'); }
             });
-            if (closeBtn) closeBtn.addEventListener('click', ()=> { if (modal){ modal.classList.remove('show'); }});
-            if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) modal.classList.remove('show'); });
+            if (closeBtn) closeBtn.addEventListener('click', ()=> { if (modal){ modal.classList.remove('show'); modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true }); }});
+            if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) { modal.classList.remove('show'); modal.addEventListener('transitionend', function handler(){ modal.style.display='none'; modal.removeEventListener('transitionend', handler); }, { once: true }); }});
         })();
         // Global UI helpers for consistent dialogs
         function customConfirm(message, title = 'Confirm Action') {
