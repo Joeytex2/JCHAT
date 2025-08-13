@@ -12,66 +12,83 @@
     :root {
       --pink: #ff2e92;
       --blue: #00d5ff;
-      --white: #e0e0e0;
-      --text-light: #a0a0a0;
-      --border-light: rgba(255, 255, 255, 0.12);
-      --card-background: rgba(25, 25, 40, 0.7);
+      --white: #e8ecf1;
+      --muted: #a8b0bd;
+      --glass-1: rgba(255, 255, 255, 0.06);
+      --glass-2: rgba(255, 255, 255, 0.1);
+      --border: rgba(255, 255, 255, 0.14);
+      --bg: radial-gradient(60rem 60rem at -10% -10%, #0e1631 0%, transparent 60%),
+            radial-gradient(60rem 60rem at 110% -10%, #1a0f2b 0%, transparent 60%),
+            #0a0c14;
       --accent: linear-gradient(90deg, var(--blue), var(--pink));
-      --glass: rgba(255,255,255,0.06);
-      --bg: #0e0f16;
     }
+    * { box-sizing: border-box; }
     body {
       margin: 0; padding: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(60rem 60rem at -10% -10%, #19213a 0%, transparent 60%),
-                  radial-gradient(60rem 60rem at 110% -10%, #261635 0%, transparent 60%),
-                  var(--bg);
+      background: var(--bg);
       color: var(--white);
       min-height: 100vh;
       display: flex; flex-direction: column;
     }
-    header {
-      position: sticky; top: 0; z-index: 10;
-      background: rgba(0,0,0,0.6);
-      border-bottom: 1px solid var(--border-light);
-      backdrop-filter: blur(8px);
-    }
-    .header-inner {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 16px; max-width: 1000px; margin: 0 auto;
-    }
-    .back-link { color: var(--white); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
-    .back-link i { color: var(--white); }
-    .title {
-      font-family: Poppins, sans-serif; font-weight: 800; letter-spacing: -0.02em;
-      background-image: var(--accent); -webkit-background-clip: text; background-clip: text; color: transparent;
-      font-size: 1.1rem;
-    }
-    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+    /* Ambient shapes */
+    .blob { position: fixed; filter: blur(80px); opacity: .35; z-index: 0; pointer-events: none; }
+    .blob.b1 { width: 42vw; height: 42vw; border-radius: 50%; background: #1b5cff; top: -12vw; left: -8vw; }
+    .blob.b2 { width: 38vw; height: 38vw; border-radius: 50%; background: #ff2e92; top: -10vw; right: -6vw; }
+
+    header { position: sticky; top: 0; z-index: 5; background: rgba(6,9,18,0.6); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+    .header-inner { display:flex; align-items:center; justify-content:space-between; gap: 12px; padding: 12px 18px; max-width: 1080px; margin: 0 auto; }
+    .back-link { color: var(--white); text-decoration:none; display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius: 10px; background: var(--glass-1); }
+    .back-link:hover { background: var(--glass-2); }
+    .title { font-family:Poppins, sans-serif; font-weight:800; letter-spacing:-0.02em; background-image: var(--accent); -webkit-background-clip:text; background-clip:text; color: transparent; font-size:1.1rem; }
+
+    main { flex:1; display:flex; align-items:center; justify-content:center; padding: 28px 16px; position: relative; z-index: 1; }
+
+    .shell { width:100%; max-width: 1080px; display:grid; gap: 22px; grid-template-columns: 1fr; }
+    @media (min-width: 920px) { .shell { grid-template-columns: 1.2fr 0.8fr; } }
+
     .card {
-      width: 100%; max-width: 720px; background: var(--card-background);
-      border: 1px solid var(--border-light); border-radius: 16px; padding: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      overflow: hidden;
     }
-    .card h2 { margin: 0 0 4px 0; font-family: Poppins, sans-serif; font-size: 1.35rem; }
-    .subtitle { margin: 0 0 16px 0; color: var(--text-light); font-size: 0.95rem; }
-    .list { display: grid; gap: 10px; }
-    .item { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px;
-      background: var(--glass); border: 1px solid var(--border-light); border-radius: 10px; padding: 10px; }
-    .label { opacity: .8; font-size: .9rem; }
-    .value { font-weight: 600; word-break: break-all; }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
-    @media (min-width: 720px) { .grid { grid-template-columns: 1fr 280px; align-items: start; } }
-    .qr-panel { background: var(--glass); border: 1px solid var(--border-light); border-radius: 12px; padding: 12px; display:flex; flex-direction:column; gap:10px; align-items:center; }
-    .qr-panel h3 { margin: 0; font-size: 1rem; font-family: Poppins, sans-serif; }
-    .qr-img { width: 240px; height: 240px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border-light); background: rgba(0,0,0,.25); }
-    .actions { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
-    .btn { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border-light);
-      color: #fff; background: var(--glass); cursor: pointer; }
+    .card::before { content:""; position:absolute; inset:0; border-radius: 18px; padding:1px; background: linear-gradient(135deg, var(--blue), var(--pink)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; opacity:.35; }
+
+    .section-title { margin: 0 0 4px 0; font-family: Poppins, sans-serif; font-size: 1.35rem; }
+    .subtitle { margin: 0 0 16px 0; color: var(--muted); font-size: 0.95rem; }
+
+    .list { display: grid; gap: 12px; }
+    .item { display:grid; grid-template-columns: 1fr auto; align-items:center; gap: 10px; padding: 12px; border-radius: 12px; background: var(--glass-1); border: 1px solid var(--border); }
+    .label { opacity: .8; font-size: .92rem; }
+    .value { font-weight: 700; word-break: break-all; letter-spacing: .2px; }
+
+    .bank-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius: 999px; border:1px solid var(--border); background: var(--glass-1); margin: 6px 0 14px 0; }
+    .bank-badge i { color: var(--pink); }
+
+    .actions { display:flex; flex-wrap: wrap; gap:10px; margin-top: 16px; }
+    .btn { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); color:#fff; background: var(--glass-1); cursor: pointer; transition: .2s transform, .2s filter, .2s background; }
+    .btn:hover { transform: translateY(-1px); background: var(--glass-2); }
     .btn.primary { background: var(--accent); border: none; }
-    .note { margin-top: 12px; color: var(--text-light); font-size: .95rem; }
+
+    .note { margin-top: 14px; color: var(--muted); font-size: .98rem; line-height: 1.5; }
+
+    /* QR Panel */
+    .qr { display:flex; flex-direction:column; gap:18px; }
+    .qr-title { font-family:Poppins, sans-serif; font-size: 1.05rem; margin: 0; }
+    .qr-box { display:flex; align-items:center; justify-content:center; border-radius:14px; border:1px solid var(--border); background: var(--glass-1); padding:14px; }
+    .qr-img { width: 280px; height: 280px; max-width: 60vw; object-fit: contain; border-radius: 10px; background: rgba(0,0,0,.25); }
+    .qr-note { color: var(--muted); text-align:center; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(10px); background: #0d1223; color:#fff; border:1px solid var(--border); border-radius: 12px; padding:10px 14px; opacity:0; pointer-events:none; transition:.25s; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
   <header>
     <div class="header-inner">
       <a class="back-link" href="/Home.html" aria-label="Back to Home"><i class="fas fa-arrow-left"></i><span>Back</span></a>
@@ -80,54 +97,54 @@
     </div>
   </header>
   <main>
-    <div class="card">
-      <div class="grid">
-        <div>
-          <h2>Bank Details</h2>
-          <p class="subtitle">Use the details below to support development. Thank you!</p>
-          <div class="list">
-            <div class="item">
-              <div class="label">Bank Name</div>
-              <div class="value" id="bankName"></div>
-              <button class="btn" data-copy="bankName"><i class="fas fa-copy"></i></button>
-            </div>
-            <div class="item">
-              <div class="label">Account Name</div>
-              <div class="value" id="accountName"></div>
-              <button class="btn" data-copy="accountName"><i class="fas fa-copy"></i></button>
-            </div>
-            <div class="item">
-              <div class="label">Account Number</div>
-              <div class="value" id="accountNumber"></div>
-              <button class="btn" data-copy="accountNumber"><i class="fas fa-copy"></i></button>
-            </div>
-            <div class="item">
-              <div class="label">SWIFT / IBAN</div>
-              <div class="value" id="swift"></div>
-              <button class="btn" data-copy="swift"><i class="fas fa-copy"></i></button>
-            </div>
+    <div class="shell">
+      <div class="card">
+        <div class="bank-badge"><i class="fas fa-university"></i><span>Verified Bank Details</span></div>
+        <h2 class="section-title">Bank Details</h2>
+        <p class="subtitle">Use the details below to support development. Thank you!</p>
+        <div class="list">
+          <div class="item">
+            <div class="label">Bank Name</div>
+            <div class="value" id="bankName"></div>
+            <button class="btn" data-copy="bankName"><i class="fas fa-copy"></i></button>
           </div>
-          <div class="actions">
-            <button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
-            <button class="btn primary" id="copyAllBtn"><i class="fas fa-clipboard-check"></i> Copy All</button>
+          <div class="item">
+            <div class="label">Account Name</div>
+            <div class="value" id="accountName"></div>
+            <button class="btn" data-copy="accountName"><i class="fas fa-copy"></i></button>
           </div>
-          <div class="note" id="donationNote">Your support keeps JCHAT improving for everyone. Every contribution, no matter the amount, helps us maintain servers, build new features, and keep JCHAT free for the community. Thank you for believing in this project.</div>
+          <div class="item">
+            <div class="label">Account Number</div>
+            <div class="value" id="accountNumber"></div>
+            <button class="btn" data-copy="accountNumber"><i class="fas fa-copy"></i></button>
+          </div>
+          <div class="item">
+            <div class="label">SWIFT / IBAN</div>
+            <div class="value" id="swift"></div>
+            <button class="btn" data-copy="swift"><i class="fas fa-copy"></i></button>
+          </div>
         </div>
-        <div class="qr-panel" id="qrPanel" style="display:none;">
-          <h3>Quick Donate (QR)</h3>
-          <img id="qrImage" class="qr-img" alt="Donation QR" />
-          <div class="note" id="qrNote">Scan this code in your banking app.</div>
+        <div class="actions">
+          <button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
+          <button class="btn primary" id="copyAllBtn"><i class="fas fa-clipboard-check"></i> Copy All</button>
         </div>
+        <div class="note" id="donationNote">Your support keeps JCHAT improving for everyone. Every contribution, no matter the amount, helps us maintain servers, build new features, and keep JCHAT free for the community. Thank you for believing in this project.</div>
+      </div>
+      <div class="card qr" id="qrPanel" style="display:none;">
+        <h3 class="qr-title">Quick Donate (QR)</h3>
+        <div class="qr-box"><img id="qrImage" class="qr-img" alt="Donation QR" /></div>
+        <div class="qr-note" id="qrNote">Scan this code in your banking app to donate instantly.</div>
       </div>
     </div>
   </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">Copied to clipboard</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
-    // Use app-injected Firebase config if available, fallback to known defaults
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
       apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
       authDomain: "jchat-1.firebaseapp.com",
@@ -139,7 +156,6 @@
     };
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-    // Cloudinary (optional) for QR or images
     const cloudinaryConfig = {
       cloudName: (typeof __cloudinary_cloud_name !== 'undefined' ? __cloudinary_cloud_name : 'dxld01rcp'),
       uploadPreset: (typeof __cloudinary_upload_preset !== 'undefined' ? __cloudinary_upload_preset : 'Storage_preset')
@@ -157,10 +173,19 @@
       note: document.getElementById('donationNote'),
       qrPanel: document.getElementById('qrPanel'),
       qrImage: document.getElementById('qrImage'),
-      qrNote: document.getElementById('qrNote')
+      qrNote: document.getElementById('qrNote'),
+      toast: document.getElementById('toast')
     };
 
     function apply(id, val) { if (els[id]) els[id].textContent = val || ''; }
+
+    function showToast(text) {
+      if (!els.toast) return;
+      els.toast.textContent = text;
+      els.toast.classList.add('show');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(()=> els.toast.classList.remove('show'), 1800);
+    }
 
     function renderQRIfProvided() {
       const pubId = (typeof __donation_qr_public_id !== 'undefined' ? __donation_qr_public_id : '');
@@ -168,7 +193,7 @@
       if (!els.qrPanel || !els.qrImage) return;
       const url = `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/w_520,h_520,c_fit,q_auto,f_auto/${pubId}`;
       els.qrImage.src = url;
-      els.qrPanel.style.display = 'flex';
+      els.qrPanel.style.display = 'block';
     }
 
     async function loadBankDetails(user) {
@@ -182,7 +207,7 @@
           }
         } catch {}
       }
-      // Fallback to globals if provided
+      // Fallbacks
       apply('bankName', bank.bankName || (typeof __donation_bank_name !== 'undefined' ? __donation_bank_name : ''));
       apply('accountName', bank.accountName || (typeof __donation_account_name !== 'undefined' ? __donation_account_name : ''));
       apply('accountNumber', bank.accountNumber || (typeof __donation_account_number !== 'undefined' ? __donation_account_number : ''));
@@ -204,16 +229,16 @@
         const id = copyBtn.getAttribute('data-copy');
         const el = els[id];
         const txt = el ? el.textContent.trim() : '';
-        if (txt) navigator.clipboard.writeText(txt).catch(()=>{});
+        if (txt) navigator.clipboard.writeText(txt).then(()=> showToast('Copied')).catch(()=>{});
       }
     });
     document.getElementById('copyAllBtn')?.addEventListener('click', ()=>{
       const txt = `Bank: ${els.bankName?.textContent}\nAccount Name: ${els.accountName?.textContent}\nAccount Number: ${els.accountNumber?.textContent}\nSWIFT/IBAN: ${els.swift?.textContent}`;
-      navigator.clipboard.writeText(txt).catch(()=>{});
+      navigator.clipboard.writeText(txt).then(()=> showToast('All details copied')).catch(()=>{});
     });
     document.getElementById('shareBtn')?.addEventListener('click', ()=>{
       const text = `Support JCHAT\nBank: ${els.bankName?.textContent}\nAccount Name: ${els.accountName?.textContent}\nAccount Number: ${els.accountNumber?.textContent}\nSWIFT/IBAN: ${els.swift?.textContent}`;
-      if (navigator.share) navigator.share({ text }).catch(()=>{}); else navigator.clipboard.writeText(text).catch(()=>{});
+      if (navigator.share) navigator.share({ text }).catch(()=>{}); else navigator.clipboard.writeText(text).then(()=> showToast('Share text copied')).catch(()=>{});
     });
   </script>
 </body>
