@@ -6620,6 +6620,51 @@
             requestNotificationPermissionIfNeeded();
         });
 
+        // Comment like/unlike with user-specific toggle
+        async function likeComment(postId, commentId, buttonEl) {
+            try {
+                if (!isAuthReady || !currentUser || !currentUserProfileData) { showMessageBox('Please log in.', 'warning'); return; }
+                if (!currentSystemSettings.enablePublicChat && currentUser.uid !== ADMIN_UID) { showMessageBox('Reactions are disabled by admin.', 'warning'); return; }
+                const commentRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId, 'comments', commentId);
+                const userLikeRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId, 'comments', commentId, 'userLikes', currentUser.uid);
+                let delta = 0;
+                let activityType = '';
+                let xp = 0, jc = 0;
+                await runTransaction(db, async (transaction) => {
+                    const commentSnap = await transaction.get(commentRef);
+                    const userLikeSnap = await transaction.get(userLikeRef);
+                    if (!commentSnap.exists()) throw new Error('Comment not found');
+                    const curr = commentSnap.data();
+                    let likes = curr.likes || 0;
+                    if (userLikeSnap.exists()) {
+                        // Unlike
+                        likes = Math.max(0, likes - 1);
+                        transaction.update(commentRef, { likes });
+                        transaction.delete(userLikeRef);
+                        delta = -1; activityType = 'comment_unlike'; xp = -1; jc = -1;
+                    } else {
+                        // Like
+                        likes = (likes || 0) + 1;
+                        transaction.update(commentRef, { likes });
+                        transaction.set(userLikeRef, { userId: currentUser.uid, timestamp: serverTimestamp() });
+                        delta = 1; activityType = 'comment_like'; xp = 1; jc = 1;
+                    }
+                });
+                // Update UI optimistically
+                if (buttonEl) {
+                    const countEl = buttonEl.querySelector('.comment-like-count');
+                    if (countEl) countEl.textContent = String(Math.max(0, (Number(countEl.textContent||'0') + delta)));
+                    buttonEl.classList.toggle('liked', delta > 0);
+                }
+                if (xp !== 0 || jc !== 0) {
+                    await createPendingActivityReward(currentUser.uid, currentUserProfileData.username, activityType, xp, jc, commentId, postId);
+                }
+            } catch (e) {
+                console.error('JCHAT_ERROR: likeComment failed', e);
+                showMessageBox('Failed to update like. Please retry.', 'error');
+            }
+        }
+
         // Hook into document click for save and hashtag
         document.addEventListener('click', (ev) => {
             const saveBtn = ev.target.closest('.save-post-button');
