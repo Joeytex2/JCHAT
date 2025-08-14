@@ -19,8 +19,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Tone.js for audio notifications -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    <!-- Facebook-Style Page Loader -->
-    <script src="page-loader.js"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -429,7 +427,6 @@
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
         }
 
-
         .form-group input:focus,
         .form-group select:focus {
             border-color: var(--blue);
@@ -515,7 +512,7 @@
             cursor: pointer;
             font-size: 0.8rem;
             transition: background-color 0.2s ease;
-            display: flex; /* For loader */
+            display: flex; 
             align-items: center;
             justify-content: center;
             gap: 5px;
@@ -563,7 +560,6 @@
             background: var(--text-light);
             box-shadow: none;
         }
-
 
         /* Save Button */
         #saveSettingsButton {
@@ -630,7 +626,6 @@
         #messageBox.warning { border-left: 5px solid var(--warning-color); background-color: var(--card-background-color); color: var(--text-color-primary); }
         #messageBox.loading { /* No border-left for loading */ background-color: var(--card-background-color); color: var(--text-color-primary); }
 
-
         #messageBox i {
             font-size: 2.5rem; /* Larger icon for prominence */
             margin-bottom: 5px; /* Space between icon and text */
@@ -646,7 +641,6 @@
         #messageBox.warning i { color: var(--warning-color); }
         #messageBox.loading i { background-image: linear-gradient(90deg, var(--accent-color), var(--pink)); }
 
-
         #messageBox span {
             font-size: 1.1rem; /* Slightly larger text */
             font-weight: 600;
@@ -659,18 +653,6 @@
         }
         #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
 
-        /* Loader styles for buttons (from Home.html) */
-        .button-loader {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid var(--white);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: none;
-            flex-shrink: 0; /* Prevent loader from shrinking */
-        }
-        .button-loader.active { display: block; }
         .button-text { display: block; }
         .loading .button-text { display: none; }
         @keyframes spin {
@@ -904,14 +886,13 @@
                     <input type="text" id="blockUserInput" placeholder="Enter User ID to Block" aria-label="User ID to block">
                     <button id="addBlockUserButton" aria-label="Add user to block list">
                         <span class="button-text">Add</span>
-                        <div class="button-loader"></div>
+                        
                     </button>
                 </div>
                 <ul id="blockedUsersList" role="list">
                     <li style="color: var(--text-light); text-align: center;">No users blocked.</li>
                     <!-- Blocked users will be dynamically loaded here -->
                 </ul>
-
 
                 <h2>Notification Settings</h2>
                 <div class="form-group">
@@ -1010,7 +991,7 @@
                     <input id="redeemCodeInput" type="text" placeholder="Enter your code" style="flex:1; padding:10px 12px; border-radius:10px; border:1px solid var(--border-light); background: var(--input-background); color: var(--white);">
                     <button id="redeemCodeButton" class="action-button" aria-label="Redeem Code">
                         <span class="button-text">Redeem</span>
-                        <div class="button-loader"></div>
+                        
                     </button>
                 </div>
                 <div id="entitlementsDisplay" style="margin-top:10px; color: var(--text-light);"></div>
@@ -1029,7 +1010,7 @@
 
                 <button id="saveSettingsButton" aria-label="Save Settings">
                     <span class="button-text">Save All Settings</span>
-                    <div class="button-loader"></div>
+                    
                 </button>
 
                 <section class="settings-section">
@@ -1114,7 +1095,6 @@
         callRingingPattern.loop = true;
         callRingingPattern.autostart = false;
 
-
         // --- DOM Elements ---
         const messageBox = document.getElementById('messageBox');
 
@@ -1134,7 +1114,6 @@
         const typingIndicatorsCheckbox = document.getElementById('typingIndicators');
         const messageReactionsCheckbox = document.getElementById('messageReactions');
         const giphyIntegrationCheckbox = document.getElementById('giphyIntegration');
-
 
         // Privacy Settings
         const appearOfflineCheckbox = document.getElementById('appearOffline');
@@ -1193,7 +1172,6 @@
         const THEMES = ['theme-light-mode', 'theme-dark-mode', 'theme-glass-mode', 'theme-sunset-mode'];
         let currentThemeIndex = 0;
 
-
         // --- Utility Functions ---
 
         /**
@@ -1248,7 +1226,6 @@
         function stopRingingSound() {
             callRingingPattern.stop();
         }
-
 
         /**
          * Displays a temporary message box with a given message and type.
@@ -1336,7 +1313,6 @@
             });
         }
 
-
         /**
          * Toggles loading state for a button.
          * @param {HTMLElement} buttonElement - The button to toggle.
@@ -1344,18 +1320,18 @@
          */
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
-            const loader = buttonElement.querySelector('.button-loader');
+            
             const text = buttonElement.querySelector('.button-text');
 
             if (isLoading) {
                 buttonElement.disabled = true;
                 buttonElement.classList.add('loading');
-                if (loader) loader.classList.add('active');
+                
                 if (text) text.style.display = 'none';
             } else {
                 buttonElement.disabled = false;
                 buttonElement.classList.remove('loading');
-                if (loader) loader.classList.remove('active');
+                
                 if (text) text.style.display = 'block';
             }
         }
@@ -1529,7 +1505,7 @@
                     <span>${blockedUid}</span>
                     <button data-uid="${blockedUid}" aria-label="Unblock user ${blockedUid}">
                         <span class="button-text">Unblock</span>
-                        <div class="button-loader"></div>
+                        
                     </button>
                 `;
                 blockedUsersList.appendChild(listItem);
@@ -1763,7 +1739,6 @@
             }
         });
 
-
         logoutButton.addEventListener('click', async () => {
             if (!isAuthReady) return;
             try {
@@ -1851,7 +1826,6 @@
                 showMessageBox("Your current storage usage: 150MB / 1GB (simulated).", "info");
             });
         }
-
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {

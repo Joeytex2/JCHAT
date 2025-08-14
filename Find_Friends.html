@@ -19,8 +19,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Tone.js for audio notifications (though not directly used here, kept for consistency) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    <!-- Facebook-Style Page Loader -->
-    <script src="page-loader.js"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -735,18 +733,6 @@
         }
         #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
 
-        /* Loader styles for buttons */
-        .button-loader {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid var(--white);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: none;
-            flex-shrink: 0; /* Prevent loader from shrinking */
-        }
-        .button-loader.active { display: block; }
         .button-text { display: block; }
         .loading .button-text { display: none; }
         @keyframes spin {
@@ -1124,19 +1110,18 @@
          */
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
-            // Find the loader and text elements within the button
-            const loader = buttonElement.querySelector('.button-loader');
+
             const text = buttonElement.querySelector('.button-text');
 
             if (isLoading) {
                 buttonElement.disabled = true;
                 buttonElement.classList.add('loading');
-                if (loader) loader.classList.add('active');
+                
                 if (text) text.style.display = 'none';
             } else {
                 buttonElement.disabled = false;
                 buttonElement.classList.remove('loading');
-                if (loader) loader.classList.remove('active');
+                
                 if (text) text.style.display = 'block';
             }
         }
@@ -1390,20 +1375,20 @@
             if (isFriend) {
                 actionButtonsHtml = `
                     <button class="action-btn chat-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-comment"></i> Chat</span></button>
-                    <button class="action-btn unfriend-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-user-minus"></i> Unfriend</span><div class="button-loader"></div></button>
+                    <button class="action-btn unfriend-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-user-minus"></i> Unfriend</span></button>
                 `;
             } else if (hasSentRequest) {
                 actionButtonsHtml = `
                     <button class="action-btn request-sent-btn" disabled><i class="fas fa-paper-plane"></i> Request Sent</button>
-                    <button class="action-btn cancel-request-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-times"></i> Cancel</span><div class="button-loader"></div></button>
+                    <button class="action-btn cancel-request-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-times"></i> Cancel</span></button>
                 `;
             } else if (hasReceivedRequest) {
                 actionButtonsHtml = `
-                    <button class="action-btn accept-request-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-check"></i> Accept</span><div class="button-loader"></div></button>
-                    <button class="action-btn reject-request-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-times"></i> Reject</span><div class="button-loader"></div></button>
+                    <button class="action-btn accept-request-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-check"></i> Accept</span></button>
+                    <button class="action-btn reject-request-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-times"></i> Reject</span></button>
                 `;
             } else {
-                actionButtonsHtml = `<button class="action-btn add-friend-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-user-plus"></i> Add Friend</span><div class="button-loader"></div></button>`;
+                actionButtonsHtml = `<button class="action-btn add-friend-btn" data-id="${userId}"><span class="button-text"><i class="fas fa-user-plus"></i> Add Friend</span></button>`;
             }
 
             card.innerHTML = `
@@ -1473,7 +1458,6 @@
                     }
                 });
             }
-
 
             return card;
         }
@@ -1574,7 +1558,6 @@
                 console.error("JCHAT_ERROR: Error fetching confirmed friends:", error);
                 showMessageBox(`Error loading friends data: ${error.message}`, 'error');
             });
-
 
             // Listen for changes in the general public user list
             unsubscribeUsers = onSnapshot(publicUsersCollectionRef, (snapshot) => {
@@ -1892,7 +1875,6 @@
                 toggleButtonLoading(buttonElement, false);
             }
         }
-
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {

@@ -19,8 +19,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Tone.js for audio notifications -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    <!-- Facebook-Style Page Loader -->
-    <script src="page-loader.js"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -637,18 +635,6 @@
         }
         #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
 
-        /* Loader styles for buttons */
-        .button-loader {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid var(--white);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: none;
-            flex-shrink: 0; /* Prevent loader from shrinking */
-        }
-        .button-loader.active { display: block; }
         .button-text { display: block; }
         .loading .button-text { display: none; }
         @keyframes spin {
@@ -1053,19 +1039,18 @@
          */
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
-            // Find the loader and text elements within the button
-            const loader = buttonElement.querySelector('.button-loader');
+
             const text = buttonElement.querySelector('.button-text');
 
             if (isLoading) {
                 buttonElement.disabled = true;
                 buttonElement.classList.add('loading');
-                if (loader) loader.classList.add('active');
+                
                 if (text) text.style.display = 'none';
             } else {
                 buttonElement.disabled = false;
                 buttonElement.classList.remove('loading');
-                if (loader) loader.classList.remove('active');
+                
                 if (text) text.style.display = 'block';
             }
         }
@@ -1485,7 +1470,6 @@
                 await deleteDoc(chatMetadataDocRef);
                 console.log(`JCHAT_DEBUG: Cleared chat metadata for ${friendId}.`);
 
-
                 showMessageBox(`${friendUsername} unfriended successfully.`, 'success');
                 playNotificationSound('success');
             } catch (error) {
@@ -1539,7 +1523,6 @@
                 console.error("JCHAT_ERROR: Error listening for new notifications:", error);
             });
         }
-
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {

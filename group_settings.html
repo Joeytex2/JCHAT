@@ -17,8 +17,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Facebook-Style Page Loader -->
-    <script src="page-loader.js"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -396,7 +394,6 @@
             color: var(--blue); /* Gas color */
         }
 
-
         #logoutButton {
             background: var(--button-background-gradient);
             border: none;
@@ -726,18 +723,6 @@
         .group-vault-display .jcoin-icon { color: var(--pink); }
         .group-vault-display .gas-icon { color: var(--blue); }
 
-
-        /* Loader styles for buttons (reused from previous) */
-        .button-loader {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid var(--white);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: none;
-        }
-        .button-loader.active { display: block; }
         .button-text { display: block; }
         .loading .button-text { display: none; }
         @keyframes spin {
@@ -1055,7 +1040,7 @@
                         </div>
                         <button id="saveGroupInfoBtn" class="action-button">
                             <span class="button-text"><i class="fas fa-save"></i> Save Changes</span>
-                            <div class="button-loader"></div>
+                            
                         </button>
                     </div>
 
@@ -1088,7 +1073,7 @@
                         </div>
                         <button id="withdrawFromVaultBtn" class="action-button">
                             <span class="button-text"><i class="fas fa-hand-holding-usd"></i> Withdraw from Vault</span>
-                            <div class="button-loader"></div>
+                            
                         </button>
                     </div>
 
@@ -1101,11 +1086,11 @@
                         <div style="display: flex; flex-direction: column; gap: 15px;">
                             <button id="promoteGroupBtn" class="action-button">
                                 <span class="button-text"><i class="fas fa-bullhorn"></i> Promote Group</span>
-                                <div class="button-loader"></div>
+                                
                             </button>
                             <button id="activateGroupBoostBtn" class="action-button">
                                 <span class="button-text"><i class="fas fa-rocket"></i> Activate Boost</span>
-                                <div class="button-loader"></div>
+                                
                             </button>
                         </div>
                     </div>
@@ -1122,7 +1107,7 @@
                         </div>
                         <button id="deleteGroupBtn" class="action-button danger" disabled>
                             <span class="button-text"><i class="fas fa-trash-alt"></i> Delete Group</span>
-                            <div class="button-loader"></div>
+                            
                         </button>
                     </div>
                 </div>
@@ -1161,7 +1146,7 @@
             <div class="modal-buttons">
                 <button id="submitPromoteGroupBtn" class="primary-btn">
                     <span class="button-text"><i class="fas fa-bullhorn"></i> Promote</span>
-                    <div class="button-loader"></div>
+                    
                 </button>
                 <button id="cancelPromoteGroupBtn" class="cancel-btn">
                     <span class="button-text"><i class="fas fa-times"></i> Cancel</span>
@@ -1190,7 +1175,7 @@
             <div class="modal-buttons">
                 <button id="submitActivateBoostBtn" class="primary-btn">
                     <span class="button-text"><i class="fas fa-rocket"></i> Activate</span>
-                    <div class="button-loader"></div>
+                    
                 </button>
                 <button id="cancelActivateBoostBtn" class="cancel-btn">
                     <span class="button-text"><i class="fas fa-times"></i> Cancel</span>
@@ -1217,7 +1202,6 @@
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
 
         // Initialize Firebase services
         const app = initializeApp(firebaseConfig);
@@ -1411,18 +1395,18 @@
          */
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
-            const loader = buttonElement.querySelector('.button-loader');
+            
             const text = buttonElement.querySelector('.button-text');
 
             if (isLoading) {
                 buttonElement.disabled = true;
                 buttonElement.classList.add('loading');
-                if (loader) loader.classList.add('active');
+                
                 if (text) text.style.display = 'none';
             } else {
                 buttonElement.disabled = false;
                 buttonElement.classList.remove('loading');
-                if (loader) loader.classList.remove('active');
+                
                 if (text) text.style.display = 'block';
             }
         }
@@ -1789,7 +1773,6 @@
                 console.error("JCHAT_ERROR: Error fetching admin username:", error);
                 adminUsernameSpan.textContent = currentGroupData.admin.substring(0, 8); // Fallback to ID
             }
-
 
             // Enable delete button only if confirm name matches
             confirmDeleteGroupName.addEventListener('input', () => {
@@ -2239,7 +2222,6 @@
                 toggleButtonLoading(submitActivateBoostBtn, false);
             }
         }
-
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {

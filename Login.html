@@ -502,7 +502,6 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
 
-
         /* --- Auth Container Styles --- */
         .auth-container {
             background: var(--card-background);
@@ -684,18 +683,6 @@
             font-size: 1.2rem;
         }
 
-
-        /* Loader styles for buttons */
-        .button-loader {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid var(--white);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: none;
-        }
-        .button-loader.active { display: block; }
         .button-text { display: block; }
         .loading .button-text { display: none; }
         @keyframes spin {
@@ -995,8 +982,6 @@
         }
     </style>
 
-    <!-- Facebook-Style Page Loader -->
-    <script src="page-loader.js"></script>
     </head>
 <body class="theme-dark-mode">
 
@@ -1131,7 +1116,7 @@
                 <a href="#" class="forgot-password-link" id="showResetPasswordLink">Forgot Password?</a>
                 <button type="submit" id="loginButton" class="auth-button">
                     <span class="button-text"><i class="fas fa-sign-in-alt"></i> Login</span>
-                    <div class="button-loader"></div>
+                    
                 </button>
                 <div class="separator">OR</div>
                 <button class="social-login-button" id="googleLoginButton">
@@ -1163,7 +1148,7 @@
                 </div>
                 <button type="submit" id="registerButton" class="auth-button">
                     <span class="button-text"><i class="fas fa-user-plus"></i> Register</span>
-                    <div class="button-loader"></div>
+                    
                 </button>
                 <div class="separator">OR</div>
                 <button class="social-login-button" id="googleRegisterButton">
@@ -1183,7 +1168,7 @@
                 </div>
                 <button type="submit" id="sendResetEmailButton" class="auth-button">
                     <span class="button-text"><i class="fas fa-envelope"></i> Send Reset Link</span>
-                    <div class="button-loader"></div>
+                    
                 </button>
                 <p class="toggle-form-link" id="backToLoginLink">Back to Login</p>
             </form>
@@ -1294,7 +1279,6 @@
         const welcomeContent = document.querySelector('.welcome-content'); // Get the scrollable content div
         const scrollToTopBtn = document.getElementById('scrollToTopBtn'); // Get the new scroll-to-top button
 
-
         const authTitle = document.getElementById('authTitle');
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
@@ -1327,7 +1311,6 @@
         // New: Features Section Toggle Elements
         const featuresHeader = document.getElementById('featuresHeader');
         const featuresContent = document.getElementById('featuresContent');
-
 
         // --- Constants for Referral Rewards ---
         const REFERRAL_JCOIN_REWARD_NEW_USER = 5;
@@ -1399,18 +1382,18 @@
          */
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
-            const loader = buttonElement.querySelector('.button-loader');
+            
             const text = buttonElement.querySelector('.button-text');
 
             if (isLoading) {
                 buttonElement.disabled = true;
                 buttonElement.classList.add('loading');
-                if (loader) loader.classList.add('active');
+                
                 if (text) text.style.display = 'none';
             } else {
                 buttonElement.disabled = false;
                 buttonElement.classList.remove('loading');
-                if (loader) loader.classList.remove('active');
+                
                 if (text) text.style.display = 'block';
             }
         }
@@ -1606,7 +1589,6 @@
                         messagesSentCount: 0
                     });
 
-
                     // Add transaction for new user's initial bonus (if applicable)
                     if (newUserJCoins > 0 || newUserGas > 0) {
                         transaction.set(doc(userTransactionsCollectionRef), {
@@ -1624,7 +1606,6 @@
                         const referrerProfileRef = doc(db, "artifacts", appId, "users", referrerId, "profiles", "user_profile");
                         const referrerTransactionsCollectionRef = collection(db, "artifacts", appId, "users", referrerId, "transactions");
                         const referrerPublicProfileRef = doc(db, "artifacts", appId, "public", "data", "users", referrerId);
-
 
                         const referrerDoc = await transaction.get(referrerProfileRef);
                         const referrerPublicDoc = await transaction.get(referrerPublicProfileRef);

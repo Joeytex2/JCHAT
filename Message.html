@@ -17,8 +17,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Facebook-Style Page Loader -->
-    <script src="page-loader.js"></script>
 
     <style>
         /* Universal box-sizing for consistent layout */
@@ -637,7 +635,6 @@
             text-align: left;
         }
 
-
         .message-input-area {
             padding: 15px;
             border-top: 1px solid var(--border-light);
@@ -766,18 +763,6 @@
         }
         #messageBox.loading-pulse { animation: pulse-bg 1.5s infinite ease-in-out; }
 
-        /* Loader styles for buttons */
-        .button-loader {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid var(--white);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: none;
-            flex-shrink: 0; /* Prevent loader from shrinking */
-        }
-        .button-loader.active { display: block; }
         .button-text { display: block; }
         .loading .button-text { display: none; }
         @keyframes spin {
@@ -1212,18 +1197,18 @@
          */
         function toggleButtonLoading(buttonElement, isLoading) {
             if (!buttonElement) return;
-            const loader = buttonElement.querySelector('.button-loader');
+            
             const text = buttonElement.querySelector('.button-text');
 
             if (isLoading) {
                 buttonElement.disabled = true;
                 buttonElement.classList.add('loading');
-                if (loader) loader.classList.add('active');
+                
                 if (text) text.style.display = 'none';
             } else {
                 buttonElement.disabled = false;
                 buttonElement.classList.remove('loading');
-                if (loader) loader.classList.remove('active');
+                
                 if (text) text.style.display = 'block';
             }
         }
@@ -1535,7 +1520,7 @@
                     <input type="text" id="messageInput" placeholder="Type your message...">
                     <button id="sendMessageButton">
                         <span class="button-text"><i class="fas fa-paper-plane"></i> Send</span>
-                        <div class="button-loader"></div>
+                        
                     </button>
                 </div>
             `;
@@ -1656,7 +1641,6 @@
                 toggleButtonLoading(sendMessageButton, false);
             }
         }
-
 
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
