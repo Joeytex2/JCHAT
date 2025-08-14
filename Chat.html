@@ -614,6 +614,65 @@
             color: var(--accent-color);
         }
 
+        /* Call Buttons */
+        .call-buttons {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+            margin-right: 15px;
+        }
+
+        .call-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .call-btn:hover {
+            color: var(--white);
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .voice-call-btn {
+            color: #4CAF50;
+        }
+
+        .voice-call-btn:hover {
+            background-color: rgba(76, 175, 80, 0.2);
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .video-call-btn {
+            color: #2196F3;
+        }
+
+        .video-call-btn:hover {
+            background-color: rgba(33, 150, 243, 0.2);
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+        }
+
+        .call-btn.active {
+            background-color: var(--accent-color);
+            color: var(--white);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
         /* Badge for Select Friend Button */
         .select-friend-badge {
             position: absolute;
@@ -2326,6 +2385,14 @@
                 <img id="partnerProfilePic" src="" alt="Partner Profile Picture" style="display: none;">
                 <div id="partnerAvatarIcon" class="default-avatar"><i class="fas fa-user-circle"></i></div>
                 <h2 id="partnerDisplayName">Loading...</h2>
+                <div class="call-buttons">
+                    <button id="voiceCallBtn" class="call-btn voice-call-btn" title="Voice Call" onclick="startCall('voice')">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button id="videoCallBtn" class="call-btn video-call-btn" title="Video Call" onclick="startCall('video')">
+                        <i class="fas fa-video"></i>
+                    </button>
+                </div>
                 <button id="selectFriendBtn" class="select-friend-btn" title="Select Chat Partner">
                     <i class="fas fa-users"></i>
                     <span class="select-friend-badge" id="selectFriendBadge" style="display: none;">0</span>
@@ -2878,6 +2945,100 @@
         incomingCallSynth.envelope.sustain = 0.01;
         incomingCallSynth.envelope.release = 0.8;
 
+        // Ringtone functionality
+        let ringtoneAudio = null;
+        let ringtoneInterval = null;
+        let isRinging = false;
+
+        /**
+         * Initialize ringtone audio
+         */
+        function initializeRingtone() {
+            try {
+                // Try to load ringtone.mp3 first, fallback to ne.mp3
+                ringtoneAudio = new Audio('ringtone.mp3');
+                ringtoneAudio.addEventListener('error', () => {
+                    console.log('Ringtone.mp3 not found, using ne.mp3 as fallback');
+                    ringtoneAudio = new Audio('ne.mp3');
+                    ringtoneAudio.loop = true;
+                    ringtoneAudio.volume = 0.7;
+                });
+                ringtoneAudio.loop = true;
+                ringtoneAudio.volume = 0.7;
+            } catch (error) {
+                console.warn('Failed to initialize ringtone:', error);
+                // Fallback to Tone.js ringtone
+                ringtoneAudio = null;
+            }
+        }
+
+        /**
+         * Start playing ringtone
+         */
+        function startRingtone() {
+            if (isRinging) return;
+            
+            isRinging = true;
+            
+            if (ringtoneAudio) {
+                try {
+                    ringtoneAudio.play();
+                } catch (error) {
+                    console.warn('Failed to play ringtone audio:', error);
+                    startToneRingtone();
+                }
+            } else {
+                startToneRingtone();
+            }
+        }
+
+        /**
+         * Stop playing ringtone
+         */
+        function stopRingtone() {
+            if (!isRinging) return;
+            
+            isRinging = false;
+            
+            if (ringtoneAudio) {
+                ringtoneAudio.pause();
+                ringtoneAudio.currentTime = 0;
+            }
+            
+            if (ringtoneInterval) {
+                clearInterval(ringtoneInterval);
+                ringtoneInterval = null;
+            }
+        }
+
+        /**
+         * Start Tone.js ringtone (fallback)
+         */
+        function startToneRingtone() {
+            if (ringtoneInterval) return;
+            
+            const ringtoneSynth = new Tone.Synth().toDestination();
+            ringtoneSynth.oscillator.type = "sine";
+            ringtoneSynth.envelope.attack = 0.01;
+            ringtoneSynth.envelope.decay = 0.1;
+            ringtoneSynth.envelope.sustain = 0.3;
+            ringtoneSynth.envelope.release = 0.2;
+            
+            let noteIndex = 0;
+            const ringtoneNotes = ['C4', 'E4', 'G4', 'C5'];
+            
+            ringtoneInterval = setInterval(() => {
+                if (!isRinging) {
+                    clearInterval(ringtoneInterval);
+                    ringtoneInterval = null;
+                    return;
+                }
+                
+                ringtoneSynth.triggerAttackRelease(ringtoneNotes[noteIndex], '8n');
+                noteIndex = (noteIndex + 1) % ringtoneNotes.length;
+            }, 500);
+        }
+
         /**
          * Plays notification sounds using ne.mp3 or Tone.js fallback
          * @param {string} type - 'success', 'error', 'info', 'warning', 'friend_request', 'message', 'level_up', 'incoming_call'.
@@ -2909,8 +3070,8 @@
                     } else if (type === 'level_up') {
                         successSynth.triggerAttackRelease("C6", "4n");
                     } else if (type === 'incoming_call') {
-                        incomingCallSynth.triggerAttackRelease("C4", "2n");
-                        incomingCallSynth.triggerAttackRelease("G4", "2n", "+0.5");
+                        // Use ringtone for incoming calls
+                        startRingtone();
                     }
                 });
             } catch (error) {
@@ -4618,6 +4779,9 @@
         async function endCall(reason) {
             if (!currentUser || !partnerId) return;
 
+            // Stop ringtone when call ends
+            stopRingtone();
+
             try {
                 // Stop call timer
                 if (callTimer) {
@@ -4694,6 +4858,7 @@
             isVideoEnabled = true;
             isSpeakerOn = false;
 
+            updateCallButtonStates();
             console.log("JCHAT_DEBUG: WebRTC resources cleaned up");
         }
 
@@ -4725,6 +4890,9 @@
          */
         async function acceptCall(callType) {
             if (!currentUser || !partnerId) return;
+
+            // Stop ringtone when call is accepted
+            stopRingtone();
 
             try {
                 // Initialize WebRTC
@@ -4825,6 +4993,7 @@
             }
 
             hideCallStatusOverlay();
+            updateCallButtonStates();
             console.log("JCHAT_DEBUG: Active call started");
         }
 
@@ -4900,6 +5069,9 @@
          */
         async function rejectCall() {
             if (!currentUser || !partnerId) return;
+
+            // Stop ringtone when call is rejected
+            stopRingtone();
 
             const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
             const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
@@ -5064,6 +5236,63 @@
             if (e.key === 's') { if (typeof screenShareBtn !== 'undefined') screenShareBtn?.click(); }
             if (e.key === 'f') { if (typeof fullscreenBtn !== 'undefined') fullscreenBtn?.click(); }
             if (e.key === 'q') { if (typeof endVideoCallBtn !== 'undefined') endVideoCallBtn?.click(); if (typeof endVoiceCallBtn !== 'undefined') endVoiceCallBtn?.click(); }
+        });
+
+        // Call Button Event Listeners
+        const voiceCallBtn = document.getElementById('voiceCallBtn');
+        const videoCallBtn = document.getElementById('videoCallBtn');
+
+        if (voiceCallBtn) {
+            voiceCallBtn.addEventListener('click', () => {
+                if (!currentUser || !partnerId) {
+                    showMessageBox("Please select a chat partner to start a call.", 'warning');
+                    return;
+                }
+                startCall('voice');
+            });
+        }
+
+        if (videoCallBtn) {
+            videoCallBtn.addEventListener('click', () => {
+                if (!currentUser || !partnerId) {
+                    showMessageBox("Please select a chat partner to start a call.", 'warning');
+                    return;
+                }
+                startCall('video');
+            });
+        }
+
+        // Add call button state management
+        function updateCallButtonStates() {
+            if (voiceCallBtn) {
+                voiceCallBtn.disabled = isCallActive;
+                voiceCallBtn.classList.toggle('active', isCallActive && callType === 'voice');
+            }
+            if (videoCallBtn) {
+                videoCallBtn.disabled = isCallActive;
+                videoCallBtn.classList.toggle('active', isCallActive && callType === 'video');
+            }
+        }
+
+        // Add event listeners for call control buttons
+        if (typeof muteVideoBtn !== 'undefined' && muteVideoBtn) muteVideoBtn.addEventListener('click', toggleMute);
+        if (typeof muteVoiceBtn !== 'undefined' && muteVoiceBtn) muteVoiceBtn.addEventListener('click', toggleMute);
+        if (typeof toggleVideoBtn !== 'undefined' && toggleVideoBtn) toggleVideoBtn.addEventListener('click', toggleVideo);
+        if (typeof switchCameraBtn !== 'undefined' && switchCameraBtn) switchCameraBtn.addEventListener('click', switchCamera);
+        if (typeof fullscreenBtn !== 'undefined' && fullscreenBtn) fullscreenBtn.addEventListener('click', toggleFullscreen);
+        if (typeof endVideoCallBtn !== 'undefined' && endVideoCallBtn) endVideoCallBtn.addEventListener('click', () => endCall('caller_ended'));
+        if (typeof endVoiceCallBtn !== 'undefined' && endVoiceCallBtn) endVoiceCallBtn.addEventListener('click', () => endCall('caller_ended'));
+
+        // Add speaker toggle functionality
+        if (typeof speakerBtn !== 'undefined' && speakerBtn) speakerBtn.addEventListener('click', () => {
+            isSpeakerOn = !isSpeakerOn;
+            speakerBtn.classList.toggle('active', isSpeakerOn);
+            speakerBtn.innerHTML = `<i class="fas fa-volume-${isSpeakerOn ? 'up' : 'mute'}"></i>`;
+            
+            // Apply speaker mode to remote video
+            if (remoteVideo) {
+                remoteVideo.volume = isSpeakerOn ? 1.0 : 0.5;
+            }
         });
 
         async function applyAdaptiveEncoding() {
@@ -5499,6 +5728,10 @@
                 currentUser = user;
                 isAuthReady = true;
                 console.log("JCHAT_DEBUG: User authenticated in Private Chat Page:", user.uid);
+                
+                // Initialize ringtone
+                initializeRingtone();
+                
                 await fetchAndDisplayHeaderProfile(user);
                 
                 // Get partnerId from URL query parameter
