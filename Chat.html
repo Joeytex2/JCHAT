@@ -5469,20 +5469,29 @@
                 const friendIds = friendsSnapshot.docs.map(doc => doc.id);
 
                 const friendsDataPromises = friendIds.map(async (friendId) => {
-                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
-                    const publicDocSnap = await getDoc(publicProfileDocRef);
-                    if (publicDocSnap.exists()) {
-                        const friendProfile = publicDocSnap.data();
-                        return {
-                            userId: friendId,
-                            username: friendProfile.username,
-                            profilePicId: friendProfile.profilePicId,
-                        };
+                    try {
+                        const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
+                        const publicDocSnap = await getDoc(publicProfileDocRef);
+                        if (publicDocSnap.exists()) {
+                            const friendProfile = publicDocSnap.data();
+                            return {
+                                userId: friendId,
+                                username: friendProfile.username || `User_${friendId.substring(0, 8)}`,
+                                profilePicId: friendProfile.profilePicId || null,
+                            };
+                        }
+                    } catch (_) {
+                        // Ignore and fallback below
                     }
-                    return null; // Return null if profile not found
+                    // Fallback if no public profile doc
+                    return {
+                        userId: friendId,
+                        username: `User_${friendId.substring(0, 8)}`,
+                        profilePicId: null,
+                    };
                 });
 
-                const fetchedFriends = (await Promise.all(friendsDataPromises)).filter(f => f !== null);
+                const fetchedFriends = await Promise.all(friendsDataPromises);
                 allFriendsData = fetchedFriends; // Store for filtering
 
                 renderSelectableFriends(searchTerm);
