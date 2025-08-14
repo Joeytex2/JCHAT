@@ -3151,14 +3151,14 @@
                 console.log("JCHAT_DEBUG: Initializing ringtone system...");
                 
                 // Create ringtone audio element with proper settings
-                ringtoneAudio = new Audio('ringtone.mp3');
+                ringtoneAudio = new Audio('ringtone-022-376904.mp3');
                 ringtoneAudio.loop = true;
                 ringtoneAudio.volume = 0.8;
                 ringtoneAudio.preload = 'auto';
                 
-                // Enhanced error handling for ringtone.mp3
+                // Enhanced error handling for ringtone-022-376904.mp3
                 ringtoneAudio.addEventListener('error', (e) => {
-                    console.warn('Ringtone.mp3 failed to load, using ne.mp3 as fallback:', e);
+                    console.warn('ringtone-022-376904.mp3 failed to load, using ne.mp3 as fallback:', e);
                     ringtoneAudio = new Audio('ne.mp3');
                     ringtoneAudio.loop = true;
                     ringtoneAudio.volume = 0.7;
@@ -3167,7 +3167,7 @@
                 
                 // Success handler
                 ringtoneAudio.addEventListener('canplaythrough', () => {
-                    console.log("JCHAT_DEBUG: Ringtone.mp3 loaded successfully");
+                    console.log("JCHAT_DEBUG: ringtone-022-376904.mp3 loaded successfully");
                 });
                 
                 // Load the audio
@@ -6077,105 +6077,7 @@
             }
         });
 
-        // --- Call Control Functions ---
-        /**
-         * Toggle video on/off
-         */
-        function toggleVideo() {
-            if (localStream) {
-                const videoTrack = localStream.getVideoTracks()[0];
-                if (videoTrack) {
-                    videoTrack.enabled = !videoTrack.enabled;
-                    isVideoEnabled = videoTrack.enabled;
-                    
-                    // Update button state
-                    toggleVideoBtn.classList.toggle('muted', !isVideoEnabled);
-                    
-                    // Update button icon
-                    const videoIcon = isVideoEnabled ? 'fa-video' : 'fa-video-slash';
-                    toggleVideoBtn.innerHTML = `<i class="fas ${videoIcon}"></i>`;
-                }
-            }
-        }
-
-        /**
-         * Switch between front and back cameras
-         */
-        async function switchCamera() {
-            if (localStream && callType === 'video') {
-                try {
-                    // Stop current video track
-                    const currentVideoTrack = localStream.getVideoTracks()[0];
-                    if (currentVideoTrack) {
-                        currentVideoTrack.stop();
-                    }
-
-                    // Switch camera
-                    currentCamera = currentCamera === 'front' ? 'environment' : 'front';
-
-                    // Get new video stream
-                    const newVideoStream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            width: { ideal: 1280, min: 640 },
-                            height: { ideal: 720, min: 480 },
-                            facingMode: currentCamera
-                        }
-                    });
-
-                    // Replace video track in local stream
-                    const newVideoTrack = newVideoStream.getVideoTracks()[0];
-                    const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-                    if (sender) {
-                        sender.replaceTrack(newVideoTrack);
-                    }
-
-                    // Update local video
-                    localVideo.srcObject = localStream;
-                    await localVideo.play();
-
-                    console.log("JCHAT_DEBUG: Camera switched to", currentCamera);
-                } catch (error) {
-                    console.error("JCHAT_ERROR: Error switching camera:", error);
-                    showMessageBox("Failed to switch camera", 'error');
-                }
-            }
-        }
-
-        /**
-         * Toggle fullscreen mode
-         */
-        function toggleFullscreen() {
-            const videoItem = document.querySelector('.video-item.fullscreen');
-            if (videoItem) {
-                // Exit fullscreen
-                videoItem.classList.remove('fullscreen');
-                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
-                fullscreenBtn.title = 'Fullscreen';
-            } else {
-                // Enter fullscreen
-                const remoteVideoItem = document.getElementById('remoteVideoItem');
-                remoteVideoItem.classList.add('fullscreen');
-                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
-                fullscreenBtn.title = 'Exit Fullscreen';
-            }
-        }
-
-        /**
-         * Toggle speaker mode
-         */
-        function toggleSpeaker() {
-            if (remoteVideo) {
-                isSpeakerOn = !isSpeakerOn;
-                remoteVideo.muted = !isSpeakerOn;
-                
-                // Update button state
-                speakerBtn.classList.toggle('active', isSpeakerOn);
-                
-                // Update button icon
-                const speakerIcon = isSpeakerOn ? 'fa-volume-mute' : 'fa-volume-up';
-                speakerBtn.innerHTML = `<i class="fas ${speakerIcon}"></i>`;
-            }
-        }
+        // ---- UI Toggles Wiring ----
         // ---- UI Toggles Wiring ----
         (function wireToggles(){
             // Friend selector button
