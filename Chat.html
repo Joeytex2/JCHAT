@@ -3130,20 +3130,35 @@
 
         // --- Enhanced Ringtone System ---
         /**
-         * Initialize ringtone audio system
+         * Initialize ringtone audio system with enhanced error handling
          */
         function initializeRingtone() {
             try {
-                // Try to load ringtone.mp3 first, fallback to ne.mp3
+                console.log("JCHAT_DEBUG: Initializing ringtone system...");
+                
+                // Create ringtone audio element with proper settings
                 ringtoneAudio = new Audio('ringtone.mp3');
-                ringtoneAudio.addEventListener('error', () => {
-                    console.log('Ringtone.mp3 not found, using ne.mp3 as fallback');
+                ringtoneAudio.loop = true;
+                ringtoneAudio.volume = 0.8;
+                ringtoneAudio.preload = 'auto';
+                
+                // Enhanced error handling for ringtone.mp3
+                ringtoneAudio.addEventListener('error', (e) => {
+                    console.warn('Ringtone.mp3 failed to load, using ne.mp3 as fallback:', e);
                     ringtoneAudio = new Audio('ne.mp3');
                     ringtoneAudio.loop = true;
                     ringtoneAudio.volume = 0.7;
+                    ringtoneAudio.preload = 'auto';
                 });
-                ringtoneAudio.loop = true;
-                ringtoneAudio.volume = 0.7;
+                
+                // Success handler
+                ringtoneAudio.addEventListener('canplaythrough', () => {
+                    console.log("JCHAT_DEBUG: Ringtone.mp3 loaded successfully");
+                });
+                
+                // Load the audio
+                ringtoneAudio.load();
+                
             } catch (error) {
                 console.warn('Failed to initialize ringtone:', error);
                 ringtoneAudio = null;
