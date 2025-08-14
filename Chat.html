@@ -4233,6 +4233,10 @@
         let isSpeakerOn = false;
         let currentCamera = 'front';
         let availableCameras = [];
+        // Ringtone state
+        let ringAudio = null;
+        let ringToneInterval = null;
+        let ringTimeoutId = null;
 
 
 
@@ -4792,6 +4796,58 @@
             callStatusOverlay.classList.add('active');
         }
 
+        // Start repeating ringtone and schedule auto hangup after 60s
+        function startRinging() {
+            stopRinging();
+            try {
+                ringAudio = new Audio('ringtone.mp3');
+                ringAudio.loop = true;
+                ringAudio.volume = 0.7;
+                ringAudio.onerror = () => {
+                    try {
+                        ringAudio = new Audio('ne.mp3');
+                        ringAudio.loop = true;
+                        ringAudio.volume = 0.7;
+                        ringAudio.play().catch(startToneLoop);
+                    } catch (_) { startToneLoop(); }
+                };
+                ringAudio.play().catch(startToneLoop);
+            } catch (_) {
+                startToneLoop();
+            }
+
+            if (ringTimeoutId) clearTimeout(ringTimeoutId);
+            ringTimeoutId = setTimeout(() => {
+                // If still not accepted/rejected, end as no_answer
+                endCall('no_answer');
+            }, 60000);
+        }
+
+        function startToneLoop() {
+            try { Tone.start(); } catch (_) {}
+            ringToneInterval = setInterval(() => {
+                try {
+                    incomingCallSynth.triggerAttackRelease("C4", "2n");
+                    incomingCallSynth.triggerAttackRelease("G4", "2n", "+0.5");
+                } catch (_) {}
+            }, 2000);
+        }
+
+        function stopRinging() {
+            if (ringAudio) {
+                try { ringAudio.pause(); ringAudio.currentTime = 0; } catch (_) {}
+                ringAudio = null;
+            }
+            if (ringToneInterval) {
+                clearInterval(ringToneInterval);
+                ringToneInterval = null;
+            }
+            if (ringTimeoutId) {
+                clearTimeout(ringTimeoutId);
+                ringTimeoutId = null;
+            }
+        }
+
         /**
          * Hides the call status overlay.
          */
@@ -4800,6 +4856,7 @@
             callStatusTitle.textContent = '';
             callStatusMessage.textContent = '';
             callActions.innerHTML = '';
+            stopRinging();
         }
 
         /**
@@ -4856,15 +4913,18 @@
                     initiatedAt: serverTimestamp()
                 });
 
-                showCallStatusOverlay(
+                                showCallStatusOverlay(
                     `Outgoing ${callKind} Call`,
                     `Calling ${partnerProfileData.username}...`,
                     [{ text: 'End Call', icon: 'fas fa-phone-slash', className: 'end-call-btn', onClick: () => endCall('caller_ended') }]
                 );
 
+                // Start ringback tone and 60s timeout
+                startRinging();
+ 
                 // Send notification to the receiver
                 const notificationRef = collection(db, "artifacts", appId, "users", partnerId, "notifications");
-                await addDoc(notificationRef, {
+await addDoc(notificationRef, {
                     type: 'incoming_call',
                     message: `Incoming ${callKind} call from ${currentUserProfileData.username}!`,
                     senderId: currentUser.uid,
