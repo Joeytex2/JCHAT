@@ -4919,6 +4919,199 @@
                 playNotificationSound('error');
             }
         }
+
+        // --- Added Call Helpers: Prejoin, Devices, Controls, Quality ---
+        async function enumerateAndFillDevices() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const mics = devices.filter(d => d.kind === 'audioinput');
+                const cams = devices.filter(d => d.kind === 'videoinput');
+                const spks = devices.filter(d => d.kind === 'audiooutput');
+                if (typeof micSelect !== 'undefined' && micSelect) {
+                    micSelect.innerHTML = mics.map(d => `<option value=\"${d.deviceId}\">${d.label || 'Microphone'}</option>`).join('');
+                }
+                if (typeof camSelect !== 'undefined' && camSelect) {
+                    camSelect.innerHTML = cams.map(d => `<option value=\"${d.deviceId}\">${d.label || 'Camera'}</option>`).join('');
+                }
+                if (typeof spkSelect !== 'undefined' && spkSelect && typeof HTMLMediaElement.prototype.setSinkId === 'function') {
+                    spkSelect.innerHTML = spks.map(d => `<option value=\"${d.deviceId}\">${d.label || 'Speaker'}</option>`).join('');
+                }
+                if (typeof deviceMicSelect !== 'undefined' && deviceMicSelect) deviceMicSelect.innerHTML = micSelect?.innerHTML || '';
+                if (typeof deviceCamSelect !== 'undefined' && deviceCamSelect) deviceCamSelect.innerHTML = camSelect?.innerHTML || '';
+                if (typeof deviceSpkSelect !== 'undefined' && deviceSpkSelect) deviceSpkSelect.innerHTML = spkSelect?.innerHTML || '';
+            } catch (e) { console.warn('Device enumeration failed', e); }
+        }
+
+        async function openPrejoinFlow(kind) {
+            if (typeof prejoinModal === 'undefined' || !prejoinModal) return;
+            prejoinModal.style.display = 'flex';
+            await enumerateAndFillDevices();
+            try {
+                const constraints = {
+                    audio: { deviceId: micSelect?.value ? { exact: micSelect.value } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+                    video: kind === 'video' ? { deviceId: camSelect?.value ? { exact: camSelect.value } : undefined, width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: currentCamera } : false
+                };
+                const previewStream = await navigator.mediaDevices.getUserMedia(constraints);
+                if (typeof prejoinLocalPreview !== 'undefined' && prejoinLocalPreview) {
+                    prejoinLocalPreview.srcObject = previewStream;
+                    await prejoinLocalPreview.play();
+                }
+                if (typeof prejoinMuteBtn !== 'undefined' && prejoinMuteBtn) prejoinMuteBtn.onclick = () => {
+                    previewStream.getAudioTracks().forEach(t => t.enabled = !t.enabled);
+                    prejoinMuteBtn.innerHTML = previewStream.getAudioTracks().some(t => t.enabled) ? '<i class=\"fas fa-microphone\"></i>' : '<i class=\"fas fa-microphone-slash\"></i>';
+                };
+                if (typeof prejoinCamBtn !== 'undefined' && prejoinCamBtn) prejoinCamBtn.onclick = () => {
+                    previewStream.getVideoTracks().forEach(t => t.enabled = !t.enabled);
+                    prejoinCamBtn.innerHTML = previewStream.getVideoTracks().some(t => t.enabled) ? '<i class=\"fas fa-video\"></i>' : '<i class=\"fas fa-video-slash\"></i>';
+                };
+                if (typeof prejoinCancelBtn !== 'undefined' && prejoinCancelBtn) prejoinCancelBtn.onclick = () => { previewStream.getTracks().forEach(t => t.stop()); prejoinModal.style.display = 'none'; throw new Error('User canceled prejoin'); };
+                await new Promise((resolve) => { if (typeof prejoinJoinBtn !== 'undefined' && prejoinJoinBtn) prejoinJoinBtn.onclick = () => { previewStream.getTracks().forEach(t => t.stop()); prejoinModal.style.display = 'none'; resolve(); }; });
+            } catch (e) { prejoinModal.style.display = 'none'; throw e; }
+        }
+
+        async function applySelectedDevicesToOutputs() {
+            try {
+                if (typeof deviceSpkSelect !== 'undefined' && deviceSpkSelect && typeof HTMLMediaElement.prototype.setSinkId === 'function') {
+                    if (typeof localVideo !== 'undefined' && localVideo && deviceSpkSelect.value) await localVideo.setSinkId(deviceSpkSelect.value);
+                    if (typeof remoteVideo !== 'undefined' && remoteVideo && deviceSpkSelect.value) await remoteVideo.setSinkId(deviceSpkSelect.value);
+                }
+            } catch (e) { console.warn('Setting sinkId failed', e); }
+        }
+
+        if (typeof deviceSettingsBtn !== 'undefined' && deviceSettingsBtn) deviceSettingsBtn.addEventListener('click', async () => { await enumerateAndFillDevices(); if (typeof deviceSettingsModal !== 'undefined' && deviceSettingsModal) deviceSettingsModal.style.display = 'flex'; });
+        if (typeof deviceSettingsCloseBtn !== 'undefined' && deviceSettingsCloseBtn) deviceSettingsCloseBtn.addEventListener('click', () => { if (typeof deviceSettingsModal !== 'undefined' && deviceSettingsModal) deviceSettingsModal.style.display = 'none'; });
+        if (typeof deviceSettingsApplyBtn !== 'undefined' && deviceSettingsApplyBtn) deviceSettingsApplyBtn.addEventListener('click', async () => {
+            if (typeof deviceSettingsModal !== 'undefined' && deviceSettingsModal) deviceSettingsModal.style.display = 'none';
+            if (!callType) return;
+            const constraints = {
+                audio: { deviceId: deviceMicSelect?.value ? { exact: deviceMicSelect.value } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+                video: callType === 'video' ? { deviceId: deviceCamSelect?.value ? { exact: deviceCamSelect.value } : undefined, width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: currentCamera } : false
+            };
+            try {
+                const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const audioTrack = newStream.getAudioTracks()[0];
+                const videoTrack = newStream.getVideoTracks()[0];
+                const audioSender = peerConnection?.getSenders().find(s => s.track?.kind === 'audio');
+                const videoSender = peerConnection?.getSenders().find(s => s.track?.kind === 'video');
+                if (audioTrack && audioSender) await audioSender.replaceTrack(audioTrack);
+                if (videoTrack && videoSender) await videoSender.replaceTrack(videoTrack);
+                if (typeof localStream !== 'undefined' && localStream) localStream.getTracks().forEach(t => t.stop());
+                localStream = newStream;
+                if (callType === 'video' && typeof localVideo !== 'undefined' && localVideo) localVideo.srcObject = localStream;
+                await applySelectedDevicesToOutputs();
+            } catch (e) { console.error('Reacquire failed', e); }
+        });
+
+        if (typeof screenShareBtn !== 'undefined' && screenShareBtn) screenShareBtn.addEventListener('click', async () => {
+            try {
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+                const screenTrack = displayStream.getVideoTracks()[0];
+                const sender = peerConnection?.getSenders().find(s => s.track?.kind === 'video');
+                if (sender && screenTrack) await sender.replaceTrack(screenTrack);
+                screenTrack.onended = async () => {
+                    await getUserMedia('video');
+                    const camTrack = localStream.getVideoTracks()[0];
+                    if (sender && camTrack) await sender.replaceTrack(camTrack);
+                };
+            } catch (e) { console.warn('Screen share canceled or failed', e); }
+        });
+
+        if (typeof pipBtn !== 'undefined' && pipBtn) pipBtn.addEventListener('click', async () => {
+            try {
+                const el = (typeof remoteVideo !== 'undefined' && remoteVideo) ? remoteVideo : localVideo;
+                if (!el) return;
+                if (document.pictureInPictureElement) {
+                    await document.exitPictureInPicture();
+                } else if (el.requestPictureInPicture) {
+                    await el.requestPictureInPicture();
+                }
+            } catch (e) { console.warn('PiP failed', e); }
+        });
+
+        let mediaRecorderInstance = null; let recordedChunks = [];
+        if (typeof recordBtn !== 'undefined' && recordBtn) recordBtn.addEventListener('click', () => {
+            try {
+                if (!mediaRecorderInstance) {
+                    const stream = callType === 'video' ? localStream : (remoteStream || localStream);
+                    if (!stream) return;
+                    mediaRecorderInstance = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus' });
+                    recordedChunks = [];
+                    mediaRecorderInstance.ondataavailable = (e) => { if (e.data.size) recordedChunks.push(e.data); };
+                    mediaRecorderInstance.onstop = () => {
+                        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href = url; a.download = `call-recording-${Date.now()}.webm`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+                        mediaRecorderInstance = null; recordedChunks = [];
+                    };
+                    mediaRecorderInstance.start();
+                    recordBtn.innerHTML = '<i class=\"fas fa-stop\"></i>';
+                } else {
+                    mediaRecorderInstance.stop();
+                    recordBtn.innerHTML = '<i class=\"fas fa-dot-circle\"></i>';
+                }
+            } catch (e) { console.warn('Recording failed', e); }
+        });
+
+        if (typeof snapshotBtn !== 'undefined' && snapshotBtn) snapshotBtn.addEventListener('click', () => {
+            try {
+                const el = (typeof remoteVideo !== 'undefined' && remoteVideo) ? remoteVideo : localVideo; if (!el) return;
+                const canvas = document.createElement('canvas'); canvas.width = el.videoWidth; canvas.height = el.videoHeight; const ctx = canvas.getContext('2d'); ctx.drawImage(el, 0, 0);
+                canvas.toBlob((blob) => { if (!blob) return; const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `snapshot-${Date.now()}.png`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }, 'image/png');
+            } catch (e) { console.warn('Snapshot failed', e); }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (!callType) return;
+            if (e.key === 'm') { if (typeof muteVoiceBtn !== 'undefined') muteVoiceBtn?.click(); }
+            if (e.key === 'v') { if (typeof toggleVideoBtn !== 'undefined') toggleVideoBtn?.click(); }
+            if (e.key === 's') { if (typeof screenShareBtn !== 'undefined') screenShareBtn?.click(); }
+            if (e.key === 'f') { if (typeof fullscreenBtn !== 'undefined') fullscreenBtn?.click(); }
+            if (e.key === 'q') { if (typeof endVideoCallBtn !== 'undefined') endVideoCallBtn?.click(); if (typeof endVoiceCallBtn !== 'undefined') endVoiceCallBtn?.click(); }
+        });
+
+        async function applyAdaptiveEncoding() {
+            try {
+                if (!peerConnection) return;
+                const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                if (!sender) return;
+                const stats = await peerConnection.getStats(sender);
+                let outbound; stats.forEach(r => { if (r.type === 'outbound-rtp' && r.kind === 'video') outbound = r; });
+                if (!outbound) return;
+                const rtt = outbound.roundTripTime || outbound.currentRoundTripTime || 0;
+                const quality = rtt > 0.4 ? 250000 : rtt > 0.2 ? 500000 : 1200000;
+                const params = sender.getParameters();
+                params.encodings = [{ maxBitrate: quality }];
+                await sender.setParameters(params);
+            } catch (e) { /* ignore */ }
+        }
+
+        let qualityInterval = null;
+        function startQualityMonitoring() {
+            if (qualityInterval) clearInterval(qualityInterval);
+            qualityInterval = setInterval(async () => {
+                await applyAdaptiveEncoding();
+                if (!peerConnection) return;
+                const stats = await peerConnection.getStats();
+                let rtt = 0, fractionLoss = 0;
+                stats.forEach(r => {
+                    if (r.type === 'remote-inbound-rtp' && r.kind === 'video') {
+                        fractionLoss = r.fractionLost || 0;
+                        rtt = r.roundTripTime || r.totalRoundTripTime || 0;
+                    }
+                });
+                const bars = document.querySelectorAll('.quality-bar');
+                const level = (fractionLoss < 0.02 ? 5 : fractionLoss < 0.08 ? 4 : fractionLoss < 0.15 ? 3 : 2);
+                bars.forEach((bar, i) => {
+                    bar.className = 'quality-bar' + (i < level ? ' active' : (i === 3 ? ' poor' : ' bad'));
+                });
+            }, 2000);
+        }
+
+        function stopQualityMonitoring() { if (qualityInterval) { clearInterval(qualityInterval); qualityInterval = null; } }
+        // Integrate monitoring cleanup
+        const __cleanupPrev = cleanupCall;
+        cleanupCall = function() { try { stopQualityMonitoring(); } catch(_){} __cleanupPrev(); };
+
         /**
          * Listens for incoming call status changes and WebRTC signaling.
          */
