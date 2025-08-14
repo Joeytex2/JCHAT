@@ -228,8 +228,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            overflow: hidden; /* Prevent page scroll; scrolling handled inside messages */
-            padding-bottom: 0; /* No extra page padding */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            padding-bottom: 40px; /* Adjusted padding as bottom nav is removed */
             background-color: var(--background-main);
             background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
                               radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
@@ -239,24 +239,21 @@
 
         /* Header Styling */
         header {
-            display: none;
-        }
-
-        .chat-header {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 55px;
-            background: var(--header-background);
-            border-bottom: 1px solid var(--border-light);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            z-index: 100;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
         }
 
-        main { padding-top: 55px; width: 100%; overflow: hidden; }
-
-        .chat-header .header-content-wrapper {
+        header .header-content-wrapper {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -534,7 +531,7 @@
             flex-direction: column;
             width: 100%;
             max-width: 800px;
-            height: calc(100vh - 55px); /* Full viewport minus fixed header */
+            height: calc(100vh - 120px); /* Adjust height to fit screen, considering header and input */
             background: var(--card-background);
             border: 1px solid var(--glass-blue);
             backdrop-filter: blur(10px) saturate(180%);
@@ -606,7 +603,7 @@
             text-align: left;
         }
 
-        .chat-header .select-friend-btn, .chat-header .call-btn {
+        .chat-header .select-friend-btn, .chat-header .find-friends-btn {
             background: none;
             border: none;
             color: var(--text-light);
@@ -620,7 +617,7 @@
             margin-left: auto; /* Push to the right */
         }
 
-        .chat-header .call-btn {
+        .chat-header .find-friends-btn {
             margin-left: 10px; /* Space between buttons */
         }
 
@@ -628,7 +625,7 @@
             color: var(--accent-color);
         }
 
-        .chat-header .call-btn:hover {
+        .chat-header .find-friends-btn:hover {
             color: #4CAF50;
         }
 
@@ -791,6 +788,7 @@
             border-radius: 2px;
             height: 4px;
         }
+
         /* Style for Firefox */
         .audio-player-wrapper .progress-bar::-moz-range-thumb {
             width: 12px;
@@ -2337,6 +2335,8 @@
             padding: 20px;
             font-style: italic;
         }
+
+
         /* Responsive Adjustments */
         @media (max-width: 600px) {
             header .header-content-wrapper {
@@ -2504,7 +2504,7 @@
 </head>
 <body class="theme-dark-mode">
 
-    <header style="display:none;">
+    <header>
         <div class="header-content-wrapper">
             <a href="/Home.html" class="logo">JCHAT</a>
             <nav>
@@ -2547,11 +2547,8 @@
                     <i class="fas fa-users"></i>
                     <span class="select-friend-badge" id="selectFriendBadge" style="display: none;">0</span>
                 </button>
-                <button id="voiceCallBtn" class="call-btn" title="Start Voice Call">
-                    <i class="fas fa-phone"></i>
-                </button>
-                <button id="videoCallBtn" class="call-btn" title="Start Video Call">
-                    <i class="fas fa-video"></i>
+                <button id="findFriendsBtn" class="find-friends-btn" title="Find New Friends">
+                    <i class="fas fa-user-plus"></i>
                 </button>
                 <button id="themeSwitcherBtn" class="theme-switcher-btn" aria-label="Switch Theme" title="Toggle Theme">
                     <i class="fas fa-moon"></i>
@@ -2980,8 +2977,6 @@
         const mediaShareBtn = document.getElementById('mediaShareBtn');
         const voiceNoteBtn = document.getElementById('voiceNoteBtn');
         const voiceNoteTimer = voiceNoteBtn.querySelector('.recording-timer'); // Get the timer span
-        const voiceCallBtn = document.getElementById('voiceCallBtn');
-        const videoCallBtn = document.getElementById('videoCallBtn');
         const callStatusOverlay = document.getElementById('callStatusOverlay');
         const callStatusTitle = document.getElementById('callStatusTitle');
         const callStatusMessage = document.getElementById('callStatusMessage');
@@ -3703,6 +3698,7 @@
             document.body.removeChild(a);
             showMessageBox(`Downloading ${filename}...`, 'info');
         }
+
         // Render inline reactions row below a message
         function updateReactionsRow(container, message) {
             if (!container) return;
@@ -4064,6 +4060,7 @@
                 playNotificationSound('error');
             }
         }
+
         /**
          * Uploads a file to Cloudinary.
          * @param {File} file - The file to upload.
@@ -4229,10 +4226,6 @@
         let isSpeakerOn = false;
         let currentCamera = 'front';
         let availableCameras = [];
-        // Ringtone state
-        let ringAudio = null;
-        let ringToneInterval = null;
-        let ringTimeoutId = null;
 
 
 
@@ -4460,6 +4453,7 @@
                 userList.appendChild(userCard);
             });
         }
+
         /**
          * Create user card element
          */
@@ -4681,6 +4675,7 @@
                 toggleButtonLoading(buttonElement, false);
             }
         }
+
         /**
          * Reject friend request
          */
@@ -4791,58 +4786,6 @@
             callStatusOverlay.classList.add('active');
         }
 
-        // Start repeating ringtone and schedule auto hangup after 60s
-        function startRinging() {
-            stopRinging();
-            try {
-                ringAudio = new Audio('ringtone.mp3');
-                ringAudio.loop = true;
-                ringAudio.volume = 0.7;
-                ringAudio.onerror = () => {
-                    try {
-                        ringAudio = new Audio('ne.mp3');
-                        ringAudio.loop = true;
-                        ringAudio.volume = 0.7;
-                        ringAudio.play().catch(startToneLoop);
-                    } catch (_) { startToneLoop(); }
-                };
-                ringAudio.play().catch(startToneLoop);
-            } catch (_) {
-                startToneLoop();
-            }
-
-            if (ringTimeoutId) clearTimeout(ringTimeoutId);
-            ringTimeoutId = setTimeout(() => {
-                // If still not accepted/rejected, end as no_answer
-                endCall('no_answer');
-            }, 60000);
-        }
-
-        function startToneLoop() {
-            try { Tone.start(); } catch (_) {}
-            ringToneInterval = setInterval(() => {
-                try {
-                    incomingCallSynth.triggerAttackRelease("C4", "2n");
-                    incomingCallSynth.triggerAttackRelease("G4", "2n", "+0.5");
-                } catch (_) {}
-            }, 2000);
-        }
-
-        function stopRinging() {
-            if (ringAudio) {
-                try { ringAudio.pause(); ringAudio.currentTime = 0; } catch (_) {}
-                ringAudio = null;
-            }
-            if (ringToneInterval) {
-                clearInterval(ringToneInterval);
-                ringToneInterval = null;
-            }
-            if (ringTimeoutId) {
-                clearTimeout(ringTimeoutId);
-                ringTimeoutId = null;
-            }
-        }
-
         /**
          * Hides the call status overlay.
          */
@@ -4851,14 +4794,13 @@
             callStatusTitle.textContent = '';
             callStatusMessage.textContent = '';
             callActions.innerHTML = '';
-            stopRinging();
         }
 
         /**
          * Initiates a voice or video call with WebRTC.
          * @param {string} callType - 'voice' or 'video'.
          */
-        async function startCall(callKind) {
+        async function startCall(callType) {
             if (!currentUser || !partnerId || !currentUserProfileData) {
                 showMessageBox("You must be logged in and have a chat partner selected to start a call.", 'error');
                 return;
@@ -4868,17 +4810,17 @@
                 return;
             }
 
-            const confirmed = await showCustomConfirm(`Start a ${callKind} call with ${partnerProfileData.username}?`);
+            const confirmed = await showCustomConfirm(`Start a ${callType} call with ${partnerProfileData.username}?`);
             if (!confirmed) return;
 
             try {
                 // Initialize WebRTC
-                await initializeWebRTC(callKind);
+                await initializeWebRTC(callType);
                 isInitiator = true;
-                callType = callKind;
+                callType = callType;
 
                 // Get user media
-                await getUserMedia(callKind);
+                await getUserMedia(callType);
 
                 // Create peer connection
                 createPeerConnection();
@@ -4893,40 +4835,24 @@
                 await peerConnection.setLocalDescription(offer);
 
                 // Send call offer to partner
-                await sendCallOffer(offer, callKind);
+                await sendCallOffer(offer, callType);
 
-                // Create/Update call status doc as 'ringing' so receiver sees incoming call
-                const chatRoomIdForCall = getChatRoomId(currentUser.uid, partnerId);
-                const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomIdForCall, "call_status", "current_call");
-                await setDoc(callDocRef, {
-                    status: 'ringing',
-                    callType: callKind,
-                    callerId: currentUser.uid,
-                    callerUsername: currentUserProfileData.username,
-                    receiverId: partnerId,
-                    receiverUsername: partnerProfileData?.username || 'Unknown User',
-                    initiatedAt: serverTimestamp()
-                });
-
-                                showCallStatusOverlay(
-                    `Outgoing ${callKind} Call`,
+                showCallStatusOverlay(
+                    `Outgoing ${callType} Call`,
                     `Calling ${partnerProfileData.username}...`,
                     [{ text: 'End Call', icon: 'fas fa-phone-slash', className: 'end-call-btn', onClick: () => endCall('caller_ended') }]
                 );
 
-                // Start ringback tone and 60s timeout
-                startRinging();
- 
                 // Send notification to the receiver
                 const notificationRef = collection(db, "artifacts", appId, "users", partnerId, "notifications");
-await addDoc(notificationRef, {
+                await addDoc(notificationRef, {
                     type: 'incoming_call',
-                    message: `Incoming ${callKind} call from ${currentUserProfileData.username}!`,
+                    message: `Incoming ${callType} call from ${currentUserProfileData.username}!`,
                     senderId: currentUser.uid,
                     recipientId: partnerId,
                     timestamp: serverTimestamp(),
                     read: false,
-                    callType: callKind,
+                    callType: callType,
                     chatRoomId: getChatRoomId(currentUser.uid, partnerId)
                 });
 
@@ -5178,16 +5104,16 @@ await addDoc(notificationRef, {
          * Accepts an incoming call and establishes WebRTC connection.
          * @param {string} callType - The type of call ('voice' or 'video').
          */
-        async function acceptCall(callKind) {
+        async function acceptCall(callType) {
             if (!currentUser || !partnerId) return;
 
             try {
                 // Initialize WebRTC
-                await initializeWebRTC(callKind);
-                callType = callKind;
+                await initializeWebRTC(callType);
+                callType = callType;
 
                 // Get user media
-                await getUserMedia(callKind);
+                await getUserMedia(callType);
 
                 // Create peer connection
                 createPeerConnection();
@@ -5214,7 +5140,7 @@ await addDoc(notificationRef, {
                     await sendCallAnswer(answer);
 
                     // Start the call
-                    startActiveCall(callKind);
+                    startActiveCall(callType);
 
                     // Update call status
                     const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
@@ -5225,7 +5151,7 @@ await addDoc(notificationRef, {
                     });
 
                     playNotificationSound('success');
-                    await sendMessage('call_status', `${currentUserProfileData.username} accepted the ${callKind} call.`);
+                    await sendMessage('call_status', `${currentUserProfileData.username} accepted the ${callType} call.`);
                 }
 
             } catch (error) {
@@ -5448,24 +5374,20 @@ await addDoc(notificationRef, {
                     if (signalingData.type === 'offer' && signalingData.callerId !== currentUser.uid) {
                         // Received call offer
                         try {
-                            // Prepare to answer but do not auto-accept UI yet
+                            await initializeWebRTC(signalingData.callType);
                             callType = signalingData.callType;
-                            await initializeWebRTC(callType);
-                            await getUserMedia(callType);
+                            await getUserMedia(signalingData.callType);
                             createPeerConnection();
+                            
                             localStream.getTracks().forEach(track => {
                                 peerConnection.addTrack(track, localStream);
                             });
+
                             await peerConnection.setRemoteDescription(signalingData.offer);
-                            // Show overlay to accept/reject if not already shown by call status listener
-                            showCallStatusOverlay(
-                                `Incoming ${callType} Call`,
-                                `from ${partnerProfileData?.username || 'Unknown'}`,
-                                [
-                                    { text: 'Accept', icon: 'fas fa-phone', className: 'accept-call-btn', onClick: () => acceptCall(callType) },
-                                    { text: 'Reject', icon: 'fas fa-phone-slash', className: 'reject-call-btn', onClick: rejectCall }
-                                ]
-                            );
+                            const answer = await peerConnection.createAnswer();
+                            await peerConnection.setLocalDescription(answer);
+                            await sendCallAnswer(answer);
+
                         } catch (error) {
                             console.error("JCHAT_ERROR: Error handling call offer:", error);
                             rejectCall();
@@ -5547,29 +5469,20 @@ await addDoc(notificationRef, {
                 const friendIds = friendsSnapshot.docs.map(doc => doc.id);
 
                 const friendsDataPromises = friendIds.map(async (friendId) => {
-                    try {
-                        const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
-                        const publicDocSnap = await getDoc(publicProfileDocRef);
-                        if (publicDocSnap.exists()) {
-                            const friendProfile = publicDocSnap.data();
-                            return {
-                                userId: friendId,
-                                username: friendProfile.username || `User_${friendId.substring(0, 8)}`,
-                                profilePicId: friendProfile.profilePicId || null,
-                            };
-                        }
-                    } catch (_) {
-                        // Ignore and fallback below
+                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
+                    const publicDocSnap = await getDoc(publicProfileDocRef);
+                    if (publicDocSnap.exists()) {
+                        const friendProfile = publicDocSnap.data();
+                        return {
+                            userId: friendId,
+                            username: friendProfile.username,
+                            profilePicId: friendProfile.profilePicId,
+                        };
                     }
-                    // Fallback if no public profile doc
-                    return {
-                        userId: friendId,
-                        username: `User_${friendId.substring(0, 8)}`,
-                        profilePicId: null,
-                    };
+                    return null; // Return null if profile not found
                 });
 
-                const fetchedFriends = await Promise.all(friendsDataPromises);
+                const fetchedFriends = (await Promise.all(friendsDataPromises)).filter(f => f !== null);
                 allFriendsData = fetchedFriends; // Store for filtering
 
                 renderSelectableFriends(searchTerm);
@@ -5696,6 +5609,7 @@ await addDoc(notificationRef, {
             });
             unsubscribeAllFriendUnreadListeners.push(unsubFriends);
         }
+
         /**
          * Sets up a listener for a specific friend's unread message count.
          * This is called for each friend found in the user's friends list.
