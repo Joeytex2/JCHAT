@@ -603,15 +603,15 @@
             text-align: left;
         }
 
-        .chat-header .select-friend-btn, .chat-header .find-friends-btn {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: color 0.3s ease;
-            position: relative; /* For the badge positioning */
-        }
+                    .chat-header .select-friend-btn, .chat-header .find-friends-btn, .chat-header .call-btn {
+                background: none;
+                border: none;
+                color: var(--text-light);
+                font-size: 1.5rem;
+                cursor: pointer;
+                transition: color 0.3s ease;
+                position: relative; /* For the badge positioning */
+            }
 
         .chat-header .select-friend-btn {
             margin-left: auto; /* Push to the right */
@@ -2550,6 +2550,12 @@
                 <button id="findFriendsBtn" class="find-friends-btn" title="Find New Friends">
                     <i class="fas fa-user-plus"></i>
                 </button>
+                <button id="voiceCallBtn" class="call-btn" title="Start Voice Call">
+                    <i class="fas fa-phone"></i>
+                </button>
+                <button id="videoCallBtn" class="call-btn" title="Start Video Call">
+                    <i class="fas fa-video"></i>
+                </button>
                 <button id="themeSwitcherBtn" class="theme-switcher-btn" aria-label="Switch Theme" title="Toggle Theme">
                     <i class="fas fa-moon"></i>
                 </button>
@@ -4248,15 +4254,17 @@
         const voiceCallAvatar = document.getElementById('voiceCallAvatar');
         const remoteVideoLabel = document.getElementById('remoteVideoLabel');
 
-        // Call control buttons
-        const muteVideoBtn = document.getElementById('muteVideoBtn');
-        const toggleVideoBtn = document.getElementById('toggleVideoBtn');
-        const switchCameraBtn = document.getElementById('switchCameraBtn');
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        const endVideoCallBtn = document.getElementById('endVideoCallBtn');
-        const muteVoiceBtn = document.getElementById('muteVoiceBtn');
-        const speakerBtn = document.getElementById('speakerBtn');
-        const endVoiceCallBtn = document.getElementById('endVoiceCallBtn');
+                    // Call control buttons
+            const muteVideoBtn = document.getElementById('muteVideoBtn');
+            const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+            const switchCameraBtn = document.getElementById('switchCameraBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const endVideoCallBtn = document.getElementById('endVideoCallBtn');
+            const muteVoiceBtn = document.getElementById('muteVoiceBtn');
+            const speakerBtn = document.getElementById('speakerBtn');
+            const endVoiceCallBtn = document.getElementById('endVoiceCallBtn');
+            const voiceCallBtn = document.getElementById('voiceCallBtn');
+            const videoCallBtn = document.getElementById('videoCallBtn');
 
 
 
@@ -4290,6 +4298,20 @@
          * Update notification badge count
          */
         function updateNotificationBadge(count = 0) {
+            // Wire call buttons if present
+            try {
+                voiceCallBtn?.addEventListener('click', () => startCall('voice'));
+                videoCallBtn?.addEventListener('click', () => startCall('video'));
+                muteVideoBtn?.addEventListener('click', toggleMute);
+                muteVoiceBtn?.addEventListener('click', toggleMute);
+                toggleVideoBtn?.addEventListener('click', toggleVideo);
+                switchCameraBtn?.addEventListener('click', switchCamera);
+                fullscreenBtn?.addEventListener('click', toggleFullscreen);
+                endVideoCallBtn?.addEventListener('click', () => endCall(isInitiator ? 'caller_ended' : 'receiver_ended'));
+                endVoiceCallBtn?.addEventListener('click', () => endCall(isInitiator ? 'caller_ended' : 'receiver_ended'));
+                speakerBtn?.addEventListener('click', toggleSpeaker);
+            } catch (_) {}
+
             const badge = document.getElementById('notificationCount');
             const iconWrapper = document.querySelector('.notification-icon-wrapper');
 
@@ -4800,7 +4822,7 @@
          * Initiates a voice or video call with WebRTC.
          * @param {string} callType - 'voice' or 'video'.
          */
-        async function startCall(callType) {
+        async function startCall(type) {
             if (!currentUser || !partnerId || !currentUserProfileData) {
                 showMessageBox("You must be logged in and have a chat partner selected to start a call.", 'error');
                 return;
@@ -4815,9 +4837,9 @@
 
             try {
                 // Initialize WebRTC
+                callType = type;
                 await initializeWebRTC(callType);
                 isInitiator = true;
-                callType = callType;
 
                 // Get user media
                 await getUserMedia(callType);
@@ -4833,6 +4855,23 @@
                 // Create and send offer
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
+
+                // Create/update call status doc to 'ringing'
+                try {
+                    const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                    const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
+                    await setDoc(callDocRef, {
+                        status: 'ringing',
+                        callType: callType,
+                        callerId: currentUser.uid,
+                        callerUsername: currentUserProfileData.username,
+                        receiverId: partnerId,
+                        receiverUsername: partnerProfileData.username,
+                        createdAt: serverTimestamp()
+                    });
+                } catch (e) {
+                    console.warn('JCHAT_WARN: Failed to set call status ringing', e);
+                }
 
                 // Send call offer to partner
                 await sendCallOffer(offer, callType);
@@ -4937,6 +4976,11 @@
                 if (callType === 'video') {
                     remoteVideo.srcObject = remoteStream;
                     remoteVideo.play();
+                } else {
+                    // For voice calls, attach remote audio via hidden video element
+                    remoteVideo.srcObject = remoteStream;
+                    remoteVideo.muted = false;
+                    remoteVideo.play().catch(()=>{});
                 }
             };
 
@@ -5104,13 +5148,13 @@
          * Accepts an incoming call and establishes WebRTC connection.
          * @param {string} callType - The type of call ('voice' or 'video').
          */
-        async function acceptCall(callType) {
+        async function acceptCall(type) {
             if (!currentUser || !partnerId) return;
 
             try {
                 // Initialize WebRTC
+                callType = type;
                 await initializeWebRTC(callType);
-                callType = callType;
 
                 // Get user media
                 await getUserMedia(callType);
@@ -5371,23 +5415,30 @@
                     const signalingData = docSnap.data();
                     console.log("JCHAT_DEBUG: Signaling data:", signalingData);
 
+                    // Do not auto-handle offers if call already active
+                    if (isCallActive) return;
+
                     if (signalingData.type === 'offer' && signalingData.callerId !== currentUser.uid) {
                         // Received call offer
                         try {
-                            await initializeWebRTC(signalingData.callType);
+                            // Prepare to answer but do not auto-accept UI yet
                             callType = signalingData.callType;
-                            await getUserMedia(signalingData.callType);
+                            await initializeWebRTC(callType);
+                            await getUserMedia(callType);
                             createPeerConnection();
-                            
                             localStream.getTracks().forEach(track => {
                                 peerConnection.addTrack(track, localStream);
                             });
-
                             await peerConnection.setRemoteDescription(signalingData.offer);
-                            const answer = await peerConnection.createAnswer();
-                            await peerConnection.setLocalDescription(answer);
-                            await sendCallAnswer(answer);
-
+                            // Show overlay to accept/reject if not already shown by call status listener
+                            showCallStatusOverlay(
+                                `Incoming ${callType} Call`,
+                                `from ${partnerProfileData?.username || 'Unknown'}`,
+                                [
+                                    { text: 'Accept', icon: 'fas fa-phone', className: 'accept-call-btn', onClick: () => acceptCall(callType) },
+                                    { text: 'Reject', icon: 'fas fa-phone-slash', className: 'reject-call-btn', onClick: rejectCall }
+                                ]
+                            );
                         } catch (error) {
                             console.error("JCHAT_ERROR: Error handling call offer:", error);
                             rejectCall();
