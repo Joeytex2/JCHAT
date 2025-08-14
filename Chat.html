@@ -184,6 +184,7 @@
             --button-hover-background: rgba(0, 213, 255, 0.25);
             --active-item-background: rgba(0, 213, 255, 0.1);
         }
+
         /* Sunset Theme */
         body.theme-sunset-mode {
             background: linear-gradient(to top, #ff7e5f, #feb47b) !important;
@@ -214,10 +215,10 @@
             --active-item-background: rgba(255, 215, 0, 0.1);
         }
 
-        /* Allow page scroll; primary containers still manage their own scrolling */
+        /* Disable page scroll; inner containers manage their own scrolling */
         html {
-            overflow-y: auto;
-            height: auto;
+            overflow: hidden;
+            height: 100%;
         }
 
         body {
@@ -229,6 +230,7 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow-y: hidden; /* Prevent vertical scroll on body */
             padding-bottom: 40px; /* Adjusted padding as bottom nav is removed */
             background-color: var(--background-main);
             background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
@@ -266,7 +268,9 @@
             font-family: 'Poppins', sans-serif;
             font-size: 1.8rem;
             font-weight: 800;
-            color: var(--white);
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
             letter-spacing: -0.03em;
             text-decoration: none;
         }
@@ -382,6 +386,7 @@
         .notification-icon-wrapper a:active {
             transform: scale(0.95);
         }
+
         /* Glow effect when there are notifications */
         .notification-icon-wrapper.has-notifications a {
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
@@ -578,6 +583,7 @@
             font-size: 2rem;
             color: var(--white);
         }
+
         .chat-header .default-avatar i {
             background-image: linear-gradient(90deg, var(--pink), var(--blue));
             background-clip: text;
@@ -599,7 +605,7 @@
             text-align: left;
         }
 
-        .chat-header .select-friend-btn {
+        .chat-header .select-friend-btn, .chat-header .find-friends-btn {
             background: none;
             border: none;
             color: var(--text-light);
@@ -607,11 +613,22 @@
             cursor: pointer;
             transition: color 0.3s ease;
             position: relative; /* For the badge positioning */
+        }
+
+        .chat-header .select-friend-btn {
             margin-left: auto; /* Push to the right */
+        }
+
+        .chat-header .find-friends-btn {
+            margin-left: 10px; /* Space between buttons */
         }
 
         .chat-header .select-friend-btn:hover {
             color: var(--accent-color);
+        }
+
+        .chat-header .find-friends-btn:hover {
+            color: #4CAF50;
         }
 
         /* Badge for Select Friend Button */
@@ -773,6 +790,7 @@
             border-radius: 2px;
             height: 4px;
         }
+
         /* Style for Firefox */
         .audio-player-wrapper .progress-bar::-moz-range-thumb {
             width: 12px;
@@ -976,6 +994,192 @@
             transform: translateY(-2px);
             background: rgba(255, 255, 255, 0.1);
         }
+
+
+        .chat-input-area {
+            display: flex;
+            flex-direction: column; /* Stack buttons and input vertically */
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-light);
+            background: var(--header-background);
+            gap: 10px;
+            flex-shrink: 0; /* Prevent input area from shrinking */
+        }
+
+        /* Improve layout of feature buttons */
+        .chat-actions-top { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        .gated-btn { background: var(--button-background); color: var(--white); border: 1px solid var(--border-light); border-radius: 10px; padding: 8px 10px; display:flex; align-items:center; gap:6px; cursor: pointer; }
+        .gated-btn i { font-size: 0.95rem; }
+        .gated-btn .lock-badge { display:inline-flex; align-items:center; justify-content:center; margin-left: 2px; opacity: .9; }
+        @media (max-width: 600px) {
+            .gated-btn { padding: 6px 8px; font-size: 0.85rem; }
+            .gated-btn i { font-size: 0.9rem; }
+        }
+        .chat-input-area .chat-actions-top button {
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            color: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            align-items: center;
+            padding: 8px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chat-input-area textarea {
+            flex-grow: 1;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            min-height: 40px;
+            max-height: 140px;
+            overflow-y: auto;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            line-height: 1.5;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+        }
+
+        .chat-input-area textarea::placeholder {
+            color: #999999;
+        }
+
+        .chat-input-area textarea:focus {
+            border-color: var(--composer-accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .chat-input-area #sendMessageBtn {
+            background: var(--composer-accent);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            height: 40px;
+            padding: 0 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .chat-input-area #sendMessageBtn i { margin: 0; font-size: 16px; }
+
+        .chat-input-area #sendMessageBtn:hover:not(:disabled) {
+            background: #2563eb;
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.35);
+        }
+
+        .chat-input-area #sendMessageBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+            background: #94a3b8;
+        }
+
+        /* Sticker picker improvements */
+        #stickerPickerClose:hover {
+            background: #e0e0e0 !important;
+            transform: scale(1.1);
+        }
+
+        #stickerPicker {
+            animation: slideUp 0.2s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+        }
+
+        /* Responsive design for mobile devices */
+        @media (max-width: 768px) {
+            .chat-input-row {
+                gap: 8px;
+                padding: 6px 8px;
+                background: var(--bg-secondary);
+            }
+            
+            .chat-input-area textarea {
+                padding: 8px 10px;
+                font-size: 14px;
+                min-height: 38px;
+            }
+            
+            .chat-input-area #sendMessageBtn {
+                height: 38px;
+                padding: 0 10px;
+                font-size: 13px;
+            }
+            .chat-input-area #sendMessageBtn .send-text { display: none; }
+            
+            #stickerPicker {
+                width: min(300px, 95vw) !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+            }
+            
+            #stickerGrid {
+                grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)) !important;
+                gap: 6px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #stickerPicker {
+                width: 95vw !important;
+                padding: 12px !important;
+            }
+            
+            #stickerTabs {
+                gap: 6px !important;
+            }
+            
+            #stickerTabs button {
+                padding: 6px 12px !important;
+                font-size: 12px !important;
+            }
+        }
+
         /* Typing Indicator Styles */
         .typing-indicator {
             display: flex;
@@ -1156,6 +1360,7 @@
             margin: 10px 20px;
             animation: fadeIn 0.3s ease;
         }
+
         /* Enhanced Responsive Design */
         @media (max-width: 768px) {
             .chat-container {
@@ -1753,6 +1958,7 @@
             color: white;
             flex-shrink: 0;
         }
+
         .user-card h3 {
             margin: 0;
             font-size: 1.1rem;
@@ -2131,6 +2337,8 @@
             padding: 20px;
             font-style: italic;
         }
+
+
         /* Responsive Adjustments */
         @media (max-width: 600px) {
             header .header-content-wrapper {
@@ -2285,6 +2493,17 @@
         #reactionBar button:hover { background: rgba(255,255,255,0.08); }
         .reactions-row { display:flex; gap:6px; align-items:center; margin-top:4px; flex-wrap:wrap; }
         .reaction-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border:1px solid var(--border-light); border-radius:999px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
++        /* Inline feature panels (toggles) */
++        .feature-panels { margin-top: 8px; display: grid; gap: 8px; }
++        .feature-panel { display: none; padding: 8px; border:1px solid var(--border-light); border-radius: 10px; background: rgba(255,255,255,0.03); }
++        .feature-panel h4 { margin: 0 0 6px 0; color: var(--white); font-size: 0.95rem; }
++        #stickersPanelGrid, #emojiPanelGrid { display:grid; grid-template-columns: repeat(8, 1fr); gap:6px; }
++        #emojiPanelGrid button { font-size:20px; padding:6px; border-radius:8px; background:transparent; border:1px solid var(--border-light); cursor:pointer; }
++        #emojiPanelGrid button:hover { background: rgba(255,255,255,0.05); }
++        #mediaPanelDrop { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:2px dashed var(--border-light); border-radius:10px; cursor:pointer; }
++        #mediaPanelDrop:hover { background: rgba(255,255,255,0.04); }
+     </style>
+</head>
 <body class="theme-dark-mode">
 
     <header>
@@ -2329,6 +2548,9 @@
                 <button id="selectFriendBtn" class="select-friend-btn" title="Select Chat Partner">
                     <i class="fas fa-users"></i>
                     <span class="select-friend-badge" id="selectFriendBadge" style="display: none;">0</span>
+                </button>
+                <button id="findFriendsBtn" class="find-friends-btn" title="Find New Friends">
+                    <i class="fas fa-user-plus"></i>
                 </button>
                 <button id="themeSwitcherBtn" class="theme-switcher-btn" aria-label="Switch Theme" title="Toggle Theme">
                     <i class="fas fa-moon"></i>
@@ -2454,21 +2676,6 @@
             <button id="switchCameraBtn" title="Switch Camera">
                 <i class="fas fa-sync-alt"></i>
             </button>
-            <button id="screenShareBtn" title="Share Screen">
-                <i class="fas fa-desktop"></i>
-            </button>
-            <button id="pipBtn" title="Picture in Picture">
-                <i class="fas fa-window-restore"></i>
-            </button>
-            <button id="snapshotBtn" title="Snapshot Remote Frame">
-                <i class="fas fa-camera"></i>
-            </button>
-            <button id="recordBtn" title="Record Local Stream">
-                <i class="fas fa-dot-circle"></i>
-            </button>
-            <button id="deviceSettingsBtn" title="Device Settings">
-                <i class="fas fa-sliders-h"></i>
-            </button>
             <button id="fullscreenBtn" title="Fullscreen">
                 <i class="fas fa-expand"></i>
             </button>
@@ -2477,6 +2684,7 @@
             </button>
         </div>
     </div>
+
     <!-- Voice Call Interface -->
     <div id="voiceCallContainer" class="voice-call-container">
         <div class="voice-call-avatar" id="voiceCallAvatar">
@@ -2499,41 +2707,6 @@
         </div>
     </div>
 
-    <!-- Pre-Join Modal -->
-    <div id="prejoinModal" class="prejoin-modal" role="dialog" aria-modal="true" aria-labelledby="prejoinTitle" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1200; align-items:center; justify-content:center;">
-        <div class="content" style="background: var(--card-background); border:1px solid var(--border-light); border-radius:16px; padding:16px; width:90%; max-width:560px; color:var(--white); display:flex; flex-direction:column; gap:10px;">
-            <h3 id="prejoinTitle" style="margin:0 0 6px 0;">Set up your devices</h3>
-            <div class="prejoin-preview" style="display:flex; gap:10px;">
-                <video id="prejoinLocalPreview" playsinline muted autoplay style="width:50%; border-radius:12px; background:#000;"></video>
-                <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
-                    <label>Microphone <select id="micSelect" style="width:100%; background:transparent; color:#fff; border:1px solid var(--border-light); border-radius:8px; padding:6px;"></select></label>
-                    <label>Camera <select id="camSelect" style="width:100%; background:transparent; color:#fff; border:1px solid var(--border-light); border-radius:8px; padding:6px;"></select></label>
-                    <label>Speaker <select id="spkSelect" style="width:100%; background:transparent; color:#fff; border:1px solid var(--border-light); border-radius:8px; padding:6px;"></select></label>
-                </div>
-            </div>
-            <div class="prejoin-controls" style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button id="prejoinMuteBtn" style="background: rgba(255,255,255,0.15); color:#fff; border:none; border-radius:10px; padding:10px 12px; cursor:pointer;"><i class="fas fa-microphone"></i></button>
-                <button id="prejoinCamBtn" style="background: rgba(255,255,255,0.15); color:#fff; border:none; border-radius:10px; padding:10px 12px; cursor:pointer;"><i class="fas fa-video"></i></button>
-                <div style="flex:1"></div>
-                <button id="prejoinCancelBtn" style="background: rgba(255,255,255,0.15); color:#fff; border:none; border-radius:10px; padding:10px 12px; cursor:pointer;">Cancel</button>
-                <button id="prejoinJoinBtn" style="background: var(--button-background); color:#fff; border:none; border-radius:10px; padding:10px 16px; cursor:pointer;">Join</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Device Settings Modal -->
-    <div id="deviceSettingsModal" class="device-settings-modal" role="dialog" aria-modal="true" aria-labelledby="deviceSettingsTitle" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1200; align-items:center; justify-content:center;">
-        <div class="content" style="background: var(--card-background); border:1px solid var(--border-light); border-radius:16px; padding:16px; width:90%; max-width:520px; color:var(--white);">
-            <h3 id="deviceSettingsTitle" style="margin-top:0;">Device settings</h3>
-            <div class="row" style="display:flex; gap:8px; align-items:center; margin-bottom:10px;"><label style="min-width:120px; opacity:0.9;">Microphone</label><select id="deviceMicSelect" style="flex:1; background:transparent; color:var(--white); border:1px solid var(--border-light); border-radius:8px; padding:6px;"></select></div>
-            <div class="row" style="display:flex; gap:8px; align-items:center; margin-bottom:10px;"><label style="min-width:120px; opacity:0.9;">Camera</label><select id="deviceCamSelect" style="flex:1; background:transparent; color:var(--white); border:1px solid var(--border-light); border-radius:8px; padding:6px;"></select></div>
-            <div class="row" style="display:flex; gap:8px; align-items:center; margin-bottom:10px;"><label style="min-width:120px; opacity:0.9;">Speaker</label><select id="deviceSpkSelect" style="flex:1; background:transparent; color:var(--white); border:1px solid var(--border-light); border-radius:8px; padding:6px;"></select></div>
-            <div class="device-settings-actions" style="display:flex; justify-content:flex-end; gap:8px;">
-                <button id="deviceSettingsCloseBtn" style="background: rgba(255,255,255,0.15); color:#fff; border:none; border-radius:10px; padding:10px 12px; cursor:pointer;">Close</button>
-                <button id="deviceSettingsApplyBtn" style="background: var(--button-background); color:#fff; border:none; border-radius:10px; padding:10px 16px; cursor:pointer;">Apply</button>
-            </div>
-        </div>
-    </div>
 
 
     <!-- Select Friend Modal -->
@@ -2854,6 +3027,7 @@
         const errorSynth = new Tone.Synth().toDestination();
         const infoSynth = new Tone.Synth().toDestination();
         const incomingCallSynth = new Tone.MembraneSynth().toDestination(); // For incoming calls
+
         // Set up basic sounds
         successSynth.oscillator.type = "sine";
         successSynth.envelope.attack = 0.01;
@@ -3042,6 +3216,7 @@
             const seconds = Math.floor(totalSeconds % 60);
             return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
+
         /**
          * Constructs a Cloudinary URL for an image/video.
          * @param {string} urlOrPublicId - The full Cloudinary URL or the public ID of the image on Cloudinary.
@@ -3222,6 +3397,7 @@
         function getChatRoomId(uid1, uid2) {
             return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
         }
+
         /**
          * Fetches and displays the chat partner's profile data.
          * @param {string} pId - The UID of the chat partner.
@@ -3259,6 +3435,145 @@
                 showMessageBox(`Error loading partner profile: ${error.message}`, 'error');
             }
         }
+        /**
+         * Renders a single message bubble.
+         * @param {Object} message - The message data.
+         * @param {string} currentUserId - The UID of the current logged-in user.
+         * @returns {HTMLElement} The message bubble element.
+         */
+        function createMessageBubble(message, currentUserId) {
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('message-bubble');
+            messageBubble.setAttribute('data-message-id', message.id); // Store message ID
+            messageBubble.dataset.reactions = JSON.stringify(message.reactions || {});
+
+            const isSentByCurrentUser = message.senderId === currentUserId;
+            messageBubble.classList.add(isSentByCurrentUser ? 'sent' : 'received');
+
+            const timestamp = message.timestamp?.toDate ? message.timestamp.toDate() : new Date(message.timestamp);
+            const timeString = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            let contentHtml = '';
+            // Backward-compat: normalize legacy messages without `type`
+            if (!message.type) {
+                if (message.mediaUrl || message.mediaType) {
+                    const mt = (message.mediaType || '').toLowerCase();
+                    if (mt.includes('video')) message.type = 'video';
+                    else if (mt.includes('audio')) message.type = 'audio';
+                    else message.type = 'image';
+                } else if (typeof message.content === 'string') {
+                    message.type = 'text';
+                    message.text = message.content;
+                }
+            }
+            if (message.type === 'text') {
+                // XSS-safe text rendering
+                const wrapper = document.createElement('div');
+                wrapper.className = 'message-content';
+                const textNode = document.createTextNode(message.text || message.content || '');
+                wrapper.appendChild(textNode);
+                if (message.edited) {
+                    const edited = document.createElement('span');
+                    edited.style.fontSize = '0.7em';
+                    edited.style.opacity = '0.7';
+                    edited.textContent = ' (edited)';
+                    wrapper.appendChild(edited);
+                }
+                contentHtml = wrapper.outerHTML;
+            } else if (message.type === 'image') {
+                const imageUrl = getCloudinaryImageUrl(message.mediaUrl, "w_400,h_auto,c_limit");
+                contentHtml = `<div class="message-content"><img src="${imageUrl}" alt="Image" onerror="this.onerror=null;this.src='https://placehold.co/200x150?text=Image+Error';"></div>`;
+            } else if (message.type === 'video') {
+                const videoUrl = getCloudinaryImageUrl(message.mediaUrl, "w_400,h_auto,c_limit");
+                contentHtml = `<div class="message-content"><video controls src="${videoUrl}" onerror="this.onerror=null;this.src=''; console.error('Video load error');"></video></div>`;
+            } else if (message.type === 'audio') {
+                // Custom Audio Player Preview
+                contentHtml = `
+                    <div class="message-content">
+                        <div class="audio-player-wrapper">
+                            <button class="play-pause-btn"><i class="fas fa-play"></i></button>
+                            <div class="progress-container">
+                                <input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1">
+                                <span class="time-display">00:00 / 00:00</span>
+                            </div>
+                            <audio src="${message.mediaUrl || message.audioUrl || ''}" preload="none"></audio>
+                        </div>
+                        <div class="audio-buttons">
+                            <button class="audio-forward-btn" data-audio-url="${message.mediaUrl || message.audioUrl || ''}" title="Forward Audio"><i class="fas fa-share"></i></button>
+                            <button class="audio-download-btn" data-audio-url="${message.mediaUrl || message.audioUrl || ''}" data-filename="voice_note_${message.id}.webm" title="Download Audio"><i class="fas fa-download"></i></button>
+                        </div>
+                    </div>
+                `;
+            } else if (message.type === 'call_status') {
+                messageBubble.classList.add('call-status-message'); // Add a specific class for styling call status
+                contentHtml = `<div class="message-content" style="text-align: center; font-style: italic; color: var(--text-light); background: none; box-shadow: none; border: none;">${message.text}</div>`;
+            } else {
+                contentHtml = `<div class="message-content">Unsupported message type.</div>`;
+            }
+
+            messageBubble.innerHTML = contentHtml;
+
+            // Add a small timestamp below the message bubble, unless it's a call status message
+            if (message.type !== 'call_status') {
+                const messageInfo = document.createElement('div');
+                messageInfo.classList.add('message-info');
+                messageInfo.textContent = timeString;
+                messageBubble.appendChild(messageInfo);
+
+                // Reactions row
+                const reactionsRow = document.createElement('div');
+                reactionsRow.className = 'reactions-row';
+                updateReactionsRow(reactionsRow, message);
+                messageBubble.appendChild(reactionsRow);
+            }
+
+            // Add message options (edit/delete) if sent by current user and not a call status message
+            if (isSentByCurrentUser && message.type !== 'call_status') {
+                const optionsBtn = document.createElement('button');
+                optionsBtn.classList.add('message-options-btn');
+                optionsBtn.innerHTML = '<i class="fas fa-ellipsis-h"></i>';
+                messageBubble.appendChild(optionsBtn);
+
+                const optionsMenu = document.createElement('div');
+                optionsMenu.classList.add('message-options-menu');
+                optionsMenu.innerHTML = `
+                    <button class="edit-message-btn" ${message.type !== 'text' ? 'disabled' : ''}><i class="fas fa-edit"></i> Edit</button>
+                    <button class="delete-message-btn"><i class="fas fa-trash-alt"></i> Delete</button>
+                `;
+                messageBubble.appendChild(optionsMenu);
+
+                // Toggle options menu visibility
+                optionsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent bubble from closing immediately
+                    optionsMenu.classList.toggle('active');
+                });
+
+                // Close options menu when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!optionsMenu.contains(e.target) && optionsMenu.classList.contains('active')) {
+                        optionsMenu.classList.remove('active');
+                    }
+                });
+
+                // Event listener for Edit button
+                const editBtn = optionsMenu.querySelector('.edit-message-btn');
+                if (editBtn) {
+                    editBtn.addEventListener('click', () => {
+                        optionsMenu.classList.remove('active'); // Close menu
+                        editMessage(message.id, message.text, messageBubble, message.edited); // Pass original edited status
+                    });
+                }
+
+                // Event listener for Delete button
+                const deleteBtn = optionsMenu.querySelector('.delete-message-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', () => {
+                        optionsMenu.classList.remove('active'); // Close menu
+                        deleteMessage(message.id);
+                    });
+                }
+            }
+
             // Add event listeners for custom audio player and buttons
             if (message.type === 'audio') {
                 const audio = messageBubble.querySelector('audio');
@@ -3628,6 +3943,7 @@
                 toggleButtonLoading(sendMessageBtn, false);
             }
         }
+
         /**
          * Edits an existing message.
          * @param {string} messageId - The ID of the message to edit.
@@ -3938,36 +4254,17 @@
         const muteVideoBtn = document.getElementById('muteVideoBtn');
         const toggleVideoBtn = document.getElementById('toggleVideoBtn');
         const switchCameraBtn = document.getElementById('switchCameraBtn');
-        const screenShareBtn = document.getElementById('screenShareBtn');
-        const pipBtn = document.getElementById('pipBtn');
-        const snapshotBtn = document.getElementById('snapshotBtn');
-        const recordBtn = document.getElementById('recordBtn');
-        const deviceSettingsBtn = document.getElementById('deviceSettingsBtn');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const endVideoCallBtn = document.getElementById('endVideoCallBtn');
         const muteVoiceBtn = document.getElementById('muteVoiceBtn');
         const speakerBtn = document.getElementById('speakerBtn');
         const endVoiceCallBtn = document.getElementById('endVoiceCallBtn');
 
-        const prejoinModal = document.getElementById('prejoinModal');
-        const prejoinLocalPreview = document.getElementById('prejoinLocalPreview');
-        const micSelect = document.getElementById('micSelect');
-        const camSelect = document.getElementById('camSelect');
-        const spkSelect = document.getElementById('spkSelect');
-        const prejoinMuteBtn = document.getElementById('prejoinMuteBtn');
-        const prejoinCamBtn = document.getElementById('prejoinCamBtn');
-        const prejoinCancelBtn = document.getElementById('prejoinCancelBtn');
-        const prejoinJoinBtn = document.getElementById('prejoinJoinBtn');
 
-        const deviceSettingsModal = document.getElementById('deviceSettingsModal');
-        const deviceMicSelect = document.getElementById('deviceMicSelect');
-        const deviceCamSelect = document.getElementById('deviceCamSelect');
-        const deviceSpkSelect = document.getElementById('deviceSpkSelect');
-        const deviceSettingsCloseBtn = document.getElementById('deviceSettingsCloseBtn');
-        const deviceSettingsApplyBtn = document.getElementById('deviceSettingsApplyBtn');
 
-        // Find Friends DOM Elements (removed Find Friends button)
+        // Find Friends DOM Elements
         const findFriendsModal = document.getElementById('findFriendsModal');
+        const findFriendsBtn = document.getElementById('findFriendsBtn');
         const userSearchInput = document.getElementById('userSearchInput');
         const userList = document.getElementById('userList');
         const loadingUsersMessage = document.getElementById('loadingUsersMessage');
@@ -4007,12 +4304,16 @@
                 iconWrapper.classList.remove('has-notifications');
             }
         }
+
         // --- Find Friends System Functions ---
         /**
          * Initialize Find Friends functionality
          */
         function initializeFindFriends() {
             // Add event listeners
+            if (findFriendsBtn) {
+                findFriendsBtn.addEventListener('click', openFindFriendsModal);
+            }
             if (userSearchInput) {
                 userSearchInput.addEventListener('input', (e) => {
                     renderUserList(allUsersData, e.target.value);
@@ -4227,6 +4528,98 @@
             return card;
         }
         /**
+         * Send friend request
+         */
+        async function sendFriendRequest(userId, buttonElement) {
+            if (!currentUser) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                const requestData = {
+                    senderId: currentUser.uid,
+                    receiverId: userId,
+                    senderUsername: currentUserProfileData?.username || 'Unknown User',
+                    receiverUsername: allUsersData.find(u => u.uid === userId)?.username || 'Unknown User',
+                    status: 'pending',
+                    timestamp: serverTimestamp()
+                };
+
+                // Add to sender's sent requests
+                await addDoc(collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "sent"), {
+                    ...requestData,
+                    id: userId
+                });
+
+                // Add to receiver's received requests
+                await addDoc(collection(db, "artifacts", appId, "users", userId, "friend_requests", "received"), {
+                    ...requestData,
+                    id: currentUser.uid
+                });
+
+                // Update local state
+                sentRequests.add(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("Friend request sent!", 'success');
+                createNotification('success', 'Friend Request Sent', `Friend request sent to ${requestData.receiverUsername}`, null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error sending friend request:", error);
+                showMessageBox("Failed to send friend request: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
+         * Cancel friend request
+         */
+        async function cancelFriendRequest(userId, buttonElement) {
+            if (!currentUser) return;
+
+            try {
+                toggleButtonLoading(buttonElement, true);
+
+                // Remove from sender's sent requests
+                const sentRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", currentUser.uid, "friend_requests", "sent"),
+                    where("receiverId", "==", userId)
+                );
+                const sentRequestSnapshot = await getDocs(sentRequestQuery);
+                const batch = writeBatch(db);
+                sentRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                // Remove from receiver's received requests
+                const receivedRequestQuery = query(
+                    collection(db, "artifacts", appId, "users", userId, "friend_requests", "received"),
+                    where("senderId", "==", currentUser.uid)
+                );
+                const receivedRequestSnapshot = await getDocs(receivedRequestQuery);
+                receivedRequestSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+
+                // Update local state
+                sentRequests.delete(userId);
+                renderUserList(allUsersData, userSearchInput?.value || '');
+
+                showMessageBox("Friend request cancelled!", 'info');
+                createNotification('info', 'Friend Request Cancelled', 'Friend request has been cancelled', null, true);
+
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error cancelling friend request:", error);
+                showMessageBox("Failed to cancel friend request: " + error.message, 'error');
+            } finally {
+                toggleButtonLoading(buttonElement, false);
+            }
+        }
+
+        /**
          * Accept friend request
          */
         async function acceptFriendRequest(userId, buttonElement) {
@@ -4404,6 +4797,7 @@
             callStatusMessage.textContent = '';
             callActions.innerHTML = '';
         }
+
         /**
          * Initiates a voice or video call with WebRTC.
          * @param {string} callType - 'voice' or 'video'.
@@ -4426,9 +4820,6 @@
                 await initializeWebRTC(callType);
                 isInitiator = true;
                 callType = callType;
-
-                // Pre-join: allow user to pick devices and preview
-                await openPrejoinFlow(callType);
 
                 // Get user media
                 await getUserMedia(callType);
@@ -4507,21 +4898,15 @@
          * Get user media (camera/microphone)
          */
         async function getUserMedia(callType) {
-            const audioDeviceId = (deviceMicSelect && deviceMicSelect.value) || (micSelect && micSelect.value) || undefined;
-            const videoDeviceId = (deviceCamSelect && deviceCamSelect.value) || (camSelect && camSelect.value) || undefined;
             const constraints = {
                 audio: {
-                    deviceId: audioDeviceId ? { exact: audioDeviceId } : undefined,
                     echoCancellation: true,
                     noiseSuppression: true,
-                    autoGainControl: true,
-                    channelCount: 1
+                    autoGainControl: true
                 },
                 video: callType === 'video' ? {
-                    deviceId: videoDeviceId ? { exact: videoDeviceId } : undefined,
                     width: { ideal: 1280, min: 640 },
                     height: { ideal: 720, min: 480 },
-                    frameRate: { ideal: 30, max: 60 },
                     facingMode: currentCamera
                 } : false
             };
@@ -4574,9 +4959,6 @@
             peerConnection.oniceconnectionstatechange = () => {
                 console.log("JCHAT_DEBUG: ICE connection state:", peerConnection.iceConnectionState);
                 updateCallQuality(peerConnection.iceConnectionState);
-                if (peerConnection.iceConnectionState === 'disconnected' || peerConnection.iceConnectionState === 'failed') {
-                    try { peerConnection.restartIce && peerConnection.restartIce(); } catch(_){}
-                }
             };
 
             console.log("JCHAT_DEBUG: Peer connection created");
@@ -4611,6 +4993,7 @@
                 timestamp: serverTimestamp()
             });
         }
+
         /**
          * Ends the current call and cleans up WebRTC resources.
          * @param {string} reason - The reason for ending the call.
@@ -4794,6 +5177,7 @@
                 timestamp: serverTimestamp()
             });
         }
+
         /**
          * Start active call interface
          */
@@ -4803,9 +5187,6 @@
             
             // Start call timer
             callTimer = setInterval(updateCallTimer, 1000);
-            
-            // Begin quality monitoring
-            try { if (typeof startQualityMonitoring === 'function') startQualityMonitoring(); } catch(_){ }
 
             // Show appropriate call interface
             if (callType === 'video') {
@@ -4916,199 +5297,6 @@
                 playNotificationSound('error');
             }
         }
-
-        // --- Added Call Helpers: Prejoin, Devices, Controls, Quality ---
-        async function enumerateAndFillDevices() {
-            try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const mics = devices.filter(d => d.kind === 'audioinput');
-                const cams = devices.filter(d => d.kind === 'videoinput');
-                const spks = devices.filter(d => d.kind === 'audiooutput');
-                if (typeof micSelect !== 'undefined' && micSelect) {
-                    micSelect.innerHTML = mics.map(d => `<option value=\"${d.deviceId}\">${d.label || 'Microphone'}</option>`).join('');
-                }
-                if (typeof camSelect !== 'undefined' && camSelect) {
-                    camSelect.innerHTML = cams.map(d => `<option value=\"${d.deviceId}\">${d.label || 'Camera'}</option>`).join('');
-                }
-                if (typeof spkSelect !== 'undefined' && spkSelect && typeof HTMLMediaElement.prototype.setSinkId === 'function') {
-                    spkSelect.innerHTML = spks.map(d => `<option value=\"${d.deviceId}\">${d.label || 'Speaker'}</option>`).join('');
-                }
-                if (typeof deviceMicSelect !== 'undefined' && deviceMicSelect) deviceMicSelect.innerHTML = micSelect?.innerHTML || '';
-                if (typeof deviceCamSelect !== 'undefined' && deviceCamSelect) deviceCamSelect.innerHTML = camSelect?.innerHTML || '';
-                if (typeof deviceSpkSelect !== 'undefined' && deviceSpkSelect) deviceSpkSelect.innerHTML = spkSelect?.innerHTML || '';
-            } catch (e) { console.warn('Device enumeration failed', e); }
-        }
-
-        async function openPrejoinFlow(kind) {
-            if (typeof prejoinModal === 'undefined' || !prejoinModal) return;
-            prejoinModal.style.display = 'flex';
-            await enumerateAndFillDevices();
-            try {
-                const constraints = {
-                    audio: { deviceId: micSelect?.value ? { exact: micSelect.value } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-                    video: kind === 'video' ? { deviceId: camSelect?.value ? { exact: camSelect.value } : undefined, width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: currentCamera } : false
-                };
-                const previewStream = await navigator.mediaDevices.getUserMedia(constraints);
-                if (typeof prejoinLocalPreview !== 'undefined' && prejoinLocalPreview) {
-                    prejoinLocalPreview.srcObject = previewStream;
-                    await prejoinLocalPreview.play();
-                }
-                if (typeof prejoinMuteBtn !== 'undefined' && prejoinMuteBtn) prejoinMuteBtn.onclick = () => {
-                    previewStream.getAudioTracks().forEach(t => t.enabled = !t.enabled);
-                    prejoinMuteBtn.innerHTML = previewStream.getAudioTracks().some(t => t.enabled) ? '<i class=\"fas fa-microphone\"></i>' : '<i class=\"fas fa-microphone-slash\"></i>';
-                };
-                if (typeof prejoinCamBtn !== 'undefined' && prejoinCamBtn) prejoinCamBtn.onclick = () => {
-                    previewStream.getVideoTracks().forEach(t => t.enabled = !t.enabled);
-                    prejoinCamBtn.innerHTML = previewStream.getVideoTracks().some(t => t.enabled) ? '<i class=\"fas fa-video\"></i>' : '<i class=\"fas fa-video-slash\"></i>';
-                };
-                if (typeof prejoinCancelBtn !== 'undefined' && prejoinCancelBtn) prejoinCancelBtn.onclick = () => { previewStream.getTracks().forEach(t => t.stop()); prejoinModal.style.display = 'none'; throw new Error('User canceled prejoin'); };
-                await new Promise((resolve) => { if (typeof prejoinJoinBtn !== 'undefined' && prejoinJoinBtn) prejoinJoinBtn.onclick = () => { previewStream.getTracks().forEach(t => t.stop()); prejoinModal.style.display = 'none'; resolve(); }; });
-            } catch (e) { prejoinModal.style.display = 'none'; throw e; }
-        }
-
-        async function applySelectedDevicesToOutputs() {
-            try {
-                if (typeof deviceSpkSelect !== 'undefined' && deviceSpkSelect && typeof HTMLMediaElement.prototype.setSinkId === 'function') {
-                    if (typeof localVideo !== 'undefined' && localVideo && deviceSpkSelect.value) await localVideo.setSinkId(deviceSpkSelect.value);
-                    if (typeof remoteVideo !== 'undefined' && remoteVideo && deviceSpkSelect.value) await remoteVideo.setSinkId(deviceSpkSelect.value);
-                }
-            } catch (e) { console.warn('Setting sinkId failed', e); }
-        }
-
-        if (typeof deviceSettingsBtn !== 'undefined' && deviceSettingsBtn) deviceSettingsBtn.addEventListener('click', async () => { await enumerateAndFillDevices(); if (typeof deviceSettingsModal !== 'undefined' && deviceSettingsModal) deviceSettingsModal.style.display = 'flex'; });
-        if (typeof deviceSettingsCloseBtn !== 'undefined' && deviceSettingsCloseBtn) deviceSettingsCloseBtn.addEventListener('click', () => { if (typeof deviceSettingsModal !== 'undefined' && deviceSettingsModal) deviceSettingsModal.style.display = 'none'; });
-        if (typeof deviceSettingsApplyBtn !== 'undefined' && deviceSettingsApplyBtn) deviceSettingsApplyBtn.addEventListener('click', async () => {
-            if (typeof deviceSettingsModal !== 'undefined' && deviceSettingsModal) deviceSettingsModal.style.display = 'none';
-            if (!callType) return;
-            const constraints = {
-                audio: { deviceId: deviceMicSelect?.value ? { exact: deviceMicSelect.value } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-                video: callType === 'video' ? { deviceId: deviceCamSelect?.value ? { exact: deviceCamSelect.value } : undefined, width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: currentCamera } : false
-            };
-            try {
-                const newStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const audioTrack = newStream.getAudioTracks()[0];
-                const videoTrack = newStream.getVideoTracks()[0];
-                const audioSender = peerConnection?.getSenders().find(s => s.track?.kind === 'audio');
-                const videoSender = peerConnection?.getSenders().find(s => s.track?.kind === 'video');
-                if (audioTrack && audioSender) await audioSender.replaceTrack(audioTrack);
-                if (videoTrack && videoSender) await videoSender.replaceTrack(videoTrack);
-                if (typeof localStream !== 'undefined' && localStream) localStream.getTracks().forEach(t => t.stop());
-                localStream = newStream;
-                if (callType === 'video' && typeof localVideo !== 'undefined' && localVideo) localVideo.srcObject = localStream;
-                await applySelectedDevicesToOutputs();
-            } catch (e) { console.error('Reacquire failed', e); }
-        });
-
-        if (typeof screenShareBtn !== 'undefined' && screenShareBtn) screenShareBtn.addEventListener('click', async () => {
-            try {
-                const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
-                const screenTrack = displayStream.getVideoTracks()[0];
-                const sender = peerConnection?.getSenders().find(s => s.track?.kind === 'video');
-                if (sender && screenTrack) await sender.replaceTrack(screenTrack);
-                screenTrack.onended = async () => {
-                    await getUserMedia('video');
-                    const camTrack = localStream.getVideoTracks()[0];
-                    if (sender && camTrack) await sender.replaceTrack(camTrack);
-                };
-            } catch (e) { console.warn('Screen share canceled or failed', e); }
-        });
-
-        if (typeof pipBtn !== 'undefined' && pipBtn) pipBtn.addEventListener('click', async () => {
-            try {
-                const el = (typeof remoteVideo !== 'undefined' && remoteVideo) ? remoteVideo : localVideo;
-                if (!el) return;
-                if (document.pictureInPictureElement) {
-                    await document.exitPictureInPicture();
-                } else if (el.requestPictureInPicture) {
-                    await el.requestPictureInPicture();
-                }
-            } catch (e) { console.warn('PiP failed', e); }
-        });
-
-        let mediaRecorderInstance = null; let recordedChunks = [];
-        if (typeof recordBtn !== 'undefined' && recordBtn) recordBtn.addEventListener('click', () => {
-            try {
-                if (!mediaRecorderInstance) {
-                    const stream = callType === 'video' ? localStream : (remoteStream || localStream);
-                    if (!stream) return;
-                    mediaRecorderInstance = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus' });
-                    recordedChunks = [];
-                    mediaRecorderInstance.ondataavailable = (e) => { if (e.data.size) recordedChunks.push(e.data); };
-                    mediaRecorderInstance.onstop = () => {
-                        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a'); a.href = url; a.download = `call-recording-${Date.now()}.webm`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-                        mediaRecorderInstance = null; recordedChunks = [];
-                    };
-                    mediaRecorderInstance.start();
-                    recordBtn.innerHTML = '<i class=\"fas fa-stop\"></i>';
-                } else {
-                    mediaRecorderInstance.stop();
-                    recordBtn.innerHTML = '<i class=\"fas fa-dot-circle\"></i>';
-                }
-            } catch (e) { console.warn('Recording failed', e); }
-        });
-
-        if (typeof snapshotBtn !== 'undefined' && snapshotBtn) snapshotBtn.addEventListener('click', () => {
-            try {
-                const el = (typeof remoteVideo !== 'undefined' && remoteVideo) ? remoteVideo : localVideo; if (!el) return;
-                const canvas = document.createElement('canvas'); canvas.width = el.videoWidth; canvas.height = el.videoHeight; const ctx = canvas.getContext('2d'); ctx.drawImage(el, 0, 0);
-                canvas.toBlob((blob) => { if (!blob) return; const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `snapshot-${Date.now()}.png`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }, 'image/png');
-            } catch (e) { console.warn('Snapshot failed', e); }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (!callType) return;
-            if (e.key === 'm') { if (typeof muteVoiceBtn !== 'undefined') muteVoiceBtn?.click(); }
-            if (e.key === 'v') { if (typeof toggleVideoBtn !== 'undefined') toggleVideoBtn?.click(); }
-            if (e.key === 's') { if (typeof screenShareBtn !== 'undefined') screenShareBtn?.click(); }
-            if (e.key === 'f') { if (typeof fullscreenBtn !== 'undefined') fullscreenBtn?.click(); }
-            if (e.key === 'q') { if (typeof endVideoCallBtn !== 'undefined') endVideoCallBtn?.click(); if (typeof endVoiceCallBtn !== 'undefined') endVoiceCallBtn?.click(); }
-        });
-
-        async function applyAdaptiveEncoding() {
-            try {
-                if (!peerConnection) return;
-                const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-                if (!sender) return;
-                const stats = await peerConnection.getStats(sender);
-                let outbound; stats.forEach(r => { if (r.type === 'outbound-rtp' && r.kind === 'video') outbound = r; });
-                if (!outbound) return;
-                const rtt = outbound.roundTripTime || outbound.currentRoundTripTime || 0;
-                const quality = rtt > 0.4 ? 250000 : rtt > 0.2 ? 500000 : 1200000;
-                const params = sender.getParameters();
-                params.encodings = [{ maxBitrate: quality }];
-                await sender.setParameters(params);
-            } catch (e) { /* ignore */ }
-        }
-
-        let qualityInterval = null;
-        function startQualityMonitoring() {
-            if (qualityInterval) clearInterval(qualityInterval);
-            qualityInterval = setInterval(async () => {
-                await applyAdaptiveEncoding();
-                if (!peerConnection) return;
-                const stats = await peerConnection.getStats();
-                let rtt = 0, fractionLoss = 0;
-                stats.forEach(r => {
-                    if (r.type === 'remote-inbound-rtp' && r.kind === 'video') {
-                        fractionLoss = r.fractionLost || 0;
-                        rtt = r.roundTripTime || r.totalRoundTripTime || 0;
-                    }
-                });
-                const bars = document.querySelectorAll('.quality-bar');
-                const level = (fractionLoss < 0.02 ? 5 : fractionLoss < 0.08 ? 4 : fractionLoss < 0.15 ? 3 : 2);
-                bars.forEach((bar, i) => {
-                    bar.className = 'quality-bar' + (i < level ? ' active' : (i === 3 ? ' poor' : ' bad'));
-                });
-            }, 2000);
-        }
-
-        function stopQualityMonitoring() { if (qualityInterval) { clearInterval(qualityInterval); qualityInterval = null; } }
-        // Integrate monitoring cleanup
-        const __cleanupPrev = cleanupCall;
-        cleanupCall = function() { try { stopQualityMonitoring(); } catch(_){} __cleanupPrev(); };
-
         /**
          * Listens for incoming call status changes and WebRTC signaling.
          */
@@ -5178,6 +5366,7 @@
                 console.error("JCHAT_ERROR: Error listening to call status:", error);
                 showMessageBox(`Error listening to call status: ${error.message}`, 'error');
             });
+
             // Listen for WebRTC signaling
             const signalingUnsubscribe = onSnapshot(signalingRef, async (docSnap) => {
                 if (docSnap.exists()) {
@@ -5369,6 +5558,7 @@
                 friendListContainer.appendChild(friendItem);
             });
         }
+
         /**
          * Sets up real-time listeners to calculate and display unread message counts for friends.
          * This includes the total count on the header's select friend button and individual counts in the modal.
@@ -5565,6 +5755,7 @@
                 }
             }
         });
+
         // --- Call Control Functions ---
         /**
          * Toggle mute/unmute
@@ -5686,6 +5877,78 @@
                 speakerBtn.innerHTML = `<i class="fas ${speakerIcon}"></i>`;
             }
         }
+        // ---- UI Toggles Wiring ----
+        (function wireToggles(){
+            // Friend selector button
+            const selectFriendBtn = document.getElementById('selectFriendBtn');
+            if (selectFriendBtn) {
+                selectFriendBtn.addEventListener('click', openSelectFriendModal);
+            }
+            // Theme switcher
+            const themeSwitcherBtn = document.getElementById('themeSwitcherBtn');
+            function applyTheme(theme){
+                const themes = ['theme-light-mode', 'theme-dark-mode'];
+                document.body.classList.remove(...themes);
+                document.body.classList.add(theme);
+                localStorage.setItem('jchat-theme', theme);
+                const icon = themeSwitcherBtn?.querySelector('i');
+                if (icon) icon.className = theme === 'theme-light-mode' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            const savedTheme = localStorage.getItem('jchat-theme') || 'theme-dark-mode';
+            applyTheme(savedTheme);
+            themeSwitcherBtn?.addEventListener('click', ()=>{
+                const next = document.body.classList.contains('theme-dark-mode') ? 'theme-light-mode' : 'theme-dark-mode';
+                applyTheme(next);
+            });
+            // Sound toggle
+            const soundToggleIcon = document.getElementById('soundToggleIcon');
+            if (soundToggleIcon) {
+                const savedSoundPreference = localStorage.getItem('jchat-sound-enabled');
+                if (savedSoundPreference !== null) {
+                    notificationSoundEnabled = JSON.parse(savedSoundPreference);
+                }
+                const setSoundIcon = () => {
+                    soundToggleIcon.classList.toggle('active', !!notificationSoundEnabled);
+                    soundToggleIcon.classList.remove(notificationSoundEnabled ? 'fa-volume-mute' : 'fa-volume-up');
+                    soundToggleIcon.classList.add(notificationSoundEnabled ? 'fa-volume-up' : 'fa-volume-mute');
+                };
+                setSoundIcon();
+                soundToggleIcon.addEventListener('click', () => {
+                    notificationSoundEnabled = !notificationSoundEnabled;
+                    localStorage.setItem('jchat-sound-enabled', JSON.stringify(notificationSoundEnabled));
+                    setSoundIcon();
+                    showMessageBox(`Notification sounds ${notificationSoundEnabled ? 'ON' : 'OFF'}`, 'info');
+                });
+            }
+            // Stickers toggle
+            const stickersBtn = document.getElementById('stickersBtn');
+            const stickerPicker = document.getElementById('stickerPicker');
+            const stickerPickerClose = document.getElementById('stickerPickerClose');
+            // Anchor sticker picker to the stickers button like WhatsApp
+            if (stickersBtn && stickerPicker) {
+                const anchor = stickersBtn.parentElement || document.body;
+                if (anchor && anchor !== stickerPicker.parentElement) {
+                    // Ensure anchor can position absolute children
+                    if (getComputedStyle(anchor).position === 'static') {
+                        anchor.style.position = 'relative';
+                    }
+                    anchor.appendChild(stickerPicker);
+                    // Convert picker to anchored dropdown
+                    Object.assign(stickerPicker.style, {
+                        position: 'absolute',
+                        bottom: '48px',
+                        right: '0',
+                        left: 'auto',
+                        transform: 'none',
+                        width: 'min(360px, 95vw)',
+                        maxHeight: '60vh',
+                        zIndex: '1200',
+                        border: '1px solid #e0e0e0',
+                        borderRadius: '16px',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+                    });
+                }
+            }
             function openStickerPicker() {
                 if (!stickerPicker) return;
                 // Initialize packs on first open
@@ -5880,6 +6143,7 @@
                 container.appendChild(panel);
                 container.appendChild(button);
                 document.body.appendChild(container);
+
                 const togglePanel = (show) => { panel.style.display = show ? 'block' : 'none'; };
                 let lastAutoOpen = 0;
                 let userDismissedUntil = 0;
