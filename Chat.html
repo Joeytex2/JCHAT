@@ -21,6 +21,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
+        /* Quick Loading Indicator */
+        .quick-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #00d5ff, #ff2e92);
+            z-index: 10000;
+            animation: quickLoad 0.8s ease-out forwards;
+        }
+        
+        @keyframes quickLoad {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; opacity: 0; }
+        }
+        
         /* Universal box-sizing for consistent layout */
         *, *::before, *::after {
             box-sizing: border-box;
@@ -2556,6 +2574,8 @@
      </style>
 </head>
 <body class="theme-dark-mode">
+    <!-- Quick Loading Bar -->
+    <div class="quick-loading"></div>
 
     <header>
         <div class="header-content-wrapper">
@@ -2984,6 +3004,9 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
+        // Quick loading optimization - skip unnecessary delays
+        const SKIP_LOADING_DELAYS = true;
+
         // Cloudinary Configuration (Note: Cloudinary is for direct uploads, Firebase Storage is also available)
         // For simplicity and consistency with previous files, I'll use Cloudinary for media uploads if the user's setup implies it.
         // If Firebase Storage is preferred, the upload functions would need to be adapted.
@@ -3034,7 +3057,7 @@
         const mediaInput = document.getElementById('mediaInput');
         const mediaShareBtn = document.getElementById('mediaShareBtn');
         const voiceNoteBtn = document.getElementById('voiceNoteBtn');
-        const voiceNoteTimer = voiceNoteBtn.querySelector('.recording-timer'); // Get the timer span
+        const voiceNoteTimer = voiceNoteBtn ? voiceNoteBtn.querySelector('.recording-timer') : null; // Get the timer span safely
         const callStatusOverlay = document.getElementById('callStatusOverlay');
         const callStatusTitle = document.getElementById('callStatusTitle');
         const callStatusMessage = document.getElementById('callStatusMessage');
@@ -3053,8 +3076,8 @@
         const closeFriendModalBtn = document.getElementById('closeFriendModalBtn');
         const friendSearchInput = document.getElementById('friendSearchInput');
         const friendListContainer = document.getElementById('friendListContainer');
-        const loadingFriendsModal = friendListContainer.querySelector('.loading-friends-modal');
-        const noFriendsModal = friendListContainer.querySelector('.no-friends-modal');
+        const loadingFriendsModal = friendListContainer ? friendListContainer.querySelector('.loading-friends-modal') : null;
+        const noFriendsModal = friendListContainer ? friendListContainer.querySelector('.no-friends-modal') : null;
 
         // --- Global State ---
         let isAuthReady = false; // Flag to indicate if auth state has been checked
@@ -3066,12 +3089,32 @@
         let unsubscribeCallStatus = null; // To store unsubscribe for call status
         let notificationSoundEnabled = true; // State for sound toggle
 
+        // Quick loading optimization
+        if (SKIP_LOADING_DELAYS) {
+            // Pre-load common elements to avoid delays
+            document.addEventListener('DOMContentLoaded', () => {
+                // Pre-initialize UI elements
+                if (loadingMessages) loadingMessages.style.display = 'none';
+                if (noMessages) noMessages.style.display = 'block';
+                if (noMessages) noMessages.textContent = "Select a friend to start chatting...";
+                
+                // Quick theme application
+                const savedTheme = localStorage.getItem('jchat-theme') || 'theme-dark-mode';
+                document.body.classList.add(savedTheme);
+            });
+        }
+
         // Voice Note Recording State
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
         let recordingStartTime;
         let recordingInterval;
+
+        // Ringtone audio state
+        let ringtoneAudio = null;
+        let isRinging = false;
+        let ringtoneInterval = null;
 
         // New global variables for managing unread counts and their listeners
         let unreadMessageCountsByFriendId = {}; // Stores {friendId: count}
@@ -3469,20 +3512,37 @@
                         lastLoginBonusClaimed: null,
                         isAdmin: false
                     };
-                    await setDoc(privateProfileDocRef, profileData);
-
-                    // Also create/update public profile
-                    const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
-                    await setDoc(publicProfileDocRef, {
-                        username: profileData.username,
-                        profilePicId: profileData.profilePicId,
-                        bio: profileData.bio,
-                        location: profileData.location,
-                        createdAt: profileData.createdAt,
-                        updatedAt: profileData.updatedAt,
-                        visibility: profileData.visibility,
-                        totalPosts: profileData.totalPosts
-                    }, { merge: true });
+                    
+                    // Quick profile creation - run in parallel
+                    if (SKIP_LOADING_DELAYS) {
+                        Promise.all([
+                            setDoc(privateProfileDocRef, profileData),
+                            setDoc(doc(db, "artifacts", appId, "public", "data", "users", user.uid), {
+                                username: profileData.username,
+                                profilePicId: profileData.profilePicId,
+                                bio: profileData.bio,
+                                location: profileData.location,
+                                createdAt: profileData.createdAt,
+                                updatedAt: profileData.updatedAt,
+                                visibility: profileData.visibility,
+                                totalPosts: profileData.totalPosts
+                            }, { merge: true })
+                        ]).catch(e => console.warn('Profile creation failed:', e));
+                    } else {
+                        await setDoc(privateProfileDocRef, profileData);
+                        // Also create/update public profile
+                        const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+                        await setDoc(publicProfileDocRef, {
+                            username: profileData.username,
+                            profilePicId: profileData.profilePicId,
+                            bio: profileData.bio,
+                            location: profileData.location,
+                            createdAt: profileData.createdAt,
+                            updatedAt: profileData.updatedAt,
+                            visibility: profileData.visibility,
+                            totalPosts: profileData.totalPosts
+                        }, { merge: true });
+                    }
                 }
 
                 currentUserProfileData = profileData;
@@ -3921,29 +3981,24 @@
                 return;
             }
 
-            // Friendship gate: allow if either side has a friend doc (one-sided ok)
-            try {
-                const youToThem = await getDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", partnerId));
-                const themToYou = await getDoc(doc(db, "artifacts", appId, "users", partnerId, "friends", currentUser.uid));
-                const allowMessaging = UNLOCK_ALL_PREVIEW || youToThem.exists() || themToYou.exists();
-                if (!allowMessaging) {
-                    if (messageInput) messageInput.disabled = true;
-                    if (sendMessageBtn) sendMessageBtn.disabled = true;
-                    if (noMessages) {
-                        noMessages.style.display = 'block';
-                        noMessages.textContent = "You are not friends yet. Use Find Friends to send a request.";
-                    }
-                } else {
-                    if (messageInput) messageInput.disabled = false;
-                    if (sendMessageBtn) sendMessageBtn.disabled = false;
-                    if (noMessages) noMessages.style.display = 'none';
-                }
-            } catch (e) {
-                console.warn('JCHAT_WARN: Friendship check failed:', e?.message || e);
-                if (UNLOCK_ALL_PREVIEW) {
-                    if (messageInput) messageInput.disabled = false;
-                    if (sendMessageBtn) sendMessageBtn.disabled = false;
-                }
+            // Quick loading: Run friendship check in parallel with message setup
+            let allowMessaging = UNLOCK_ALL_PREVIEW; // Default to true if preview mode
+            
+            if (!UNLOCK_ALL_PREVIEW) {
+                // Quick friendship check - run in background
+                Promise.all([
+                    getDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "friends", partnerId)),
+                    getDoc(doc(db, "artifacts", appId, "users", partnerId, "friends", currentUser.uid))
+                ]).then(([youToThem, themToYou]) => {
+                    allowMessaging = youToThem.exists() || themToYou.exists();
+                    updateMessageInputState(allowMessaging);
+                }).catch(e => {
+                    console.warn('JCHAT_WARN: Friendship check failed:', e?.message || e);
+                    allowMessaging = false;
+                    updateMessageInputState(allowMessaging);
+                });
+            } else {
+                updateMessageInputState(true);
             }
 
             console.log("JCHAT_DEBUG: Fetching messages for chat between", currentUser.uid, "and", partnerId);
@@ -5952,48 +6007,87 @@
             }
         }
 
+        // Helper function to update message input state
+        function updateMessageInputState(allowMessaging) {
+            if (allowMessaging) {
+                if (messageInput) messageInput.disabled = false;
+                if (sendMessageBtn) sendMessageBtn.disabled = false;
+                if (noMessages) noMessages.style.display = 'none';
+            } else {
+                if (messageInput) messageInput.disabled = true;
+                if (sendMessageBtn) sendMessageBtn.disabled = true;
+                if (noMessages) {
+                    noMessages.style.display = 'block';
+                    noMessages.textContent = "You are not friends yet. Use Find Friends to send a request.";
+                }
+            }
+        }
+
         // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 isAuthReady = true;
                 console.log("JCHAT_DEBUG: User authenticated in Private Chat Page:", user.uid);
-                await fetchAndDisplayHeaderProfile(user);
+                
+                // Quick loading: Run these in parallel instead of sequentially
+                const loadingPromises = [
+                    fetchAndDisplayHeaderProfile(user),
+                    fetchNotificationCount(user.uid),
+                    setupFriendUnreadCountListeners()
+                ];
                 
                 // Get partnerId from URL query parameter
                 const urlParams = new URLSearchParams(window.location.search);
                 partnerId = urlParams.get('partnerId');
 
                 if (partnerId) {
-                    await fetchPartnerProfile(partnerId);
+                    // Add partner profile fetch to parallel loading
+                    loadingPromises.push(fetchPartnerProfile(partnerId));
+                }
+                
+                // Wait for all parallel operations to complete
+                await Promise.all(loadingPromises);
+                
+                if (partnerId) {
                     fetchAndDisplayMessages(); // Fetch messages once authenticated and partnerId is set
                     listenForCallStatus(); // Start listening for call status
                 } else {
-                    // Do not auto-open the friend selection modal; keep clean initial screen
-                    // Update initial display for no partner selected
-                    partnerDisplayName.textContent = "No Partner Selected";
-                    partnerProfilePic.style.display = 'none';
-                    partnerAvatarIcon.style.display = 'block';
-                    messagesDisplay.innerHTML = ''; // Clear any loading messages
+                    // Quick display update - no partner selected
+                    if (partnerDisplayName) partnerDisplayName.textContent = "No Partner Selected";
+                    if (partnerProfilePic) partnerProfilePic.style.display = 'none';
+                    if (partnerAvatarIcon) partnerAvatarIcon.style.display = 'block';
+                    if (messagesDisplay) messagesDisplay.innerHTML = ''; // Clear any loading messages
                     if (loadingMessages) loadingMessages.style.display = 'none';
                     if (noMessages) {
                         noMessages.style.display = 'block';
                         noMessages.textContent = "Please select a friend to start chatting.";
                     }
                 }
-                fetchNotificationCount(user.uid); // For the bell icon
-                setupFriendUnreadCountListeners(); // For friend message badges
 
-                // Load entitlements
-                try {
+                // Load entitlements in background (non-blocking)
+                if (SKIP_LOADING_DELAYS) {
+                    // Quick entitlements load
                     const entRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profiles', 'user_entitlements');
-                    const entSnap = await getDoc(entRef);
-                    if (entSnap.exists()) {
-                        const data = entSnap.data();
-                        userEntitlements = { ...userEntitlements, ...data };
-                    }
-                } catch (e) { console.warn('Entitlements load failed', e); }
-                setGatedUI();
+                    getDoc(entRef).then(entSnap => {
+                        if (entSnap.exists()) {
+                            const data = entSnap.data();
+                            userEntitlements = { ...userEntitlements, ...data };
+                            setGatedUI();
+                        }
+                    }).catch(e => console.warn('Entitlements load failed', e));
+                } else {
+                    // Original sequential loading
+                    try {
+                        const entRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profiles', 'user_entitlements');
+                        const entSnap = await getDoc(entRef);
+                        if (entSnap.exists()) {
+                            const data = entSnap.data();
+                            userEntitlements = { ...userEntitlements, ...data };
+                        }
+                    } catch (e) { console.warn('Entitlements load failed', e); }
+                    setGatedUI();
+                }
 
             } else {
                 console.log("JCHAT_DEBUG: No user signed in. Attempting anonymous sign-in or redirecting to login page.");
@@ -6017,9 +6111,10 @@
                         if (headerAvatarIcon) headerAvatarIcon.style.display = 'block';
                         if (adminIconLink) adminIconLink.style.display = 'none';
                         showMessageBox("You must be logged in to access chat.", 'error', true);
+                        // Reduced redirect delay for faster response
                         setTimeout(() => {
                             window.location.href = '/login.html';
-                        }, 2000);
+                        }, SKIP_LOADING_DELAYS ? 500 : 2000);
                     }
                 }
             }
