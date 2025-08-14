@@ -2983,6 +2983,8 @@
         const mediaShareBtn = document.getElementById('mediaShareBtn');
         const voiceNoteBtn = document.getElementById('voiceNoteBtn');
         const voiceNoteTimer = voiceNoteBtn.querySelector('.recording-timer'); // Get the timer span
+        const voiceCallBtn = document.getElementById('voiceCallBtn');
+        const videoCallBtn = document.getElementById('videoCallBtn');
         const callStatusOverlay = document.getElementById('callStatusOverlay');
         const callStatusTitle = document.getElementById('callStatusTitle');
         const callStatusMessage = document.getElementById('callStatusMessage');
@@ -4066,7 +4068,6 @@
                 playNotificationSound('error');
             }
         }
-
         /**
          * Uploads a file to Cloudinary.
          * @param {File} file - The file to upload.
@@ -4254,17 +4255,15 @@
         const voiceCallAvatar = document.getElementById('voiceCallAvatar');
         const remoteVideoLabel = document.getElementById('remoteVideoLabel');
 
-                    // Call control buttons
-            const muteVideoBtn = document.getElementById('muteVideoBtn');
-            const toggleVideoBtn = document.getElementById('toggleVideoBtn');
-            const switchCameraBtn = document.getElementById('switchCameraBtn');
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
-            const endVideoCallBtn = document.getElementById('endVideoCallBtn');
-            const muteVoiceBtn = document.getElementById('muteVoiceBtn');
-            const speakerBtn = document.getElementById('speakerBtn');
-            const endVoiceCallBtn = document.getElementById('endVoiceCallBtn');
-            const voiceCallBtn = document.getElementById('voiceCallBtn');
-            const videoCallBtn = document.getElementById('videoCallBtn');
+        // Call control buttons
+        const muteVideoBtn = document.getElementById('muteVideoBtn');
+        const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const endVideoCallBtn = document.getElementById('endVideoCallBtn');
+        const muteVoiceBtn = document.getElementById('muteVoiceBtn');
+        const speakerBtn = document.getElementById('speakerBtn');
+        const endVoiceCallBtn = document.getElementById('endVoiceCallBtn');
 
 
 
@@ -4298,20 +4297,6 @@
          * Update notification badge count
          */
         function updateNotificationBadge(count = 0) {
-            // Wire call buttons if present
-            try {
-                voiceCallBtn?.addEventListener('click', () => startCall('voice'));
-                videoCallBtn?.addEventListener('click', () => startCall('video'));
-                muteVideoBtn?.addEventListener('click', toggleMute);
-                muteVoiceBtn?.addEventListener('click', toggleMute);
-                toggleVideoBtn?.addEventListener('click', toggleVideo);
-                switchCameraBtn?.addEventListener('click', switchCamera);
-                fullscreenBtn?.addEventListener('click', toggleFullscreen);
-                endVideoCallBtn?.addEventListener('click', () => endCall(isInitiator ? 'caller_ended' : 'receiver_ended'));
-                endVoiceCallBtn?.addEventListener('click', () => endCall(isInitiator ? 'caller_ended' : 'receiver_ended'));
-                speakerBtn?.addEventListener('click', toggleSpeaker);
-            } catch (_) {}
-
             const badge = document.getElementById('notificationCount');
             const iconWrapper = document.querySelector('.notification-icon-wrapper');
 
@@ -4697,7 +4682,6 @@
                 toggleButtonLoading(buttonElement, false);
             }
         }
-
         /**
          * Reject friend request
          */
@@ -4822,7 +4806,7 @@
          * Initiates a voice or video call with WebRTC.
          * @param {string} callType - 'voice' or 'video'.
          */
-        async function startCall(type) {
+        async function startCall(callKind) {
             if (!currentUser || !partnerId || !currentUserProfileData) {
                 showMessageBox("You must be logged in and have a chat partner selected to start a call.", 'error');
                 return;
@@ -4832,17 +4816,17 @@
                 return;
             }
 
-            const confirmed = await showCustomConfirm(`Start a ${callType} call with ${partnerProfileData.username}?`);
+            const confirmed = await showCustomConfirm(`Start a ${callKind} call with ${partnerProfileData.username}?`);
             if (!confirmed) return;
 
             try {
                 // Initialize WebRTC
-                callType = type;
-                await initializeWebRTC(callType);
+                await initializeWebRTC(callKind);
                 isInitiator = true;
+                callType = callKind;
 
                 // Get user media
-                await getUserMedia(callType);
+                await getUserMedia(callKind);
 
                 // Create peer connection
                 createPeerConnection();
@@ -4856,28 +4840,24 @@
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
 
-                // Create/update call status doc to 'ringing'
-                try {
-                    const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
-                    const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
-                    await setDoc(callDocRef, {
-                        status: 'ringing',
-                        callType: callType,
-                        callerId: currentUser.uid,
-                        callerUsername: currentUserProfileData.username,
-                        receiverId: partnerId,
-                        receiverUsername: partnerProfileData.username,
-                        createdAt: serverTimestamp()
-                    });
-                } catch (e) {
-                    console.warn('JCHAT_WARN: Failed to set call status ringing', e);
-                }
-
                 // Send call offer to partner
-                await sendCallOffer(offer, callType);
+                await sendCallOffer(offer, callKind);
+
+                // Create/Update call status doc as 'ringing' so receiver sees incoming call
+                const chatRoomIdForCall = getChatRoomId(currentUser.uid, partnerId);
+                const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomIdForCall, "call_status", "current_call");
+                await setDoc(callDocRef, {
+                    status: 'ringing',
+                    callType: callKind,
+                    callerId: currentUser.uid,
+                    callerUsername: currentUserProfileData.username,
+                    receiverId: partnerId,
+                    receiverUsername: partnerProfileData?.username || 'Unknown User',
+                    initiatedAt: serverTimestamp()
+                });
 
                 showCallStatusOverlay(
-                    `Outgoing ${callType} Call`,
+                    `Outgoing ${callKind} Call`,
                     `Calling ${partnerProfileData.username}...`,
                     [{ text: 'End Call', icon: 'fas fa-phone-slash', className: 'end-call-btn', onClick: () => endCall('caller_ended') }]
                 );
@@ -4886,12 +4866,12 @@
                 const notificationRef = collection(db, "artifacts", appId, "users", partnerId, "notifications");
                 await addDoc(notificationRef, {
                     type: 'incoming_call',
-                    message: `Incoming ${callType} call from ${currentUserProfileData.username}!`,
+                    message: `Incoming ${callKind} call from ${currentUserProfileData.username}!`,
                     senderId: currentUser.uid,
                     recipientId: partnerId,
                     timestamp: serverTimestamp(),
                     read: false,
-                    callType: callType,
+                    callType: callKind,
                     chatRoomId: getChatRoomId(currentUser.uid, partnerId)
                 });
 
@@ -4976,11 +4956,6 @@
                 if (callType === 'video') {
                     remoteVideo.srcObject = remoteStream;
                     remoteVideo.play();
-                } else {
-                    // For voice calls, attach remote audio via hidden video element
-                    remoteVideo.srcObject = remoteStream;
-                    remoteVideo.muted = false;
-                    remoteVideo.play().catch(()=>{});
                 }
             };
 
@@ -5148,16 +5123,16 @@
          * Accepts an incoming call and establishes WebRTC connection.
          * @param {string} callType - The type of call ('voice' or 'video').
          */
-        async function acceptCall(type) {
+        async function acceptCall(callKind) {
             if (!currentUser || !partnerId) return;
 
             try {
                 // Initialize WebRTC
-                callType = type;
-                await initializeWebRTC(callType);
+                await initializeWebRTC(callKind);
+                callType = callKind;
 
                 // Get user media
-                await getUserMedia(callType);
+                await getUserMedia(callKind);
 
                 // Create peer connection
                 createPeerConnection();
@@ -5184,7 +5159,7 @@
                     await sendCallAnswer(answer);
 
                     // Start the call
-                    startActiveCall(callType);
+                    startActiveCall(callKind);
 
                     // Update call status
                     const callDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "call_status", "current_call");
@@ -5195,7 +5170,7 @@
                     });
 
                     playNotificationSound('success');
-                    await sendMessage('call_status', `${currentUserProfileData.username} accepted the ${callType} call.`);
+                    await sendMessage('call_status', `${currentUserProfileData.username} accepted the ${callKind} call.`);
                 }
 
             } catch (error) {
@@ -5414,9 +5389,6 @@
                 if (docSnap.exists()) {
                     const signalingData = docSnap.data();
                     console.log("JCHAT_DEBUG: Signaling data:", signalingData);
-
-                    // Do not auto-handle offers if call already active
-                    if (isCallActive) return;
 
                     if (signalingData.type === 'offer' && signalingData.callerId !== currentUser.uid) {
                         // Received call offer
