@@ -2910,9 +2910,8 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, getDocs, addDoc, serverTimestamp, orderBy, limit, updateDoc, deleteDoc, where, writeBatch, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, getDocs, addDoc, serverTimestamp, orderBy, limit, updateDoc, deleteDoc, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { resolvePlanKey, getLimit, DEFAULT_LIMITS, bytesToMB } from "/entitlements.js";
 
         // --- Firebase & Canvas Environment Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -2934,18 +2933,6 @@ import { resolvePlanKey, getLimit, DEFAULT_LIMITS, bytesToMB } from "/entitlemen
             cloudName: "dxld01rcp", // Your Cloudinary Cloud Name
             uploadPreset: "Storage_preset" // Your Cloudinary Upload Preset
         };
-
-        // Plan limits cache and helpers
-        let planLimitsDoc = null; // fetched from artifacts/{appId}/billing/plan_limits
-        let currentPlanKey = 'free';
-        async function loadPlanLimitsAndResolve(userProfile) {
-            try {
-                const planLimitsRef = doc(db, 'artifacts', appId, 'billing', 'plan_limits');
-                const snap = await getDoc(planLimitsRef).catch(()=>null);
-                planLimitsDoc = snap && snap.exists() ? snap.data() : DEFAULT_LIMITS;
-            } catch (_) { planLimitsDoc = DEFAULT_LIMITS; }
-            currentPlanKey = resolvePlanKey(userProfile || currentUserProfileData || {});
-        }
 
         // Initialize Firebase services
         const app = initializeApp(firebaseConfig);
@@ -3967,17 +3954,9 @@ import { resolvePlanKey, getLimit, DEFAULT_LIMITS, bytesToMB } from "/entitlemen
                 showMessageBox("Authentication error. Cannot edit message.", 'error');
                 return;
             }
-            // Enforce edit window per plan
-            const windowMin = getLimit(planLimitsDoc, currentPlanKey, 'chatEditWindowMin', DEFAULT_LIMITS.free.chatEditWindowMin);
+
             const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
             const messageDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages", messageId);
-            const snap = await getDoc(messageDocRef).catch(()=>null);
-            const ts = snap?.data()?.timestamp;
-            const sentMs = typeof ts?.toMillis === 'function' ? ts.toMillis() : (ts ? new Date(ts).getTime() : 0);
-            if (sentMs && Date.now() - sentMs > windowMin * 60 * 1000) {
-                showMessageBox(`Editing window expired. Max ${windowMin} min for your plan.`, 'warning');
-                return;
-            }
 
             // Hide options button and menu during editing
             const optionsBtn = messageBubbleElement.querySelector('.message-options-btn');
@@ -4063,22 +4042,13 @@ import { resolvePlanKey, getLimit, DEFAULT_LIMITS, bytesToMB } from "/entitlemen
                 showMessageBox("Authentication error. Cannot delete message.", 'error');
                 return;
             }
-            // Enforce delete window per plan
-            const windowMin = getLimit(planLimitsDoc, currentPlanKey, 'chatDeleteWindowMin', DEFAULT_LIMITS.free.chatDeleteWindowMin);
-            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
-            const messageDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages", messageId);
-            const snap = await getDoc(messageDocRef).catch(()=>null);
-            const ts = snap?.data()?.timestamp;
-            const sentMs = typeof ts?.toMillis === 'function' ? ts.toMillis() : (ts ? new Date(ts).getTime() : 0);
-            if (sentMs && Date.now() - sentMs > windowMin * 60 * 1000) {
-                showMessageBox(`Deletion window expired. Max ${windowMin} min for your plan.`, 'warning');
-                return;
-            }
 
             const confirmed = await showCustomConfirm("Are you sure you want to delete this message? This action cannot be undone.");
             if (!confirmed) return;
 
             showMessageBox("Deleting message...", 'loading', true);
+            const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+            const messageDocRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages", messageId);
 
             try {
                 await deleteDoc(messageDocRef);
@@ -4132,13 +4102,6 @@ import { resolvePlanKey, getLimit, DEFAULT_LIMITS, bytesToMB } from "/entitlemen
         mediaInput.addEventListener('change', async (event) => {
             const file = event.target.files[0];
             if (!file) return;
-            // Enforce media size limit per plan
-            const maxMB = getLimit(planLimitsDoc, currentPlanKey, 'chatMediaMaxMB', DEFAULT_LIMITS.free.chatMediaMaxMB);
-            if (bytesToMB(file.size) > maxMB) {
-                showMessageBox(`File too large. Max ${maxMB} MB for your plan.`, 'warning');
-                mediaInput.value = '';
-                return;
-            }
 
             const fileType = file.type.split('/')[0]; // 'image' or 'video'
 
@@ -4194,11 +4157,7 @@ import { resolvePlanKey, getLimit, DEFAULT_LIMITS, bytesToMB } from "/entitlemen
                     }
                 };
 
-                const maxSeconds = getLimit(planLimitsDoc, currentPlanKey, 'voiceNoteSeconds', DEFAULT_LIMITS.free.voiceNoteSeconds);
-                let forcedStopTimer = null;
                 mediaRecorder.start();
-                // Force stop at maxSeconds
-                forcedStopTimer = setTimeout(() => { if (mediaRecorder?.state === 'recording') mediaRecorder.stop(); }, maxSeconds * 1000);
                 isRecording = true;
                 recordingStartTime = Date.now();
                 voiceNoteBtn.classList.add('recording');
@@ -5729,15 +5688,6 @@ import { resolvePlanKey, getLimit, DEFAULT_LIMITS, bytesToMB } from "/entitlemen
                 isAuthReady = true;
                 console.log("JCHAT_DEBUG: User authenticated in Private Chat Page:", user.uid);
                 await fetchAndDisplayHeaderProfile(user);
-                try {
-                    const entRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profiles', 'user_entitlements');
-                    const entSnap = await getDoc(entRef);
-                    if (entSnap.exists()) {
-                        const data = entSnap.data();
-                        userEntitlements = { ...userEntitlements, ...data };
-                    }
-                } catch (e) { console.warn('Entitlements load failed', e); }
-                await loadPlanLimitsAndResolve(currentUserProfileData);
                 
                 // Get partnerId from URL query parameter
                 const urlParams = new URLSearchParams(window.location.search);

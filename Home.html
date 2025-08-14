@@ -2643,7 +2643,6 @@
         </div>
     </div>
     <script type="module">
-        import { resolvePlanKey, getLimit, DEFAULT_LIMITS, bytesToMB } from "/entitlements.js";
         console.log("JCHAT_DEBUG: Home.html script started.");
         // Register service worker for PWA
         if ('serviceWorker' in navigator) {
@@ -4311,15 +4310,6 @@
                 if (mediaVideoPreview) mediaVideoPreview.src = '';
 
                 if (file) {
-                    // enforce post media size limit per plan
-                    const planKey = resolvePlanKey(currentUserProfileData || {});
-                    const maxMB = getLimit(null, planKey, 'postMediaMaxMB', DEFAULT_LIMITS.free.postMediaMaxMB);
-                    if (bytesToMB(file.size) > maxMB) {
-                        showMessageBox(`Media too large. Max ${maxMB} MB for your plan.`, 'warning');
-                        postMediaUpload.value = '';
-                        currentMediaFile = null;
-                        return;
-                    }
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         if (file.type.startsWith('image/')) {
@@ -4375,12 +4365,6 @@
                     if (currentMediaFile.type.startsWith('image/')) {
                         fileToUpload = await resizeImage(currentMediaFile);
                     }
-                    // If plan limits are available, enforce again (server trust not assumed here)
-                    try {
-                        const maxMB = getLimit(window.__planLimitsDoc || DEFAULT_LIMITS, window.__planKey || 'free', 'postMediaMaxMB', DEFAULT_LIMITS.free.postMediaMaxMB);
-                        const sizeMB = bytesToMB((fileToUpload && fileToUpload.size) || currentMediaFile.size || 0);
-                        if (sizeMB > maxMB) throw new Error(`Media exceeds limit (${sizeMB.toFixed(1)}MB > ${maxMB}MB).`);
-                    } catch (e) { showMessageBox(e.message || 'Media too large for your plan.', 'warning'); throw e; }
                     mediaUrl = await uploadMediaToCloudinary(fileToUpload);
                     if (mediaUrl) {
                         mediaType = currentMediaFile.type.startsWith('image/') ? 'image' : 'video';
@@ -6112,13 +6096,6 @@
                 currentUser = user;
                 isAuthReady = true; // Set to true early so profile fetching can proceed.
                 await fetchAndDisplayHeaderProfile(user); // This sets currentUserProfileData and updates UI.
-                // Refresh plan context after profile load
-                try {
-                    const planLimitsRef = doc(db, 'artifacts', appId, 'billing', 'plan_limits');
-                    const snap = await getDoc(planLimitsRef).catch(()=>null);
-                    window.__planLimitsDoc = snap && snap.exists() ? snap.data() : DEFAULT_LIMITS;
-                    window.__planKey = resolvePlanKey(currentUserProfileData || {});
-                } catch (_) { window.__planLimitsDoc = DEFAULT_LIMITS; window.__planKey = resolvePlanKey(currentUserProfileData || {}); }
                 console.log("JCHAT_DEBUG: Auth is ready. User ID:", currentUser.uid, "isAuthReady:", isAuthReady);
 
                 // Start listening to system settings in real-time and render announcement & chips

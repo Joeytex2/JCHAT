@@ -3481,7 +3481,6 @@
         </div>
     </div>
     <script type="module">
-        import { resolvePlanKey, getLimit, DEFAULT_LIMITS } from "/entitlements.js";
         // Import Firebase modules (Updated to v11.8.0 - Latest Stable)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, updateProfile, updateEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
@@ -6585,18 +6584,6 @@
                     // If it's the current user's profile, store it in currentUserProfileData
                     if (isCurrentUserProfile) {
                         currentUserProfileData = docSnap.data();
-                        // Premium badge injection based on plan
-                        try {
-                            const planKey = resolvePlanKey(currentUserProfileData || {});
-                            const actions = document.getElementById('profileActions');
-                            if (planKey !== 'free' && actions) {
-                                const badge = document.createElement('span');
-                                badge.className = 'badge';
-                                badge.style.marginLeft = '8px';
-                                badge.textContent = planKey.toUpperCase();
-                                actions.prepend(badge);
-                            }
-                        } catch(_){}
                         displayedUserProfileData = currentUserProfileData; // Both point to the same for owner
                     } else {
                         displayedUserProfileData = docSnap.data();
@@ -7096,12 +7083,6 @@
                 await fetchSystemSettings();
                 // Fetch header profile next, as it sets currentUserProfileData
                 await fetchAndDisplayHeaderProfile(user); 
-                // Load plan limits
-                try {
-                    const planRef = doc(db, 'artifacts', appId, 'billing', 'plan_limits');
-                    const snap = await getDoc(planRef).catch(()=>null);
-                    window.__profile_plan_limits = snap && snap.exists() ? snap.data() : DEFAULT_LIMITS;
-                } catch (_) { window.__profile_plan_limits = DEFAULT_LIMITS; }
 
                 // Determine which user's profile to display
                 const urlParams = new URLSearchParams(window.location.search);
