@@ -528,9 +528,9 @@
         /* Chat Specific Styles */
         .chat-container {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             width: 100%;
-            max-width: 1000px;
+            max-width: 800px;
             height: calc(100vh - 120px); /* Adjust height to fit screen, considering header and input */
             background: var(--card-background);
             border: 1px solid var(--glass-blue);
@@ -2538,16 +2538,6 @@
 
     <main>
         <div class="chat-container">
-            <div class="chat-list" style="flex:0 0 300px; border-right:1px solid var(--border-light); display:flex; flex-direction:column;">
-                <h2 style="margin:0; padding:12px 14px; border-bottom:1px solid var(--border-light); text-align:left; font-family:'Poppins',sans-serif;">Chats</h2>
-                <div id="chatListContent" style="overflow:auto; flex:1 1 auto;">
-                    <p class="no-chat-selected" style="text-align:center; color:var(--text-light); padding:14px;">
-                        <i class="fas fa-comments"></i>
-                        <span style="display:block; margin-top:6px;">Select a friend to start chatting</span>
-                    </p>
-                </div>
-            </div>
-            <div class="chat-area" style="display:flex; flex-direction:column; flex:1 1 auto; min-width:0;">
             <div class="chat-header">
                 <button class="back-btn" onclick="window.history.back()"><i class="fas fa-arrow-left"></i></button>
                 <img id="partnerProfilePic" src="" alt="Partner Profile Picture" style="display: none;">
@@ -2609,7 +2599,6 @@
                     <textarea id="messageInput" placeholder="Type a message" rows="1"></textarea>
                     <button id="sendMessageBtn" aria-label="Send message"><i class="fas fa-paper-plane"></i><span class="send-text">Send</span></button>
                 </div>
-            </div>
             </div>
         </div>
     </main>
@@ -5692,14 +5681,13 @@
         }
 
 
-        // Left chat list helpers\n        const chatListContent = document.getElementById('chatListContent');\n        function renderChatListFromFriends(friends){ if(!chatListContent) return; chatListContent.innerHTML=''; if(!friends||friends.length===0){ chatListContent.innerHTML = `<p class=\"no-chat-selected\"><i class=\"fas fa-comments\"></i><p style=\"color:var(--text-light)\">No friends yet. Find friends to start chatting!</p></p>`; return; } friends.forEach(friend=>{ const item=document.createElement('div'); item.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border-light);'; const usernameInitial=(friend.username||'U').charAt(0).toUpperCase(); const pic = friend.profilePicId ? getCloudinaryImageUrl(friend.profilePicId,'w_60,h_60,c_fill,g_face,r_max') : ''; item.innerHTML = `${pic?`<img src=\\\"${pic}\\\" alt=\\\"${friend.username||'User'}\\\" style=\\\"width:40px;height:40px;border-radius:50%;object-fit:cover;\\\">`:`<div style=\\\"width:40px;height:40px;border-radius:50%;background:linear-gradient(45deg,var(--blue),var(--pink));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;\\\">${usernameInitial}</div>`}<div style=\\\"display:flex;flex-direction:column;align-items:flex-start;min-width:0;\\\"><span style=\\\"font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;\\\">${friend.username||'Unknown User'}</span><span style=\\\"font-size:.8rem;color:var(--text-light);\\\">Tap to open chat</span></div>`; item.addEventListener('click', async ()=>{ try{ if(partnerId===friend.userId) return; partnerId=friend.userId; await fetchPartnerProfile(partnerId); await fetchAndDisplayMessages(); listenForCallStatus(); setTimeout(()=>{ try{ messagesDisplay.scrollTop = messagesDisplay.scrollHeight; }catch(_){} }, 50); }catch(e){ console.error(e); } }); chatListContent.appendChild(item); }); }\n        async function refreshChatListFromFriendCollection(){ if(!currentUser) return; try{ const myFriendsSnap = await getDocs(collection(db,'artifacts',appId,'users',currentUser.uid,'friends')); const friends=[]; for(const d of myFriendsSnap.docs){ const uid=d.id; const pubSnap = await getDoc(doc(db,'artifacts',appId,'public','data','users',uid)).catch(()=>null); const username = pubSnap?.exists()? (pubSnap.data().username||'User') : 'User'; const profilePicId = pubSnap?.exists()? (pubSnap.data().profilePicId||null) : null; friends.push({ userId: uid, username, profilePicId }); } renderChatListFromFriends(friends); }catch(e){ console.error('chat list load', e); } }\n        // --- Authentication State Listener ---
+        // --- Authentication State Listener ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 isAuthReady = true;
                 console.log("JCHAT_DEBUG: User authenticated in Private Chat Page:", user.uid);
                 await fetchAndDisplayHeaderProfile(user);
-                try { await refreshChatListFromFriendCollection(); } catch(_){}
                 
                 // Get partnerId from URL query parameter
                 const urlParams = new URLSearchParams(window.location.search);
