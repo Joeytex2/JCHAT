@@ -6256,9 +6256,52 @@
         (function initScrollLock() {
             let scrollLockEnabled = false;
             let originalBodyStyle = {};
+            let touchStartY = 0;
+            let touchStartX = 0;
             
             /**
-             * Lock body scrolling to prevent page scroll
+             * Prevent touch scrolling events
+             */
+            function preventTouchScroll(e) {
+                if (!scrollLockEnabled) return;
+                
+                // Prevent all touch scrolling
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+            
+            /**
+             * Handle touch start to detect swipe gestures
+             */
+            function handleTouchStart(e) {
+                if (!scrollLockEnabled) return;
+                
+                touchStartY = e.touches[0].clientY;
+                touchStartX = e.touches[0].clientX;
+            }
+            
+            /**
+             * Handle touch move to prevent swipe scrolling
+             */
+            function handleTouchMove(e) {
+                if (!scrollLockEnabled) return;
+                
+                const touchY = e.touches[0].clientY;
+                const touchX = e.touches[0].clientX;
+                const deltaY = Math.abs(touchY - touchStartY);
+                const deltaX = Math.abs(touchX - touchStartX);
+                
+                // If vertical movement is greater than horizontal, prevent scrolling
+                if (deltaY > deltaX && deltaY > 10) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }
+            
+            /**
+             * Lock body scrolling to prevent page scroll (including touch/swipe)
              */
             function lockBodyScroll() {
                 if (scrollLockEnabled) return; // Already locked
@@ -6269,26 +6312,39 @@
                     position: document.body.style.position,
                     top: document.body.style.top,
                     width: document.body.style.width,
-                    height: document.body.style.height
+                    height: document.body.style.height,
+                    touchAction: document.body.style.touchAction,
+                    overscrollBehavior: document.body.style.overscrollBehavior,
+                    webkitOverflowScrolling: document.body.style.webkitOverflowScrolling
                 };
                 
                 // Calculate scrollbar width to prevent layout shift
                 const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
                 
-                // Lock the body
+                // Lock the body with comprehensive scroll prevention
                 document.body.style.overflow = 'hidden';
                 document.body.style.position = 'fixed';
                 document.body.style.top = `-${window.scrollY}px`;
                 document.body.style.width = '100%';
                 document.body.style.height = '100vh';
+                document.body.style.touchAction = 'none'; // Prevent all touch actions
+                document.body.style.overscrollBehavior = 'none'; // Prevent overscroll bounce
+                document.body.style.webkitOverflowScrolling = 'auto'; // Disable momentum scrolling
                 
                 // Add padding to prevent layout shift when scrollbar disappears
                 if (scrollbarWidth > 0) {
                     document.body.style.paddingRight = `${scrollbarWidth}px`;
                 }
                 
+                // Add touch event listeners to prevent swipe scrolling
+                document.addEventListener('touchstart', handleTouchStart, { passive: false });
+                document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                document.addEventListener('touchmove', preventTouchScroll, { passive: false });
+                document.addEventListener('wheel', preventTouchScroll, { passive: false });
+                document.addEventListener('scroll', preventTouchScroll, { passive: false });
+                
                 scrollLockEnabled = true;
-                console.log('JCHAT_DEBUG: Body scroll locked');
+                console.log('JCHAT_DEBUG: Body scroll locked (including touch/swipe prevention)');
             }
             
             /**
@@ -6297,6 +6353,13 @@
             function unlockBodyScroll() {
                 if (!scrollLockEnabled) return; // Already unlocked
                 
+                // Remove touch event listeners
+                document.removeEventListener('touchstart', handleTouchStart);
+                document.removeEventListener('touchmove', handleTouchMove);
+                document.removeEventListener('touchmove', preventTouchScroll);
+                document.removeEventListener('wheel', preventTouchScroll);
+                document.removeEventListener('scroll', preventTouchScroll);
+                
                 // Restore original body styles
                 document.body.style.overflow = originalBodyStyle.overflow || '';
                 document.body.style.position = originalBodyStyle.position || '';
@@ -6304,6 +6367,9 @@
                 document.body.style.width = originalBodyStyle.width || '';
                 document.body.style.height = originalBodyStyle.height || '';
                 document.body.style.paddingRight = '';
+                document.body.style.touchAction = originalBodyStyle.touchAction || '';
+                document.body.style.overscrollBehavior = originalBodyStyle.overscrollBehavior || '';
+                document.body.style.webkitOverflowScrolling = originalBodyStyle.webkitOverflowScrolling || '';
                 
                 // Restore scroll position
                 const scrollY = document.body.style.top;
@@ -6312,7 +6378,7 @@
                 }
                 
                 scrollLockEnabled = false;
-                console.log('JCHAT_DEBUG: Body scroll unlocked');
+                console.log('JCHAT_DEBUG: Body scroll unlocked (touch/swipe events removed)');
             }
             
             /**
