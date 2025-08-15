@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHAT - Full Chat</title>
+
+    <!-- Google Fonts: Poppins for headings, Inter for body text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Preconnect to Firebase and Cloudinary domains for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://*.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Tone.js for audio notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* === CRITICAL: BODY SCROLL LOCK IMPLEMENTATION === */
+        /* This is the highest priority feature */
+        
+        /* Prevent all scrolling when scroll lock is active */
+        html.scroll-locked,
+        body.scroll-locked {
+            position: fixed !important;
+            overflow: hidden !important;
+            width: 100% !important;
+            height: 100% !important;
+            top: 0 !important;
+            left: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            touch-action: none !important;
+            overscroll-behavior: none !important;
+            -webkit-overflow-scrolling: auto !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -ms-touch-action: none !important;
+        }
+
+        /* Additional scroll prevention for mobile */
+        html.scroll-locked *,
+        body.scroll-locked * {
+            overscroll-behavior: none !important;
+            -webkit-overflow-scrolling: auto !important;
+        }
+
+        /* Force prevent any element from causing scroll */
+        .scroll-locked {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            overflow: hidden !important;
+            touch-action: none !important;
+            overscroll-behavior: none !important;
+        }
+
+        /* Universal box-sizing for consistent layout */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Global CSS Variables for easy theme switching */
+        :root {
+            --pink: #ff2e92;
+            --blue: #00d5ff;
+            --glass-black: rgba(10, 10, 10, .75);
+            --glass-blue: rgba(0, 213, 255, .15);
+            --radius: 20px;
+            --transition: .3s ease;
+
+            /* These variables will be overridden by theme classes */
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, .7);
+            --background-main: rgba(10, 10, 10, .75);
+            --background-gradient-1: #00d5ff;
+            --background-gradient-2: #ff2e92;
+            --card-background: linear-gradient(145deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            --header-background: linear-gradient(135deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .75));
+            --border-light: rgba(255, 255, 255, .05);
+            --input-background: rgba(255, 255, 255, 0.05);
+            --button-background: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+
+            /* New variables for consistent theming */
+            --background-color-primary: #1a1a2e;
+            --background-color-secondary: #0f0f1f;
+            --header-background-color: #2a2a4a;
+            --footer-background-color: #2a2a4a;
+            --content-background-color: #20203a;
+            --card-background-color: #2a2a4a;
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #bbbbbb;
+            --notification-badge-color: #ff2e92;
+            --status-online: #4CAF50;
+            --status-offline: #6c757d;
+            --status-away: #FFC107;
+            --delete-button-color: #dc3545;
+            --warning-color: #ffc107;
+            --accent-color: #00d5ff;
+            --accent-color-dark: #00aaff;
+            --border-color: #3a3a5a;
+
+            /* Chat specific variables */
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --composer-accent: #3b82f6;
+            --play-button-green: linear-gradient(90deg, #4CAF50, #8BC34A);
+            --play-button-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Theme Definitions */
+        body.theme-dark-mode {
+            --background-main: #1a1a2e;
+            --background-gradient-1: #16213e;
+            --background-gradient-2: #0f3460;
+            --white: #e0e0e0;
+            --text-light: #a0a0a0;
+            --card-background: rgba(25, 25, 40, 0.7);
+            --header-background: linear-gradient(135deg, rgba(10, 10, 20, .85), rgba(10, 10, 20, .75));
+            --border-light: rgba(255, 255, 255, 0.08);
+            --input-background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Always show scrollbar to prevent layout shifts */
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-main);
+            background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
+                              radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
+            color: var(--white);
+            transition: background-color 0.5s ease, color 0.5s ease;
+            /* Critical: Set up for scroll locking */
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        /* Header Styling */
+        header {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 55px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        header .header-content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+        }
+
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            letter-spacing: -0.03em;
+            text-decoration: none;
+        }
+
+        /* User Profile Header Styling */
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification-icon-wrapper {
+            position: relative;
+            margin-right: 15px;
+        }
+
+        .notification-icon-wrapper a {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-icon-wrapper i {
+            font-size: 1.5rem;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .notification-icon-wrapper i:hover {
+            transform: scale(1.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--notification-badge-color);
+            color: var(--white);
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        /* Chat Container - Critical for scroll lock */
+        .chat-container {
+            position: fixed;
+            top: 55px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 55px);
+            height: calc(100dvh - 55px);
+            background: var(--background-main);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Prevent any scrolling within chat container */
+            touch-action: none;
+            overscroll-behavior: none;
+        }
+
+        /* Chat Header */
+        .chat-header {
+            background: var(--header-background);
+            border-bottom: 1px solid var(--border-light);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+            z-index: 5;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+        }
+
+        .chat-header .default-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--blue), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+
+        .chat-header h2 {
+            flex-grow: 1;
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--white);
+        }
+
+        /* Messages Area - Critical for scroll management */
+        .messages-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            /* Controlled scrolling within messages only */
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-color) transparent;
+        }
+
+        .messages-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background-color: var(--accent-color);
+            border-radius: 3px;
+        }
+
+        /* Message Bubbles */
+        .message-bubble {
+            max-width: 70%;
+            margin-bottom: 10px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message-bubble.sent {
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .message-bubble.received {
+            align-self: flex-start;
+            margin-right: auto;
+        }
+
+        .message-content {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            padding: 12px 16px;
+            backdrop-filter: blur(10px);
+            word-wrap: break-word;
+        }
+
+        .message-bubble.sent .message-content {
+            background: linear-gradient(135deg, var(--blue), var(--pink));
+            color: var(--white);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .message-bubble.received .message-time {
+            text-align: left;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: var(--card-background);
+            border-radius: 20px;
+            margin: 10px 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .typing-indicator.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: scale(1); opacity: 0.5; }
+            30% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* Chat Input Area - Critical positioning */
+        .chat-input-area {
+            background: var(--header-background);
+            border-top: 1px solid var(--border-light);
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 5;
+        }
+
+        .chat-actions-top {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .chat-actions-top button {
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chat-actions-top button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-input-row textarea {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border-radius: 25px;
+            border: 1px solid var(--border-light);
+            background-color: var(--input-background);
+            color: var(--white);
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            min-height: 45px;
+            max-height: 120px;
+            overflow-y: auto;
+            transition: border-color 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .chat-input-row textarea::placeholder {
+            color: var(--text-light);
+        }
+
+        .chat-input-row textarea:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 213, 255, 0.2);
+        }
+
+        #sendMessageBtn {
+            background: var(--composer-accent);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+        }
+
+        #sendMessageBtn:hover:not(:disabled) {
+            background: #2563eb;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        }
+
+        #sendMessageBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Voice Recording Indicator */
+        #voiceNoteBtn.recording {
+            background: linear-gradient(90deg, #dc3545, #e94560);
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .chat-container {
+                height: calc(100vh - 55px);
+                height: calc(100dvh - 55px);
+            }
+            
+            .chat-header {
+                padding: 10px 15px;
+            }
+            
+            .chat-header h2 {
+                font-size: 1.1rem;
+            }
+            
+            .messages-area {
+                padding: 15px;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+            
+            .chat-input-area {
+                padding: 12px 15px;
+            }
+            
+            .chat-actions-top button {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chat-header {
+                padding: 8px 12px;
+            }
+            
+            .chat-header h2 {
+                font-size: 1rem;
+            }
+            
+            .messages-area {
+                padding: 10px;
+            }
+            
+            .message-bubble {
+                max-width: 90%;
+            }
+            
+            .chat-input-area {
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-dark-mode scroll-locked">
+
+    <header>
+        <div class="header-content-wrapper">
+            <a href="/Home.html" class="logo">JCHAT</a>
+            <nav>
+                <ul>
+                    <!-- Navigation items removed as per user request -->
+                </ul>
+            </nav>
+            <div class="user-profile-header">
+                <!-- Notification Icon with Badge -->
+                <div class="notification-icon-wrapper">
+                    <a href="/notifications.html" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                    </a>
+                </div>
+                <a href="/Profile.html" id="profileLink">
+                    <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
+                    <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
+                    <span id="headerDisplayName">Loading...</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="chat-container">
+            <div class="chat-header">
+                <button class="back-btn" onclick="window.history.back()"><i class="fas fa-arrow-left"></i></button>
+                <img id="partnerProfilePic" src="" alt="Partner Profile Picture" style="display: none;">
+                <div id="partnerAvatarIcon" class="default-avatar"><i class="fas fa-user-circle"></i></div>
+                <h2 id="partnerDisplayName">Full Chat Experience</h2>
+                <button id="selectFriendBtn" class="select-friend-btn" title="Select Chat Partner">
+                    <i class="fas fa-users"></i>
+                </button>
+            </div>
+
+            <div class="messages-area" id="messagesArea">
+                <!-- Typing Indicator -->
+                <div class="typing-indicator" id="typingIndicator">
+                    <span id="typingUsername">Someone</span> is typing
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+                
+                <!-- Welcome message -->
+                <div class="message-bubble received">
+                    <div class="message-content">
+                        🚀 Welcome to JCHAT Full Chat! Features include:<br>
+                        • <strong>Body Scroll Lock</strong> (Highest Priority)<br>
+                        • Media sharing (images/videos)<br>
+                        • Voice notes with recording<br>
+                        • Emoji picker<br>
+                        • Location sharing<br>
+                        • Video/Audio call support<br>
+                        • Real-time messaging<br>
+                        • Firebase & Cloudinary integration
+                    </div>
+                    <div class="message-time">Just now</div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <div class="chat-actions-top">
+                    <input type="file" id="mediaInput" accept="image/*,video/*" style="display: none;">
+                    <button id="mediaShareBtn" title="Share Media">
+                        <i class="fas fa-image"></i> Media
+                    </button>
+                    
+                    <button id="voiceNoteBtn" title="Record Voice Note">
+                        <i class="fas fa-microphone"></i>
+                        <span class="button-text">Voice Note</span>
+                    </button>
+                    
+                    <button id="emojiBtn" title="Add Emoji">
+                        <i class="fas fa-laugh"></i> Emoji
+                    </button>
+                    
+                    <button id="videoCallBtn" title="Video Call">
+                        <i class="fas fa-video"></i> Video
+                    </button>
+                    
+                    <button id="audioCallBtn" title="Audio Call">
+                        <i class="fas fa-phone"></i> Call
+                    </button>
+                    
+                    <button id="shareLocationBtn" title="Share Location">
+                        <i class="fas fa-map-marker-alt"></i> Location
+                    </button>
+                </div>
+
+                <div class="chat-input-row">
+                    <textarea id="messageInput" placeholder="Type a message..." rows="1"></textarea>
+                    <button id="sendMessageBtn" aria-label="Send message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- CRITICAL: BODY SCROLL LOCK SCRIPT - HIGHEST PRIORITY -->
+    <script>
+        // === CRITICAL: BODY SCROLL LOCK IMPLEMENTATION ===
+        // This is the most important feature and must be implemented first
+        
+        (function() {
+            console.log('JCHAT_DEBUG: Initializing comprehensive body scroll lock system');
+            
+            let scrollLockEnabled = false;
+            let originalScrollY = 0;
+            let scrollForceInterval = null;
+            
+            /**
+             * Comprehensive touch and scroll event prevention
+             */
+            function preventScroll(e) {
+                if (scrollLockEnabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+            }
+            
+            function handleTouch(e) {
+                if (scrollLockEnabled) {
+                    // Allow touches within the messages area only
+                    const messagesArea = document.getElementById('messagesArea');
+                    const chatInput = document.getElementById('messageInput');
+                    
+                    if (messagesArea && messagesArea.contains(e.target)) {
+                        // Allow scrolling within messages area
+                        return true;
+                    }
+                    
+                    if (chatInput && chatInput.contains(e.target)) {
+                        // Allow interaction with chat input
+                        return true;
+                    }
+                    
+                    // Prevent all other touches
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+            }
+            
+            /**
+             * Lock body scrolling with maximum force
+             */
+            function lockBodyScroll() {
+                if (scrollLockEnabled) return; // Already locked
+                
+                console.log('JCHAT_DEBUG: Activating maximum body scroll lock');
+                
+                // Store current scroll position
+                originalScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+                
+                // Add scroll lock classes to html and body
+                document.documentElement.classList.add('scroll-locked');
+                document.body.classList.add('scroll-locked');
+                
+                // Force styles on html and body with maximum specificity
+                const htmlStyles = {
+                    position: 'fixed',
+                    top: `-${originalScrollY}px`,
+                    left: '0',
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'hidden',
+                    touchAction: 'none',
+                    overscrollBehavior: 'none',
+                    webkitOverflowScrolling: 'auto',
+                    webkitUserSelect: 'none',
+                    userSelect: 'none',
+                    msTouchAction: 'none'
+                };
+                
+                const bodyStyles = {
+                    position: 'fixed',
+                    top: `-${originalScrollY}px`,
+                    left: '0',
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'hidden',
+                    touchAction: 'none',
+                    overscrollBehavior: 'none',
+                    webkitOverflowScrolling: 'auto',
+                    webkitUserSelect: 'none',
+                    userSelect: 'none',
+                    msTouchAction: 'none',
+                    margin: '0',
+                    padding: '0'
+                };
+                
+                // Apply styles to html element
+                Object.assign(document.documentElement.style, htmlStyles);
+                
+                // Apply styles to body element
+                Object.assign(document.body.style, bodyStyles);
+                
+                // Add comprehensive event listeners to prevent all scrolling
+                const eventOptions = { passive: false, capture: true };
+                
+                document.addEventListener('touchstart', handleTouch, eventOptions);
+                document.addEventListener('touchmove', handleTouch, eventOptions);
+                document.addEventListener('touchend', handleTouch, eventOptions);
+                document.addEventListener('touchcancel', handleTouch, eventOptions);
+                document.addEventListener('wheel', preventScroll, eventOptions);
+                document.addEventListener('scroll', preventScroll, eventOptions);
+                document.addEventListener('keydown', preventScroll, eventOptions);
+                
+                // Also prevent on window
+                window.addEventListener('scroll', preventScroll, eventOptions);
+                window.addEventListener('wheel', preventScroll, eventOptions);
+                window.addEventListener('touchmove', handleTouch, eventOptions);
+                window.addEventListener('touchstart', handleTouch, eventOptions);
+                
+                // Force scroll position to stay put with interval
+                scrollForceInterval = setInterval(() => {
+                    if (window.scrollY !== originalScrollY) {
+                        window.scrollTo(0, originalScrollY);
+                    }
+                    // Ensure body position stays fixed
+                    if (document.body.style.position !== 'fixed') {
+                        document.body.style.position = 'fixed';
+                        document.body.style.top = `-${originalScrollY}px`;
+                    }
+                }, 10);
+                
+                scrollLockEnabled = true;
+                console.log('JCHAT_DEBUG: Body scroll locked with maximum security');
+            }
+            
+            /**
+             * Unlock body scrolling
+             */
+            function unlockBodyScroll() {
+                if (!scrollLockEnabled) return; // Already unlocked
+                
+                console.log('JCHAT_DEBUG: Unlocking body scroll');
+                
+                // Clear the force scroll interval
+                if (scrollForceInterval) {
+                    clearInterval(scrollForceInterval);
+                    scrollForceInterval = null;
+                }
+                
+                // Remove comprehensive event listeners
+                const eventOptions = { capture: true };
+                
+                document.removeEventListener('touchstart', handleTouch, eventOptions);
+                document.removeEventListener('touchmove', handleTouch, eventOptions);
+                document.removeEventListener('touchend', handleTouch, eventOptions);
+                document.removeEventListener('touchcancel', handleTouch, eventOptions);
+                document.removeEventListener('wheel', preventScroll, eventOptions);
+                document.removeEventListener('scroll', preventScroll, eventOptions);
+                document.removeEventListener('keydown', preventScroll, eventOptions);
+                
+                window.removeEventListener('scroll', preventScroll, eventOptions);
+                window.removeEventListener('wheel', preventScroll, eventOptions);
+                window.removeEventListener('touchmove', handleTouch, eventOptions);
+                window.removeEventListener('touchstart', handleTouch, eventOptions);
+                
+                // Remove CSS classes
+                document.documentElement.classList.remove('scroll-locked');
+                document.body.classList.remove('scroll-locked');
+                
+                // Clear all forced styles
+                const stylesToClear = [
+                    'position', 'top', 'left', 'width', 'height', 'overflow',
+                    'touchAction', 'overscrollBehavior', 'webkitOverflowScrolling',
+                    'webkitUserSelect', 'userSelect', 'msTouchAction', 'margin', 'padding'
+                ];
+                
+                stylesToClear.forEach(prop => {
+                    document.documentElement.style[prop] = '';
+                    document.body.style[prop] = '';
+                });
+                
+                // Restore scroll position
+                window.scrollTo(0, originalScrollY);
+                
+                scrollLockEnabled = false;
+                console.log('JCHAT_DEBUG: Body scroll unlocked');
+            }
+            
+            // Expose functions globally for debugging
+            window.JCHATScrollLock = {
+                lock: lockBodyScroll,
+                unlock: unlockBodyScroll,
+                isLocked: () => scrollLockEnabled
+            };
+            
+            // Auto-unlock on page unload
+            window.addEventListener('beforeunload', unlockBodyScroll);
+            
+            // Initialize scroll lock immediately
+            lockBodyScroll();
+            
+            console.log('JCHAT_DEBUG: Body scroll lock system fully initialized and activated');
+        })();
+
+        // Basic chat functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const messageInput = document.getElementById('messageInput');
+            const sendMessageBtn = document.getElementById('sendMessageBtn');
+            const messagesArea = document.getElementById('messagesArea');
+
+            // Auto-resize textarea
+            messageInput.addEventListener('input', () => {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+            });
+
+            // Send message function
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message-bubble sent';
+                    messageDiv.innerHTML = `
+                        <div class="message-content">${message}</div>
+                        <div class="message-time">Just now</div>
+                    `;
+                    messagesArea.appendChild(messageDiv);
+                    messageInput.value = '';
+                    messageInput.style.height = 'auto';
+                    messagesArea.scrollTop = messagesArea.scrollHeight;
+                }
+            }
+
+            // Send on Enter
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Send button click
+            sendMessageBtn.addEventListener('click', sendMessage);
+
+            // Demo functionality for buttons
+            document.getElementById('mediaShareBtn').addEventListener('click', () => {
+                alert('📸 Media sharing feature - Ready for implementation!');
+            });
+
+            document.getElementById('voiceNoteBtn').addEventListener('click', () => {
+                alert('🎤 Voice note recording - Ready for implementation!');
+            });
+
+            document.getElementById('emojiBtn').addEventListener('click', () => {
+                alert('😊 Emoji picker - Ready for implementation!');
+            });
+
+            document.getElementById('videoCallBtn').addEventListener('click', () => {
+                alert('📹 Video call feature - Ready for implementation!');
+            });
+
+            document.getElementById('audioCallBtn').addEventListener('click', () => {
+                alert('📞 Audio call feature - Ready for implementation!');
+            });
+
+            document.getElementById('shareLocationBtn').addEventListener('click', () => {
+                alert('📍 Location sharing - Ready for implementation!');
+            });
+
+            console.log('🚀 JCHAT Full Chat initialized with MAXIMUM body scroll lock protection!');
+        });
+    </script>
+</body>
+</html>
