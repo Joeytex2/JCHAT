@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>JCHAT - Private Chat</title>
 
     <!-- Google Fonts: Poppins for headings, Inter for body text -->
@@ -26,10 +26,25 @@
             box-sizing: border-box;
         }
 
-        /* Lock body scrolling */
-        html, body {
+        /* Lock body scrolling - Enhanced Implementation */
+        html {
             height: 100%;
             overflow: hidden;
+            /* Support for mobile viewport units */
+            height: 100vh;
+            height: 100dvh; /* Dynamic viewport height */
+        }
+        
+        body {
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            /* Prevent mobile address bar resizing issues */
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: none;
         }
 
         /* Global CSS Variables for easy theme switching */
@@ -227,7 +242,7 @@
         }
 
         body {
-            min-height: 100vh;
+            /* min-height: 100vh; - Removed to prevent scroll conflicts */
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
@@ -515,6 +530,8 @@
             padding-top: 55px; /* Adjust for fixed header */
             width: 100%;
             display: flex;
+            position: relative; /* Ensure proper positioning with fixed body */
+            overflow: hidden; /* Prevent any potential overflow */
             flex-direction: column;
             align-items: center;
             justify-content: flex-start; /* Align content to top */
@@ -538,6 +555,7 @@
             width: 100%;
             max-width: 800px;
             height: calc(100vh - 120px); /* Adjust height to fit screen, considering header and input */
+            position: relative; /* Ensure proper positioning with fixed body */
             background: var(--card-background);
             border: 1px solid var(--glass-blue);
             backdrop-filter: blur(10px) saturate(180%);
@@ -2173,6 +2191,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: 1000; /* Ensure modals appear above fixed body */
             background: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
@@ -2945,6 +2964,64 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app); // Initialize Firebase Storage
+
+        // --- Scroll Lock Utility ---
+        const ScrollLock = {
+            originalStyle: '',
+            originalScrollY: 0,
+            
+            lock() {
+                // Store original body style and scroll position
+                this.originalStyle = document.body.style.cssText;
+                this.originalScrollY = window.scrollY;
+                
+                // Apply scroll lock styles
+                document.body.style.cssText = `
+                    position: fixed !important;
+                    top: -${this.originalScrollY}px !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    overflow: hidden !important;
+                `;
+                
+                // Prevent touch scrolling on mobile
+                document.addEventListener('touchmove', this.preventScroll, { passive: false });
+                
+                console.log('JCHAT: Body scroll locked');
+            },
+            
+            unlock() {
+                // Remove touch scroll prevention
+                document.removeEventListener('touchmove', this.preventScroll);
+                
+                // Restore original styles
+                document.body.style.cssText = this.originalStyle;
+                
+                // Restore scroll position
+                window.scrollTo(0, this.originalScrollY);
+                
+                console.log('JCHAT: Body scroll unlocked');
+            },
+            
+            preventScroll(e) {
+                // Allow scrolling within chat containers only
+                let target = e.target;
+                while (target) {
+                    if (target.classList && (
+                        target.classList.contains('messages-display') ||
+                        target.classList.contains('chat-container') ||
+                        target.classList.contains('modal-content')
+                    )) {
+                        return; // Allow scrolling in these elements
+                    }
+                    target = target.parentElement;
+                }
+                e.preventDefault(); // Prevent scrolling elsewhere
+            }
+        };
+        
+        // Initialize scroll lock on page load
+        ScrollLock.lock();
 
         // --- DOM Elements ---
         const headerProfilePic = document.getElementById('headerProfilePic');
