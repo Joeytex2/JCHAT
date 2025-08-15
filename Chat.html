@@ -244,6 +244,15 @@
             overscroll-behavior: none !important;
             -webkit-overflow-scrolling: auto !important;
         }
+        
+        /* Allow scrolling only in messages display when locked */
+        html.scroll-locked .messages-display,
+        body.scroll-locked .messages-display {
+            touch-action: auto !important;
+            overscroll-behavior: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            overflow-y: auto !important;
+        }
 
         body {
             min-height: 100vh;
@@ -6289,6 +6298,14 @@
              */
             function preventScroll(e) {
                 if (!scrollLockEnabled) return;
+                
+                // Check if the event target is within the messages display
+                const messagesDisplay = document.querySelector('.messages-display');
+                if (messagesDisplay && messagesDisplay.contains(e.target)) {
+                    // Allow scrolling within messages display
+                    return;
+                }
+                
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
@@ -6299,6 +6316,16 @@
              */
             function handleTouchStart(e) {
                 if (!scrollLockEnabled) return;
+                
+                // Check if the touch target is within the messages display
+                const messagesDisplay = document.querySelector('.messages-display');
+                if (messagesDisplay && messagesDisplay.contains(e.target)) {
+                    // Allow touch start within messages display
+                    touchStartY = e.touches[0].clientY;
+                    touchStartX = e.touches[0].clientX;
+                    return;
+                }
+                
                 touchStartY = e.touches[0].clientY;
                 touchStartX = e.touches[0].clientX;
                 e.preventDefault();
@@ -6312,12 +6339,19 @@
             function handleTouchMove(e) {
                 if (!scrollLockEnabled) return;
                 
+                // Check if the touch target is within the messages display
+                const messagesDisplay = document.querySelector('.messages-display');
+                if (messagesDisplay && messagesDisplay.contains(e.target)) {
+                    // Allow scrolling within messages display
+                    return;
+                }
+                
                 const touchY = e.touches[0].clientY;
                 const touchX = e.touches[0].clientX;
                 const deltaY = Math.abs(touchY - touchStartY);
                 const deltaX = Math.abs(touchX - touchStartX);
                 
-                // Prevent all vertical movement (swipe up/down)
+                // Prevent all vertical movement (swipe up/down) outside messages display
                 if (deltaY > 5) {
                     e.preventDefault();
                     e.stopPropagation();
