@@ -2491,17 +2491,6 @@
         #reactionBar button:hover { background: rgba(255,255,255,0.08); }
         .reactions-row { display:flex; gap:6px; align-items:center; margin-top:4px; flex-wrap:wrap; }
         .reaction-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border:1px solid var(--border-light); border-radius:999px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
-+        /* Inline feature panels (toggles) */
-+        .feature-panels { margin-top: 8px; display: grid; gap: 8px; }
-+        .feature-panel { display: none; padding: 8px; border:1px solid var(--border-light); border-radius: 10px; background: rgba(255,255,255,0.03); }
-+        .feature-panel h4 { margin: 0 0 6px 0; color: var(--white); font-size: 0.95rem; }
-+        #stickersPanelGrid, #emojiPanelGrid { display:grid; grid-template-columns: repeat(8, 1fr); gap:6px; }
-+        #emojiPanelGrid button { font-size:20px; padding:6px; border-radius:8px; background:transparent; border:1px solid var(--border-light); cursor:pointer; }
-+        #emojiPanelGrid button:hover { background: rgba(255,255,255,0.05); }
-+        #mediaPanelDrop { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:2px dashed var(--border-light); border-radius:10px; cursor:pointer; }
-+        #mediaPanelDrop:hover { background: rgba(255,255,255,0.04); }
-     </style>
-</head>
 <body class="theme-dark-mode">
 
     <header>
@@ -3169,6 +3158,43 @@
             }
         }
 
+        // Scroll lock utilities to prevent background scroll when overlays are open
+        let scrollLockDepth = 0;
+        let scrollLockScrollTop = 0;
+        let scrollBarCompensation = 0;
+        function lockBodyScroll() {
+            if (scrollLockDepth === 0) {
+                scrollLockScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+                const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+                scrollBarCompensation = scrollBarWidth > 0 ? scrollBarWidth : 0;
+                if (scrollBarCompensation) {
+                    document.body.style.paddingRight = scrollBarCompensation + 'px';
+                }
+                document.body.style.position = 'fixed';
+                document.body.style.top = `-${scrollLockScrollTop}px`;
+                document.body.style.left = '0';
+                document.body.style.right = '0';
+                document.body.style.width = '100%';
+                document.body.style.overflow = 'hidden';
+            }
+            scrollLockDepth++;
+        }
+        function unlockBodyScroll() {
+            if (scrollLockDepth > 0) {
+                scrollLockDepth--;
+                if (scrollLockDepth === 0) {
+                    document.body.style.position = '';
+                    document.body.style.top = '';
+                    document.body.style.left = '';
+                    document.body.style.right = '';
+                    document.body.style.width = '';
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                    window.scrollTo(0, scrollLockScrollTop);
+                }
+            }
+        }
+
         /**
          * Displays a custom confirmation modal.
          * @param {string} message - The message to display in the modal.
@@ -3184,11 +3210,13 @@
 
                 confirmModalMessage.textContent = message;
                 customConfirmModal.classList.add('active');
+                lockBodyScroll();
 
                 const handleYes = () => {
                     customConfirmModal.classList.remove('active');
                     confirmYesBtn.removeEventListener('click', handleYes);
                     confirmNoBtn.removeEventListener('click', handleNo);
+                    unlockBodyScroll();
                     resolve(true);
                 };
 
@@ -3196,6 +3224,7 @@
                     customConfirmModal.classList.remove('active');
                     confirmYesBtn.removeEventListener('click', handleYes);
                     confirmNoBtn.removeEventListener('click', handleNo);
+                    unlockBodyScroll();
                     resolve(false);
                 };
 
@@ -4060,7 +4089,6 @@
                 playNotificationSound('error');
             }
         }
-
         /**
          * Uploads a file to Cloudinary.
          * @param {File} file - The file to upload.
@@ -4328,6 +4356,7 @@
                 return;
             }
             findFriendsModal.classList.add('active');
+            lockBodyScroll();
             loadAllUsers();
         }
 
@@ -4347,6 +4376,7 @@
                 unsubscribeFriendStatus();
                 unsubscribeFriendStatus = null;
             }
+            unlockBodyScroll();
         }
 
         /**
@@ -4675,7 +4705,6 @@
                 toggleButtonLoading(buttonElement, false);
             }
         }
-
         /**
          * Reject friend request
          */
@@ -4784,6 +4813,7 @@
                 callActions.appendChild(buttonElement);
             });
             callStatusOverlay.classList.add('active');
+            lockBodyScroll();
         }
 
         /**
@@ -4794,6 +4824,7 @@
             callStatusTitle.textContent = '';
             callStatusMessage.textContent = '';
             callActions.innerHTML = '';
+            unlockBodyScroll();
         }
 
         /**
@@ -5084,6 +5115,7 @@
         function hideCallInterfaces() {
             videoCallContainer.classList.remove('active');
             voiceCallContainer.classList.remove('active');
+            unlockBodyScroll();
         }
 
         /**
@@ -5204,6 +5236,7 @@
             }
 
             hideCallStatusOverlay();
+            lockBodyScroll();
             console.log("JCHAT_DEBUG: Active call started");
         }
 
@@ -5430,6 +5463,7 @@
                 return;
             }
             selectFriendModal.classList.add('active');
+            lockBodyScroll();
             await loadFriendsForSelection(); // Load friends when modal opens
         }
 
@@ -5439,6 +5473,7 @@
         function closeSelectFriendModal() {
             try { selectFriendModal.classList.remove('active'); } catch {}
             try { friendSearchInput.value = ''; } catch {}
+            unlockBodyScroll();
         }
         // Close button wiring for friend modal
         document.getElementById('closeFriendModalBtn')?.addEventListener('click', closeSelectFriendModal);
@@ -5875,109 +5910,6 @@
                 speakerBtn.innerHTML = `<i class="fas ${speakerIcon}"></i>`;
             }
         }
-        // ---- UI Toggles Wiring ----
-        (function wireToggles(){
-            // Friend selector button
-            const selectFriendBtn = document.getElementById('selectFriendBtn');
-            if (selectFriendBtn) {
-                selectFriendBtn.addEventListener('click', openSelectFriendModal);
-            }
-            // Theme switcher
-            const themeSwitcherBtn = document.getElementById('themeSwitcherBtn');
-            function applyTheme(theme){
-                const themes = ['theme-light-mode', 'theme-dark-mode'];
-                document.body.classList.remove(...themes);
-                document.body.classList.add(theme);
-                localStorage.setItem('jchat-theme', theme);
-                const icon = themeSwitcherBtn?.querySelector('i');
-                if (icon) icon.className = theme === 'theme-light-mode' ? 'fas fa-sun' : 'fas fa-moon';
-            }
-            const savedTheme = localStorage.getItem('jchat-theme') || 'theme-dark-mode';
-            applyTheme(savedTheme);
-            themeSwitcherBtn?.addEventListener('click', ()=>{
-                const next = document.body.classList.contains('theme-dark-mode') ? 'theme-light-mode' : 'theme-dark-mode';
-                applyTheme(next);
-            });
-            // Sound toggle
-            const soundToggleIcon = document.getElementById('soundToggleIcon');
-            if (soundToggleIcon) {
-                const savedSoundPreference = localStorage.getItem('jchat-sound-enabled');
-                if (savedSoundPreference !== null) {
-                    notificationSoundEnabled = JSON.parse(savedSoundPreference);
-                }
-                const setSoundIcon = () => {
-                    soundToggleIcon.classList.toggle('active', !!notificationSoundEnabled);
-                    soundToggleIcon.classList.remove(notificationSoundEnabled ? 'fa-volume-mute' : 'fa-volume-up');
-                    soundToggleIcon.classList.add(notificationSoundEnabled ? 'fa-volume-up' : 'fa-volume-mute');
-                };
-                setSoundIcon();
-                soundToggleIcon.addEventListener('click', () => {
-                    notificationSoundEnabled = !notificationSoundEnabled;
-                    localStorage.setItem('jchat-sound-enabled', JSON.stringify(notificationSoundEnabled));
-                    setSoundIcon();
-                    showMessageBox(`Notification sounds ${notificationSoundEnabled ? 'ON' : 'OFF'}`, 'info');
-                });
-            }
-            // Stickers toggle
-            const stickersBtn = document.getElementById('stickersBtn');
-            const stickerPicker = document.getElementById('stickerPicker');
-            const stickerPickerClose = document.getElementById('stickerPickerClose');
-            // Anchor sticker picker to the stickers button like WhatsApp
-            if (stickersBtn && stickerPicker) {
-                const anchor = stickersBtn.parentElement || document.body;
-                if (anchor && anchor !== stickerPicker.parentElement) {
-                    // Ensure anchor can position absolute children
-                    if (getComputedStyle(anchor).position === 'static') {
-                        anchor.style.position = 'relative';
-                    }
-                    anchor.appendChild(stickerPicker);
-                    // Convert picker to anchored dropdown
-                    Object.assign(stickerPicker.style, {
-                        position: 'absolute',
-                        bottom: '48px',
-                        right: '0',
-                        left: 'auto',
-                        transform: 'none',
-                        width: 'min(360px, 95vw)',
-                        maxHeight: '60vh',
-                        zIndex: '1200',
-                        border: '1px solid #e0e0e0',
-                        borderRadius: '16px',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
-                    });
-                }
-            }
-            function openStickerPicker() {
-                if (!stickerPicker) return;
-                // Initialize packs on first open
-                if (typeof window.__stickerPickerInitialized === 'undefined' || !window.__stickerPickerInitialized) {
-                    buildStickerPicker();
-                    window.__stickerPickerInitialized = true;
-                }
-                stickerPicker.style.display = 'block';
-                stickerPicker.scrollTop = 0;
-            }
-            function closeStickerPicker() {
-                if (!stickerPicker) return;
-                stickerPicker.style.display = 'none';
-            }
-            stickersBtn?.addEventListener('click', ()=>{
-                if (!stickersBtn) return;
-                const locked = stickersBtn.dataset.locked === '1';
-                if (locked && !UNLOCK_ALL_PREVIEW) {
-                    showMessageBox('Stickers are locked. Visit Store to unlock.', 'info');
-                    return;
-                }
-                if (stickerPicker?.style.display === 'block') closeStickerPicker(); else openStickerPicker();
-            });
-            stickerPickerClose?.addEventListener('click', closeStickerPicker);
-            document.addEventListener('click', (ev)=>{
-                if (stickerPicker && stickersBtn && stickerPicker.style.display === 'block' && !stickerPicker.contains(ev.target) && ev.target !== stickersBtn) {
-                    closeStickerPicker();
-                }
-            });
-        })();
-
         // ---- Stickers: Packs + Builder ----
         (function defineStickerPacks(){
             const STICKER_PACKS = [
@@ -6007,7 +5939,6 @@
     ];
     return urls[0];
 };
-
             window.buildStickerPicker = function buildStickerPicker(){
                 const tabs = document.getElementById('stickerTabs');
                 const grid = document.getElementById('stickerGrid');
