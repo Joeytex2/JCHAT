@@ -70,7 +70,8 @@
         .chat-item { display:grid; grid-template-columns: 40px 1fr auto; gap:10px; align-items:center; padding:10px; border-radius:12px; cursor:pointer; transition: background .2s ease; }
         .chat-item:hover { background: rgba(255,255,255,0.06); }
         .chat-item.active { background: rgba(0,213,255,0.12); border: 1px solid rgba(0,213,255,0.25); }
-        .chat-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(45deg,var(--blue),var(--pink)); display:flex; align-items:center; justify-content:center; font-weight:800; }
+        .chat-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(45deg,var(--blue),var(--pink)); display:flex; align-items:center; justify-content:center; font-weight:800; overflow:hidden; }
+        .chat-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
         .chat-meta { display:flex; flex-direction:column; min-width:0; }
         .chat-name { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .chat-preview { font-size:12px; color:var(--text-light); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -81,8 +82,10 @@
         /* Center panel: thread */
         .center-panel .thread-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border-light); }
         .partner-box { display:flex; align-items:center; gap:10px; min-width:0; }
-        .partner-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(45deg,var(--blue),var(--pink)); display:flex; align-items:center; justify-content:center; font-weight:800; }
+        .partner-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(45deg,var(--blue),var(--pink)); display:flex; align-items:center; justify-content:center; font-weight:800; overflow:hidden; }
+        .partner-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
         .partner-name { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .partner-status { font-size:12px; color:var(--text-light); }
         .thread-actions { display:flex; align-items:center; gap:8px; }
         .icon-btn { width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); cursor:pointer; }
 
@@ -91,6 +94,14 @@
         .msg.sent { margin-left:auto; background:linear-gradient(90deg,var(--blue),var(--pink)); color:#fff; border-bottom-right-radius:2px; }
         .msg.recv { margin-right:auto; background: var(--input-background); color:#fff; border:1px solid var(--border-light); border-bottom-left-radius:2px; }
         .msg-time { font-size:11px; color:var(--text-light); margin-top:4px; }
+
+        /* Typing indicator */
+        .typing-indicator { display:none; align-items:center; gap:8px; padding:6px 14px; margin:0 16px 10px 16px; width:max-content; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:999px; }
+        .typing-dots { display:flex; gap:4px; }
+        .typing-dots span { width:6px; height:6px; background:#25D366; border-radius:50%; animation: td-bounce 1.2s infinite ease-in-out; opacity: 0.8; }
+        .typing-dots span:nth-child(1){ animation-delay:-0.24s; }
+        .typing-dots span:nth-child(2){ animation-delay:-0.12s; }
+        @keyframes td-bounce { 0%,80%,100%{ transform:scale(0.8); opacity:0.5;} 40%{ transform:scale(1); opacity:1;} }
 
         .composer { display:flex; gap:10px; padding:12px; border-top:1px solid var(--border-light); }
         .composer textarea { flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-background); color:#fff; outline:none; resize:none; min-height:44px; max-height:140px; }
@@ -154,7 +165,7 @@
                         <div id="partnerAvatar" class="partner-avatar">U</div>
                         <div style="min-width:0">
                             <div id="partnerName" class="partner-name">Select a chat</div>
-                            <div id="partnerSub" style="font-size:12px;color:var(--text-light)">No chat selected</div>
+                            <div id="partnerSub" class="partner-status">No chat selected</div>
                         </div>
                     </div>
                     <div class="thread-actions">
@@ -164,6 +175,10 @@
                     </div>
                 </div>
                 <div id="messages" class="messages"></div>
+                <div id="typingIndicator" class="typing-indicator">
+                    <div class="typing-dots"><span></span><span></span><span></span></div>
+                    <div style="font-size:12px;color:var(--text-light)">Typing...</div>
+                </div>
                 <div class="composer">
                     <textarea id="messageInput" placeholder="Type a message..." aria-label="Message"></textarea>
                     <button id="sendMessageBtn" aria-label="Send"><i class="fas fa-paper-plane"></i></button>
@@ -185,7 +200,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
@@ -216,11 +231,15 @@
         const detailPartnerIdEl = document.getElementById('detailPartnerId');
         const sharedMediaCountEl = document.getElementById('sharedMediaCount');
         const muteSwitchEl = document.getElementById('muteSwitch');
+        const typingIndicatorEl = document.getElementById('typingIndicator');
 
         let unsubscribe = null;
+        let unsubscribeTyping = null;
+        let unsubscribePresence = null;
         let currentUser = null;
         let activePartnerId = '';
         let sharedMediaCount = 0;
+        const userProfilesCache = new Map();
 
         function getParam(name){ return new URLSearchParams(location.search).get(name) || ''; }
         function setParam(name, value){ const u=new URL(location.href); if(value){u.searchParams.set(name,value);} else {u.searchParams.delete(name);} history.pushState({},'',u); }
@@ -255,6 +274,32 @@
             if(idx>=0){ items[idx].unread = 0; saveRecents(items); renderChatList(); }
         }
 
+        function applyAvatar(el, url, fallbackText){
+            if(url){ el.innerHTML = `<img alt="avatar">`; el.querySelector('img').src = url; }
+            else { el.textContent = fallbackText; }
+        }
+
+        function ensureUserProfile(uid){
+            if(!uid || userProfilesCache.has(uid)) return;
+            const userRef = doc(db, 'users', uid);
+            onSnapshot(userRef, (snap)=>{
+                const data = snap.exists() ? snap.data() : {};
+                userProfilesCache.set(uid, data || {});
+                // Update any chat list row
+                chatListEl.querySelectorAll(`[data-uid="${uid}"] .chat-avatar`).forEach((av)=>{
+                    applyAvatar(av, data.photoURL, initials(uid));
+                });
+                chatListEl.querySelectorAll(`[data-uid="${uid}"] .chat-name`).forEach((nm)=>{
+                    if(data.displayName) nm.textContent = data.displayName;
+                });
+                // Update thread header if this is the active partner
+                if(uid === activePartnerId){
+                    applyAvatar(partnerAvatarEl, data.photoURL, initials(uid));
+                    if(data.displayName) partnerNameEl.textContent = data.displayName;
+                }
+            });
+        }
+
         function renderChatList(){
             const q = chatSearchEl.value.trim();
             const items = loadRecents().filter(it => !q || it.partnerId.includes(q));
@@ -269,6 +314,7 @@
             for(const it of items){
                 const row = document.createElement('div');
                 row.className = 'chat-item' + (activePartnerId===it.partnerId ? ' active' : '');
+                row.dataset.uid = it.partnerId;
                 row.innerHTML = `
                     <div class="chat-avatar">${initials(it.partnerId)}</div>
                     <div class="chat-meta">
@@ -281,15 +327,17 @@
                     </div>`;
                 row.onclick = ()=> selectPartner(it.partnerId);
                 chatListEl.appendChild(row);
+                ensureUserProfile(it.partnerId);
             }
 
             // If query typed that is not in recents, show quick start
             if(q && !items.some(i=>i.partnerId===q)){
                 const quick = document.createElement('div');
-                quick.className='chat-item';
+                quick.className='chat-item'; quick.dataset.uid = q;
                 quick.innerHTML = `<div class="chat-avatar">${initials(q)}</div><div class="chat-meta"><div class="chat-name">Start chat</div><div class="chat-preview">${q}</div></div>`;
                 quick.onclick = ()=> selectPartner(q);
                 chatListEl.appendChild(quick);
+                ensureUserProfile(q);
             }
         }
 
@@ -299,26 +347,56 @@
             const text = (data.text||'').toString();
             const time = data.createdAt?.toDate ? data.createdAt.toDate() : null;
             wrap.textContent = text;
-            const meta = document.createElement('div');
-            meta.className = 'msg-time';
-            meta.textContent = time ? fmtTime(time) : '';
+            const meta = document.createElement('div'); meta.className = 'msg-time'; meta.textContent = time ? fmtTime(time) : '';
             wrap.appendChild(meta);
-            // naive shared media counter
             if(/https?:\/\//i.test(text)) { sharedMediaCount++; sharedMediaCountEl.textContent = String(sharedMediaCount); }
             return wrap;
         }
 
         function setThreadHeader(pid){
             const isPublic = !pid;
-            partnerAvatarEl.textContent = isPublic ? '🌐' : initials(pid);
-            partnerNameEl.textContent = isPublic ? 'Public Chat' : pid;
             partnerSubEl.textContent = isPublic ? 'Everyone can see messages here' : 'Private conversation';
             detailPartnerIdEl.textContent = isPublic ? '-' : pid;
             sharedMediaCount = 0; sharedMediaCountEl.textContent = '0';
+            if(isPublic){ partnerAvatarEl.textContent = '🌐'; partnerNameEl.textContent = 'Public Chat'; }
+            else {
+                const prof = userProfilesCache.get(pid) || {};
+                applyAvatar(partnerAvatarEl, prof.photoURL, initials(pid));
+                partnerNameEl.textContent = prof.displayName || pid;
+            }
             markRecentRead(pid);
         }
 
         function scrollToBottom(){ messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+        // Presence
+        async function setOnline(uid){ try{ await setDoc(doc(db,'presence',uid), { online:true, lastSeen: serverTimestamp() }, { merge:true }); }catch(e){} }
+        async function setOffline(uid){ try{ await setDoc(doc(db,'presence',uid), { online:false, lastSeen: serverTimestamp() }, { merge:true }); }catch(e){} }
+        function watchPartnerPresence(pid){
+            if(unsubscribePresence){ unsubscribePresence(); unsubscribePresence=null; }
+            if(!pid){ partnerSubEl.textContent = 'Everyone can see messages here'; return; }
+            unsubscribePresence = onSnapshot(doc(db,'presence',pid), (snap)=>{
+                const data = snap.exists()?snap.data():{};
+                if(data.online){ partnerSubEl.textContent = 'Online'; }
+                else if(data.lastSeen?.toDate){ partnerSubEl.textContent = 'Last seen ' + data.lastSeen.toDate().toLocaleString(); }
+                else { partnerSubEl.textContent = 'Offline'; }
+            });
+        }
+
+        // Typing
+        let typingTimer = null;
+        async function setTyping(chatRoomId, uid, typing){
+            try{ await setDoc(doc(db,'chats',chatRoomId,'typing',uid), { typing, updatedAt: serverTimestamp() }, { merge:true }); }catch(e){}
+        }
+        function watchPartnerTyping(chatRoomId, partnerId){
+            if(unsubscribeTyping){ unsubscribeTyping(); unsubscribeTyping = null; }
+            if(!partnerId){ typingIndicatorEl.style.display='none'; return; }
+            const ref = doc(db,'chats',chatRoomId,'typing',partnerId);
+            unsubscribeTyping = onSnapshot(ref, (snap)=>{
+                const data = snap.exists()?snap.data():{};
+                typingIndicatorEl.style.display = data.typing ? 'inline-flex' : 'none';
+            });
+        }
 
         async function ensureRoom(userUid, partnerId){
             const chatRoomId = getChatRoomId(userUid, partnerId);
@@ -332,7 +410,12 @@
             setParam('uid', activePartnerId || null);
             setThreadHeader(activePartnerId);
             messagesEl.innerHTML = '';
+            typingIndicatorEl.style.display='none';
             if(unsubscribe){ unsubscribe(); unsubscribe=null; }
+            if(unsubscribeTyping){ unsubscribeTyping(); unsubscribeTyping=null; }
+            if(unsubscribePresence){ unsubscribePresence(); unsubscribePresence=null; }
+
+            await ensureUserDoc(user);
             await ensureRoom(user.uid, activePartnerId);
             const chatRoomId = getChatRoomId(user.uid, activePartnerId);
             const qy = query(collection(db, 'chats', chatRoomId, 'messages'), orderBy('createdAt','asc'), limit(500));
@@ -341,51 +424,64 @@
                 snap.forEach(d=> messagesEl.appendChild(renderMessage(d.data(), user.uid)) );
                 scrollToBottom();
             });
-            // mobile show
-            if(window.matchMedia('(max-width: 800px)').matches){
-                layoutEl.classList.add('show-thread');
-                backBtn.style.display='flex';
-            }
+
+            watchPartnerPresence(activePartnerId);
+            if(activePartnerId){ watchPartnerTyping(chatRoomId, activePartnerId); ensureUserProfile(activePartnerId); }
+
+            // typing events
+            const onTypingActivity = ()=>{
+                if(!activePartnerId) return; // skip public typing broadcast
+                setTyping(chatRoomId, user.uid, true);
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(()=> setTyping(chatRoomId, user.uid, false), 1500);
+            };
+            inputEl.removeEventListener('input', onTypingActivity);
+            inputEl.addEventListener('input', onTypingActivity);
+            inputEl.addEventListener('blur', ()=>{ if(activePartnerId) setTyping(chatRoomId, user.uid, false); });
         }
 
-        async function selectPartner(pid){
-            if(!currentUser) return;
-            await bindThread(currentUser, pid);
-        }
+        async function selectPartner(pid){ if(!currentUser) return; await bindThread(currentUser, pid); }
 
         function updateProfileHeader(user){
             profileNameEl.textContent = user.displayName || (user.isAnonymous ? 'Guest' : 'User');
             if(user.photoURL) profileAvatarEl.src = user.photoURL;
         }
 
+        async function ensureUserDoc(user){
+            try{
+                const uref = doc(db,'users', user.uid);
+                const snap = await getDoc(uref);
+                if(!snap.exists()){
+                    await setDoc(uref, { displayName: user.displayName||'User', photoURL: user.photoURL||'', createdAt: serverTimestamp() }, { merge:true });
+                } else if((snap.data().photoURL||'')!== (user.photoURL||'')){
+                    await updateDoc(uref, { photoURL: user.photoURL||'' });
+                }
+                userProfilesCache.set(user.uid, { displayName: user.displayName||'User', photoURL: user.photoURL||'' });
+            }catch(e){}
+        }
+
         // Events
         chatSearchEl.addEventListener('keydown', (e)=>{
             if(e.key==='Enter'){
-                const v = chatSearchEl.value.trim();
-                if(v) selectPartner(v);
+                const v = chatSearchEl.value.trim(); if(v) selectPartner(v);
             }
         });
         chatSearchEl.addEventListener('input', renderChatList);
-        backBtn.addEventListener('click', ()=>{
-            layoutEl.classList.remove('show-thread');
-            backBtn.style.display='none';
-        });
+        backBtn.addEventListener('click', ()=>{ layoutEl.classList.remove('show-thread'); backBtn.style.display='none'; });
         muteSwitchEl.addEventListener('click', ()=>{ muteSwitchEl.classList.toggle('active'); });
 
         sendBtn.addEventListener('click', async ()=>{
             if(!currentUser) return;
             const text = inputEl.value.trim();
-            if(!text) return;
-            inputEl.value='';
+            if(!text) return; inputEl.value='';
             const chatRoomId = getChatRoomId(currentUser.uid, activePartnerId);
             try{
                 await addDoc(collection(db, 'chats', chatRoomId, 'messages'), { text, senderId: currentUser.uid, createdAt: serverTimestamp() });
                 upsertRecent(activePartnerId || '', text, Date.now(), 0);
+                if(activePartnerId) setTyping(chatRoomId, currentUser.uid, false);
             }catch(err){ console.error('send failed', err); }
         });
-        inputEl.addEventListener('keydown', (e)=>{
-            if((e.key==='Enter'||e.keyCode===13) && !e.shiftKey){ e.preventDefault(); sendBtn.click(); }
-        });
+        inputEl.addEventListener('keydown', (e)=>{ if((e.key==='Enter'||e.keyCode===13) && !e.shiftKey){ e.preventDefault(); sendBtn.click(); } });
 
         // Auth
         onAuthStateChanged(auth, async (user)=>{
@@ -393,16 +489,19 @@
                 if(!user){ await signInAnonymously(auth); return; }
                 currentUser = user;
                 updateProfileHeader(user);
+                await ensureUserDoc(user);
                 renderChatList();
                 const initialPartner = getParam('uid') || '';
-                if(initialPartner || initialPartner===''){
-                    await bindThread(user, initialPartner);
-                }
+                await bindThread(user, initialPartner);
                 notificationsBadgeEl.style.display='none';
+                // presence lifecycle
+                await setOnline(user.uid);
+                window.addEventListener('beforeunload', ()=> setOffline(user.uid));
+                document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden'){ setOffline(user.uid); } else { setOnline(user.uid); } });
             } catch(err){ console.error('init error', err); }
         });
 
-        // Unread heuristic: increment when a message arrives for inactive thread (only while this page is open)
+        // Unread heuristic placeholder
         window.addEventListener('message', ()=>{});
     </script>
 </body>
