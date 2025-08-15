@@ -198,6 +198,7 @@
             gap: 10px;
         }
 
+        /* Cool Notification Icon Styling */
         .notification-icon-wrapper {
             position: relative;
             margin-right: 15px;
@@ -209,37 +210,197 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification-icon-wrapper a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .notification-icon-wrapper a:hover::before {
+            left: 100%;
+        }
+
+        .notification-icon-wrapper a:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 213, 255, 0.3);
+            border-color: var(--blue);
         }
 
         .notification-icon-wrapper i {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ff8e53);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            transition: all 0.3s ease;
+            z-index: 1;
+            position: relative;
+        }
+
+        .notification-icon-wrapper a:hover i {
+            transform: rotate(15deg) scale(1.1);
+            background: linear-gradient(45deg, #ff8e53, #ffd700, #ff6b35);
+            background-clip: text;
+            -webkit-background-clip: text;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ff8e53);
+            color: #000;
+            border-radius: 50%;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+            animation: pulse-notification 2s infinite;
+            display: none;
+        }
+
+        @keyframes pulse-notification {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Additional cool effects for notification icon */
+        .notification-icon-wrapper a:active {
+            transform: scale(0.95);
+        }
+
+        /* Glow effect when there are notifications */
+        .notification-icon-wrapper.has-notifications a {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .notification-icon-wrapper.has-notifications a:hover {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        }
+
+        /* Shaking animation for notification bell when there are unread notifications */
+        .notification-icon-wrapper.has-notifications i {
+            animation: bell-shake 3s ease-in-out infinite;
+            transform-origin: top;
+        }
+
+        @keyframes bell-shake {
+            0%, 90%, 100% { transform: rotate(0deg); }
+            5%, 15%, 25%, 35% { transform: rotate(10deg); }
+            10%, 20%, 30% { transform: rotate(-10deg); }
+            40%, 50%, 60%, 70%, 80% { transform: rotate(0deg); }
+        }
+
+        /* Pause shaking on hover */
+        .notification-icon-wrapper.has-notifications a:hover i {
+            animation-play-state: paused;
+        }
+
+        .user-profile-header #profileLink {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--white);
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: var(--radius);
+        }
+
+        .user-profile-header #profileLink:hover {
+            opacity: 0.8;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile-header img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: opacity 0.3s ease;
+        }
+
+        .user-profile-header i {
+            font-size: 30px;
             background-image: linear-gradient(90deg, var(--blue), var(--pink));
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
-            cursor: pointer;
+        }
+
+        .user-profile-header span {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        /* Admin Icon Styling */
+        #adminIconLink {
+            display: none;
+            margin-right: 15px;
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            font-size: 1.5rem;
             transition: transform 0.2s ease;
         }
 
-        .notification-icon-wrapper i:hover {
+        #adminIconLink:hover {
             transform: scale(1.1);
         }
 
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--notification-badge-color);
-            color: var(--white);
-            border-radius: 50%;
-            padding: 3px 7px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            min-width: 20px;
-            text-align: center;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-            display: none;
+        /* Sound Toggle */
+        .sound-toggle {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+
+        .sound-toggle i {
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .sound-toggle i.active {
+            background-image: linear-gradient(90deg, var(--blue), var(--pink));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         /* Chat Container - Critical for scroll lock */
@@ -611,18 +772,25 @@
             <a href="/Home.html" class="logo">JCHAT</a>
             <nav>
                 <ul>
-                    <!-- Navigation items removed as per user request -->
+                    <!-- Removed Home and Profile links from header navigation -->
                 </ul>
             </nav>
             <div class="user-profile-header">
-                <!-- Notification Icon with Badge -->
+                <!-- Admin Icon Link (visible only to admin) -->
+                <a href="/coin_management.html" id="adminIconLink" aria-label="Admin Dashboard" style="display: none;">
+                    <i class="fas fa-user-cog"></i>
+                </a>
                 <div class="notification-icon-wrapper">
-                    <a href="/notifications.html" aria-label="Notifications">
+                    <a href="notifications.html" aria-label="Notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                        <span id="notificationCount" class="notification-badge" style="display: none;">0</span>
                     </a>
                 </div>
-                <a href="/Profile.html" id="profileLink">
+                <!-- Sound Toggle -->
+                <div class="sound-toggle">
+                    <i id="soundToggleIcon" class="fas fa-volume-up active" title="Toggle Notification Sounds"></i>
+                </div>
+                <a href="Profile.html" id="profileLink">
                     <img id="headerProfilePic" src="" alt="Profile Picture" style="display: none;">
                     <i id="headerAvatarIcon" class="fas fa-user-circle"></i>
                     <span id="headerDisplayName">Loading...</span>
