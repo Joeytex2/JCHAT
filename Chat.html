@@ -6252,25 +6252,6 @@
             }
         })();
 
-        /* CSS for scroll lock prevention */
-        .scroll-locked {
-            overflow: hidden !important;
-            overflow-x: hidden !important;
-            overflow-y: hidden !important;
-            position: fixed !important;
-            touch-action: none !important;
-            overscroll-behavior: none !important;
-            -webkit-overflow-scrolling: auto !important;
-            -webkit-user-select: none !important;
-            user-select: none !important;
-            -ms-touch-action: none !important;
-        }
-        
-        .scroll-locked * {
-            touch-action: none !important;
-            overscroll-behavior: none !important;
-        }
-        
         // ---- Scroll Lock Functionality ----
         (function initScrollLock() {
             let scrollLockEnabled = false;
@@ -6330,37 +6311,25 @@
                 // Store original HTML styles
                 originalHtmlStyle = {
                     overflow: document.documentElement.style.overflow,
-                    overflowX: document.documentElement.style.overflowX,
-                    overflowY: document.documentElement.style.overflowY,
                     position: document.documentElement.style.position,
                     top: document.documentElement.style.top,
-                    left: document.documentElement.style.left,
                     width: document.documentElement.style.width,
                     height: document.documentElement.style.height,
                     touchAction: document.documentElement.style.touchAction,
                     overscrollBehavior: document.documentElement.style.overscrollBehavior,
-                    webkitOverflowScrolling: document.documentElement.style.webkitOverflowScrolling,
-                    webkitUserSelect: document.documentElement.style.webkitUserSelect,
-                    userSelect: document.documentElement.style.userSelect,
-                    msTouchAction: document.documentElement.style.msTouchAction
+                    webkitOverflowScrolling: document.documentElement.style.webkitOverflowScrolling
                 };
                 
                 // Store original body styles
                 originalBodyStyle = {
                     overflow: document.body.style.overflow,
-                    overflowX: document.body.style.overflowX,
-                    overflowY: document.body.style.overflowY,
                     position: document.body.style.position,
                     top: document.body.style.top,
-                    left: document.body.style.left,
                     width: document.body.style.width,
                     height: document.body.style.height,
                     touchAction: document.body.style.touchAction,
                     overscrollBehavior: document.body.style.overscrollBehavior,
-                    webkitOverflowScrolling: document.body.style.webkitOverflowScrolling,
-                    webkitUserSelect: document.body.style.webkitUserSelect,
-                    userSelect: document.body.style.userSelect,
-                    msTouchAction: document.body.style.msTouchAction
+                    webkitOverflowScrolling: document.body.style.webkitOverflowScrolling
                 };
                 
                 // Find and store all scrollable elements
@@ -6402,37 +6371,25 @@
                 // Calculate scrollbar width to prevent layout shift
                 const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
                 
-                // Lock the HTML element (root) with aggressive scroll prevention
+                // Lock the HTML element (root)
                 document.documentElement.style.overflow = 'hidden';
-                document.documentElement.style.overflowX = 'hidden';
-                document.documentElement.style.overflowY = 'hidden';
                 document.documentElement.style.position = 'fixed';
                 document.documentElement.style.top = `-${window.scrollY}px`;
-                document.documentElement.style.left = '0';
                 document.documentElement.style.width = '100%';
                 document.documentElement.style.height = '100vh';
                 document.documentElement.style.touchAction = 'none';
                 document.documentElement.style.overscrollBehavior = 'none';
                 document.documentElement.style.webkitOverflowScrolling = 'auto';
-                document.documentElement.style.webkitUserSelect = 'none';
-                document.documentElement.style.userSelect = 'none';
-                document.documentElement.style.msTouchAction = 'none';
                 
                 // Lock the body with comprehensive scroll prevention
                 document.body.style.overflow = 'hidden';
-                document.body.style.overflowX = 'hidden';
-                document.body.style.overflowY = 'hidden';
                 document.body.style.position = 'fixed';
                 document.body.style.top = `-${window.scrollY}px`;
-                document.body.style.left = '0';
                 document.body.style.width = '100%';
                 document.body.style.height = '100vh';
                 document.body.style.touchAction = 'none'; // Prevent all touch actions
                 document.body.style.overscrollBehavior = 'none'; // Prevent overscroll bounce
                 document.body.style.webkitOverflowScrolling = 'auto'; // Disable momentum scrolling
-                document.body.style.webkitUserSelect = 'none'; // Prevent text selection
-                document.body.style.userSelect = 'none'; // Prevent text selection
-                document.body.style.msTouchAction = 'none'; // IE/Edge touch prevention
                 
                 // Add padding to prevent layout shift when scrollbar disappears
                 if (scrollbarWidth > 0) {
@@ -6440,40 +6397,18 @@
                     document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
                 }
                 
-                // Add comprehensive event listeners to prevent all scrolling
-                document.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
-                document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
-                document.addEventListener('touchmove', preventTouchScroll, { passive: false, capture: true });
-                document.addEventListener('touchend', preventTouchScroll, { passive: false, capture: true });
-                document.addEventListener('wheel', preventTouchScroll, { passive: false, capture: true });
-                document.addEventListener('scroll', preventTouchScroll, { passive: false, capture: true });
-                document.addEventListener('keydown', preventTouchScroll, { passive: false, capture: true });
+                // Add touch event listeners to prevent swipe scrolling
+                document.addEventListener('touchstart', handleTouchStart, { passive: false });
+                document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                document.addEventListener('touchmove', preventTouchScroll, { passive: false });
+                document.addEventListener('wheel', preventTouchScroll, { passive: false });
+                document.addEventListener('scroll', preventTouchScroll, { passive: false });
                 
-                // Also prevent scrolling on window and all possible targets
-                window.addEventListener('scroll', preventTouchScroll, { passive: false, capture: true });
-                window.addEventListener('wheel', preventTouchScroll, { passive: false, capture: true });
-                window.addEventListener('touchmove', preventTouchScroll, { passive: false, capture: true });
-                
-                // Add CSS class for additional prevention
-                document.documentElement.classList.add('scroll-locked');
-                document.body.classList.add('scroll-locked');
-                
-                // Force scroll position to stay put
-                const currentScrollY = window.scrollY;
-                const forceScrollPosition = () => {
-                    if (window.scrollY !== currentScrollY) {
-                        window.scrollTo(0, currentScrollY);
-                    }
-                };
-                
-                // Set up interval to force scroll position
-                const scrollForceInterval = setInterval(forceScrollPosition, 10);
-                
-                // Store interval for cleanup
-                window.__scrollForceInterval = scrollForceInterval;
+                // Also prevent scrolling on window
+                window.addEventListener('scroll', preventTouchScroll, { passive: false });
                 
                 scrollLockEnabled = true;
-                console.log('JCHAT_DEBUG: AGGRESSIVE scroll lock applied (complete prevention)');
+                console.log('JCHAT_DEBUG: Complete scroll lock applied (HTML, body, and all containers)');
             }
             
             /**
@@ -6482,62 +6417,35 @@
             function unlockBodyScroll() {
                 if (!scrollLockEnabled) return; // Already unlocked
                 
-                // Clear the force scroll interval
-                if (window.__scrollForceInterval) {
-                    clearInterval(window.__scrollForceInterval);
-                    window.__scrollForceInterval = null;
-                }
-                
-                // Remove comprehensive event listeners
-                document.removeEventListener('touchstart', handleTouchStart, { capture: true });
-                document.removeEventListener('touchmove', handleTouchMove, { capture: true });
-                document.removeEventListener('touchmove', preventTouchScroll, { capture: true });
-                document.removeEventListener('touchend', preventTouchScroll, { capture: true });
-                document.removeEventListener('wheel', preventTouchScroll, { capture: true });
-                document.removeEventListener('scroll', preventTouchScroll, { capture: true });
-                document.removeEventListener('keydown', preventTouchScroll, { capture: true });
-                
-                window.removeEventListener('scroll', preventTouchScroll, { capture: true });
-                window.removeEventListener('wheel', preventTouchScroll, { capture: true });
-                window.removeEventListener('touchmove', preventTouchScroll, { capture: true });
-                
-                // Remove CSS classes
-                document.documentElement.classList.remove('scroll-locked');
-                document.body.classList.remove('scroll-locked');
+                // Remove touch event listeners
+                document.removeEventListener('touchstart', handleTouchStart);
+                document.removeEventListener('touchmove', handleTouchMove);
+                document.removeEventListener('touchmove', preventTouchScroll);
+                document.removeEventListener('wheel', preventTouchScroll);
+                document.removeEventListener('scroll', preventTouchScroll);
+                window.removeEventListener('scroll', preventTouchScroll);
                 
                 // Restore original HTML styles
                 document.documentElement.style.overflow = originalHtmlStyle.overflow || '';
-                document.documentElement.style.overflowX = originalHtmlStyle.overflowX || '';
-                document.documentElement.style.overflowY = originalHtmlStyle.overflowY || '';
                 document.documentElement.style.position = originalHtmlStyle.position || '';
                 document.documentElement.style.top = originalHtmlStyle.top || '';
-                document.documentElement.style.left = originalHtmlStyle.left || '';
                 document.documentElement.style.width = originalHtmlStyle.width || '';
                 document.documentElement.style.height = originalHtmlStyle.height || '';
                 document.documentElement.style.paddingRight = '';
                 document.documentElement.style.touchAction = originalHtmlStyle.touchAction || '';
                 document.documentElement.style.overscrollBehavior = originalHtmlStyle.overscrollBehavior || '';
                 document.documentElement.style.webkitOverflowScrolling = originalHtmlStyle.webkitOverflowScrolling || '';
-                document.documentElement.style.webkitUserSelect = originalHtmlStyle.webkitUserSelect || '';
-                document.documentElement.style.userSelect = originalHtmlStyle.userSelect || '';
-                document.documentElement.style.msTouchAction = originalHtmlStyle.msTouchAction || '';
                 
                 // Restore original body styles
                 document.body.style.overflow = originalBodyStyle.overflow || '';
-                document.body.style.overflowX = originalBodyStyle.overflowX || '';
-                document.body.style.overflowY = originalBodyStyle.overflowY || '';
                 document.body.style.position = originalBodyStyle.position || '';
                 document.body.style.top = originalBodyStyle.top || '';
-                document.body.style.left = originalBodyStyle.left || '';
                 document.body.style.width = originalBodyStyle.width || '';
                 document.body.style.height = originalBodyStyle.height || '';
                 document.body.style.paddingRight = '';
                 document.body.style.touchAction = originalBodyStyle.touchAction || '';
                 document.body.style.overscrollBehavior = originalBodyStyle.overscrollBehavior || '';
                 document.body.style.webkitOverflowScrolling = originalBodyStyle.webkitOverflowScrolling || '';
-                document.body.style.webkitUserSelect = originalBodyStyle.webkitUserSelect || '';
-                document.body.style.userSelect = originalBodyStyle.userSelect || '';
-                document.body.style.msTouchAction = originalBodyStyle.msTouchAction || '';
                 
                 // Restore all scrollable elements
                 originalScrollableElements.forEach(item => {
