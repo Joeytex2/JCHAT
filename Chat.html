@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCHAT - Chat</title>
+
+    <!-- Security & PWA -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <link rel="manifest" href="/manifest.webmanifest">
+
+    <!-- Fonts & Icons (as in Home/Profile) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Performance preconnects (Firebase + Cloudinary like Profile/Home) -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+    <link rel="preconnect" href="https://api.cloudinary.com" crossorigin>
+
+    <style>
+        /* Base theme variables (from Home/Profile) */
+        :root {
+            --pink: #ff2e92;
+            --blue: #00d5ff;
+            --glass-black: rgba(10, 10, 10, .75);
+            --glass-blue: rgba(0, 213, 255, .15);
+            --radius: 20px;
+            --transition: .3s ease;
+
+            --white: #fff;
+            --text-light: rgba(255, 255, 255, .7);
+            --background-main: rgba(10, 10, 10, .75);
+            --background-gradient-1: #00d5ff;
+            --background-gradient-2: #ff2e92;
+            --card-background: linear-gradient(145deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+            --header-background: linear-gradient(135deg, rgba(10,10,10,.85), rgba(10,10,10,.75));
+            --border-light: rgba(255, 255, 255, .08);
+            --input-background: rgba(255, 255, 255, 0.08);
+            --button-background: linear-gradient(90deg, var(--blue), var(--pink));
+            --button-shadow: 0 4px 15px var(--blue), 0 4px 15px var(--pink);
+
+            --background-color-primary: #1a1a2e;
+            --background-color-secondary: #0f0f1f;
+            --text-color-primary: #e0e0e0;
+            --text-color-secondary: #b0b0d0;
+            --border-color: #3a3a5a;
+        }
+
+        html { overflow-y: scroll; }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            color: var(--white);
+            background-color: var(--background-main);
+            background-image: radial-gradient(circle at top left, var(--background-gradient-1), transparent 100px),
+                              radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* Header (from Home/Profile) */
+        header { background: var(--header-background); border-bottom: 1px solid var(--border-light); position: fixed; top:0; left:0; right:0; height: 55px; z-index: 10; display:flex; justify-content:center; }
+        header .header-content-wrapper { width:100%; max-width: 1200px; padding: 0 30px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { font-family:'Poppins',sans-serif; font-size:1.8rem; font-weight:800; letter-spacing:-0.03em; background-image:linear-gradient(90deg,var(--blue),var(--pink)); -webkit-background-clip:text; background-clip:text; color:transparent; text-decoration:none; }
+        .user-profile-header { display:flex; align-items:center; gap:10px; }
+        .notification-icon-wrapper { position:relative; margin-right:10px; }
+        .notification-icon-wrapper a { width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06)); border: 2px solid rgba(255,255,255,0.25); }
+        .notification-badge { position:absolute; top:-6px; right:-6px; background:#ff4757; color:#fff; border-radius:999px; font-size:11px; padding:2px 6px; font-weight:800; display:none; }
+        .user-profile-header img { width:32px; height:32px; border-radius:50%; border:2px solid var(--blue); object-fit:cover; }
+        .user-profile-header span { font-weight:600; background-image:linear-gradient(90deg,var(--blue),var(--pink)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+        /* Layout */
+        main { width:100%; max-width: 1200px; padding: 70px 20px 20px; display:grid; grid-template-columns: 320px 1fr; gap:16px; }
+        @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+        /* Chat list (glass card) */
+        .card { background: var(--card-background); border: 1px solid var(--glass-blue); border-radius: var(--radius); box-shadow: 0 8px 25px rgba(0,0,0,.3); min-height: 0; display:flex; flex-direction:column; }
+        .list-header { padding: 12px; border-bottom: 1px solid var(--border-light); display:flex; gap:8px; align-items:center; }
+        .list-header input { flex:1; height:36px; border-radius:10px; border:1px solid var(--border-color); background: var(--input-background); color: var(--white); padding: 0 10px; outline:none; }
+        .threads { overflow-y:auto; padding: 6px; display:flex; flex-direction:column; gap:6px; }
+        .row { display:grid; grid-template-columns: 42px 1fr auto; gap:10px; align-items:center; padding:10px; border-radius:12px; cursor:pointer; }
+        .row:hover { background: rgba(255,255,255,0.06); }
+        .row.active { background: rgba(0,213,255,0.12); border: 1px solid rgba(0,213,255,0.25); }
+        .avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(45deg,var(--blue),var(--pink)); display:grid; place-items:center; font-weight:800; overflow:hidden; }
+        .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+        .meta { min-width:0; }
+        .name { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .preview { font-size:12px; color: var(--text-light); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .right { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+        .time { font-size:11px; color: var(--text-light); }
+        .badge { background:#25D366; color:#0b1f0f; font-weight:900; font-size:11px; border-radius:999px; padding:2px 6px; }
+
+        /* Conversation */
+        .conv { background: var(--card-background); border: 1px solid var(--glass-blue); border-radius: var(--radius); box-shadow: 0 8px 25px rgba(0,0,0,.3); display:flex; flex-direction:column; min-height: 0; }
+        .conv-header { display:flex; align-items:center; gap:10px; padding: 12px; border-bottom:1px solid var(--border-light); }
+        .conv-partner { display:flex; align-items:center; gap:10px; min-width:0; }
+        .conv-partner .avatar { width:36px; height:36px; }
+        .conv-name { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .conv-status { font-size:12px; color: var(--text-light); }
+        .messages { flex:1; overflow-y:auto; padding: 14px; display:flex; flex-direction:column; gap:8px; }
+        .msg { max-width:75%; padding:10px 14px; border-radius:16px; font-size:14px; line-height:1.35; word-break:break-word; }
+        .msg.recv { background: var(--input-background); color: var(--white); border:1px solid var(--border-light); border-top-left-radius:6px; }
+        .msg.sent { background: linear-gradient(90deg, var(--blue), var(--pink)); color:#fff; margin-left:auto; border-top-right-radius:6px; }
+        .msg .time { margin-top:4px; font-size:11px; opacity:0.85; }
+        .msg img { max-width: 260px; height:auto; border-radius:12px; display:block; margin-top:6px; }
+
+        .typing { display:none; align-items:center; gap:8px; margin: 2px 12px; }
+        .dots { display:inline-flex; gap:4px; }
+        .dots span { width:6px; height:6px; background:#25D366; border-radius:999px; animation: bounce 1.2s infinite ease-in-out; opacity:0.85; }
+        .dots span:nth-child(1){ animation-delay:-0.24s; }
+        .dots span:nth-child(2){ animation-delay:-0.12s; }
+        @keyframes bounce { 0%,80%,100%{ transform:scale(0.85); opacity:0.5;} 40%{ transform:scale(1); opacity:1;} }
+
+        .composer { display:grid; grid-template-columns: 36px 1fr 44px; gap:8px; padding: 10px 12px; border-top:1px solid var(--border-light); }
+        .icon-btn { width:36px; height:36px; display:grid; place-items:center; border-radius:10px; background: var(--input-background); border:1px solid var(--border-color); cursor:pointer; color: var(--white); }
+        .composer textarea { height: 40px; resize:none; padding: 10px 12px; border-radius:10px; border:1px solid var(--border-color); background: var(--input-background); color: var(--white); outline:none; }
+        .composer button.send { width:44px; height:40px; border-radius:10px; background: var(--button-background); color:#fff; border:none; box-shadow: var(--button-shadow); cursor:pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content-wrapper">
+            <a class="logo" href="/Home.html">JCHAT</a>
+            <div class="user-profile-header">
+                <div class="notification-icon-wrapper">
+                    <a id="notificationsLink" href="/notifications.html" aria-label="Notifications"><i class="fas fa-bell"></i></a>
+                    <span id="notificationsBadge" class="notification-badge"></span>
+                </div>
+                <a id="profileLink" href="/Profile.html">
+                    <img id="profileAvatar" src="https://placehold.co/64x64/1a1a2e/ffffff?text=J" alt="Profile">
+                    <span id="profileName">User</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="card" aria-label="Chats">
+            <div class="list-header">
+                <input id="chatSearch" placeholder="Search or start by user ID">
+            </div>
+            <div id="chatList" class="threads"></div>
+        </section>
+
+        <section class="conv" aria-label="Conversation">
+            <div class="conv-header">
+                <div class="conv-partner">
+                    <div id="partnerAvatar" class="avatar">U</div>
+                    <div>
+                        <div id="partnerName" class="conv-name">Select a chat</div>
+                        <div id="partnerStatus" class="conv-status">No chat selected</div>
+                    </div>
+                </div>
+            </div>
+            <div id="messages" class="messages"></div>
+            <div id="typingIndicator" class="typing">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <div class="conv-status">Typing…</div>
+            </div>
+            <div class="composer">
+                <label title="Attach image" class="icon-btn" for="imageInput"><i class="fas fa-image"></i></label>
+                <input id="imageInput" type="file" accept="image/*" hidden>
+                <textarea id="messageInput" placeholder="Write a message…"></textarea>
+                <button id="sendMessageBtn" class="send" aria-label="Send"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        // Firebase v11.8.0 (as in Home)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
+
+        // Firebase config (Canvas env override; same pattern used in Home/Profile)
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+            authDomain: "jchat-1.firebaseapp.com",
+            projectId: "jchat-1",
+            storageBucket: "jchat-1.firebasestorage.app",
+            messagingSenderId: "680440616768",
+            appId: "1:680440616768:web:6b4f03f7fa1be4cb8e83e9"
+        };
+
+        // Cloudinary config (from Profile.html)
+        const cloudinaryConfig = {
+            cloudName: "dxld01rcp",
+            uploadPreset: "Storage_preset"
+        };
+
+        // Cloudinary helpers (adapted from Profile.html)
+        function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
+            if (!urlOrPublicId) return null;
+            if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
+                if (urlOrPublicId.includes('res.cloudinary.com')) {
+                    const parts = urlOrPublicId.split('/upload/');
+                    if (parts.length === 2) {
+                        return parts[0] + '/upload/' + transformations + '/' + parts[1];
+                    }
+                }
+                return urlOrPublicId;
+            }
+            return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
+        }
+        async function uploadMediaToCloudinary(file) {
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', cloudinaryConfig.uploadPreset);
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`, { method:'POST', body: formData });
+                if (!response.ok) { const e = await response.json(); console.error('Cloudinary error', e); return null; }
+                const data = await response.json();
+                return data.secure_url;
+            } catch (e) { console.error('Cloudinary upload failed', e); return null; }
+        }
+
+        // App init
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Elements
+        const chatListEl = document.getElementById('chatList');
+        const chatSearchEl = document.getElementById('chatSearch');
+        const messagesEl = document.getElementById('messages');
+        const inputEl = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendMessageBtn');
+        const imageInput = document.getElementById('imageInput');
+        const partnerAvatarEl = document.getElementById('partnerAvatar');
+        const partnerNameEl = document.getElementById('partnerName');
+        const partnerStatusEl = document.getElementById('partnerStatus');
+        const profileNameEl = document.getElementById('profileName');
+        const profileAvatarEl = document.getElementById('profileAvatar');
+        const typingIndicatorEl = document.getElementById('typingIndicator');
+
+        let currentUser = null;
+        let activePartnerId = '';
+        let unsubscribe = null;
+        let unsubscribeTyping = null;
+        let unsubscribePresence = null;
+        let typingTimer = null;
+        const profiles = new Map();
+
+        // Utilities
+        function getParam(name){ return new URLSearchParams(location.search).get(name) || ''; }
+        function setParam(name, value){ const u = new URL(location.href); if(value){u.searchParams.set(name,value);} else {u.searchParams.delete(name);} history.pushState({},'',u); }
+        function getChatRoomId(a,b){ if(!a||!b) return 'public_chat'; return [a,b].sort().join('_'); }
+        function initials(id){ if(!id) return 'U'; return id.toString().slice(0,2).toUpperCase(); }
+        function fmtTime(ts){ try{ return new Intl.DateTimeFormat(undefined,{hour:'2-digit',minute:'2-digit'}).format(ts);}catch{return '';} }
+
+        // Recents (local)
+        function loadRecents(){ try{ return JSON.parse(localStorage.getItem('jchat_recents')||'[]'); }catch{return [];} }
+        function saveRecents(items){ localStorage.setItem('jchat_recents', JSON.stringify(items.slice(0,50))); }
+        function upsertRecent(partnerId, lastText, timeMs, unreadDelta){
+            const items = loadRecents(); const now = timeMs || Date.now();
+            const i = items.findIndex(r=>r.partnerId===partnerId);
+            if(i>=0){ const it = items[i]; it.lastText = lastText ?? it.lastText ?? ''; it.updatedAt = now; it.unread = Math.max(0,(it.unread||0)+(unreadDelta||0)); items.splice(i,1); items.unshift(it); }
+            else { items.unshift({ partnerId, lastText: lastText||'', updatedAt: now, unread: Math.max(0, unreadDelta||0) }); }
+            saveRecents(items); renderChatList();
+        }
+        function markRecentRead(partnerId){ const items=loadRecents(); const i=items.findIndex(r=>r.partnerId===partnerId); if(i>=0){ items[i].unread=0; saveRecents(items); renderChatList(); } }
+
+        // Profiles
+        function applyAvatar(el, url, fallback){ if(url){ el.innerHTML = `<img alt="avatar">`; el.querySelector('img').src = url; } else { el.textContent = fallback; } }
+        function ensureUserProfile(uid){ if(!uid || profiles.has(uid)) return; const ref = doc(db,'users',uid); onSnapshot(ref,(snap)=>{ const d=snap.exists()?snap.data():{}; profiles.set(uid,d||{}); chatListEl.querySelectorAll(`[data-uid="${uid}"] .avatar`).forEach(av=> applyAvatar(av, d.photoURL, initials(uid))); chatListEl.querySelectorAll(`[data-uid="${uid}"] .name`).forEach(nm=>{ if(d.displayName) nm.textContent=d.displayName; }); if(uid===activePartnerId){ applyAvatar(partnerAvatarEl, d.photoURL, initials(uid)); if(d.displayName) partnerNameEl.textContent=d.displayName; } }); }
+
+        // Presence
+        async function setOnline(uid){ try{ await setDoc(doc(db,'presence',uid), { online:true, lastSeen: serverTimestamp() }, { merge:true }); }catch(e){} }
+        async function setOffline(uid){ try{ await setDoc(doc(db,'presence',uid), { online:false, lastSeen: serverTimestamp() }, { merge:true }); }catch(e){} }
+        function watchPresence(uid){ if(unsubscribePresence){ unsubscribePresence(); unsubscribePresence=null; } if(!uid){ partnerStatusEl.textContent='Everyone can see messages here'; return; } unsubscribePresence = onSnapshot(doc(db,'presence',uid),(snap)=>{ const d=snap.exists()?snap.data():{}; if(d.online){ partnerStatusEl.textContent='Online'; } else if(d.lastSeen?.toDate){ partnerStatusEl.textContent='Last seen '+d.lastSeen.toDate().toLocaleString(); } else { partnerStatusEl.textContent='Offline'; } }); }
+
+        // Typing
+        async function setTyping(chatRoomId, uid, typing){ try{ await setDoc(doc(db,'chats',chatRoomId,'typing',uid), { typing, updatedAt: serverTimestamp() }, { merge:true }); }catch(e){} }
+        function watchTyping(chatRoomId, partnerId){ if(unsubscribeTyping){ unsubscribeTyping(); unsubscribeTyping=null; } if(!partnerId){ typingIndicatorEl.style.display='none'; return; } const ref=doc(db,'chats',chatRoomId,'typing',partnerId); unsubscribeTyping = onSnapshot(ref,(snap)=>{ const d=snap.exists()?snap.data():{}; typingIndicatorEl.style.display = d.typing ? 'flex' : 'none'; }); }
+
+        // UI renderers
+        function renderChatList(){
+            const q = chatSearchEl.value.trim().toLowerCase();
+            const items = loadRecents().filter(it => !q || it.partnerId.toLowerCase().includes(q));
+            chatListEl.innerHTML='';
+            const pub = document.createElement('div');
+            pub.className = 'row' + (activePartnerId?'' : ' active');
+            pub.innerHTML = `<div class="avatar">🌐</div><div class="meta"><div class="name">Public Chat</div><div class="preview">Everyone can chat here</div></div><div class="right"><span class="time"></span></div>`;
+            pub.onclick = ()=> selectPartner('');
+            chatListEl.appendChild(pub);
+            for(const it of items){
+                const row = document.createElement('div');
+                row.className = 'row' + (activePartnerId===it.partnerId ? ' active' : '');
+                row.dataset.uid = it.partnerId;
+                row.innerHTML = `
+                    <div class="avatar">${initials(it.partnerId)}</div>
+                    <div class="meta"><div class="name">${it.partnerId}</div><div class="preview">${(it.lastText||'').replace(/</g,'&lt;')}</div></div>
+                    <div class="right"><span class="time">${it.updatedAt?new Intl.DateTimeFormat(undefined,{hour:'2-digit',minute:'2-digit'}).format(new Date(it.updatedAt)):''}</span>${it.unread?`<span class="badge">${it.unread}</span>`:''}</div>`;
+                row.onclick = ()=> selectPartner(it.partnerId);
+                chatListEl.appendChild(row);
+                ensureUserProfile(it.partnerId);
+            }
+            if(q && !items.some(i=>i.partnerId===q)){
+                const quick = document.createElement('div');
+                quick.className='row'; quick.dataset.uid=q; quick.innerHTML = `<div class="avatar">${initials(q)}</div><div class="meta"><div class="name">Start chat</div><div class="preview">${q}</div></div>`;
+                quick.onclick = ()=> selectPartner(q);
+                chatListEl.appendChild(quick);
+                ensureUserProfile(q);
+            }
+        }
+        function renderMessage(data, myUid){
+            const wrap = document.createElement('div');
+            wrap.className = 'msg ' + (data.senderId===myUid ? 'sent' : 'recv');
+            const text = (data.text||'').toString();
+            let html = text.replace(/</g,'&lt;');
+            if (data.imageUrl) {
+                const imgUrl = getCloudinaryImageUrl(data.imageUrl, 'f_auto,q_auto,w_600');
+                html += `<br><img src="${imgUrl}" alt="image">`;
+            }
+            const time = data.createdAt?.toDate ? data.createdAt.toDate() : null;
+            html += `<div class="time">${time?fmtTime(time):''}</div>`;
+            wrap.innerHTML = html;
+            return wrap;
+        }
+        function setThreadHeader(pid){ const isPublic = !pid; if(isPublic){ partnerAvatarEl.textContent='🌐'; partnerNameEl.textContent='Public Chat'; partnerStatusEl.textContent='Everyone can see messages here'; } else { const p=profiles.get(pid)||{}; applyAvatar(partnerAvatarEl, p.photoURL, initials(pid)); partnerNameEl.textContent = p.displayName || pid; partnerStatusEl.textContent=''; } markRecentRead(pid); }
+        function scrollToBottom(){ messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+        // Chat binding
+        async function ensureRoom(userUid, partnerId){ const chatRoomId=getChatRoomId(userUid, partnerId); const roomRef=doc(db,'chats',chatRoomId); const snap=await getDoc(roomRef); if(!snap.exists()) await setDoc(roomRef,{ createdAt: serverTimestamp(), createdBy: userUid }); }
+        async function bindThread(user, partnerId){
+            activePartnerId = partnerId || '';
+            setParam('uid', activePartnerId || null);
+            setThreadHeader(activePartnerId);
+            messagesEl.innerHTML=''; typingIndicatorEl.style.display='none';
+            if(unsubscribe){ unsubscribe(); unsubscribe=null; }
+            if(unsubscribeTyping){ unsubscribeTyping(); unsubscribeTyping=null; }
+            if(unsubscribePresence){ unsubscribePresence(); unsubscribePresence=null; }
+            await ensureRoom(user.uid, activePartnerId);
+            const chatRoomId = getChatRoomId(user.uid, activePartnerId);
+            const qy = query(collection(db,'chats',chatRoomId,'messages'), orderBy('createdAt','asc'), limit(500));
+            unsubscribe = onSnapshot(qy,(snap)=>{ messagesEl.innerHTML=''; snap.forEach(d=> messagesEl.appendChild(renderMessage(d.data(), user.uid))); scrollToBottom(); });
+            watchPresence(activePartnerId);
+            if(activePartnerId){ watchTyping(chatRoomId, activePartnerId); ensureUserProfile(activePartnerId); }
+            const onTyping = ()=>{ if(!activePartnerId) return; setTyping(chatRoomId,user.uid,true); clearTimeout(typingTimer); typingTimer=setTimeout(()=> setTyping(chatRoomId,user.uid,false), 1400); };
+            inputEl.oninput = onTyping; inputEl.onblur = ()=>{ if(activePartnerId) setTyping(chatRoomId,user.uid,false); };
+        }
+        async function selectPartner(pid){ if(!currentUser) return; await bindThread(currentUser, pid); }
+
+        // Events
+        chatSearchEl.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ const v=chatSearchEl.value.trim(); if(v) selectPartner(v); }});
+        chatSearchEl.addEventListener('input', renderChatList);
+        sendBtn.addEventListener('click', async ()=>{
+            if(!currentUser) return; const text=inputEl.value.trim(); const chatRoomId=getChatRoomId(currentUser.uid, activePartnerId); if(!text && !imageInput.files?.length) return;
+            inputEl.value='';
+            let imageUrl = null;
+            if(imageInput.files && imageInput.files[0]){ const file=imageInput.files[0]; imageInput.value=''; imageUrl = await uploadMediaToCloudinary(file); }
+            try { await addDoc(collection(db,'chats',chatRoomId,'messages'), { text: text||'', imageUrl, senderId: currentUser.uid, createdAt: serverTimestamp() }); upsertRecent(activePartnerId||'', text||'[image]', Date.now(), 0); if(activePartnerId) setTyping(chatRoomId,currentUser.uid,false); } catch(err){ console.error('send failed', err); }
+        });
+        inputEl.addEventListener('keydown', (e)=>{ if((e.key==='Enter'||e.keyCode===13) && !e.shiftKey){ e.preventDefault(); sendBtn.click(); }});
+
+        // Auth
+        onAuthStateChanged(auth, async (user)=>{
+            try { if(!user){ await signInAnonymously(auth); return; } currentUser=user; profileNameEl.textContent = user.displayName || (user.isAnonymous?'Guest':'User'); if(user.photoURL) profileAvatarEl.src=user.photoURL; const uref=doc(db,'users',user.uid); const snap=await getDoc(uref); if(!snap.exists()) await setDoc(uref,{ displayName: profileNameEl.textContent, photoURL: user.photoURL||'' },{ merge:true }); else if((snap.data().photoURL||'')!==(user.photoURL||'')) await updateDoc(uref,{ photoURL: user.photoURL||'' }); ensureUserProfile(user.uid); renderChatList(); const initial=getParam('uid')||''; await bindThread(user, initial); await setOnline(user.uid); window.addEventListener('beforeunload', ()=> setOffline(user.uid)); document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden'){ setOffline(user.uid); } else { setOnline(user.uid); } }); } catch(err){ console.error('init error', err); }
+        });
+    </script>
+</body>
+</html>
