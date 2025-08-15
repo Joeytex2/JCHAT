@@ -247,11 +247,24 @@
         
         /* Allow scrolling only in messages display when locked */
         html.scroll-locked .messages-display,
-        body.scroll-locked .messages-display {
+        body.scroll-locked .messages-display,
+        html.scroll-locked #messagesDisplay,
+        body.scroll-locked #messagesDisplay {
             touch-action: auto !important;
             overscroll-behavior: auto !important;
             -webkit-overflow-scrolling: touch !important;
             overflow-y: auto !important;
+            position: relative !important;
+        }
+        
+        /* Ensure messages display can scroll when locked */
+        .scroll-locked .messages-display,
+        .scroll-locked #messagesDisplay {
+            touch-action: auto !important;
+            overscroll-behavior: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            overflow-y: auto !important;
+            position: relative !important;
         }
 
         body {
@@ -6290,8 +6303,34 @@
         (function initScrollLock() {
             let scrollLockEnabled = false;
             let originalScrollY = 0;
-            let touchStartY = 0;
-            let touchStartX = 0;
+            
+            /**
+             * Check if element is within messages display
+             */
+            function isWithinMessagesDisplay(element) {
+                if (!element) return false;
+                
+                // Check multiple selectors to be sure
+                const messagesDisplay = document.querySelector('.messages-display') || 
+                                      document.querySelector('#messagesDisplay');
+                
+                if (!messagesDisplay) {
+                    console.log('JCHAT_DEBUG: Messages display not found');
+                    return false;
+                }
+                
+                // Check if element is within messages display
+                const isWithin = messagesDisplay.contains(element) || 
+                       messagesDisplay === element ||
+                       element.closest('.messages-display') ||
+                       element.closest('#messagesDisplay');
+                
+                if (isWithin) {
+                    console.log('JCHAT_DEBUG: Element is within messages display, allowing scroll');
+                }
+                
+                return isWithin;
+            }
             
             /**
              * Prevent all scroll events
@@ -6299,10 +6338,8 @@
             function preventScroll(e) {
                 if (!scrollLockEnabled) return;
                 
-                // Check if the event target is within the messages display
-                const messagesDisplay = document.querySelector('.messages-display');
-                if (messagesDisplay && messagesDisplay.contains(e.target)) {
-                    // Allow scrolling within messages display
+                // Allow scrolling within messages display
+                if (isWithinMessagesDisplay(e.target)) {
                     return;
                 }
                 
@@ -6312,58 +6349,19 @@
             }
             
             /**
-             * Handle touch start to detect swipe gestures
+             * Handle touch events
              */
-            function handleTouchStart(e) {
+            function handleTouch(e) {
                 if (!scrollLockEnabled) return;
                 
-                // Check if the touch target is within the messages display
-                const messagesDisplay = document.querySelector('.messages-display');
-                if (messagesDisplay && messagesDisplay.contains(e.target)) {
-                    // Allow touch start within messages display
-                    touchStartY = e.touches[0].clientY;
-                    touchStartX = e.touches[0].clientX;
+                // Allow all touch events within messages display
+                if (isWithinMessagesDisplay(e.target)) {
                     return;
                 }
                 
-                touchStartY = e.touches[0].clientY;
-                touchStartX = e.touches[0].clientX;
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
-            }
-            
-            /**
-             * Handle touch move to prevent swipe scrolling
-             */
-            function handleTouchMove(e) {
-                if (!scrollLockEnabled) return;
-                
-                // Check if the touch target is within the messages display
-                const messagesDisplay = document.querySelector('.messages-display');
-                if (messagesDisplay && messagesDisplay.contains(e.target)) {
-                    // Allow scrolling within messages display
-                    return;
-                }
-                
-                const touchY = e.touches[0].clientY;
-                const touchX = e.touches[0].clientX;
-                const deltaY = Math.abs(touchY - touchStartY);
-                const deltaX = Math.abs(touchX - touchStartX);
-                
-                // Prevent all vertical movement (swipe up/down) outside messages display
-                if (deltaY > 5) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-                
-                // Also prevent horizontal movement if it's significant
-                if (deltaX > 10) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
             }
             
             /**
@@ -6411,10 +6409,10 @@
                 document.body.style.msTouchAction = 'none';
                 
                 // Add comprehensive event listeners to prevent all scrolling
-                document.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
-                document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
-                document.addEventListener('touchend', preventScroll, { passive: false, capture: true });
-                document.addEventListener('touchcancel', preventScroll, { passive: false, capture: true });
+                document.addEventListener('touchstart', handleTouch, { passive: false, capture: true });
+                document.addEventListener('touchmove', handleTouch, { passive: false, capture: true });
+                document.addEventListener('touchend', handleTouch, { passive: false, capture: true });
+                document.addEventListener('touchcancel', handleTouch, { passive: false, capture: true });
                 document.addEventListener('wheel', preventScroll, { passive: false, capture: true });
                 document.addEventListener('scroll', preventScroll, { passive: false, capture: true });
                 document.addEventListener('keydown', preventScroll, { passive: false, capture: true });
@@ -6422,8 +6420,8 @@
                 // Also prevent on window and all possible targets
                 window.addEventListener('scroll', preventScroll, { passive: false, capture: true });
                 window.addEventListener('wheel', preventScroll, { passive: false, capture: true });
-                window.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
-                window.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
+                window.addEventListener('touchmove', handleTouch, { passive: false, capture: true });
+                window.addEventListener('touchstart', handleTouch, { passive: false, capture: true });
                 
                 // Force scroll position to stay put
                 const forceScrollPosition = () => {
@@ -6453,18 +6451,18 @@
                 }
                 
                 // Remove comprehensive event listeners
-                document.removeEventListener('touchstart', handleTouchStart, { capture: true });
-                document.removeEventListener('touchmove', handleTouchMove, { capture: true });
-                document.removeEventListener('touchend', preventScroll, { capture: true });
-                document.removeEventListener('touchcancel', preventScroll, { capture: true });
+                document.removeEventListener('touchstart', handleTouch, { capture: true });
+                document.removeEventListener('touchmove', handleTouch, { capture: true });
+                document.removeEventListener('touchend', handleTouch, { capture: true });
+                document.removeEventListener('touchcancel', handleTouch, { capture: true });
                 document.removeEventListener('wheel', preventScroll, { capture: true });
                 document.removeEventListener('scroll', preventScroll, { capture: true });
                 document.removeEventListener('keydown', preventScroll, { capture: true });
                 
                 window.removeEventListener('scroll', preventScroll, { capture: true });
                 window.removeEventListener('wheel', preventScroll, { capture: true });
-                window.removeEventListener('touchmove', handleTouchMove, { capture: true });
-                window.removeEventListener('touchstart', handleTouchStart, { capture: true });
+                window.removeEventListener('touchmove', handleTouch, { capture: true });
+                window.removeEventListener('touchstart', handleTouch, { capture: true });
                 
                 // Remove CSS classes
                 document.documentElement.classList.remove('scroll-locked');
