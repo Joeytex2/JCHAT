@@ -1559,9 +1559,544 @@
                 }
             });
 
-            console.log('🚀 JCHAT Full Chat initialized with MAXIMUM body scroll lock protection + Friends Selection + Reactions!');
-        });
-    </script>
+                         console.log('🚀 JCHAT Full Chat initialized with MAXIMUM body scroll lock protection + Friends Selection + Reactions!');
+         });
+     </script>
+
+     <!-- FULL FIREBASE AND CLOUDINARY INTEGRATION -->
+     <script type="module">
+         // Import Firebase modules
+         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+         import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, getDocs, addDoc, serverTimestamp, orderBy, limit, updateDoc, deleteDoc, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+         // --- Firebase & Canvas Environment Configuration ---
+         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+             apiKey: "AIzaSyBsBinyrD9WZZXRaCvA4gxfX7BIimydDvo",
+             authDomain: "jchat-1.firebaseapp.com",
+             projectId: "jchat-1",
+             storageBucket: "jchat-1.firebasestorage.app",
+             messagingSenderId: "328479683167",
+             appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
+             measurementId: "G-S6Z9GG0R9P"
+         };
+         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+         // Cloudinary Configuration
+         const cloudinaryConfig = {
+             cloudName: "dxld01rcp", // Your Cloudinary Cloud Name
+             uploadPreset: "Storage_preset" // Your Cloudinary Upload Preset
+         };
+
+         // Initialize Firebase services
+         const app = initializeApp(firebaseConfig);
+         const auth = getAuth(app);
+         const db = getFirestore(app);
+         const storage = getStorage(app);
+
+         // --- DOM Elements ---
+         const headerProfilePic = document.getElementById('headerProfilePic');
+         const headerAvatarIcon = document.getElementById('headerAvatarIcon');
+         const headerDisplayName = document.getElementById('headerDisplayName');
+         const notificationCountElement = document.getElementById('notificationCount');
+         const adminIconLink = document.getElementById('adminIconLink');
+         const profileLink = document.getElementById('profileLink');
+         const soundToggleIcon = document.getElementById('soundToggleIcon');
+
+         const partnerProfilePic = document.getElementById('partnerProfilePic');
+         const partnerAvatarIcon = document.getElementById('partnerAvatarIcon');
+         const partnerDisplayName = document.getElementById('partnerDisplayName');
+         const messagesArea = document.getElementById('messagesArea');
+         const messageInput = document.getElementById('messageInput');
+         const sendMessageBtn = document.getElementById('sendMessageBtn');
+
+         // Global State
+         let currentUser = null;
+         let currentUserProfileData = null;
+         let partnerId = null;
+         let partnerProfileData = null;
+         let unsubscribeMessages = null;
+         let notificationSoundEnabled = true;
+
+         // Voice Note Recording State
+         let mediaRecorder;
+         let audioChunks = [];
+         let isRecording = false;
+         let recordingStartTime;
+         let recordingInterval;
+
+         // --- Tone.js Synths for Notification Sounds ---
+         const successSynth = new Tone.Synth().toDestination();
+         const errorSynth = new Tone.Synth({
+             oscillator: { type: "sawtooth" }
+         }).toDestination();
+         const infoSynth = new Tone.Synth({
+             oscillator: { type: "triangle" }
+         }).toDestination();
+
+         /**
+          * Plays notification sounds using ne.mp3 or Tone.js fallback
+          */
+         function playNotificationSound(type) {
+             if (!notificationSoundEnabled) return;
+
+             try {
+                 // Try to play ne.mp3 first
+                 const audio = new Audio('ne.mp3');
+                 audio.volume = 0.6;
+                 audio.play().catch(() => {
+                     // Fallback to Tone.js if ne.mp3 fails
+                     console.log("JCHAT_DEBUG: Using Tone.js fallback for notification sound");
+                     
+                     Tone.start(); // Ensure audio context is started
+                     if (type === 'success') {
+                         successSynth.triggerAttackRelease("C5", "8n");
+                     } else if (type === 'error') {
+                         errorSynth.triggerAttackRelease("C3", "8n");
+                     } else if (type === 'info') {
+                         infoSynth.triggerAttackRelease("E4", "16n");
+                     } else if (type === 'warning') {
+                         errorSynth.triggerAttackRelease("A3", "4n");
+                     } else if (type === 'message') {
+                         infoSynth.triggerAttackRelease("A4", "16n");
+                     }
+                 });
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error playing notification sound:", error);
+             }
+         }
+
+         /**
+          * Shows a message box with an icon and message.
+          */
+         function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
+             // Create a simple message box if it doesn't exist
+             let messageBox = document.getElementById('messageBox');
+             if (!messageBox) {
+                 messageBox = document.createElement('div');
+                 messageBox.id = 'messageBox';
+                 messageBox.style.cssText = `
+                     position: fixed;
+                     top: 20px;
+                     right: 20px;
+                     background: var(--card-background);
+                     color: var(--white);
+                     padding: 12px 20px;
+                     border-radius: 8px;
+                     border: 1px solid var(--border-light);
+                     z-index: 1002;
+                     transform: translateX(100%);
+                     transition: transform 0.3s ease;
+                     max-width: 300px;
+                     display: flex;
+                     align-items: center;
+                     gap: 8px;
+                 `;
+                 document.body.appendChild(messageBox);
+             }
+
+             if (messageBox.timeoutId) {
+                 clearTimeout(messageBox.timeoutId);
+             }
+
+             messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
+             const messageBoxIcon = messageBox.querySelector('#messageBoxIcon');
+             const messageBoxText = messageBox.querySelector('#messageBoxText');
+
+             messageBoxText.textContent = message;
+             messageBox.className = 'message-box show ' + type;
+
+             // Set icon based on type
+             if (type === 'success') {
+                 messageBoxIcon.classList.add('fas', 'fa-check-circle');
+             } else if (type === 'error') {
+                 messageBoxIcon.classList.add('fas', 'fa-times-circle');
+             } else if (type === 'info') {
+                 messageBoxIcon.classList.add('fas', 'fa-info-circle');
+             } else if (type === 'warning') {
+                 messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
+             } else if (type === 'loading') {
+                 messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin');
+             }
+
+             // Show message box
+             messageBox.style.transform = 'translateX(0)';
+
+             if (!isPersistent) {
+                 messageBox.timeoutId = setTimeout(() => {
+                     messageBox.style.transform = 'translateX(100%)';
+                 }, durationMs);
+             }
+
+             // Play notification sound
+             playNotificationSound(type);
+         }
+
+         /**
+          * Constructs a Cloudinary URL for an image/video.
+          */
+         function getCloudinaryImageUrl(urlOrPublicId, transformations = "w_auto,f_auto,q_auto") {
+             if (!urlOrPublicId) return null;
+             if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
+                 if (urlOrPublicId.includes('res.cloudinary.com')) {
+                     const parts = urlOrPublicId.split('/upload/');
+                     if (parts.length === 2) {
+                         return `${parts[0]}/upload/${transformations}/${parts[1]}`;
+                     }
+                 }
+                 return urlOrPublicId;
+             }
+             return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformations}/${urlOrPublicId}`;
+         }
+
+         /**
+          * Displays the profile picture or a default icon.
+          */
+         function displayProfilePicture(imgElement, iconElement, profilePicId, usernameInitial, transformations) {
+             if (imgElement && iconElement) {
+                 if (profilePicId) {
+                     const imageUrl = getCloudinaryImageUrl(profilePicId, transformations);
+                     imgElement.src = imageUrl;
+                     imgElement.style.display = 'block';
+                     iconElement.style.display = 'none';
+                     imgElement.onerror = () => {
+                         console.error(`JCHAT_ERROR: Failed to load profile picture: ${profilePicId}. Using placeholder.`);
+                         imgElement.src = `https://placehold.co/40x40/CCCCCC/000000?text=${usernameInitial}`;
+                         imgElement.style.display = 'block';
+                         iconElement.style.display = 'none';
+                     };
+                 } else {
+                     imgElement.src = '';
+                     imgElement.style.display = 'none';
+                     iconElement.style.display = 'block';
+                 }
+             }
+         }
+
+         /**
+          * Fetches and displays the current user's profile data for the header.
+          */
+         async function fetchAndDisplayHeaderProfile(user) {
+             console.log("JCHAT_DEBUG: fetchAndDisplayHeaderProfile called for user:", user.uid);
+             try {
+                 const privateProfileDocRef = doc(db, "artifacts", appId, "users", user.uid, "profiles", "user_profile");
+                 const privateDocSnap = await getDoc(privateProfileDocRef);
+
+                 let profileData = null;
+                 if (privateDocSnap.exists()) {
+                     profileData = privateDocSnap.data();
+                     console.log("JCHAT_DEBUG: Fetched existing profile data for header:", profileData);
+                 } else {
+                     // If private profile doesn't exist, create a basic one
+                     console.warn("JCHAT_WARN: Private profile not found for header, creating a new one.");
+                     profileData = {
+                         username: user.displayName || `User_${user.uid.substring(0, 8)}`,
+                         email: user.email || "",
+                         profilePicId: user.photoURL || null,
+                         bio: "",
+                         location: "",
+                         friendsCount: 0,
+                         followersCount: 0,
+                         followingCount: 0,
+                         totalPosts: 0,
+                         createdAt: serverTimestamp(),
+                         updatedAt: serverTimestamp(),
+                         visibility: {
+                             profile: true,
+                             email: false,
+                             friends: true,
+                             posts: true,
+                             displayName: true,
+                             location: false
+                         },
+                         isAdmin: false
+                     };
+                     await setDoc(privateProfileDocRef, profileData);
+
+                     // Also create/update public profile
+                     const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid);
+                     await setDoc(publicProfileDocRef, {
+                         username: profileData.username,
+                         profilePicId: profileData.profilePicId,
+                         bio: profileData.bio,
+                         location: profileData.location,
+                         createdAt: profileData.createdAt,
+                         updatedAt: profileData.updatedAt,
+                         visibility: profileData.visibility,
+                         totalPosts: profileData.totalPosts
+                     }, { merge: true });
+
+                     console.log("JCHAT_DEBUG: Created new profile for user:", user.uid);
+                 }
+
+                 // Store in global variable
+                 currentUserProfileData = profileData;
+
+                 // Update header elements
+                 const username = profileData.username || user.displayName || `User_${user.uid.substring(0, 8)}`;
+                 const usernameInitial = username.charAt(0).toUpperCase();
+
+                 if (headerDisplayName) {
+                     headerDisplayName.textContent = profileData.visibility?.displayName !== false ? username : 'Anonymous';
+                 }
+
+                 // Display profile picture using Cloudinary
+                 displayProfilePicture(headerProfilePic, headerAvatarIcon, profileData?.profilePicId, usernameInitial, "w_90,h_90,c_fill,g_face,r_max");
+
+                 // Show admin icon if user is admin
+                 if (profileData.isAdmin && adminIconLink) {
+                     adminIconLink.style.display = 'block';
+                 }
+
+                 console.log("JCHAT_DEBUG: Header profile updated successfully");
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error fetching/displaying header profile:", error);
+                 
+                 // Fallback display
+                 const fallbackUsername = user.displayName || `User_${user.uid.substring(0, 8)}`;
+                 if (headerDisplayName) {
+                     headerDisplayName.textContent = fallbackUsername;
+                 }
+                 if (headerAvatarIcon) {
+                     headerAvatarIcon.style.display = 'block';
+                 }
+                 if (headerProfilePic) {
+                     headerProfilePic.style.display = 'none';
+                 }
+             }
+         }
+
+         /**
+          * Fetches and displays the notification count for the current user.
+          */
+         async function fetchNotificationCount(userId) {
+             try {
+                 const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
+                 const q = query(notificationsCollectionRef, orderBy("timestamp", "desc"));
+                 const unsubscribe = onSnapshot(q, (snapshot) => {
+                     const unreadCount = snapshot.docs.filter(doc => !doc.data().read).length;
+
+                     if (notificationCountElement) {
+                         if (unreadCount > 0) {
+                             notificationCountElement.textContent = unreadCount;
+                             notificationCountElement.style.display = 'flex';
+                         } else {
+                             notificationCountElement.style.display = 'none';
+                         }
+                     }
+                 });
+
+                 // Store unsubscribe function for cleanup
+                 return unsubscribe;
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error fetching notification count:", error);
+             }
+         }
+
+         // Chat-specific functions
+         function getChatRoomId(uid1, uid2) {
+             return [uid1, uid2].sort().join('_');
+         }
+
+         // Get partnerId from URL parameters
+         const urlParams = new URLSearchParams(window.location.search);
+         partnerId = urlParams.get('partnerId') || 'demo-partner-123';
+
+         // Enhanced message sending with Firebase
+         async function sendMessage(type = 'text', content = '') {
+             if (!currentUser || !partnerId) {
+                 showMessageBox("Please select a chat partner", 'warning');
+                 return;
+             }
+
+             const message = content || messageInput.value.trim();
+             if (!message) return;
+
+             try {
+                 const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                 const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
+
+                 const messageData = {
+                     senderId: currentUser.uid,
+                     receiverId: partnerId,
+                     type: type,
+                     content: message,
+                     timestamp: serverTimestamp(),
+                     status: 'sent',
+                     reactions: {}
+                 };
+
+                 await addDoc(messagesCollectionRef, messageData);
+
+                 if (messageInput) {
+                     messageInput.value = '';
+                     messageInput.style.height = 'auto';
+                 }
+
+                 playNotificationSound('message');
+                 console.log("JCHAT_DEBUG: Message sent successfully");
+
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error sending message:", error);
+                 showMessageBox("Failed to send message", 'error');
+             }
+         }
+
+         // Enhanced message loading with Firebase
+         async function loadMessages() {
+             if (!currentUser || !partnerId) return;
+
+             try {
+                 // Unsubscribe previous listener
+                 if (unsubscribeMessages) unsubscribeMessages();
+
+                 const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                 const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
+                 const q = query(messagesCollectionRef, orderBy("timestamp"));
+
+                 unsubscribeMessages = onSnapshot(q, (snapshot) => {
+                     // Clear existing messages except welcome message
+                     const existingMessages = messagesArea.querySelectorAll('.message-bubble:not(.typing-indicator)');
+                     existingMessages.forEach(msg => {
+                         if (!msg.innerHTML.includes('Welcome to JCHAT Full Chat')) {
+                             msg.remove();
+                         }
+                     });
+
+                     if (!snapshot.empty) {
+                         snapshot.docs.forEach(doc => {
+                             const messageData = doc.data();
+                             createMessageBubble(messageData, doc.id);
+                         });
+                     }
+
+                     // Scroll to bottom
+                     messagesArea.scrollTop = messagesArea.scrollHeight;
+                 });
+
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error loading messages:", error);
+                 showMessageBox("Failed to load messages", 'error');
+             }
+         }
+
+         function createMessageBubble(messageData, messageId) {
+             const messageDiv = document.createElement('div');
+             const isSent = messageData.senderId === currentUser.uid;
+             messageDiv.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+             messageDiv.dataset.messageId = messageId;
+
+             const timeString = messageData.timestamp ? 
+                 new Date(messageData.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 
+                 'Just now';
+
+             messageDiv.innerHTML = `
+                 <div class="message-content">${messageData.content}</div>
+                 <div class="message-time">${timeString}</div>
+             `;
+
+             messagesArea.appendChild(messageDiv);
+             return messageDiv;
+         }
+
+         // Override existing button event listeners with Firebase functionality
+         document.addEventListener('DOMContentLoaded', () => {
+             // Override send message functionality
+             const existingSendBtn = document.getElementById('sendMessageBtn');
+             if (existingSendBtn) {
+                 // Remove existing listeners by cloning
+                 const newSendBtn = existingSendBtn.cloneNode(true);
+                 existingSendBtn.parentNode.replaceChild(newSendBtn, existingSendBtn);
+                 
+                 // Add new listener
+                 newSendBtn.addEventListener('click', () => sendMessage('text', messageInput.value));
+             }
+
+             // Override message input
+             if (messageInput) {
+                 // Remove existing listeners by cloning
+                 const newMessageInput = messageInput.cloneNode(true);
+                 messageInput.parentNode.replaceChild(newMessageInput, messageInput);
+                 
+                 // Add new listeners
+                 newMessageInput.addEventListener('input', () => {
+                     newMessageInput.style.height = 'auto';
+                     newMessageInput.style.height = Math.min(newMessageInput.scrollHeight, 120) + 'px';
+                 });
+
+                 newMessageInput.addEventListener('keypress', (e) => {
+                     if (e.key === 'Enter' && !e.shiftKey) {
+                         e.preventDefault();
+                         sendMessage('text', newMessageInput.value);
+                     }
+                 });
+             }
+
+             // Sound toggle
+             document.getElementById('soundToggleIcon')?.addEventListener('click', () => {
+                 notificationSoundEnabled = !notificationSoundEnabled;
+                 const icon = document.getElementById('soundToggleIcon');
+                 if (notificationSoundEnabled) {
+                     icon.className = 'fas fa-volume-up active';
+                 } else {
+                     icon.className = 'fas fa-volume-mute';
+                 }
+                 localStorage.setItem('jchat-sound', notificationSoundEnabled);
+                 showMessageBox(`Sound ${notificationSoundEnabled ? 'enabled' : 'disabled'}`, 'info');
+             });
+
+             // Load saved sound preference
+             const savedSound = localStorage.getItem('jchat-sound');
+             if (savedSound !== null) {
+                 notificationSoundEnabled = savedSound === 'true';
+                 const icon = document.getElementById('soundToggleIcon');
+                 if (icon) {
+                     icon.className = notificationSoundEnabled ? 'fas fa-volume-up active' : 'fas fa-volume-mute';
+                 }
+             }
+         });
+
+         // Firebase Authentication State Listener
+         onAuthStateChanged(auth, async (user) => {
+             if (user) {
+                 console.log("JCHAT_DEBUG: User authenticated:", user.uid);
+                 currentUser = user;
+                 
+                 // Fetch and display header profile
+                 await fetchAndDisplayHeaderProfile(user);
+                 
+                 // Fetch notification count
+                 await fetchNotificationCount(user.uid);
+                 
+                 // Load messages if partner is selected
+                 if (partnerId) {
+                     await loadMessages();
+                 }
+                 
+                 showMessageBox("Connected to JCHAT! 🚀", 'success');
+             } else {
+                 console.log("JCHAT_DEBUG: User not authenticated, signing in anonymously");
+                 try {
+                     await signInAnonymously(auth);
+                 } catch (error) {
+                     console.error("JCHAT_ERROR: Anonymous sign-in failed:", error);
+                     showMessageBox("Authentication failed", 'error');
+                 }
+             }
+         });
+
+         // Cleanup on page unload
+         window.addEventListener('beforeunload', () => {
+             if (unsubscribeMessages) unsubscribeMessages();
+             if (isRecording) {
+                 mediaRecorder?.stop();
+             }
+         });
+
+         console.log('🚀 JCHAT Full Chat initialized with 100% Firebase & Cloudinary functionality!');
+     </script>
 
     <!-- Select Friend Modal -->
     <div id="selectFriendModal" class="modal-overlay">
