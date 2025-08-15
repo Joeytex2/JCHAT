@@ -6256,8 +6256,6 @@
         (function initScrollLock() {
             let scrollLockEnabled = false;
             let originalBodyStyle = {};
-            let originalHtmlStyle = {};
-            let originalScrollableElements = [];
             let touchStartY = 0;
             let touchStartX = 0;
             
@@ -6308,18 +6306,6 @@
             function lockBodyScroll() {
                 if (scrollLockEnabled) return; // Already locked
                 
-                // Store original HTML styles
-                originalHtmlStyle = {
-                    overflow: document.documentElement.style.overflow,
-                    position: document.documentElement.style.position,
-                    top: document.documentElement.style.top,
-                    width: document.documentElement.style.width,
-                    height: document.documentElement.style.height,
-                    touchAction: document.documentElement.style.touchAction,
-                    overscrollBehavior: document.documentElement.style.overscrollBehavior,
-                    webkitOverflowScrolling: document.documentElement.style.webkitOverflowScrolling
-                };
-                
                 // Store original body styles
                 originalBodyStyle = {
                     overflow: document.body.style.overflow,
@@ -6332,54 +6318,8 @@
                     webkitOverflowScrolling: document.body.style.webkitOverflowScrolling
                 };
                 
-                // Find and store all scrollable elements
-                const scrollableSelectors = [
-                    '.chat-container',
-                    '.content-wrapper',
-                    'main',
-                    '.user-list',
-                    '.message-list',
-                    '.unlock-side',
-                    '.unlock-right',
-                    '#emojiPicker',
-                    '#stickerPicker'
-                ];
-                
-                originalScrollableElements = [];
-                scrollableSelectors.forEach(selector => {
-                    const elements = document.querySelectorAll(selector);
-                    elements.forEach(element => {
-                        const computedStyle = window.getComputedStyle(element);
-                        if (computedStyle.overflow === 'auto' || computedStyle.overflow === 'scroll' || 
-                            computedStyle.overflowY === 'auto' || computedStyle.overflowY === 'scroll') {
-                            originalScrollableElements.push({
-                                element: element,
-                                overflow: element.style.overflow,
-                                overflowY: element.style.overflowY,
-                                touchAction: element.style.touchAction,
-                                overscrollBehavior: element.style.overscrollBehavior
-                            });
-                            // Lock this element
-                            element.style.overflow = 'hidden';
-                            element.style.overflowY = 'hidden';
-                            element.style.touchAction = 'none';
-                            element.style.overscrollBehavior = 'none';
-                        }
-                    });
-                });
-                
                 // Calculate scrollbar width to prevent layout shift
                 const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-                
-                // Lock the HTML element (root)
-                document.documentElement.style.overflow = 'hidden';
-                document.documentElement.style.position = 'fixed';
-                document.documentElement.style.top = `-${window.scrollY}px`;
-                document.documentElement.style.width = '100%';
-                document.documentElement.style.height = '100vh';
-                document.documentElement.style.touchAction = 'none';
-                document.documentElement.style.overscrollBehavior = 'none';
-                document.documentElement.style.webkitOverflowScrolling = 'auto';
                 
                 // Lock the body with comprehensive scroll prevention
                 document.body.style.overflow = 'hidden';
@@ -6394,7 +6334,6 @@
                 // Add padding to prevent layout shift when scrollbar disappears
                 if (scrollbarWidth > 0) {
                     document.body.style.paddingRight = `${scrollbarWidth}px`;
-                    document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
                 }
                 
                 // Add touch event listeners to prevent swipe scrolling
@@ -6404,11 +6343,8 @@
                 document.addEventListener('wheel', preventTouchScroll, { passive: false });
                 document.addEventListener('scroll', preventTouchScroll, { passive: false });
                 
-                // Also prevent scrolling on window
-                window.addEventListener('scroll', preventTouchScroll, { passive: false });
-                
                 scrollLockEnabled = true;
-                console.log('JCHAT_DEBUG: Complete scroll lock applied (HTML, body, and all containers)');
+                console.log('JCHAT_DEBUG: Body scroll locked (including touch/swipe prevention)');
             }
             
             /**
@@ -6423,18 +6359,6 @@
                 document.removeEventListener('touchmove', preventTouchScroll);
                 document.removeEventListener('wheel', preventTouchScroll);
                 document.removeEventListener('scroll', preventTouchScroll);
-                window.removeEventListener('scroll', preventTouchScroll);
-                
-                // Restore original HTML styles
-                document.documentElement.style.overflow = originalHtmlStyle.overflow || '';
-                document.documentElement.style.position = originalHtmlStyle.position || '';
-                document.documentElement.style.top = originalHtmlStyle.top || '';
-                document.documentElement.style.width = originalHtmlStyle.width || '';
-                document.documentElement.style.height = originalHtmlStyle.height || '';
-                document.documentElement.style.paddingRight = '';
-                document.documentElement.style.touchAction = originalHtmlStyle.touchAction || '';
-                document.documentElement.style.overscrollBehavior = originalHtmlStyle.overscrollBehavior || '';
-                document.documentElement.style.webkitOverflowScrolling = originalHtmlStyle.webkitOverflowScrolling || '';
                 
                 // Restore original body styles
                 document.body.style.overflow = originalBodyStyle.overflow || '';
@@ -6447,16 +6371,6 @@
                 document.body.style.overscrollBehavior = originalBodyStyle.overscrollBehavior || '';
                 document.body.style.webkitOverflowScrolling = originalBodyStyle.webkitOverflowScrolling || '';
                 
-                // Restore all scrollable elements
-                originalScrollableElements.forEach(item => {
-                    if (item.element && item.element.style) {
-                        item.element.style.overflow = item.overflow || '';
-                        item.element.style.overflowY = item.overflowY || '';
-                        item.element.style.touchAction = item.touchAction || '';
-                        item.element.style.overscrollBehavior = item.overscrollBehavior || '';
-                    }
-                });
-                
                 // Restore scroll position
                 const scrollY = document.body.style.top;
                 if (scrollY) {
@@ -6464,7 +6378,7 @@
                 }
                 
                 scrollLockEnabled = false;
-                console.log('JCHAT_DEBUG: Complete scroll unlock applied (all elements restored)');
+                console.log('JCHAT_DEBUG: Body scroll unlocked (touch/swipe events removed)');
             }
             
             /**
