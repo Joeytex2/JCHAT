@@ -2841,12 +2841,13 @@
                     return [];
                 }
 
-                console.log("JCHAT_DEBUG: Fetching friends for user:", currentUser.uid);
-                const friends = [];
-                
-                // Get friends from the same collection path as Friends.html
-                const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
-                const friendsSnapshot = await getDocs(friendsCollectionRef);
+                try {
+                    console.log("JCHAT_DEBUG: Fetching friends for user:", currentUser.uid);
+                    const friends = [];
+                    
+                    // Get friends from the same collection path as Friends.html
+                    const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
+                    const friendsSnapshot = await getDocs(friendsCollectionRef);
                     
                     const friendIds = friendsSnapshot.docs.map(doc => doc.id); // Get just the friend UIDs
                     console.log(`JCHAT_DEBUG: Found ${friendIds.length} friend relationships`);
