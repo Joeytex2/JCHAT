@@ -729,11 +729,28 @@
             height: 45px;
             font-size: 16px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #sendMessageBtn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        #sendMessageBtn:hover::before {
+            left: 100%;
         }
 
         #sendMessageBtn:hover:not(:disabled) {
@@ -742,10 +759,24 @@
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
         }
 
+        #sendMessageBtn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
         #sendMessageBtn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+            background: #6b7280;
+        }
+
+        #sendMessageBtn.loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         /* Voice Recording Indicator */
@@ -3438,14 +3469,17 @@
          async function sendMessage(type = 'text', content = '') {
              if (!currentUser || !partnerId) {
                  showMessageBox("Please select a chat partner", 'warning');
-                 return;
+                 throw new Error("No chat partner selected");
              }
 
-             const message = content || messageInput.value.trim();
-             if (!message) return;
+             const message = content || (messageInput ? messageInput.value.trim() : '');
+             if (!message) {
+                 showMessageBox("Please type a message", 'warning');
+                 throw new Error("Empty message");
+             }
 
              try {
-                                               const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                 const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
                  const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
 
                  const messageData = {
@@ -3460,17 +3494,25 @@
 
                  await addDoc(messagesCollectionRef, messageData);
 
+                 // Clear input after successful send
                  if (messageInput) {
                      messageInput.value = '';
                      messageInput.style.height = 'auto';
+                     
+                     // Update send button state
+                     const sendBtn = document.getElementById('sendMessageBtn');
+                     if (sendBtn) {
+                         sendBtn.disabled = true;
+                     }
                  }
 
-                 playNotificationSound('message');
+                 playNotificationSound('success');
                  console.log("JCHAT_DEBUG: Message sent successfully");
 
              } catch (error) {
                  console.error("JCHAT_ERROR: Error sending message:", error);
-                 showMessageBox("Failed to send message", 'error');
+                 showMessageBox("Failed to send message. Please try again.", 'error');
+                 throw error; // Re-throw to be handled by the button
              }
          }
 
@@ -3602,33 +3644,73 @@
                      window.location.href = '/Find_Friends.html';
                  }, 500);
              });
-             // Override send message functionality
-             const existingSendBtn = document.getElementById('sendMessageBtn');
-             if (existingSendBtn) {
+             // Enhanced send message functionality
+             const sendMessageBtn = document.getElementById('sendMessageBtn');
+             const messageInput = document.getElementById('messageInput');
+             
+             if (sendMessageBtn) {
                  // Remove existing listeners by cloning
-                 const newSendBtn = existingSendBtn.cloneNode(true);
-                 existingSendBtn.parentNode.replaceChild(newSendBtn, existingSendBtn);
+                 const newSendBtn = sendMessageBtn.cloneNode(true);
+                 sendMessageBtn.parentNode.replaceChild(newSendBtn, sendMessageBtn);
                  
-                 // Add new listener
-                 newSendBtn.addEventListener('click', () => sendMessage('text', messageInput.value));
+                 // Add enhanced click listener
+                 newSendBtn.addEventListener('click', async () => {
+                     const btn = newSendBtn;
+                     const originalContent = btn.innerHTML;
+                     
+                     // Add loading state
+                     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                     btn.disabled = true;
+                     
+                     try {
+                         await sendMessage('text', messageInput?.value || '');
+                         
+                         // Success state
+                         btn.innerHTML = '<i class="fas fa-check"></i>';
+                         setTimeout(() => {
+                             btn.innerHTML = originalContent;
+                             btn.disabled = false;
+                         }, 500);
+                         
+                     } catch (error) {
+                         console.error("JCHAT_ERROR: Send button error:", error);
+                         
+                         // Error state
+                         btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                         setTimeout(() => {
+                             btn.innerHTML = originalContent;
+                             btn.disabled = false;
+                         }, 1000);
+                     }
+                 });
              }
 
-             // Override message input
+             // Enhanced message input functionality
              if (messageInput) {
                  // Remove existing listeners by cloning
                  const newMessageInput = messageInput.cloneNode(true);
                  messageInput.parentNode.replaceChild(newMessageInput, messageInput);
                  
-                 // Add new listeners
+                 // Add enhanced listeners
                  newMessageInput.addEventListener('input', () => {
                      newMessageInput.style.height = 'auto';
                      newMessageInput.style.height = Math.min(newMessageInput.scrollHeight, 120) + 'px';
+                     
+                     // Enable/disable send button based on content
+                     const sendBtn = document.getElementById('sendMessageBtn');
+                     if (sendBtn) {
+                         sendBtn.disabled = !newMessageInput.value.trim();
+                     }
                  });
 
-                 newMessageInput.addEventListener('keypress', (e) => {
+                 newMessageInput.addEventListener('keypress', async (e) => {
                      if (e.key === 'Enter' && !e.shiftKey) {
                          e.preventDefault();
-                         sendMessage('text', newMessageInput.value);
+                         
+                         const sendBtn = document.getElementById('sendMessageBtn');
+                         if (sendBtn && !sendBtn.disabled) {
+                             sendBtn.click();
+                         }
                      }
                  });
              }
