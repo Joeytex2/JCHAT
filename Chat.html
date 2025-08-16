@@ -3151,28 +3151,33 @@
 
 
             // Quick reaction button functionality
-            document.querySelectorAll('.reaction-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const reaction = e.target.getAttribute('data-reaction');
-                    // Add reaction to last message (demo functionality)
-                    const lastMessage = document.querySelector('.message-bubble:last-child .message-content');
-                    if (lastMessage) {
-                        const reactionsDiv = lastMessage.nextElementSibling || document.createElement('div');
-                        if (!lastMessage.nextElementSibling) {
-                            reactionsDiv.className = 'message-reactions';
-                            lastMessage.parentNode.insertBefore(reactionsDiv, lastMessage.nextSibling);
+            function initializeQuickReactions() {
+                document.querySelectorAll('.reaction-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const reaction = e.target.getAttribute('data-reaction');
+                        // Add reaction to last message (demo functionality)
+                        const lastMessage = document.querySelector('.message-bubble:last-child .message-content');
+                        if (lastMessage) {
+                            const reactionsDiv = lastMessage.nextElementSibling || document.createElement('div');
+                            if (!lastMessage.nextElementSibling) {
+                                reactionsDiv.className = 'message-reactions';
+                                lastMessage.parentNode.insertBefore(reactionsDiv, lastMessage.nextSibling);
+                            }
+                            
+                            const reactionSpan = document.createElement('span');
+                            reactionSpan.className = 'reaction';
+                            reactionSpan.textContent = reaction + ' 1';
+                            reactionsDiv.appendChild(reactionSpan);
+                            
+                            // Hide quick reactions after use
+                            document.getElementById('quickReactions').style.display = 'none';
                         }
-                        
-                        const reactionSpan = document.createElement('span');
-                        reactionSpan.className = 'reaction';
-                        reactionSpan.textContent = reaction + ' 1';
-                        reactionsDiv.appendChild(reactionSpan);
-                        
-                        // Hide quick reactions after use
-                        document.getElementById('quickReactions').style.display = 'none';
-                    }
+                    });
                 });
-            });
+            }
+
+            // Initialize quick reactions after DOM is loaded
+            initializeQuickReactions();
 
             // Friend selection variables (will be moved to Firebase module)
             let currentFriends = [];
@@ -3197,6 +3202,35 @@
             });
 
                          console.log('🚀 JCHAT Full Chat initialized with Friends Selection + Reactions!');
+                         
+                         // Ensure all buttons are properly initialized
+                         initializeAllButtons();
+                     });
+
+                     function initializeAllButtons() {
+                         console.log('JCHAT_DEBUG: Initializing all button functionalities...');
+                         
+                         // Re-initialize quick reactions
+                         initializeQuickReactions();
+                         
+                         // Ensure all event listeners are properly attached
+                         const buttons = [
+                             'backBtn', 'selectFriendBtn', 'findFriendsBtn', 'themeSwitcherBtn',
+                             'mediaShareBtn', 'voiceNoteBtn', 'emojiBtn', 'videoCallBtn', 
+                             'audioCallBtn', 'shareLocationBtn', 'reactionToggleBtn', 'sendMessageBtn'
+                         ];
+                         
+                         buttons.forEach(buttonId => {
+                             const button = document.getElementById(buttonId);
+                             if (button) {
+                                 console.log(`JCHAT_DEBUG: Button ${buttonId} found and initialized`);
+                             } else {
+                                 console.warn(`JCHAT_WARN: Button ${buttonId} not found`);
+                             }
+                         });
+                         
+                         console.log('JCHAT_DEBUG: All button functionalities initialized successfully!');
+                     }
          });
      </script>
 
