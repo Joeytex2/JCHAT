@@ -1923,6 +1923,16 @@
          let voiceRecordingDuration = 0;
          let voiceRecordingStream = null;
          let voiceRecordingTimeout = null;
+
+         // Voice Note Settings (Global)
+         let voiceNoteSettings = {
+             maxDuration: 5 * 60 * 1000, // 5 minutes
+             audioQuality: 'high', // 'low', 'medium', 'high'
+             autoSend: false, // Auto-send after recording
+             showWaveform: true, // Show waveform visualization
+             noiseReduction: true, // Enable noise reduction
+             echoCancellation: true // Enable echo cancellation
+         };
             
                   /**
           * Start voice recording with full features
@@ -1950,17 +1960,17 @@
                  }
                  
                  // Use settings for recording duration limit
-                 const MAX_RECORDING_DURATION = voiceNoteSettings.maxDuration;
+                 const MAX_RECORDING_DURATION = window.voiceNoteSettings.maxDuration;
                  
                  // Request microphone permission with settings
                  const audioConstraints = {
-                     echoCancellation: voiceNoteSettings.echoCancellation,
-                     noiseSuppression: voiceNoteSettings.noiseReduction,
+                     echoCancellation: window.voiceNoteSettings.echoCancellation,
+                     noiseSuppression: window.voiceNoteSettings.noiseReduction,
                      autoGainControl: true
                  };
                  
                  // Set sample rate based on quality setting
-                 switch (voiceNoteSettings.audioQuality) {
+                 switch (window.voiceNoteSettings.audioQuality) {
                      case 'low':
                          audioConstraints.sampleRate = 22050;
                          break;
@@ -2177,13 +2187,13 @@
                  showMessageBox(`✅ Voice note recorded (${duration})`, 'success');
                  
                  // Send voice note (auto-send if enabled)
-                 if (voiceNoteSettings.autoSend) {
+                 if (window.voiceNoteSettings.autoSend) {
                      console.log("JCHAT_DEBUG: Auto-sending voice note");
                      await sendVoiceNote(voiceNoteData);
                  } else {
                      console.log("JCHAT_DEBUG: Showing send confirmation dialog");
                      // Show send confirmation dialog
-                     showVoiceNoteSendDialog(voiceNoteData);
+                     window.showVoiceNoteSendDialog(voiceNoteData);
                  }
                  
                  // Reset recording state
@@ -2343,10 +2353,7 @@
                  echoCancellation: true // Enable echo cancellation
              };
 
-         // Voice note settings button
-         document.getElementById('voiceNoteSettingsBtn').addEventListener('click', () => {
-             showVoiceNoteSettings();
-         });
+         // Voice note settings button will be set up in DOMContentLoaded
 
          /**
           * Show voice note settings panel
@@ -2431,16 +2438,16 @@
                      
                      document.body.appendChild(settingsPanel);
                      
-                     // Load current settings
-                     loadVoiceNoteSettings();
-                     
-                     // Add event listeners
-                     document.getElementById('closeVoiceSettings').addEventListener('click', hideVoiceNoteSettings);
-                     document.getElementById('saveVoiceSettings').addEventListener('click', saveVoiceNoteSettings);
-                     document.getElementById('resetVoiceSettings').addEventListener('click', resetVoiceNoteSettings);
+                                      // Load current settings
+                 window.loadVoiceNoteSettings();
+                 
+                 // Add event listeners
+                 document.getElementById('closeVoiceSettings').addEventListener('click', window.hideVoiceNoteSettings);
+                 document.getElementById('saveVoiceSettings').addEventListener('click', window.saveVoiceNoteSettings);
+                 document.getElementById('resetVoiceSettings').addEventListener('click', window.resetVoiceNoteSettings);
                  } else {
                      settingsPanel.style.display = 'block';
-                     loadVoiceNoteSettings();
+                     window.loadVoiceNoteSettings();
                  }
              }
 
@@ -2464,11 +2471,11 @@
                  const noiseReductionCheckbox = document.getElementById('noiseReductionCheckbox');
                  const echoCancellationCheckbox = document.getElementById('echoCancellationCheckbox');
                  
-                 if (maxDurationSelect) maxDurationSelect.value = voiceNoteSettings.maxDuration;
-                 if (audioQualitySelect) audioQualitySelect.value = voiceNoteSettings.audioQuality;
-                 if (autoSendCheckbox) autoSendCheckbox.checked = voiceNoteSettings.autoSend;
-                 if (noiseReductionCheckbox) noiseReductionCheckbox.checked = voiceNoteSettings.noiseReduction;
-                 if (echoCancellationCheckbox) echoCancellationCheckbox.checked = voiceNoteSettings.echoCancellation;
+                 if (maxDurationSelect) maxDurationSelect.value = window.voiceNoteSettings.maxDuration;
+                 if (audioQualitySelect) audioQualitySelect.value = window.voiceNoteSettings.audioQuality;
+                 if (autoSendCheckbox) autoSendCheckbox.checked = window.voiceNoteSettings.autoSend;
+                 if (noiseReductionCheckbox) noiseReductionCheckbox.checked = window.voiceNoteSettings.noiseReduction;
+                 if (echoCancellationCheckbox) echoCancellationCheckbox.checked = window.voiceNoteSettings.echoCancellation;
              }
 
          /**
@@ -2481,24 +2488,24 @@
                  const noiseReductionCheckbox = document.getElementById('noiseReductionCheckbox');
                  const echoCancellationCheckbox = document.getElementById('echoCancellationCheckbox');
                  
-                 voiceNoteSettings.maxDuration = parseInt(maxDurationSelect.value);
-                 voiceNoteSettings.audioQuality = audioQualitySelect.value;
-                 voiceNoteSettings.autoSend = autoSendCheckbox.checked;
-                 voiceNoteSettings.noiseReduction = noiseReductionCheckbox.checked;
-                 voiceNoteSettings.echoCancellation = echoCancellationCheckbox.checked;
+                 window.voiceNoteSettings.maxDuration = parseInt(maxDurationSelect.value);
+                 window.voiceNoteSettings.audioQuality = audioQualitySelect.value;
+                 window.voiceNoteSettings.autoSend = autoSendCheckbox.checked;
+                 window.voiceNoteSettings.noiseReduction = noiseReductionCheckbox.checked;
+                 window.voiceNoteSettings.echoCancellation = echoCancellationCheckbox.checked;
                  
                  // Save to localStorage
-                 localStorage.setItem('voiceNoteSettings', JSON.stringify(voiceNoteSettings));
+                 localStorage.setItem('voiceNoteSettings', JSON.stringify(window.voiceNoteSettings));
                  
                  showMessageBox('Voice note settings saved', 'success');
-                 hideVoiceNoteSettings();
+                 window.hideVoiceNoteSettings();
              }
 
          /**
           * Reset voice note settings
           */
          function resetVoiceNoteSettings() {
-                 voiceNoteSettings = {
+                 window.voiceNoteSettings = {
                      maxDuration: 5 * 60 * 1000,
                      audioQuality: 'high',
                      autoSend: false,
@@ -2508,7 +2515,7 @@
                  };
                  
                  localStorage.removeItem('voiceNoteSettings');
-                 loadVoiceNoteSettings();
+                 window.loadVoiceNoteSettings();
                  showMessageBox('Voice note settings reset to default', 'info');
              }
 
@@ -2516,7 +2523,7 @@
          document.addEventListener('DOMContentLoaded', () => {
              const savedSettings = localStorage.getItem('voiceNoteSettings');
              if (savedSettings) {
-                 voiceNoteSettings = { ...voiceNoteSettings, ...JSON.parse(savedSettings) };
+                 window.voiceNoteSettings = { ...window.voiceNoteSettings, ...JSON.parse(savedSettings) };
              }
          });
 
@@ -4100,6 +4107,13 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
          window.startVoiceRecording = startVoiceRecording;
          window.stopVoiceRecording = stopVoiceRecording;
          window.testVoiceNote = testVoiceNote;
+         window.voiceNoteSettings = voiceNoteSettings;
+         window.showVoiceNoteSettings = showVoiceNoteSettings;
+         window.hideVoiceNoteSettings = hideVoiceNoteSettings;
+         window.loadVoiceNoteSettings = loadVoiceNoteSettings;
+         window.saveVoiceNoteSettings = saveVoiceNoteSettings;
+         window.resetVoiceNoteSettings = resetVoiceNoteSettings;
+         window.showVoiceNoteSendDialog = showVoiceNoteSendDialog;
 
          /**
           * Test voice note functionality
@@ -5290,16 +5304,27 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                      
                      if (!isRecordingVoice) {
                          console.log("JCHAT_DEBUG: Starting voice recording...");
-                         await startVoiceRecording(newVoiceNoteBtn);
+                         await window.startVoiceRecording(newVoiceNoteBtn);
                      } else {
                          console.log("JCHAT_DEBUG: Stopping voice recording...");
-                         await stopVoiceRecording(newVoiceNoteBtn);
+                         await window.stopVoiceRecording(newVoiceNoteBtn);
                      }
                  });
                  
                  console.log("JCHAT_DEBUG: Voice note button event listener set up successfully");
              } else {
                  console.error("JCHAT_ERROR: Voice note button not found");
+             }
+
+             // Voice note settings button event listener
+             const voiceNoteSettingsBtn = document.getElementById('voiceNoteSettingsBtn');
+             if (voiceNoteSettingsBtn) {
+                 voiceNoteSettingsBtn.addEventListener('click', () => {
+                     window.showVoiceNoteSettings();
+                 });
+                 console.log("JCHAT_DEBUG: Voice note settings button event listener set up successfully");
+             } else {
+                 console.error("JCHAT_ERROR: Voice note settings button not found");
              }
              // Override send message functionality
              const existingSendBtn = document.getElementById('sendMessageBtn');
