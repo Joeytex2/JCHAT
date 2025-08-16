@@ -1661,6 +1661,10 @@
                         <i class="fas fa-phone"></i> Call
                     </button>
                     
+                    <button id="testCallBtn" title="Test Voice Call" style="background: linear-gradient(135deg, #FF9800, #FF5722);">
+                        <i class="fas fa-bug"></i> Test
+                    </button>
+                    
                     <button id="shareLocationBtn" title="Share Location">
                         <i class="fas fa-map-marker-alt"></i> Location
                     </button>
@@ -3251,8 +3255,29 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
              iceServers: [
                  { urls: 'stun:stun.l.google.com:19302' },
                  { urls: 'stun:stun1.l.google.com:19302' },
-                 { urls: 'stun:stun2.l.google.com:19302' }
-             ]
+                 { urls: 'stun:stun2.l.google.com:19302' },
+                 { urls: 'stun:stun3.l.google.com:19302' },
+                 { urls: 'stun:stun4.l.google.com:19302' },
+                 // Add TURN servers for better connectivity
+                 { 
+                     urls: 'turn:openrelay.metered.ca:80',
+                     username: 'openrelayproject',
+                     credential: 'openrelayproject'
+                 },
+                 { 
+                     urls: 'turn:openrelay.metered.ca:443',
+                     username: 'openrelayproject',
+                     credential: 'openrelayproject'
+                 },
+                 { 
+                     urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                     username: 'openrelayproject',
+                     credential: 'openrelayproject'
+                 }
+             ],
+             iceCandidatePoolSize: 10,
+             bundlePolicy: 'max-bundle',
+             rtcpMuxPolicy: 'require'
          };
 
          /**
@@ -3361,11 +3386,19 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
           * Create and configure peer connection
           */
          function createPeerConnection() {
+             console.log("JCHAT_DEBUG: Creating peer connection");
+             
+             if (peerConnection) {
+                 console.log("JCHAT_DEBUG: Closing existing peer connection");
+                 peerConnection.close();
+             }
+             
              peerConnection = new RTCPeerConnection(rtcConfiguration);
              
              // Add local stream tracks to peer connection
              if (localStream) {
                  localStream.getTracks().forEach(track => {
+                     console.log("JCHAT_DEBUG: Adding track to peer connection:", track.kind);
                      peerConnection.addTrack(track, localStream);
                  });
              }
@@ -3376,15 +3409,30 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                  remoteStream = event.streams[0];
                  if (remoteVideoElement) {
                      remoteVideoElement.srcObject = remoteStream;
+                     remoteVideoElement.play().catch(error => {
+                         console.error("JCHAT_ERROR: Failed to play remote video:", error);
+                     });
                  }
              };
              
              // Handle ICE candidates
              peerConnection.onicecandidate = (event) => {
                  if (event.candidate) {
+                     console.log("JCHAT_DEBUG: Sending ICE candidate");
                      sendCallSignal('ice-candidate', {
                          candidate: event.candidate
                      });
+                 } else {
+                     console.log("JCHAT_DEBUG: ICE gathering complete");
+                 }
+             };
+             
+             // Handle ICE connection state changes
+             peerConnection.oniceconnectionstatechange = () => {
+                 console.log("JCHAT_DEBUG: ICE connection state:", peerConnection.iceConnectionState);
+                 if (peerConnection.iceConnectionState === 'failed' || peerConnection.iceConnectionState === 'disconnected') {
+                     console.log("JCHAT_DEBUG: ICE connection failed or disconnected");
+                     endCall(true);
                  }
              };
              
@@ -3392,8 +3440,14 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
              peerConnection.onconnectionstatechange = () => {
                  console.log("JCHAT_DEBUG: Connection state:", peerConnection.connectionState);
                  if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
+                     console.log("JCHAT_DEBUG: Connection failed or disconnected");
                      endCall(true);
                  }
+             };
+             
+             // Handle signaling state changes
+             peerConnection.onsignalingstatechange = () => {
+                 console.log("JCHAT_DEBUG: Signaling state:", peerConnection.signalingState);
              };
              
              return peerConnection;
@@ -3479,23 +3533,43 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
           * Handle incoming call offer
           */
          async function handleOffer(offerData) {
-             if (!peerConnection) {
-                 await createPeerConnection();
+             console.log("JCHAT_DEBUG: Handling offer");
+             
+             try {
+                 if (!peerConnection) {
+                     await createPeerConnection();
+                 }
+                 
+                 await peerConnection.setRemoteDescription(new RTCSessionDescription(offerData.offer));
+                 console.log("JCHAT_DEBUG: Set remote description");
+                 
+                 const answer = await peerConnection.createAnswer();
+                 await peerConnection.setLocalDescription(answer);
+                 console.log("JCHAT_DEBUG: Created and set local answer");
+                 
+                 sendCallSignal('answer', { answer: answer });
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Failed to handle offer:", error);
+                 endCall(true);
              }
-             
-             await peerConnection.setRemoteDescription(new RTCSessionDescription(offerData.offer));
-             const answer = await peerConnection.createAnswer();
-             await peerConnection.setLocalDescription(answer);
-             
-             sendCallSignal('answer', { answer: answer });
          }
 
          /**
           * Handle incoming call answer
           */
          async function handleAnswer(answerData) {
-             if (peerConnection) {
-                 await peerConnection.setRemoteDescription(new RTCSessionDescription(answerData.answer));
+             console.log("JCHAT_DEBUG: Handling answer");
+             
+             try {
+                 if (peerConnection && peerConnection.signalingState !== 'closed') {
+                     await peerConnection.setRemoteDescription(new RTCSessionDescription(answerData.answer));
+                     console.log("JCHAT_DEBUG: Set remote answer");
+                 } else {
+                     console.warn("JCHAT_WARN: Peer connection not available for answer");
+                 }
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Failed to handle answer:", error);
              }
          }
 
@@ -3503,8 +3577,17 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
           * Handle ICE candidate
           */
          async function handleIceCandidate(candidateData) {
-             if (peerConnection) {
-                 await peerConnection.addIceCandidate(new RTCIceCandidate(candidateData.candidate));
+             console.log("JCHAT_DEBUG: Handling ICE candidate");
+             
+             try {
+                 if (peerConnection && peerConnection.signalingState !== 'closed') {
+                     await peerConnection.addIceCandidate(new RTCIceCandidate(candidateData.candidate));
+                     console.log("JCHAT_DEBUG: Added ICE candidate");
+                 } else {
+                     console.warn("JCHAT_WARN: Peer connection not available for ICE candidate");
+                 }
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Failed to handle ICE candidate:", error);
              }
          }
 
@@ -3747,7 +3830,14 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
           */
          async function acceptCall() {
              try {
-                 callState = 'connected';
+                 console.log("JCHAT_DEBUG: Accepting call, current state:", callState);
+                 
+                 if (callState !== 'incoming') {
+                     console.error("JCHAT_ERROR: Cannot accept call - not in incoming state");
+                     return;
+                 }
+                 
+                 callState = 'connecting';
                  stopRingtone();
                  clearTimeout(callTimeout);
                  
@@ -3757,19 +3847,22 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                          audio: { 
                              echoCancellation: true,
                              noiseSuppression: true,
-                             autoGainControl: true
+                             autoGainControl: true,
+                             sampleRate: 48000
                          }, 
                          video: { 
-                             width: { ideal: 1280 },
-                             height: { ideal: 720 },
-                             facingMode: 'user'
+                             width: { ideal: 1280, max: 1920 },
+                             height: { ideal: 720, max: 1080 },
+                             facingMode: 'user',
+                             frameRate: { ideal: 30, max: 60 }
                          } 
                      }
                      : { 
                          audio: { 
                              echoCancellation: true,
                              noiseSuppression: true,
-                             autoGainControl: true
+                             autoGainControl: true,
+                             sampleRate: 48000
                          }, 
                          video: false 
                      };
@@ -3782,10 +3875,10 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                  createPeerConnection();
                  
                  // Create and send answer
-                 const offer = await peerConnection.createOffer();
-                 await peerConnection.setLocalDescription(offer);
+                 const answer = await peerConnection.createAnswer();
+                 await peerConnection.setLocalDescription(answer);
                  
-                 sendCallSignal('offer', { offer: offer });
+                 sendCallSignal('answer', { answer: answer });
                  
                  // Send call accepted signal
                  sendCallSignal('call-accepted', {
@@ -3793,6 +3886,7 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                      callType: callType
                  });
                  
+                 callState = 'connected';
                  hideCallInterface();
                  showConnectedCallInterface();
                  
@@ -3809,6 +3903,10 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                      showMessageBox('Camera/microphone access denied. Please allow access and try again.', 'error');
                  } else if (error.name === 'NotFoundError') {
                      showMessageBox('No camera or microphone found. Please check your device.', 'error');
+                 } else if (error.name === 'NotReadableError') {
+                     showMessageBox('Camera or microphone is already in use by another application.', 'error');
+                 } else if (error.name === 'OverconstrainedError') {
+                     showMessageBox('Camera or microphone does not meet the required constraints.', 'error');
                  } else {
                      showMessageBox(`Failed to accept call: ${error.message}`, 'error');
                  }
@@ -3885,6 +3983,8 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
           * Initiate call
           */
          async function initiateCall(callType) {
+             console.log("JCHAT_DEBUG: Initiating call, type:", callType, "current state:", callState);
+             
              if (!currentUser || !partnerId) {
                  showMessageBox('Please select a chat partner first', 'warning');
                  return;
@@ -3918,19 +4018,22 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                          audio: { 
                              echoCancellation: true,
                              noiseSuppression: true,
-                             autoGainControl: true
+                             autoGainControl: true,
+                             sampleRate: 48000
                          }, 
                          video: { 
-                             width: { ideal: 1280 },
-                             height: { ideal: 720 },
-                             facingMode: 'user'
+                             width: { ideal: 1280, max: 1920 },
+                             height: { ideal: 720, max: 1080 },
+                             facingMode: 'user',
+                             frameRate: { ideal: 30, max: 60 }
                          } 
                      }
                      : { 
                          audio: { 
                              echoCancellation: true,
                              noiseSuppression: true,
-                             autoGainControl: true
+                             autoGainControl: true,
+                             sampleRate: 48000
                          }, 
                          video: false 
                      };
@@ -3960,6 +4063,7 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                  // Auto-end if no response after 30 seconds
                  callTimeout = setTimeout(() => {
                      if (callState === 'calling') {
+                         console.log("JCHAT_DEBUG: Call timed out");
                          showMessageBox('Call timed out', 'warning');
                          endCall();
                      }
@@ -3976,6 +4080,10 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                      showMessageBox('Camera/microphone access denied. Please allow access in your browser settings and try again.', 'error');
                  } else if (error.name === 'NotFoundError') {
                      showMessageBox('No camera or microphone found. Please check your device and try again.', 'error');
+                 } else if (error.name === 'NotReadableError') {
+                     showMessageBox('Camera or microphone is already in use by another application.', 'error');
+                 } else if (error.name === 'OverconstrainedError') {
+                     showMessageBox('Camera or microphone does not meet the required constraints.', 'error');
                  } else if (error.message.includes('HTTPS')) {
                      showMessageBox(error.message, 'error');
                  } else {
@@ -4038,6 +4146,18 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                      initiateCall('audio');
                  });
              }
+
+             // Test Voice Call functionality
+             const testCallBtn = document.getElementById('testCallBtn');
+             if (testCallBtn) {
+                 testCallBtn.addEventListener('click', () => {
+                     const btn = document.getElementById('testCallBtn');
+                     btn.classList.add('active');
+                     setTimeout(() => btn.classList.remove('active'), 200);
+                     
+                     testVoiceCall();
+                 });
+             }
          }
 
          // Set up call button listeners
@@ -4045,6 +4165,42 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
          
          // Make setupCallButtonListeners globally accessible
          window.setupCallButtonListeners = setupCallButtonListeners;
+
+         /**
+          * Test voice call functionality
+          */
+         async function testVoiceCall() {
+             console.log("JCHAT_DEBUG: Testing voice call functionality");
+             
+             // Check browser support
+             const supportIssues = checkCallSupport();
+             if (supportIssues.length > 0) {
+                 console.error("JCHAT_ERROR: Call support issues:", supportIssues);
+                 showMessageBox(`Voice call test failed:\n${supportIssues.join('\n')}`, 'error');
+                 return false;
+             }
+             
+             // Test getUserMedia
+             try {
+                 console.log("JCHAT_DEBUG: Testing getUserMedia...");
+                 const testStream = await getUserMedia({ audio: true, video: false });
+                 console.log("JCHAT_DEBUG: getUserMedia test successful");
+                 
+                 // Stop the test stream
+                 testStream.getTracks().forEach(track => track.stop());
+                 
+                 showMessageBox("Voice call test successful! Microphone access working.", 'success');
+                 return true;
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Voice call test failed:", error);
+                 showMessageBox(`Voice call test failed: ${error.message}`, 'error');
+                 return false;
+             }
+         }
+
+         // Make test function globally accessible
+         window.testVoiceCall = testVoiceCall;
 
          /**
           * Set up camera filter functionality and camera switching
@@ -5839,7 +5995,7 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
              if (badge) {
                  if (friends.length > 0) {
                      badge.textContent = friends.length;
-                     badge.style.display = 'inline-block';
+                     badge.style.display = 'flex';
                  } else {
                      badge.style.display = 'none';
                  }
