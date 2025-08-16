@@ -2100,7 +2100,7 @@
                         <div class="media-message">
                             <img src="${mediaMessage.url}" alt="${mediaMessage.fileName}" 
                                  style="max-width: 300px; max-height: 200px; border-radius: 10px; cursor: pointer;"
-                                 onclick="openMediaLightbox('${mediaMessage.url}', 'image')">
+                                 data-media-url="${mediaMessage.url}" data-media-type="image">
                             <div class="media-info">
                                 <span>🖼️ ${mediaMessage.fileName}</span>
                                 <span>${(mediaMessage.fileSize / (1024 * 1024)).toFixed(2)} MB</span>
@@ -2129,6 +2129,16 @@
 
                 messagesArea.appendChild(messageDiv);
                 messagesArea.scrollTop = messagesArea.scrollHeight;
+                
+                // Add event listener for media lightbox
+                const mediaImg = messageDiv.querySelector('img[data-media-url]');
+                if (mediaImg) {
+                    mediaImg.addEventListener('click', function() {
+                        const url = this.getAttribute('data-media-url');
+                        const type = this.getAttribute('data-media-type');
+                        openMediaLightbox(url, type);
+                    });
+                }
             }
 
             // Function to open media in lightbox
