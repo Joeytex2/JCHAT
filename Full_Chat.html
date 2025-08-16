@@ -1517,7 +1517,7 @@
 
         // Global variables
         let partnerId = null;
-        let currentUser = null;
+        // Remove duplicate currentUser declaration - it's handled in Firebase module
 
         // Basic chat functionality
         document.addEventListener('DOMContentLoaded', () => {
@@ -2843,7 +2843,7 @@
                     return [];
                 }
 
-                if (!currentUser || !currentUser.uid) {
+                if (!window.currentUser || !window.currentUser.uid) {
                     console.log("JCHAT_DEBUG: No authenticated user - cannot fetch friends");
                     showMessageBox('❌ Please log in to view your friends', 'warning');
                     return [];
@@ -2862,11 +2862,11 @@
                         const friendData = doc.data();
                         // Only include confirmed friendships
                         if (friendData.status === 'accepted' || !friendData.status) {
-                            if (friendData.user1Id === currentUser.uid) {
-                                friendUserIds.add(friendData.user2Id);
-                            } else if (friendData.user2Id === currentUser.uid) {
-                                friendUserIds.add(friendData.user1Id);
-                            }
+                                                    if (friendData.user1Id === window.currentUser.uid) {
+                            friendUserIds.add(friendData.user2Id);
+                        } else if (friendData.user2Id === window.currentUser.uid) {
+                            friendUserIds.add(friendData.user1Id);
+                        }
                         }
                     });
 
@@ -3029,7 +3029,7 @@
                             }
                             
                             // Load messages for selected friend (if function exists)
-                            if (typeof loadMessages === 'function' && currentUser) {
+                            if (typeof loadMessages === 'function' && window.currentUser) {
                                 loadMessages();
                             }
                             
@@ -3074,7 +3074,7 @@
                 setTimeout(() => btn.style.transform = '', 150);
                 
                 // Check authentication first
-                if (!currentUser || !currentUser.uid) {
+                if (!window.currentUser || !window.currentUser.uid) {
                     showMessageBox('❌ Please log in to view your friends', 'warning');
                     // Try to trigger authentication
                     if (typeof initializeAuth === 'function') {
@@ -3208,8 +3208,8 @@
          const messageInput = document.getElementById('messageInput');
          const sendMessageBtn = document.getElementById('sendMessageBtn');
 
-         // Global State
-         let currentUser = null;
+         // Global State - Make currentUser globally accessible
+         window.currentUser = null;
          let currentUserProfileData = null;
          let partnerId = null;
          let partnerProfileData = null;
@@ -3420,11 +3420,11 @@
              if (!message) return;
 
              try {
-                 const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
-                 const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
+                              const chatRoomId = getChatRoomId(window.currentUser.uid, partnerId);
+             const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
 
-                 const messageData = {
-                     senderId: currentUser.uid,
+             const messageData = {
+                 senderId: window.currentUser.uid,
                      receiverId: partnerId,
                      type: type,
                      content: message,
@@ -3451,13 +3451,13 @@
 
          // Enhanced message loading with Firebase
          async function loadMessages() {
-             if (!currentUser || !partnerId) return;
+             if (!window.currentUser || !partnerId) return;
 
              try {
                  // Unsubscribe previous listener
                  if (unsubscribeMessages) unsubscribeMessages();
 
-                 const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                 const chatRoomId = getChatRoomId(window.currentUser.uid, partnerId);
                  const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
                  const q = query(messagesCollectionRef, orderBy("timestamp"));
 
@@ -3489,7 +3489,7 @@
 
          function createMessageBubble(messageData, messageId) {
              const messageDiv = document.createElement('div');
-             const isSent = messageData.senderId === currentUser.uid;
+             const isSent = messageData.senderId === window.currentUser.uid;
              messageDiv.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
              messageDiv.dataset.messageId = messageId;
 
@@ -3567,7 +3567,7 @@
          onAuthStateChanged(auth, async (user) => {
              if (user) {
                  console.log("JCHAT_DEBUG: User authenticated:", user.uid);
-                 currentUser = user;
+                 window.currentUser = user;
                  
                  // Fetch and display header profile
                  await fetchAndDisplayHeaderProfile(user);
