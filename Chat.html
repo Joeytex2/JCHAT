@@ -2239,36 +2239,8 @@
                         } else {
                             showMessageBox('Please wait for authentication to complete...', 'warning');
                         }
-                        
-                        // Keep modal open but show loading state
-                        if (loadingElement) {
-                            loadingElement.style.display = 'block';
-                            loadingElement.innerHTML = `
-                                <i class="fas fa-spinner fa-spin"></i>
-                                <p>Connecting to JCHAT...</p>
-                            `;
-                        }
-                        
-                        // Wait for authentication to complete
-                        let authAttempts = 0;
-                        const maxAuthAttempts = 20; // 10 seconds
-                        
-                        while ((!isAuthReady || typeof currentUser === 'undefined' || !currentUser) && authAttempts < maxAuthAttempts) {
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                            authAttempts++;
-                            console.log(`JCHAT_DEBUG: Waiting for authentication... Attempt ${authAttempts}/${maxAuthAttempts}`);
-                        }
-                        
-                        if (!isAuthReady || typeof currentUser === 'undefined' || !currentUser) {
-                            console.log('JCHAT_DEBUG: Authentication timeout');
-                            if (loadingElement) {
-                                loadingElement.innerHTML = `
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    <p>Connection timeout. Please refresh the page.</p>
-                                `;
-                            }
-                            return;
-                        }
+                        if (loadingElement) loadingElement.style.display = 'none';
+                        return;
                     }
                     
                     // Check if friends data is loaded
@@ -2974,20 +2946,14 @@
              console.log('Modal element:', modal);
              console.log('Button element:', btn);
              console.log('Container element:', container);
-             console.log('isAuthReady:', isAuthReady);
-             console.log('currentUser:', currentUser);
              
              if (modal) {
                  console.log('Modal classes:', modal.className);
                  console.log('Modal active:', modal.classList.contains('active'));
-                 console.log('Modal display:', window.getComputedStyle(modal).display);
-                 console.log('Modal visibility:', window.getComputedStyle(modal).visibility);
-                 console.log('Modal opacity:', window.getComputedStyle(modal).opacity);
              }
              
              if (btn) {
                  console.log('Button clickable:', btn.onclick !== null);
-                 console.log('Button disabled:', btn.disabled);
              }
              
              // Test opening modal
@@ -2996,7 +2962,6 @@
                  modal.classList.add('active');
                  setTimeout(() => {
                      console.log('Modal active after 1s:', modal.classList.contains('active'));
-                     console.log('Modal display after 1s:', window.getComputedStyle(modal).display);
                  }, 1000);
              }
          };
