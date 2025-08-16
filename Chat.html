@@ -2256,10 +2256,7 @@
                  echoCancellation: true // Enable echo cancellation
              };
 
-         // Voice note settings button
-         document.getElementById('voiceNoteSettingsBtn').addEventListener('click', () => {
-             showVoiceNoteSettings();
-         });
+         // Voice note settings button will be set up in DOMContentLoaded
 
          /**
           * Show voice note settings panel
@@ -3200,6 +3197,21 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
          window.callType = callType;
          window.callPartnerId = callPartnerId;
          window.callPartnerName = callPartnerName;
+
+         // Make voice note functions globally accessible
+         window.startVoiceRecording = startVoiceRecording;
+         window.stopVoiceRecording = stopVoiceRecording;
+         window.playVoiceNote = playVoiceNote;
+         window.playVoiceNoteFromElement = playVoiceNoteFromElement;
+         window.stopVoiceNote = stopVoiceNote;
+         window.stopAllVoiceNotes = stopAllVoiceNotes;
+         window.showVoiceNoteSettings = showVoiceNoteSettings;
+         window.hideVoiceNoteSettings = hideVoiceNoteSettings;
+         window.loadVoiceNoteSettings = loadVoiceNoteSettings;
+         window.saveVoiceNoteSettings = saveVoiceNoteSettings;
+         window.resetVoiceNoteSettings = resetVoiceNoteSettings;
+         window.showVoiceNoteSendDialog = showVoiceNoteSendDialog;
+         window.createVoiceNoteMessage = createVoiceNoteMessage;
 
          // --- Notification Sound ---
          // Using ne.mp3 for all notification sounds
@@ -5001,13 +5013,19 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
          function createVoiceNoteMessage(messageData, messageId) {
              const duration = messageData.durationText || formatVoiceDuration(messageData.duration || 0);
              
+             // Store audio content in global map to avoid HTML attribute issues
+             if (!window.voiceNoteAudioMap) {
+                 window.voiceNoteAudioMap = new Map();
+             }
+             window.voiceNoteAudioMap.set(messageId, messageData.content);
+             
              return `
-                 <div class="voice-note-message">
+                 <div class="voice-note-message" data-message-id="${messageId}">
                      <div class="voice-note-icon">
                          <i class="fas fa-microphone"></i>
                      </div>
                      <div class="voice-note-controls">
-                         <button class="voice-note-play-btn" onclick="playVoiceNote('${messageId}', '${messageData.content}')" title="Play voice note">
+                         <button class="voice-note-play-btn" onclick="playVoiceNoteFromElement('${messageId}')" title="Play voice note">
                              <i class="fas fa-play"></i>
                          </button>
                          <div class="voice-note-progress">
@@ -5017,6 +5035,19 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                      </div>
                  </div>
              `;
+         }
+
+         /**
+          * Play voice note from element (safe approach)
+          */
+         function playVoiceNoteFromElement(messageId) {
+             if (!window.voiceNoteAudioMap || !window.voiceNoteAudioMap.has(messageId)) {
+                 console.error("JCHAT_ERROR: Audio content not found for message:", messageId);
+                 return;
+             }
+             
+             const base64Audio = window.voiceNoteAudioMap.get(messageId);
+             playVoiceNote(messageId, base64Audio);
          }
 
          /**
@@ -5034,9 +5065,16 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                  // Create audio element
                  const audio = new Audio(audioUrl);
                  
+                 // Get the message element
+                 const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                 if (!messageElement) {
+                     console.error("JCHAT_ERROR: Message element not found");
+                     return;
+                 }
+                 
                  // Get play button and progress bar
-                 const playBtn = document.querySelector(`[onclick*="${messageId}"]`);
-                 const progressBar = document.getElementById(`progress-${messageId}`);
+                 const playBtn = messageElement.querySelector('.voice-note-play-btn');
+                 const progressBar = messageElement.querySelector('.voice-note-progress-bar');
                  
                  if (playBtn) {
                      playBtn.classList.add('playing');
@@ -5089,11 +5127,14 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                  }
                  
                  // Reset play button
-                 const playBtn = document.querySelector(`[onclick*="${messageId}"]`);
-                 if (playBtn) {
-                     playBtn.classList.remove('playing');
-                     playBtn.innerHTML = '<i class="fas fa-play"></i>';
-                     playBtn.onclick = () => playVoiceNote(messageId, window.currentPlayingAudio ? window.currentPlayingAudio.src : '');
+                 const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                 if (messageElement) {
+                     const playBtn = messageElement.querySelector('.voice-note-play-btn');
+                     if (playBtn) {
+                         playBtn.classList.remove('playing');
+                         playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                         playBtn.onclick = () => playVoiceNoteFromElement(messageId);
+                     }
                  }
                  
                  // Reset progress bar
@@ -5173,6 +5214,11 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                      await stopVoiceRecording(btn);
                  }
              });
+
+             // Voice note settings button event listener
+             document.getElementById('voiceNoteSettingsBtn')?.addEventListener('click', () => {
+                 showVoiceNoteSettings();
+             });
              // Override send message functionality
              const existingSendBtn = document.getElementById('sendMessageBtn');
              let currentMessageInput = document.getElementById('messageInput');
@@ -5250,6 +5296,17 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
              // Set up call button listeners
              if (typeof setupCallButtonListeners === 'function') {
                  setupCallButtonListeners();
+             }
+
+             // Load voice note settings from localStorage
+             const savedSettings = localStorage.getItem('voiceNoteSettings');
+             if (savedSettings) {
+                 try {
+                     voiceNoteSettings = { ...voiceNoteSettings, ...JSON.parse(savedSettings) };
+                     console.log("JCHAT_DEBUG: Voice note settings loaded from localStorage");
+                 } catch (error) {
+                     console.error("JCHAT_ERROR: Failed to load voice note settings:", error);
+                 }
              }
          });
 
