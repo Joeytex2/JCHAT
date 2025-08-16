@@ -2157,7 +2157,7 @@
         let currentFriends = [];
         let filteredFriends = [];
 
-        // Function to fetch friends for the modal
+        // Function to fetch friends for the modal (using Find_Friends.html logic)
         async function fetchFriendsForModal() {
             if (!currentUser) {
                 console.log("JCHAT_DEBUG: No user logged in, cannot fetch friends.");
@@ -2165,12 +2165,14 @@
             }
 
             try {
-                console.log("JCHAT_DEBUG: Fetching friends for modal...");
+                console.log("JCHAT_DEBUG: Fetching friends for modal using Find_Friends.html logic...");
                 const friends = [];
                 
-                // Get user data for each friend from allUsersData
+                // Use the same logic as Find_Friends.html - check currentUsersFriends Set
+                // This Set is populated by the real-time listener in fetchAndDisplayUsers()
                 allUsersData.forEach(user => {
                     if (currentUsersFriends.has(user.userId)) {
+                        console.log(`JCHAT_DEBUG: Found accepted friend: ${user.username} (${user.userId})`);
                         friends.push({
                             userId: user.userId,
                             username: user.username || `User_${user.userId.substring(0, 8)}`,
@@ -2182,7 +2184,10 @@
                     }
                 });
 
-                console.log(`JCHAT_DEBUG: Found ${friends.length} friends for modal`);
+                console.log(`JCHAT_DEBUG: Found ${friends.length} accepted friends for modal from ${allUsersData.length} total users`);
+                console.log(`JCHAT_DEBUG: currentUsersFriends Set size: ${currentUsersFriends.size}`);
+                console.log(`JCHAT_DEBUG: currentUsersFriends contents:`, Array.from(currentUsersFriends));
+                
                 return friends;
             } catch (error) {
                 console.error("JCHAT_ERROR: Error fetching friends for modal:", error);
@@ -2346,21 +2351,37 @@
                     return;
                 }
                 
-                // Fetch friends data
+                // Check if friends data is loaded
+                if (allUsersData.length === 0 || currentUsersFriends.size === 0) {
+                    console.log('JCHAT_DEBUG: Friends data not loaded yet, waiting...');
+                    showMessageBox('Loading friends data...', 'info');
+                    
+                    // Wait for data to load
+                    let attempts = 0;
+                    const maxAttempts = 10;
+                    
+                    while ((allUsersData.length === 0 || currentUsersFriends.size === 0) && attempts < maxAttempts) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        attempts++;
+                        console.log(`JCHAT_DEBUG: Waiting for friends data... Attempt ${attempts}/${maxAttempts}`);
+                    }
+                }
+                
+                // Fetch friends data using Find_Friends.html logic
                 console.log('JCHAT_DEBUG: Fetching user friends for modal...');
                 currentFriends = await fetchFriendsForModal();
                 filteredFriends = [...currentFriends];
                 
-                console.log(`JCHAT_DEBUG: Found ${currentFriends.length} friends for modal`);
+                console.log(`JCHAT_DEBUG: Found ${currentFriends.length} accepted friends for modal`);
                 
                 // Hide loading and render friends list
                 if (loadingElement) loadingElement.style.display = 'none';
                 renderModalFriendsList(filteredFriends);
                 
                 if (currentFriends.length > 0) {
-                    showMessageBox('👥 Select a friend to chat with', 'info');
+                    showMessageBox(`👥 Found ${currentFriends.length} accepted friends. Select one to chat!`, 'success');
                 } else {
-                    showMessageBox('👥 No friends found. Add friends from this page!', 'warning');
+                    showMessageBox('👥 No accepted friends found. Add friends from this page!', 'warning');
                 }
             } catch (error) {
                 console.error('JCHAT_ERROR: Error in select friend handler:', error);
@@ -2407,10 +2428,22 @@
         // Update friends list when friends change (real-time updates)
         function updateModalFriendsList() {
             if (document.getElementById('selectFriendModal').classList.contains('active')) {
+                console.log('JCHAT_DEBUG: Updating modal friends list due to real-time changes');
                 fetchFriendsForModal().then(friends => {
                     currentFriends = friends;
                     filteredFriends = [...friends];
                     renderModalFriendsList(filteredFriends);
+                    
+                    // Update badge count
+                    const badge = document.getElementById('selectFriendBadge');
+                    if (badge) {
+                        if (friends.length > 0) {
+                            badge.textContent = friends.length;
+                            badge.style.display = 'flex';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
                 });
             }
         }
@@ -2421,6 +2454,38 @@
             originalRenderUserList(usersToRender, searchQuery);
             updateModalFriendsList();
         };
+
+        // Function to update the friend badge count
+        function updateFriendBadge() {
+            const badge = document.getElementById('selectFriendBadge');
+            if (badge && currentUsersFriends) {
+                const friendCount = currentUsersFriends.size;
+                console.log(`JCHAT_DEBUG: Updating friend badge to ${friendCount}`);
+                if (friendCount > 0) {
+                    badge.textContent = friendCount;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        // Set up badge updates when friends change
+        function setupBadgeUpdates() {
+            // Update badge every 2 seconds to catch changes
+            setInterval(() => {
+                if (currentUsersFriends) {
+                    updateFriendBadge();
+                }
+            }, 2000);
+        }
+
+        // Initialize badge updates when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                setupBadgeUpdates();
+            }, 3000); // Wait for initial data to load
+        });
 
         window.addEventListener('beforeunload', () => {
             if (unsubscribeUsers) unsubscribeUsers();
