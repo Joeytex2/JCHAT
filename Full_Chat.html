@@ -1025,6 +1025,41 @@
             text-overflow: ellipsis;
         }
 
+        .friend-item .friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .friend-item .friend-name {
+            flex: 1;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .friend-item .friend-status {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .friend-item .friend-status.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .friend-item .friend-status.offline {
+            background: rgba(107, 114, 128, 0.2);
+            color: #9ca3af;
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
         .message-badge {
             background-color: var(--notification-badge-color);
             color: var(--white);
@@ -1662,55 +1697,205 @@
                 });
             });
 
-            // Enhanced Modal functionality with Interactive Friends
-            document.getElementById('selectFriendBtn')?.addEventListener('click', () => {
+            // Enhanced Friend Selection functionality with real data fetching
+            let currentFriends = [];
+            let filteredFriends = [];
+
+            // Function to fetch friends from Firebase (similar to Find_Friends.html)
+            async function fetchUserFriends() {
+                if (!currentUser) {
+                    console.log("JCHAT_DEBUG: No user logged in, cannot fetch friends.");
+                    return [];
+                }
+
+                try {
+                    console.log("JCHAT_DEBUG: Fetching user's friends list...");
+                    const friends = [];
+                    
+                    // Get friends from Firebase
+                    const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
+                    const friendsSnapshot = await getDocs(publicFriendsRef);
+                    
+                    const friendUserIds = new Set();
+                    friendsSnapshot.forEach(doc => {
+                        const friendData = doc.data();
+                        if (friendData.user1Id === currentUser.uid) {
+                            friendUserIds.add(friendData.user2Id);
+                        } else if (friendData.user2Id === currentUser.uid) {
+                            friendUserIds.add(friendData.user1Id);
+                        }
+                    });
+
+                    // Get user data for each friend
+                    if (friendUserIds.size > 0) {
+                        const publicUsersRef = collection(db, "artifacts", appId, "public", "data", "users");
+                        const usersSnapshot = await getDocs(publicUsersRef);
+                        
+                        usersSnapshot.forEach(doc => {
+                            if (friendUserIds.has(doc.id)) {
+                                const userData = doc.data();
+                                friends.push({
+                                    userId: doc.id,
+                                    username: userData.username || `User_${doc.id.substring(0, 8)}`,
+                                    profilePicId: userData.profilePicId,
+                                    visibility: userData.visibility || {}
+                                });
+                            }
+                        });
+                    }
+
+                    console.log(`JCHAT_DEBUG: Found ${friends.length} friends`);
+                    return friends;
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Error fetching friends:", error);
+                    showMessageBox('Error loading friends list', 'error');
+                    return [];
+                }
+            }
+
+            // Function to create friend item HTML
+            function createFriendItem(friend) {
+                const friendDiv = document.createElement('div');
+                friendDiv.className = 'friend-item';
+                friendDiv.setAttribute('data-friend-id', friend.userId);
+                friendDiv.setAttribute('data-friend-name', friend.username);
+
+                let profileImageHtml = '';
+                if (friend.profilePicId && friend.visibility?.profilePic !== false) {
+                    const imageUrl = getCloudinaryImageUrl(friend.profilePicId, "w_60,h_60,c_fill,g_face,r_max");
+                    profileImageHtml = `<img src="${imageUrl}" alt="${friend.username}'s Profile" class="friend-avatar" onerror="this.onerror=null;this.parentNode.innerHTML='<div class=\\"default-avatar\\"><i class=\\"fas fa-user-circle\\"></i></div>';">`;
+                } else {
+                    profileImageHtml = `<div class="default-avatar"><i class="fas fa-user-circle"></i></div>`;
+                }
+
+                const displayName = friend.visibility?.displayName !== false ? friend.username : 'Anonymous User';
+                
+                friendDiv.innerHTML = `
+                    ${profileImageHtml}
+                    <span class="friend-name">${displayName}</span>
+                    <span class="friend-status online">Online</span>
+                `;
+
+                // Add hover effects
+                friendDiv.addEventListener('mouseenter', () => {
+                    friendDiv.style.transform = 'translateY(-3px) scale(1.02)';
+                });
+                
+                friendDiv.addEventListener('mouseleave', () => {
+                    friendDiv.style.transform = '';
+                });
+
+                return friendDiv;
+            }
+
+            // Function to render friends list in modal
+            function renderFriendsList(friends) {
+                const friendListContainer = document.getElementById('friendListContainer');
+                const noFriendsMessage = friendListContainer.querySelector('.no-friends-modal');
+                
+                // Clear existing content except the no-friends message
+                const existingItems = friendListContainer.querySelectorAll('.friend-item');
+                existingItems.forEach(item => item.remove());
+
+                if (friends.length === 0) {
+                    noFriendsMessage.style.display = 'block';
+                    noFriendsMessage.textContent = 'No friends found. Add friends from the Find Friends page.';
+                } else {
+                    noFriendsMessage.style.display = 'none';
+                    friends.forEach(friend => {
+                        const friendItem = createFriendItem(friend);
+                        
+                        // Add click handler for friend selection
+                        friendItem.addEventListener('click', () => {
+                            const friendId = friend.userId;
+                            const friendName = friend.username;
+                            const partnerDisplay = document.getElementById('partnerDisplayName');
+                            
+                            // Update partner display and global variable
+                            partnerDisplay.textContent = friendName;
+                            partnerId = friendId;
+                            
+                            // Close modal
+                            document.getElementById('selectFriendModal').classList.remove('active');
+                            
+                            // Clear search input
+                            document.getElementById('friendSearchInput').value = '';
+                            
+                            // Load messages for selected friend
+                            if (currentUser) {
+                                loadMessages();
+                            }
+                            
+                            showMessageBox(`💬 Now chatting with ${friendName}`, 'success');
+                            playNotificationSound('success');
+                            console.log(`JCHAT_DEBUG: Starting chat with friend ${friendId} (${friendName})`);
+                        });
+
+                        friendListContainer.insertBefore(friendItem, noFriendsMessage);
+                    });
+                }
+
+                // Update friend count badge
+                const badge = document.getElementById('selectFriendBadge');
+                if (badge) {
+                    if (friends.length > 0) {
+                        badge.textContent = friends.length;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            }
+
+            // Function to filter friends based on search
+            function filterFriends(searchQuery) {
+                if (!searchQuery.trim()) {
+                    filteredFriends = [...currentFriends];
+                } else {
+                    const query = searchQuery.toLowerCase();
+                    filteredFriends = currentFriends.filter(friend =>
+                        friend.username.toLowerCase().includes(query)
+                    );
+                }
+                renderFriendsList(filteredFriends);
+            }
+
+            // Select Friend button click handler
+            document.getElementById('selectFriendBtn')?.addEventListener('click', async () => {
                 const btn = document.getElementById('selectFriendBtn');
                 btn.style.transform = 'scale(0.95)';
                 setTimeout(() => btn.style.transform = '', 150);
                 
+                // Show loading state
+                showMessageBox('👥 Loading friends...', 'info');
+                
+                // Fetch friends data
+                currentFriends = await fetchUserFriends();
+                filteredFriends = [...currentFriends];
+                
+                // Render friends list
+                renderFriendsList(filteredFriends);
+                
+                // Show modal
                 document.getElementById('selectFriendModal').classList.add('active');
-                showMessageBox('👥 Select a friend to chat with', 'info');
+                
+                if (currentFriends.length > 0) {
+                    showMessageBox('👥 Select a friend to chat with', 'info');
+                } else {
+                    showMessageBox('👥 No friends found. Add friends first!', 'warning');
+                }
             });
 
+            // Close modal button
             document.getElementById('closeFriendModalBtn')?.addEventListener('click', () => {
                 document.getElementById('selectFriendModal').classList.remove('active');
                 showMessageBox('❌ Friend selection cancelled', 'info');
             });
 
-            // Make demo friends clickable
-            setTimeout(() => {
-                const friendItems = document.querySelectorAll('.friend-item');
-                friendItems.forEach((item, index) => {
-                    item.addEventListener('click', () => {
-                        const friendName = item.querySelector('span').textContent;
-                        const partnerDisplay = document.getElementById('partnerDisplayName');
-                        
-                        partnerDisplay.textContent = friendName;
-                        document.getElementById('selectFriendModal').classList.remove('active');
-                        
-                        // Update URL with partner ID for demo
-                        const demoPartnerIds = ['demo-friend-1', 'demo-friend-2', 'demo-friend-3'];
-                        partnerId = demoPartnerIds[index] || 'demo-partner-123';
-                        
-                        // Load messages for selected friend
-                        if (currentUser) {
-                            loadMessages();
-                        }
-                        
-                        showMessageBox(`💬 Now chatting with ${friendName}`, 'success');
-                        playNotificationSound('success');
-                    });
-
-                    // Add hover effects
-                    item.addEventListener('mouseenter', () => {
-                        item.style.transform = 'translateY(-3px) scale(1.02)';
-                    });
-                    
-                    item.addEventListener('mouseleave', () => {
-                        item.style.transform = '';
-                    });
-                });
-            }, 1000);
+            // Search functionality
+            document.getElementById('friendSearchInput')?.addEventListener('input', (e) => {
+                filterFriends(e.target.value);
+            });
 
             // Find Friends functionality
             document.getElementById('findFriendsBtn')?.addEventListener('click', () => {
@@ -2287,20 +2472,6 @@
             <h3>Select a Friend to Chat With</h3>
             <input type="text" id="friendSearchInput" placeholder="Search friends..." class="search-input">
             <div id="friendListContainer" class="friend-list-modal">
-                <div class="friend-item">
-                    <div class="default-avatar"><i class="fas fa-user-circle"></i></div>
-                    <span>Demo Friend 1</span>
-                    <span class="message-badge">3</span>
-                </div>
-                <div class="friend-item">
-                    <div class="default-avatar"><i class="fas fa-user-circle"></i></div>
-                    <span>Demo Friend 2</span>
-                </div>
-                <div class="friend-item">
-                    <div class="default-avatar"><i class="fas fa-user-circle"></i></div>
-                    <span>Demo Friend 3</span>
-                    <span class="message-badge">1</span>
-                </div>
                 <p class="no-friends-modal" style="display: none;">No friends found.</p>
             </div>
             <div class="modal-buttons">
