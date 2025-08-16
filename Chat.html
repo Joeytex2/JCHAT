@@ -1081,6 +1081,64 @@
             white-space: nowrap;
         }
 
+        /* Last Seen Indicator */
+        .last-seen-indicator {
+            font-size: 0.65rem;
+            color: #666666;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .last-seen-indicator.online {
+            color: #4CAF50;
+        }
+
+        .last-seen-indicator.recently {
+            color: #FFC107;
+        }
+
+        .last-seen-indicator.offline {
+            color: #888888;
+        }
+
+        /* Online Status Dot */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #888888;
+        }
+
+        .status-dot.online {
+            background: #4CAF50;
+            box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+            animation: pulse-online 2s infinite;
+        }
+
+        .status-dot.recently {
+            background: #FFC107;
+        }
+
+        .status-dot.offline {
+            background: #888888;
+        }
+
+        @keyframes pulse-online {
+            0% { box-shadow: 0 0 6px rgba(76, 175, 80, 0.6); }
+            50% { box-shadow: 0 0 12px rgba(76, 175, 80, 0.8); }
+            100% { box-shadow: 0 0 6px rgba(76, 175, 80, 0.6); }
+        }
+
+        /* Timestamp Display */
+        .friend-timestamp {
+            font-size: 0.65rem;
+            color: #999999;
+            text-align: right;
+            white-space: nowrap;
+        }
+
         /* Friend Status Updates */
         .friend-status {
             font-size: 0.7rem;
@@ -1116,6 +1174,13 @@
             text-overflow: ellipsis;
         }
 
+        .friend-name-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
         .last-message-preview {
             font-size: 0.75rem;
             color: #888888;
@@ -1123,6 +1188,13 @@
             overflow: hidden;
             text-overflow: ellipsis;
             opacity: 0.8;
+        }
+
+        .friend-status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
         }
 
         #selectFriendModal .friend-item img,
@@ -2304,6 +2376,8 @@
                 const lastMessageData = getLastMessageData(friend.userId);
                 const isTyping = getTypingStatus(friend.userId);
                 const unreadCount = getUnreadMessageCount(friend.userId);
+                const lastSeenInfo = getLastSeenData(friend.userId);
+                const isOnline = getOnlineStatus(friend.userId);
                 
                 // Create status/indicator HTML
                 let statusHtml = '';
@@ -2324,11 +2398,25 @@
                     statusHtml = `<div class="last-message-time">${formatTimestamp(lastMessageData.timestamp)}</div>`;
                 }
                 
+                // Create last seen and timestamp info
+                const currentStatus = isOnline ? 'online' : lastSeenInfo.status;
+                const lastSeenText = isOnline ? 'Online' : formatLastSeen(lastSeenInfo.timestamp);
+                const messageTimestamp = lastMessageData.timestamp ? formatTimestamp(lastMessageData.timestamp) : '';
+                
                 friendDiv.innerHTML = `
                     ${profileImageHtml}
                     <div class="friend-info">
-                        <span class="friend-name">${displayName}</span>
-                        ${lastMessageData.preview ? `<div class="last-message-preview">${lastMessageData.preview}</div>` : ''}
+                        <div class="friend-name-row">
+                            <span class="friend-name">${displayName}</span>
+                            <div class="friend-timestamp">${messageTimestamp}</div>
+                        </div>
+                        <div class="friend-status-row">
+                            ${lastMessageData.preview ? `<div class="last-message-preview">${lastMessageData.preview}</div>` : 
+                              `<div class="last-seen-indicator ${currentStatus}">
+                                 <div class="status-dot ${currentStatus}"></div>
+                                 ${lastSeenText}
+                               </div>`}
+                        </div>
                     </div>
                     ${statusHtml}
                     <button class="chat-btn" data-friend-id="${friend.userId}" title="Start Chat">
@@ -2822,6 +2910,8 @@
          const friendsMessageData = new Map();
          const typingStatus = new Map();
          const unreadCounts = new Map();
+         const lastSeenData = new Map();
+         const onlineStatus = new Map();
 
          // Function to get last message data for a friend
          function getLastMessageData(friendId) {
@@ -2836,6 +2926,48 @@
          // Function to get unread message count for a friend
          function getUnreadMessageCount(friendId) {
              return unreadCounts.get(friendId) || 0;
+         }
+
+         // Function to get last seen data for a friend
+         function getLastSeenData(friendId) {
+             return lastSeenData.get(friendId) || { timestamp: null, status: 'offline' };
+         }
+
+         // Function to get online status for a friend
+         function getOnlineStatus(friendId) {
+             return onlineStatus.get(friendId) || false;
+         }
+
+         // Function to determine status based on last seen
+         function determineUserStatus(lastSeenTimestamp) {
+             if (!lastSeenTimestamp) return 'offline';
+             
+             const now = new Date();
+             const lastSeen = lastSeenTimestamp.toDate ? lastSeenTimestamp.toDate() : new Date(lastSeenTimestamp);
+             const diffMinutes = Math.floor((now - lastSeen) / (1000 * 60));
+             
+             if (diffMinutes < 5) return 'online';
+             if (diffMinutes < 60) return 'recently';
+             return 'offline';
+         }
+
+         // Function to format last seen timestamp
+         function formatLastSeen(timestamp) {
+             if (!timestamp) return 'Last seen: Unknown';
+             
+             const now = new Date();
+             const lastSeen = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+             const diffMs = now - lastSeen;
+             const diffMins = Math.floor(diffMs / (1000 * 60));
+             const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+             const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+             if (diffMins < 5) return 'Online';
+             if (diffMins < 60) return `Last seen ${diffMins}m ago`;
+             if (diffHours < 24) return `Last seen ${diffHours}h ago`;
+             if (diffDays < 7) return `Last seen ${diffDays}d ago`;
+             
+             return `Last seen ${lastSeen.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
          }
 
          // Function to format timestamp
@@ -2900,6 +3032,32 @@
              }
          }
 
+         // Function to update last seen data
+         function updateLastSeen(friendId, timestamp) {
+             const status = determineUserStatus(timestamp);
+             lastSeenData.set(friendId, { timestamp, status });
+             
+             // Update UI if modal is open
+             if (document.getElementById('selectFriendModal').classList.contains('active')) {
+                 updateFriendItemDisplay(friendId);
+             }
+         }
+
+         // Function to update online status
+         function updateOnlineStatus(friendId, isOnline) {
+             onlineStatus.set(friendId, isOnline);
+             
+             // If going online, update last seen to now
+             if (isOnline) {
+                 updateLastSeen(friendId, new Date());
+             }
+             
+             // Update UI if modal is open
+             if (document.getElementById('selectFriendModal').classList.contains('active')) {
+                 updateFriendItemDisplay(friendId);
+             }
+         }
+
          // Function to update a specific friend item display
          function updateFriendItemDisplay(friendId) {
              const friendItem = document.querySelector(`[data-friend-id="${friendId}"]`);
@@ -2908,6 +3066,15 @@
              const lastMessageData = getLastMessageData(friendId);
              const isTyping = getTypingStatus(friendId);
              const unreadCount = getUnreadMessageCount(friendId);
+             const lastSeenInfo = getLastSeenData(friendId);
+             const isOnline = getOnlineStatus(friendId);
+
+             // Update timestamp
+             const timestampElement = friendItem.querySelector('.friend-timestamp');
+             if (timestampElement) {
+                 const messageTimestamp = lastMessageData.timestamp ? formatTimestamp(lastMessageData.timestamp) : '';
+                 timestampElement.textContent = messageTimestamp;
+             }
 
              // Update status/indicator
              const existingIndicator = friendItem.querySelector('.typing-indicator, .new-message-indicator, .last-message-time');
@@ -2940,19 +3107,22 @@
                  }
              }
 
-             // Update last message preview
-             const lastMessagePreview = friendItem.querySelector('.last-message-preview');
-             if (lastMessageData.preview) {
-                 if (lastMessagePreview) {
-                     lastMessagePreview.textContent = lastMessageData.preview;
+             // Update last message preview or last seen
+             const statusRow = friendItem.querySelector('.friend-status-row');
+             if (statusRow) {
+                 const currentStatus = isOnline ? 'online' : lastSeenInfo.status;
+                 const lastSeenText = isOnline ? 'Online' : formatLastSeen(lastSeenInfo.timestamp);
+                 
+                 if (lastMessageData.preview) {
+                     statusRow.innerHTML = `<div class="last-message-preview">${lastMessageData.preview}</div>`;
                  } else {
-                     const friendInfo = friendItem.querySelector('.friend-info');
-                     if (friendInfo) {
-                         friendInfo.insertAdjacentHTML('beforeend', `<div class="last-message-preview">${lastMessageData.preview}</div>`);
-                     }
+                     statusRow.innerHTML = `
+                         <div class="last-seen-indicator ${currentStatus}">
+                             <div class="status-dot ${currentStatus}"></div>
+                             ${lastSeenText}
+                         </div>
+                     `;
                  }
-             } else if (lastMessagePreview) {
-                 lastMessagePreview.remove();
              }
          }
 
@@ -2981,6 +3151,25 @@
              console.log(`Clearing indicators for friend: ${friendId}`);
              setTypingStatus(friendId, false);
              updateUnreadCount(friendId, 0);
+         };
+
+         window.setOnline = function(friendId) {
+             console.log(`Setting friend ${friendId} as online`);
+             updateOnlineStatus(friendId, true);
+         };
+
+         window.setOffline = function(friendId, minutesAgo = 30) {
+             console.log(`Setting friend ${friendId} as offline (last seen ${minutesAgo} minutes ago)`);
+             updateOnlineStatus(friendId, false);
+             const lastSeenTime = new Date(Date.now() - (minutesAgo * 60 * 1000));
+             updateLastSeen(friendId, lastSeenTime);
+         };
+
+         window.simulateRecentActivity = function(friendId, minutesAgo = 15) {
+             console.log(`Simulating recent activity for friend ${friendId} (${minutesAgo} minutes ago)`);
+             const recentTime = new Date(Date.now() - (minutesAgo * 60 * 1000));
+             updateLastSeen(friendId, recentTime);
+             updateOnlineStatus(friendId, false);
          };
 
          // Enhanced message sending with Firebase
