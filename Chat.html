@@ -2477,7 +2477,6 @@
                         }
                         
                         showMessageBox(`💬 Now chatting with ${friendName}`, 'success');
-                        playNotificationSound('success');
                         console.log(`JCHAT_DEBUG: Starting chat with friend ${friendId} (${friendName})`);
                     });
                 }
@@ -2753,8 +2752,10 @@
                  }, durationMs);
              }
 
-             // Play notification sound
-             playNotificationSound(type);
+             // Play notification sound only for incoming messages and calls
+             if (type === 'message' || type === 'call' || type === 'incoming') {
+                 playNotificationSound(type);
+             }
          }
 
          /**
@@ -3339,6 +3340,12 @@
              `;
 
              messagesArea.appendChild(messageDiv);
+             
+             // Play notification sound for incoming messages only
+             if (!isSent && notificationSoundEnabled) {
+                 playNotificationSound('message');
+             }
+             
              return messageDiv;
          }
 
@@ -3827,7 +3834,6 @@
                  }
                  
                  showMessageBox(`💬 Now chatting with ${friendName}`, 'success');
-                 playNotificationSound('success');
                  console.log(`JCHAT_DEBUG: Starting chat with friend ${friendId} (${friendName})`);
              });
 
