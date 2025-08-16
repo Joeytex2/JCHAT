@@ -1929,6 +1929,32 @@
         }
 
         /**
+         * Shows new buttons after friend request is accepted.
+         * @param {string} senderId - The ID of the user who sent the request.
+         */
+        function showAcceptedFriendRequestButtons(senderId) {
+            // Hide friend request buttons
+            acceptFriendRequestOptionBtn.style.display = 'none';
+            rejectFriendRequestOptionBtn.style.display = 'none';
+            markAsReadOptionBtn.style.display = 'none';
+
+            // Show new buttons for accepted friend
+            sendMessageOptionBtn.style.display = 'flex';
+            viewProfileOptionBtn.style.display = 'flex';
+
+            // Update modal content
+            notificationOptionsTitle.textContent = 'Friend Request Accepted!';
+            notificationOptionsMessage.textContent = 'You are now friends! What would you like to do?';
+
+            // Update button text
+            sendMessageOptionBtn.innerHTML = '<i class="fas fa-comment"></i> Chat';
+            viewProfileOptionBtn.innerHTML = '<i class="fas fa-user"></i> View Profile';
+
+            // Keep modal open
+            notificationOptionsModal.classList.add('active');
+        }
+
+        /**
          * Marks a specific notification as read.
          * @param {string} notificationId - The ID of the notification document.
          */
@@ -2138,11 +2164,13 @@
                     read: false
                 });
 
-                // 6. Mark the current notification as read and close modal
+                // 6. Mark the current notification as read
                 if (currentNotificationData && currentNotificationData.id) {
                     await markNotificationAsRead(currentNotificationData.id);
                 }
-                hideNotificationOptions();
+
+                // 7. Show new buttons for accepted friend request
+                showAcceptedFriendRequestButtons(senderId);
 
                 showMessageBox("Friend request accepted! You are now friends.", 'success');
                 playNotificationSound('success');
@@ -2318,7 +2346,7 @@
             if (sendMessageOptionBtn) {
                 sendMessageOptionBtn.addEventListener('click', () => {
                     if (currentNotificationData && currentNotificationData.senderId) {
-                        markNotificationAsRead(currentNotificationData.id);
+                        // Hide modal first
                         hideNotificationOptions();
                         
                         // Build URL with partner ID and message information
@@ -2337,6 +2365,9 @@
                             }
                         }
                         
+                        // Mark notification as read after hiding modal
+                        markNotificationAsRead(currentNotificationData.id);
+                        
                         // Navigate to Chat.html with all parameters
                         window.location.href = chatUrl;
                         console.log(`JCHAT_DEBUG: Navigating to chat with URL: ${chatUrl}`);
@@ -2348,8 +2379,12 @@
             if (viewProfileOptionBtn) {
                 viewProfileOptionBtn.addEventListener('click', () => {
                     if (currentNotificationData && currentNotificationData.senderId) {
-                        markNotificationAsRead(currentNotificationData.id);
+                        // Hide modal first
                         hideNotificationOptions();
+                        
+                        // Mark notification as read after hiding modal
+                        markNotificationAsRead(currentNotificationData.id);
+                        
                         window.location.href = `Profile.html?userId=${currentNotificationData.senderId}`;
                     } else {
                         showMessageBox("Cannot view profile: sender not found.", 'error');
@@ -2359,8 +2394,11 @@
             if (markAsReadOptionBtn) {
                 markAsReadOptionBtn.addEventListener('click', () => {
                     if (currentNotificationData) {
-                        markNotificationAsRead(currentNotificationData.id);
+                        // Hide modal first
                         hideNotificationOptions();
+                        
+                        // Mark notification as read after hiding modal
+                        markNotificationAsRead(currentNotificationData.id);
                     }
                 });
             }
