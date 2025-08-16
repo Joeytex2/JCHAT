@@ -990,6 +990,7 @@
             margin-bottom: 8px;
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.1s ease;
+            position: relative;
         }
 
         .friend-item:hover {
@@ -1037,6 +1038,9 @@
             flex: 1;
             font-weight: 600;
             color: var(--white);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .friend-item .friend-status {
@@ -1058,6 +1062,33 @@
             background: rgba(107, 114, 128, 0.2);
             color: #9ca3af;
             border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
+        /* Chat button styling for friend items (mirroring Find_Friends.html) */
+        .friend-item .chat-btn {
+            background: linear-gradient(90deg, var(--blue), var(--pink));
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0, 213, 255, 0.3);
+            margin-left: auto;
+        }
+
+        .friend-item .chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 213, 255, 0.4);
+        }
+
+        .friend-item .chat-btn:active {
+            transform: translateY(0);
         }
 
         .message-badge {
@@ -1122,6 +1153,15 @@
                 width: 32px;
                 height: 32px;
                 font-size: 14px;
+            }
+            
+            .friend-item {
+                padding: 8px 12px;
+            }
+            
+            .friend-item .chat-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -1701,7 +1741,7 @@
             let currentFriends = [];
             let filteredFriends = [];
 
-            // Function to fetch friends from Firebase (similar to Find_Friends.html)
+            // Function to fetch friends from Firebase (mirroring Find_Friends.html logic)
             async function fetchUserFriends() {
                 if (!currentUser) {
                     console.log("JCHAT_DEBUG: No user logged in, cannot fetch friends.");
@@ -1712,7 +1752,7 @@
                     console.log("JCHAT_DEBUG: Fetching user's friends list...");
                     const friends = [];
                     
-                    // Get friends from Firebase
+                    // Get confirmed friends from Firebase (same as Find_Friends.html)
                     const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
                     const friendsSnapshot = await getDocs(publicFriendsRef);
                     
@@ -1726,7 +1766,7 @@
                         }
                     });
 
-                    // Get user data for each friend
+                    // Get user data for each friend (same as Find_Friends.html)
                     if (friendUserIds.size > 0) {
                         const publicUsersRef = collection(db, "artifacts", appId, "public", "data", "users");
                         const usersSnapshot = await getDocs(publicUsersRef);
@@ -1738,7 +1778,9 @@
                                     userId: doc.id,
                                     username: userData.username || `User_${doc.id.substring(0, 8)}`,
                                     profilePicId: userData.profilePicId,
-                                    visibility: userData.visibility || {}
+                                    visibility: userData.visibility || {},
+                                    bio: userData.bio || "",
+                                    location: userData.location || ""
                                 });
                             }
                         });
@@ -1753,7 +1795,7 @@
                 }
             }
 
-            // Function to create friend item HTML
+            // Function to create friend item HTML (mirroring Find_Friends.html styling)
             function createFriendItem(friend) {
                 const friendDiv = document.createElement('div');
                 friendDiv.className = 'friend-item';
@@ -1774,16 +1816,51 @@
                     ${profileImageHtml}
                     <span class="friend-name">${displayName}</span>
                     <span class="friend-status online">Online</span>
+                    <button class="chat-btn" data-friend-id="${friend.userId}" title="Start Chat">
+                        <i class="fas fa-comment"></i> Chat
+                    </button>
                 `;
 
-                // Add hover effects
+                // Add hover effects (same as Find_Friends.html)
                 friendDiv.addEventListener('mouseenter', () => {
                     friendDiv.style.transform = 'translateY(-3px) scale(1.02)';
+                    friendDiv.style.boxShadow = '0 8px 25px rgba(0, 213, 255, 0.3)';
                 });
                 
                 friendDiv.addEventListener('mouseleave', () => {
                     friendDiv.style.transform = '';
+                    friendDiv.style.boxShadow = '';
                 });
+
+                // Add click handler for chat button
+                const chatBtn = friendDiv.querySelector('.chat-btn');
+                if (chatBtn) {
+                    chatBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const friendId = friend.userId;
+                        const friendName = friend.username;
+                        
+                        // Update partner display and global variable
+                        document.getElementById('partnerDisplayName').textContent = friendName;
+                        partnerId = friendId;
+                        
+                        // Close modal
+                        document.getElementById('selectFriendModal').classList.remove('active');
+                        
+                        // Clear search input
+                        document.getElementById('friendSearchInput').value = '';
+                        
+                        // Load messages for selected friend
+                        if (currentUser) {
+                            loadMessages();
+                        }
+                        
+                        showMessageBox(`💬 Now chatting with ${friendName}`, 'success');
+                        playNotificationSound('success');
+                        console.log(`JCHAT_DEBUG: Starting chat with friend ${friendId} (${friendName})`);
+                    });
+                }
 
                 return friendDiv;
             }
@@ -1804,33 +1881,6 @@
                     noFriendsMessage.style.display = 'none';
                     friends.forEach(friend => {
                         const friendItem = createFriendItem(friend);
-                        
-                        // Add click handler for friend selection
-                        friendItem.addEventListener('click', () => {
-                            const friendId = friend.userId;
-                            const friendName = friend.username;
-                            const partnerDisplay = document.getElementById('partnerDisplayName');
-                            
-                            // Update partner display and global variable
-                            partnerDisplay.textContent = friendName;
-                            partnerId = friendId;
-                            
-                            // Close modal
-                            document.getElementById('selectFriendModal').classList.remove('active');
-                            
-                            // Clear search input
-                            document.getElementById('friendSearchInput').value = '';
-                            
-                            // Load messages for selected friend
-                            if (currentUser) {
-                                loadMessages();
-                            }
-                            
-                            showMessageBox(`💬 Now chatting with ${friendName}`, 'success');
-                            playNotificationSound('success');
-                            console.log(`JCHAT_DEBUG: Starting chat with friend ${friendId} (${friendName})`);
-                        });
-
                         friendListContainer.insertBefore(friendItem, noFriendsMessage);
                     });
                 }
@@ -1869,7 +1919,7 @@
                 // Show loading state
                 showMessageBox('👥 Loading friends...', 'info');
                 
-                // Fetch friends data
+                // Fetch friends data (mirroring Find_Friends.html logic)
                 currentFriends = await fetchUserFriends();
                 filteredFriends = [...currentFriends];
                 
@@ -1882,7 +1932,7 @@
                 if (currentFriends.length > 0) {
                     showMessageBox('👥 Select a friend to chat with', 'info');
                 } else {
-                    showMessageBox('👥 No friends found. Add friends first!', 'warning');
+                    showMessageBox('👥 No friends found. Add friends from Find Friends page!', 'warning');
                 }
             });
 
@@ -1897,7 +1947,7 @@
                 filterFriends(e.target.value);
             });
 
-            // Find Friends functionality
+            // Find Friends functionality - Direct navigation to Find_Friends.html
             document.getElementById('findFriendsBtn')?.addEventListener('click', () => {
                 const btn = document.getElementById('findFriendsBtn');
                 btn.style.transform = 'scale(0.95)';
@@ -1987,6 +2037,7 @@
          let partnerProfileData = null;
          let unsubscribeMessages = null;
          let notificationSoundEnabled = true;
+         let unsubscribeFriends = null; // For real-time friend updates
 
          // Voice Note Recording State
          let mediaRecorder;
@@ -2438,6 +2489,9 @@
                  // Fetch notification count
                  await fetchNotificationCount(user.uid);
                  
+                 // Set up real-time friends listener
+                 setupFriendsListener();
+                 
                  // Load messages if partner is selected
                  if (partnerId) {
                      await loadMessages();
@@ -2455,9 +2509,32 @@
              }
          });
 
+         // Function to set up real-time friend listening
+         function setupFriendsListener() {
+             if (!currentUser) return;
+             
+             // Unsubscribe previous listener
+             if (unsubscribeFriends) unsubscribeFriends();
+             
+             const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
+             unsubscribeFriends = onSnapshot(publicFriendsRef, (snapshot) => {
+                 // Refresh friends list when friends change
+                 if (document.getElementById('selectFriendModal').classList.contains('active')) {
+                     fetchUserFriends().then(friends => {
+                         currentFriends = friends;
+                         filteredFriends = [...friends];
+                         renderFriendsList(filteredFriends);
+                     });
+                 }
+             }, (error) => {
+                 console.error("JCHAT_ERROR: Error listening to friends changes:", error);
+             });
+         }
+
          // Cleanup on page unload
          window.addEventListener('beforeunload', () => {
              if (unsubscribeMessages) unsubscribeMessages();
+             if (unsubscribeFriends) unsubscribeFriends();
              if (isRecording) {
                  mediaRecorder?.stop();
              }
