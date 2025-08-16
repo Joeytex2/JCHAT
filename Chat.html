@@ -1127,6 +1127,72 @@
             font-weight: 400;
         }
 
+        /* Enhanced friend item layout with message preview */
+        .friend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .friend-header .friend-name {
+            flex: 1;
+            font-weight: 600;
+            color: var(--white);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .last-seen-time {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        .friend-details {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .message-preview {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        /* Unread message badge */
+        .unread-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--notification-badge-color);
+            color: white;
+            border-radius: 50%;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            border: 2px solid var(--background-main);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            animation: pulse-notification 2s infinite;
+        }
+
+        .unread-badge:empty {
+            display: none;
+        }
+
         /* Online Indicator */
         .online-indicator {
             position: absolute;
@@ -3002,7 +3068,7 @@
          // Friend Selection Functions (moved from first script section)
          
          /**
-          * Fetches the current user's friends list from Firestore with real-time online status.
+          * Fetches the current user's friends list from Firestore with real-time online status, unread counts, and latest messages.
           */
          async function fetchUserFriends() {
              if (!currentUser) {
@@ -3030,7 +3096,7 @@
                  
                  console.log(`JCHAT_DEBUG: Found ${friendIds.size} friend relationships`);
 
-                 // Get detailed user data for each friend with real-time online status
+                 // Get detailed user data for each friend with real-time online status, unread counts, and latest messages
                  if (friendIds.size > 0) {
                      for (const friendId of friendIds) {
                          try {
@@ -3042,13 +3108,18 @@
                                  // Check real-time online status
                                  const isOnline = await checkUserOnlineStatus(friendId);
                                  
+                                 // Get unread message count and latest message
+                                 const { unreadCount, latestMessage } = await getUnreadMessageInfo(currentUser.uid, friendId);
+                                 
                                  friends.push({
                                      userId: friendId,
                                      username: friendProfile.username || friendProfile.displayName || `User_${friendId.substring(0, 8)}`,
                                      profilePicId: friendProfile.profilePicId,
                                      visibility: friendProfile.visibility || {},
                                      isOnline: isOnline,
-                                     lastSeen: friendProfile.lastSeen || null
+                                     lastSeen: friendProfile.lastSeen || null,
+                                     unreadCount: unreadCount,
+                                     latestMessage: latestMessage
                                  });
                              } else {
                                  console.warn(`JCHAT_WARN: Public profile not found for friend ID: ${friendId}`);
@@ -3058,7 +3129,9 @@
                                      profilePicId: null,
                                      visibility: {},
                                      isOnline: false,
-                                     lastSeen: null
+                                     lastSeen: null,
+                                     unreadCount: 0,
+                                     latestMessage: ''
                                  });
                              }
                          } catch (error) {
@@ -3069,20 +3142,29 @@
                                  profilePicId: null,
                                  visibility: {},
                                  isOnline: false,
-                                 lastSeen: null
+                                 lastSeen: null,
+                                 unreadCount: 0,
+                                 latestMessage: ''
                              });
                          }
                      }
 
-                     // Sort friends by online status and name
+                     // Sort friends by unread count (highest first), then online status, then name
                      friends.sort((a, b) => {
+                         // First sort by unread count (highest first)
+                         if (a.unreadCount > b.unreadCount) return -1;
+                         if (a.unreadCount < b.unreadCount) return 1;
+                         
+                         // Then by online status
                          if (a.isOnline && !b.isOnline) return -1;
                          if (!a.isOnline && b.isOnline) return 1;
+                         
+                         // Finally by name
                          return a.username.localeCompare(b.username);
                      });
                  }
 
-                 console.log(`JCHAT_DEBUG: Successfully loaded ${friends.length} real friends`);
+                 console.log(`JCHAT_DEBUG: Successfully loaded ${friends.length} real friends with unread counts`);
                  
                  if (friends.length === 0) {
                      showMessageBox('👥 No friends found. Add friends from the Find Friends page!', 'info');
@@ -3135,6 +3217,219 @@
          }
 
          /**
+          * Sets up real-time listener for new messages to update friend list unread counts.
+          */
+         function setupFriendListMessageListener(currentUserId) {
+             try {
+                 // Get all friend relationships for the current user
+                 const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
+                 const friendsQuery = query(publicFriendsRef, where("user1Id", "==", currentUserId));
+                 const friendsQuery2 = query(publicFriendsRef, where("user2Id", "==", currentUserId));
+                 
+                 // Listen for changes in friend relationships
+                 const unsubscribeFriends1 = onSnapshot(friendsQuery, async (snapshot) => {
+                     await updateFriendListForNewMessages(currentUserId);
+                 });
+                 
+                 const unsubscribeFriends2 = onSnapshot(friendsQuery2, async (snapshot) => {
+                     await updateFriendListForNewMessages(currentUserId);
+                 });
+                 
+                 // Store unsubscribe functions for cleanup
+                 if (!window.unsubscribeFriendListListeners) {
+                     window.unsubscribeFriendListListeners = [];
+                 }
+                 window.unsubscribeFriendListListeners.push(unsubscribeFriends1, unsubscribeFriends2);
+                 
+                 console.log("JCHAT_DEBUG: Set up friend list message listener");
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error setting up friend list message listener:", error);
+             }
+         }
+
+         /**
+          * Updates the friend list when new messages arrive.
+          */
+         async function updateFriendListForNewMessages(currentUserId) {
+             try {
+                 // Only update if the friend modal is open or if there are unread messages
+                 const modal = document.getElementById('selectFriendModal');
+                 const isModalOpen = modal && modal.classList.contains('active');
+                 
+                 if (isModalOpen || await hasUnreadMessages(currentUserId)) {
+                     // Refresh the friends list
+                     const updatedFriends = await fetchUserFriends();
+                     
+                     // Update the display if modal is open
+                     if (isModalOpen) {
+                         renderFriendsList(updatedFriends);
+                     }
+                     
+                     // Update global friends list
+                     currentFriends = updatedFriends;
+                     
+                     // Update the select friend badge
+                     await updateSelectFriendBadge(currentUserId);
+                 }
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error updating friend list for new messages:", error);
+             }
+         }
+
+         /**
+          * Updates the select friend button badge with total unread message count.
+          */
+         async function updateSelectFriendBadge(currentUserId) {
+             try {
+                 // Get all friend relationships
+                 const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
+                 const friendsSnapshot = await getDocs(publicFriendsRef);
+                 
+                 const friendIds = new Set();
+                 friendsSnapshot.forEach(docSnap => {
+                     const friendData = docSnap.data();
+                     if (friendData.user1Id === currentUserId) {
+                         friendIds.add(friendData.user2Id);
+                     } else if (friendData.user2Id === currentUserId) {
+                         friendIds.add(friendData.user1Id);
+                     }
+                 });
+                 
+                 // Calculate total unread messages
+                 let totalUnread = 0;
+                 for (const friendId of friendIds) {
+                     const { unreadCount } = await getUnreadMessageInfo(currentUserId, friendId);
+                     totalUnread += unreadCount;
+                 }
+                 
+                 // Update the badge
+                 const badge = document.getElementById('selectFriendBadge');
+                 if (badge) {
+                     if (totalUnread > 0) {
+                         badge.textContent = totalUnread > 99 ? '99+' : totalUnread.toString();
+                         badge.style.display = 'flex';
+                     } else {
+                         badge.style.display = 'none';
+                     }
+                 }
+                 
+                 console.log(`JCHAT_DEBUG: Updated select friend badge with ${totalUnread} unread messages`);
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error updating select friend badge:", error);
+             }
+         }
+
+         /**
+          * Checks if the current user has any unread messages.
+          */
+         async function hasUnreadMessages(currentUserId) {
+             try {
+                 // Get all friend relationships
+                 const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
+                 const friendsSnapshot = await getDocs(publicFriendsRef);
+                 
+                 const friendIds = new Set();
+                 friendsSnapshot.forEach(docSnap => {
+                     const friendData = docSnap.data();
+                     if (friendData.user1Id === currentUserId) {
+                         friendIds.add(friendData.user2Id);
+                     } else if (friendData.user2Id === currentUserId) {
+                         friendIds.add(friendData.user1Id);
+                     }
+                 });
+                 
+                 // Check each friend for unread messages
+                 for (const friendId of friendIds) {
+                     const { unreadCount } = await getUnreadMessageInfo(currentUserId, friendId);
+                     if (unreadCount > 0) {
+                         return true;
+                     }
+                 }
+                 
+                 return false;
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error checking for unread messages:", error);
+                 return false;
+             }
+         }
+
+         /**
+          * Marks all messages from a specific friend as read.
+          */
+         async function markMessagesAsRead(currentUserId, friendId) {
+             try {
+                 const chatRoomId = getChatRoomId(currentUserId, friendId);
+                 const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
+                 
+                 // Get all unread messages from this friend
+                 const unreadQuery = query(
+                     messagesCollectionRef,
+                     where("senderId", "==", friendId),
+                     where("read", "==", false)
+                 );
+                 
+                 const unreadSnapshot = await getDocs(unreadQuery);
+                 
+                 // Mark each message as read
+                 const updatePromises = unreadSnapshot.docs.map(doc => {
+                     return updateDoc(doc.ref, { read: true });
+                 });
+                 
+                 await Promise.all(updatePromises);
+                 console.log(`JCHAT_DEBUG: Marked ${unreadSnapshot.size} messages as read for friend ${friendId}`);
+                 
+             } catch (error) {
+                 console.error(`JCHAT_ERROR: Error marking messages as read for friend ${friendId}:`, error);
+             }
+         }
+
+         /**
+          * Gets unread message count and latest message for a specific friend.
+          */
+         async function getUnreadMessageInfo(currentUserId, friendId) {
+             try {
+                 const chatRoomId = getChatRoomId(currentUserId, friendId);
+                 const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
+                 
+                 // Get the latest message for preview
+                 const latestMessageQuery = query(messagesCollectionRef, orderBy("timestamp", "desc"), limit(1));
+                 const latestMessageSnapshot = await getDocs(latestMessageQuery);
+                 
+                 let latestMessage = '';
+                 if (!latestMessageSnapshot.empty) {
+                     const latestDoc = latestMessageSnapshot.docs[0];
+                     const messageData = latestDoc.data();
+                     
+                     // Only show preview if message is from the friend (not current user)
+                     if (messageData.senderId === friendId) {
+                         latestMessage = messageData.content || '';
+                     }
+                 }
+                 
+                 // Get unread message count (messages from friend that haven't been read)
+                 const unreadQuery = query(
+                     messagesCollectionRef,
+                     where("senderId", "==", friendId),
+                     where("read", "==", false),
+                     orderBy("timestamp", "desc")
+                 );
+                 
+                 const unreadSnapshot = await getDocs(unreadQuery);
+                 const unreadCount = unreadSnapshot.size;
+                 
+                 return { unreadCount, latestMessage };
+                 
+             } catch (error) {
+                 console.error(`JCHAT_ERROR: Error getting unread message info for friend ${friendId}:`, error);
+                 return { unreadCount: 0, latestMessage: '' };
+             }
+         }
+
+         /**
           * Updates the current user's online status.
           */
          async function updateUserOnlineStatus(isOnline) {
@@ -3153,7 +3448,7 @@
          }
 
          /**
-          * Creates a friend item HTML element.
+          * Creates a friend item HTML element with enhanced timestamp and unread message indicators.
           */
          function createFriendItem(friend) {
              const friendDiv = document.createElement('div');
@@ -3178,37 +3473,60 @@
              const statusClass = isOnline ? 'online' : 'offline';
              const statusText = isOnline ? 'Online' : 'Offline';
              
-             // Last seen time for offline users
+             // Enhanced last seen time formatting
              let lastSeenText = '';
-             if (!isOnline && friend.lastSeen) {
-                 const lastSeen = new Date(friend.lastSeen);
+             let lastSeenTime = '';
+             if (friend.lastSeen) {
+                 const lastSeen = friend.lastSeen.toDate ? friend.lastSeen.toDate() : new Date(friend.lastSeen);
                  const now = new Date();
                  const diff = now - lastSeen;
                  const minutes = Math.floor(diff / 60000);
                  const hours = Math.floor(minutes / 60);
                  const days = Math.floor(hours / 24);
                  
-                 if (days > 0) {
+                 // Format for display
+                 if (isOnline) {
+                     lastSeenText = 'Online now';
+                 } else if (days > 0) {
                      lastSeenText = `Last seen ${days} day${days > 1 ? 's' : ''} ago`;
+                     lastSeenTime = lastSeen.toLocaleDateString();
                  } else if (hours > 0) {
                      lastSeenText = `Last seen ${hours} hour${hours > 1 ? 's' : ''} ago`;
+                     lastSeenTime = lastSeen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                  } else if (minutes > 0) {
                      lastSeenText = `Last seen ${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+                     lastSeenTime = lastSeen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                  } else {
                      lastSeenText = 'Last seen recently';
+                     lastSeenTime = lastSeen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                  }
              }
+             
+             // Unread message count indicator
+             const unreadCount = friend.unreadCount || 0;
+             const unreadBadge = unreadCount > 0 ? `<div class="unread-badge">${unreadCount > 99 ? '99+' : unreadCount}</div>` : '';
+             
+             // Latest message preview
+             const latestMessage = friend.latestMessage || '';
+             const messagePreview = latestMessage.length > 30 ? latestMessage.substring(0, 30) + '...' : latestMessage;
              
              friendDiv.innerHTML = `
                  <div class="friend-avatar-container">
                      ${profileImageHtml}
                      <div class="default-avatar" style="display: none;"><i class="fas fa-user-circle"></i></div>
                      ${isOnline ? '<div class="online-indicator"></div>' : ''}
+                     ${unreadBadge}
                  </div>
                  <div class="friend-info">
-                     <span class="friend-name">${displayName}</span>
-                     <span class="friend-status ${statusClass}">${statusText}</span>
-                     ${lastSeenText ? `<span class="last-seen">${lastSeenText}</span>` : ''}
+                     <div class="friend-header">
+                         <span class="friend-name">${displayName}</span>
+                         ${lastSeenTime ? `<span class="last-seen-time">${lastSeenTime}</span>` : ''}
+                     </div>
+                     <div class="friend-details">
+                         <span class="friend-status ${statusClass}">${statusText}</span>
+                         ${lastSeenText && !isOnline ? `<span class="last-seen">${lastSeenText}</span>` : ''}
+                     </div>
+                     ${messagePreview ? `<div class="message-preview">${messagePreview}</div>` : ''}
                  </div>
              `;
 
@@ -3293,6 +3611,12 @@
                              
                              // Set partner ID
                              partnerId = friendId;
+                             
+                             // Mark messages as read for this friend
+                             await markMessagesAsRead(currentUser.uid, friendId);
+                             
+                             // Update the select friend badge after marking messages as read
+                             await updateSelectFriendBadge(currentUser.uid);
                              
                              // Close modal
                              document.getElementById('selectFriendModal').classList.remove('active');
@@ -3567,6 +3891,7 @@
                      content: message,
                      timestamp: serverTimestamp(),
                      status: 'sent',
+                     read: false, // Messages start as unread
                      reactions: {}
                  };
 
@@ -4022,6 +4347,12 @@
                  // Fetch notification count
                  await fetchNotificationCount(user.uid);
                  
+                 // Set up real-time friend list updates for new messages
+                 setupFriendListMessageListener(user.uid);
+                 
+                 // Update the select friend badge
+                 await updateSelectFriendBadge(user.uid);
+                 
                  // Load messages if partner is selected
                  if (partnerId) {
                      await loadMessages();
@@ -4045,6 +4376,10 @@
              if (unsubscribeTyping) unsubscribeTyping();
              if (isRecording) {
                  mediaRecorder?.stop();
+             }
+             // Cleanup friend list listeners
+             if (window.unsubscribeFriendListListeners) {
+                 window.unsubscribeFriendListListeners.forEach(unsubscribe => unsubscribe());
              }
              // Set user as offline when leaving
              if (currentUser) {
