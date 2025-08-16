@@ -1529,9 +1529,7 @@
                         <i class="fas fa-smile"></i> Reactions
                     </button>
                     
-                    <button id="demoIncomingCallBtn" title="Demo Incoming Call" style="background: linear-gradient(135deg, #28a745, #20c997);">
-                        <i class="fas fa-phone-incoming"></i> Demo Call
-                    </button>
+
                 </div>
 
                 <!-- Quick Emoji Reactions -->
@@ -2714,83 +2712,7 @@
                     this.callStartTime = null;
                 }
 
-                // Simulate incoming call (for demo purposes)
-                simulateIncomingCall(callerName, isVideo = false) {
-                    this.callPartner = callerName;
-                    this.isVideoCall = isVideo;
-                    
-                    const incomingCallInterface = document.createElement('div');
-                    incomingCallInterface.id = 'incomingCallInterface';
-                    incomingCallInterface.style.cssText = `
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
-                        z-index: 10001;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        justify-content: center;
-                        backdrop-filter: blur(10px);
-                    `;
-                    
-                    incomingCallInterface.innerHTML = `
-                        <div style="text-align: center; color: white;">
-                            <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #00d5ff, #ff2e92); margin: 0 auto 30px; display: flex; align-items: center; justify-content: center; animation: pulse 1.5s infinite;">
-                                <i class="fas fa-${isVideo ? 'video' : 'phone'}" style="font-size: 50px; color: white;"></i>
-                            </div>
-                            <h2 style="margin: 0 0 10px; font-size: 28px;">Incoming ${isVideo ? 'Video' : 'Voice'} Call</h2>
-                            <p style="margin: 0 0 30px; color: rgba(255, 255, 255, 0.7); font-size: 18px;">${callerName}</p>
-                            <div style="display: flex; gap: 20px;">
-                                <button id="answerCallBtn" style="background: #28a745; color: white; border: none; border-radius: 50%; width: 80px; height: 80px; cursor: pointer; font-size: 24px;">
-                                    <i class="fas fa-phone"></i>
-                                </button>
-                                <button id="rejectCallBtn" style="background: #dc3545; color: white; border: none; border-radius: 50%; width: 80px; height: 80px; cursor: pointer; font-size: 24px;">
-                                    <i class="fas fa-phone-slash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    document.body.appendChild(incomingCallInterface);
-                    
-                    // Start playing ringtone
-                    playRingtone();
-                    
-                    // Add answer call functionality
-                    document.getElementById('answerCallBtn').addEventListener('click', () => {
-                        this.answerIncomingCall();
-                    });
-                    
-                    // Add reject call functionality
-                    document.getElementById('rejectCallBtn').addEventListener('click', () => {
-                        this.rejectIncomingCall();
-                    });
-                }
 
-                answerIncomingCall() {
-                    stopRingtone();
-                    const incomingCallInterface = document.getElementById('incomingCallInterface');
-                    if (incomingCallInterface) {
-                        document.body.removeChild(incomingCallInterface);
-                    }
-                    
-                    // Start the call
-                    this.startCall(this.isVideoCall);
-                }
-
-                rejectIncomingCall() {
-                    stopRingtone();
-                    const incomingCallInterface = document.getElementById('incomingCallInterface');
-                    if (incomingCallInterface) {
-                        document.body.removeChild(incomingCallInterface);
-                    }
-                    
-                    showMessageBox('📞 Call rejected', 'info');
-                    this.resetCallState();
-                }
             }
 
             // Initialize call manager
@@ -2912,16 +2834,11 @@
             callManager.hideCallInterface = function() {
                 const callInterface = document.getElementById('activeCallInterface');
                 const callingInterface = document.getElementById('callingInterface');
-                const incomingCallInterface = document.getElementById('incomingCallInterface');
-                
                 if (callInterface) {
                     document.body.removeChild(callInterface);
                 }
                 if (callingInterface) {
                     document.body.removeChild(callingInterface);
-                }
-                if (incomingCallInterface) {
-                    document.body.removeChild(incomingCallInterface);
                 }
                 if (this.callTimerInterval) {
                     clearInterval(this.callTimerInterval);
@@ -3163,16 +3080,7 @@
                 }
             });
 
-            // Demo Incoming Call Button
-            document.getElementById('demoIncomingCallBtn').addEventListener('click', () => {
-                // Simulate incoming call from a random friend
-                const demoCallers = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson'];
-                const randomCaller = demoCallers[Math.floor(Math.random() * demoCallers.length)];
-                const isVideoCall = Math.random() > 0.5;
-                
-                callManager.simulateIncomingCall(randomCaller, isVideoCall);
-                showMessageBox(`📞 Simulating incoming ${isVideoCall ? 'video' : 'voice'} call from ${randomCaller}`, 'info');
-            });
+
 
             // Quick reaction button functionality
             document.querySelectorAll('.reaction-btn').forEach(btn => {
