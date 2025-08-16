@@ -1914,162 +1914,13 @@
                 }
             });
 
-                  // Voice Note Recording State (Global)
-         let isRecordingVoice = false;
-         let voiceRecorder = null;
-         let voiceAudioChunks = [];
-         let voiceRecordingStartTime = null;
-         let voiceRecordingTimer = null;
-         let voiceRecordingDuration = 0;
-         let voiceRecordingStream = null;
-         let voiceRecordingTimeout = null;
+                  // Voice Note Recording State (Global) - Declared in Firebase module section
 
-         // Voice Note Settings (Global)
-         let voiceNoteSettings = {
-             maxDuration: 5 * 60 * 1000, // 5 minutes
-             audioQuality: 'high', // 'low', 'medium', 'high'
-             autoSend: false, // Auto-send after recording
-             showWaveform: true, // Show waveform visualization
-             noiseReduction: true, // Enable noise reduction
-             echoCancellation: true // Enable echo cancellation
-         };
+         // Voice Note Settings (Global) - Will be declared in Firebase module section
             
-                  /**
-          * Start voice recording with full features
-          */
-         async function startVoiceRecording(btn) {
-             try {
-                 console.log("JCHAT_DEBUG: Starting voice recording...");
-                 
-                 // Check if we have a selected friend
-                 if (!partnerId) {
-                     showMessageBox('Please select a friend to send voice note to', 'warning');
-                     return;
-                 }
-                 
-                 // Check if already recording
-                 if (isRecordingVoice) {
-                     console.log("JCHAT_DEBUG: Already recording, ignoring start request");
-                     return;
-                 }
-                 
-                 // Check if user is authenticated
-                 if (!currentUser || !currentUser.uid) {
-                     showMessageBox('Please wait for authentication to complete', 'warning');
-                     return;
-                 }
-                 
-                 // Use settings for recording duration limit
-                 const MAX_RECORDING_DURATION = window.voiceNoteSettings.maxDuration;
-                 
-                 // Request microphone permission with settings
-                 const audioConstraints = {
-                     echoCancellation: window.voiceNoteSettings.echoCancellation,
-                     noiseSuppression: window.voiceNoteSettings.noiseReduction,
-                     autoGainControl: true
-                 };
-                 
-                 // Set sample rate based on quality setting
-                 switch (window.voiceNoteSettings.audioQuality) {
-                     case 'low':
-                         audioConstraints.sampleRate = 22050;
-                         break;
-                     case 'medium':
-                         audioConstraints.sampleRate = 32000;
-                         break;
-                     case 'high':
-                     default:
-                         audioConstraints.sampleRate = 44100;
-                         break;
-                 }
-                 
-                 console.log("JCHAT_DEBUG: Requesting microphone access with constraints:", audioConstraints);
-                 
-                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                     audio: audioConstraints
-                 });
-                 
-                 // Store stream reference for cleanup
-                 voiceRecordingStream = stream;
-                 
-                 // Initialize recording
-                 voiceRecorder = new MediaRecorder(stream, {
-                     mimeType: 'audio/webm;codecs=opus'
-                 });
-                 
-                 // Reset recording state
-                 voiceAudioChunks = [];
-                 voiceRecordingStartTime = Date.now();
-                 voiceRecordingDuration = 0;
-                 isRecordingVoice = true;
-                 
-                 // Set up recording event handlers
-                 voiceRecorder.ondataavailable = (event) => {
-                     if (event.data.size > 0) {
-                         voiceAudioChunks.push(event.data);
-                         console.log("JCHAT_DEBUG: Audio chunk received, size:", event.data.size);
-                     }
-                 };
-                 
-                 voiceRecorder.onstop = async () => {
-                     console.log("JCHAT_DEBUG: Voice recording stopped, processing...");
-                     await processVoiceRecording();
-                 };
-                 
-                 voiceRecorder.onerror = (event) => {
-                     console.error("JCHAT_ERROR: MediaRecorder error:", event.error);
-                     showMessageBox('Recording error occurred', 'error');
-                     stopVoiceRecording(btn);
-                 };
-                 
-                 // Start recording
-                 voiceRecorder.start(100); // Collect data every 100ms
-                 
-                 // Update UI
-                 btn.classList.add('recording');
-                 btn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
-                 btn.style.background = 'linear-gradient(135deg, #dc3545, #e94560)';
-                 
-                 // Start recording timer
-                 startVoiceRecordingTimer();
-                 
-                 // Show recording indicator
-                 showVoiceRecordingIndicator();
-                 
-                 // Set up auto-stop after max duration
-                 voiceRecordingTimeout = setTimeout(() => {
-                     if (isRecordingVoice) {
-                         showMessageBox(`Maximum recording duration reached (${Math.floor(MAX_RECORDING_DURATION / 60000)} minutes)`, 'info');
-                         stopVoiceRecording(btn);
-                     }
-                 }, MAX_RECORDING_DURATION);
-                 
-                 console.log("JCHAT_DEBUG: Voice recording started successfully");
-                 
-             } catch (error) {
-                 console.error("JCHAT_ERROR: Failed to start voice recording:", error);
-                 
-                 // Reset state on error
-                 isRecordingVoice = false;
-                 voiceRecordingStream = null;
-                 voiceRecorder = null;
-                 
-                 if (error.name === 'NotAllowedError') {
-                     showMessageBox('Microphone access denied. Please allow microphone access and try again.', 'error');
-                 } else if (error.name === 'NotFoundError') {
-                     showMessageBox('No microphone found. Please check your device.', 'error');
-                 } else if (error.name === 'NotReadableError') {
-                     showMessageBox('Microphone is in use by another application. Please close other apps using the microphone.', 'error');
-                 } else {
-                     showMessageBox(`Failed to start recording: ${error.message}`, 'error');
-                 }
-             }
-         }
+                  // Voice note functions are now defined in the Firebase module section
             
-         /**
-          * Stop voice recording
-          */
-         async function stopVoiceRecording(btn) {
+         // Voice note functions are now defined in the Firebase module section
              try {
                  console.log("JCHAT_DEBUG: Stopping voice recording...");
                  
@@ -2342,16 +2193,8 @@
              }
 
          /**
-          * Voice Note Settings
+          * Voice Note Settings - Global object declared in Firebase module section
           */
-         let voiceNoteSettings = {
-                 maxDuration: 5 * 60 * 1000, // 5 minutes
-                 audioQuality: 'high', // 'low', 'medium', 'high'
-                 autoSend: false, // Auto-send after recording
-                 showWaveform: true, // Show waveform visualization
-                 noiseReduction: true, // Enable noise reduction
-                 echoCancellation: true // Enable echo cancellation
-             };
 
          // Voice note settings button will be set up in DOMContentLoaded
 
@@ -3271,6 +3114,640 @@
          let isRecording = false;
          let recordingStartTime;
          let recordingInterval;
+
+         // Voice Note Settings (Global)
+         let voiceNoteSettings = {
+             maxDuration: 5 * 60 * 1000, // 5 minutes
+             audioQuality: 'high', // 'low', 'medium', 'high'
+             autoSend: false, // Auto-send after recording
+             showWaveform: true, // Show waveform visualization
+             noiseReduction: true, // Enable noise reduction
+             echoCancellation: true // Enable echo cancellation
+         };
+
+         // Voice Note Recording State (Global)
+         let isRecordingVoice = false;
+         let voiceRecorder = null;
+         let voiceAudioChunks = [];
+         let voiceRecordingStartTime = null;
+         let voiceRecordingTimer = null;
+         let voiceRecordingDuration = 0;
+         let voiceRecordingStream = null;
+         let voiceRecordingTimeout = null;
+
+         /**
+          * Start voice recording with full features
+          */
+         async function startVoiceRecording(btn) {
+             try {
+                 console.log("JCHAT_DEBUG: Starting voice recording...");
+                 
+                 // Check if we have a selected friend
+                 if (!partnerId) {
+                     showMessageBox('Please select a friend to send voice note to', 'warning');
+                     return;
+                 }
+                 
+                 // Check if already recording
+                 if (isRecordingVoice) {
+                     console.log("JCHAT_DEBUG: Already recording, ignoring start request");
+                     return;
+                 }
+                 
+                 // Check if user is authenticated
+                 if (!currentUser || !currentUser.uid) {
+                     showMessageBox('Please wait for authentication to complete', 'warning');
+                     return;
+                 }
+                 
+                 // Use settings for recording duration limit
+                 const MAX_RECORDING_DURATION = voiceNoteSettings.maxDuration;
+                 
+                 // Request microphone permission with settings
+                 const audioConstraints = {
+                     echoCancellation: voiceNoteSettings.echoCancellation,
+                     noiseSuppression: voiceNoteSettings.noiseReduction,
+                     autoGainControl: true
+                 };
+                 
+                 // Set sample rate based on quality setting
+                 switch (voiceNoteSettings.audioQuality) {
+                     case 'low':
+                         audioConstraints.sampleRate = 22050;
+                         break;
+                     case 'medium':
+                         audioConstraints.sampleRate = 32000;
+                         break;
+                     case 'high':
+                     default:
+                         audioConstraints.sampleRate = 44100;
+                         break;
+                 }
+                 
+                 console.log("JCHAT_DEBUG: Requesting microphone access with constraints:", audioConstraints);
+                 
+                 const stream = await navigator.mediaDevices.getUserMedia({ 
+                     audio: audioConstraints
+                 });
+                 
+                 // Store stream reference for cleanup
+                 voiceRecordingStream = stream;
+                 
+                 // Initialize recording
+                 voiceRecorder = new MediaRecorder(stream, {
+                     mimeType: 'audio/webm;codecs=opus'
+                 });
+                 
+                 // Reset recording state
+                 voiceAudioChunks = [];
+                 voiceRecordingStartTime = Date.now();
+                 voiceRecordingDuration = 0;
+                 isRecordingVoice = true;
+                 
+                 // Set up recording event handlers
+                 voiceRecorder.ondataavailable = (event) => {
+                     if (event.data.size > 0) {
+                         voiceAudioChunks.push(event.data);
+                         console.log("JCHAT_DEBUG: Audio chunk received, size:", event.data.size);
+                     }
+                 };
+                 
+                 voiceRecorder.onstop = async () => {
+                     console.log("JCHAT_DEBUG: Voice recording stopped, processing...");
+                     await processVoiceRecording();
+                 };
+                 
+                 voiceRecorder.onerror = (event) => {
+                     console.error("JCHAT_ERROR: MediaRecorder error:", event.error);
+                     showMessageBox('Recording error occurred', 'error');
+                     stopVoiceRecording(btn);
+                 };
+                 
+                 // Start recording
+                 voiceRecorder.start(100); // Collect data every 100ms
+                 
+                 // Update UI
+                 btn.classList.add('recording');
+                 btn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+                 btn.style.background = 'linear-gradient(135deg, #dc3545, #e94560)';
+                 
+                 // Start recording timer
+                 startVoiceRecordingTimer();
+                 
+                 // Show recording indicator
+                 showVoiceRecordingIndicator();
+                 
+                 // Set up auto-stop after max duration
+                 voiceRecordingTimeout = setTimeout(() => {
+                     if (isRecordingVoice) {
+                         showMessageBox(`Maximum recording duration reached (${Math.floor(MAX_RECORDING_DURATION / 60000)} minutes)`, 'info');
+                         stopVoiceRecording(btn);
+                     }
+                 }, MAX_RECORDING_DURATION);
+                 
+                 console.log("JCHAT_DEBUG: Voice recording started successfully");
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Failed to start voice recording:", error);
+                 
+                 // Reset state on error
+                 isRecordingVoice = false;
+                 voiceRecordingStream = null;
+                 voiceRecorder = null;
+                 
+                 if (error.name === 'NotAllowedError') {
+                     showMessageBox('Microphone access denied. Please allow microphone access and try again.', 'error');
+                 } else if (error.name === 'NotFoundError') {
+                     showMessageBox('No microphone found. Please check your device.', 'error');
+                 } else if (error.name === 'NotReadableError') {
+                     showMessageBox('Microphone is in use by another application. Please close other apps using the microphone.', 'error');
+                 } else {
+                     showMessageBox(`Failed to start recording: ${error.message}`, 'error');
+                 }
+             }
+         }
+
+         // Voice note functions are now defined in the Firebase module section
+
+         // Voice note functions are now defined in the Firebase module section
+
+         // Voice note functions are now defined in the Firebase module section
+
+         /**
+          * Start voice recording timer
+          */
+         function startVoiceRecordingTimer() {
+             voiceRecordingStartTime = Date.now();
+             voiceRecordingTimer = setInterval(() => {
+                 voiceRecordingDuration = Date.now() - voiceRecordingStartTime;
+                 updateVoiceRecordingIndicator();
+             }, 100);
+         }
+
+         /**
+          * Show voice recording indicator
+          */
+         function showVoiceRecordingIndicator() {
+             let indicator = document.getElementById('voiceRecordingIndicator');
+             if (!indicator) {
+                 indicator = document.createElement('div');
+                 indicator.id = 'voiceRecordingIndicator';
+                 indicator.style.cssText = `
+                     position: fixed;
+                     top: 20px;
+                     right: 20px;
+                     background: linear-gradient(135deg, #dc3545, #e94560);
+                     color: white;
+                     padding: 15px 20px;
+                     border-radius: 10px;
+                     z-index: 1000;
+                     display: flex;
+                     align-items: center;
+                     gap: 10px;
+                     box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+                     animation: pulse 1s infinite;
+                 `;
+                 
+                 indicator.innerHTML = `
+                     <i class="fas fa-microphone" style="animation: blink 1s infinite;"></i>
+                     <span>Recording...</span>
+                     <span class="recording-timer">00:00</span>
+                 `;
+                 
+                 document.body.appendChild(indicator);
+             }
+             indicator.style.display = 'flex';
+         }
+
+         /**
+          * Update voice recording indicator timer
+          */
+         function updateVoiceRecordingIndicator() {
+             const indicator = document.getElementById('voiceRecordingIndicator');
+             if (indicator) {
+                 const timerElement = indicator.querySelector('.recording-timer');
+                 if (timerElement) {
+                     const milliseconds = voiceRecordingDuration;
+                     const seconds = Math.floor(milliseconds / 1000);
+                     const minutes = Math.floor(seconds / 60);
+                     const remainingSeconds = seconds % 60;
+                     timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+                 }
+             }
+         }
+
+         /**
+          * Hide voice recording indicator
+          */
+         function hideVoiceRecordingIndicator() {
+             const indicator = document.getElementById('voiceRecordingIndicator');
+             if (indicator) {
+                 indicator.style.display = 'none';
+             }
+         }
+
+         /**
+          * Format voice duration for display
+          */
+         function formatVoiceDuration(milliseconds) {
+             const seconds = Math.floor(milliseconds / 1000);
+             const minutes = Math.floor(seconds / 60);
+             const remainingSeconds = seconds % 60;
+             return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+         }
+
+         /**
+          * Convert blob to base64
+          */
+         function blobToBase64(blob) {
+             return new Promise((resolve, reject) => {
+                 const reader = new FileReader();
+                 reader.onload = () => resolve(reader.result.split(',')[1]);
+                 reader.onerror = reject;
+                 reader.readAsDataURL(blob);
+             });
+         }
+
+         /**
+          * Convert base64 to blob
+          */
+         function base64ToBlob(base64, mimeType = 'audio/webm') {
+             const byteCharacters = atob(base64);
+             const byteNumbers = new Array(byteCharacters.length);
+             for (let i = 0; i < byteCharacters.length; i++) {
+                 byteNumbers[i] = byteCharacters.charCodeAt(i);
+             }
+             const byteArray = new Uint8Array(byteNumbers);
+             return new Blob([byteArray], { type: mimeType });
+         }
+
+         /**
+          * Create voice note message bubble
+          */
+         function createVoiceNoteMessage(messageData, messageId) {
+             return `
+                 <div class="voice-note-message" data-message-id="${messageId}">
+                     <div class="voice-note-icon">
+                         <i class="fas fa-microphone"></i>
+                     </div>
+                     <div class="voice-note-controls">
+                         <button class="voice-note-play-btn" onclick="playVoiceNote('${messageId}', '${messageData.content}')">
+                             <i class="fas fa-play"></i>
+                         </button>
+                         <div class="voice-note-progress">
+                             <div class="voice-note-progress-bar" style="width: 0%"></div>
+                         </div>
+                         <span class="voice-note-duration">${messageData.durationText || '0:00'}</span>
+                     </div>
+                     ${voiceNoteSettings.showWaveform ? '<div class="voice-note-waveform"></div>' : ''}
+                 </div>
+             `;
+         }
+
+         /**
+          * Play voice note
+          */
+         function playVoiceNote(messageId, base64Audio) {
+             try {
+                 // Stop any currently playing voice note
+                 stopAllVoiceNotes();
+                 
+                 // Convert base64 to blob
+                 const audioBlob = base64ToBlob(base64Audio);
+                 const audioUrl = URL.createObjectURL(audioBlob);
+                 
+                 // Create audio element
+                 const audio = new Audio(audioUrl);
+                 
+                 // Get the message element
+                 const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                 if (!messageElement) {
+                     console.error("JCHAT_ERROR: Message element not found");
+                     return;
+                 }
+                 
+                 // Get play button and progress bar
+                 const playBtn = messageElement.querySelector('.voice-note-play-btn');
+                 const progressBar = messageElement.querySelector('.voice-note-progress-bar');
+                 
+                 // Update play button
+                 playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                 playBtn.onclick = () => stopVoiceNote(messageId, audio);
+                 
+                 // Set up audio event listeners
+                 audio.addEventListener('timeupdate', () => {
+                     if (progressBar) {
+                         const progress = (audio.currentTime / audio.duration) * 100;
+                         progressBar.style.width = `${progress}%`;
+                     }
+                 });
+                 
+                 audio.addEventListener('ended', () => {
+                     // Reset UI
+                     playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                     playBtn.onclick = () => playVoiceNote(messageId, base64Audio);
+                     if (progressBar) {
+                         progressBar.style.width = '0%';
+                     }
+                     
+                     // Clean up
+                     URL.revokeObjectURL(audioUrl);
+                     window.currentPlayingAudio = null;
+                     window.currentPlayingMessageId = null;
+                 });
+                 
+                 // Play audio
+                 audio.play();
+                 
+                 // Store references for global control
+                 window.currentPlayingAudio = audio;
+                 window.currentPlayingMessageId = messageId;
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Failed to play voice note:", error);
+                 showMessageBox('Error playing voice note', 'error');
+             }
+         }
+
+         /**
+          * Stop voice note
+          */
+         function stopVoiceNote(messageId, audio) {
+             try {
+                 audio.pause();
+                 audio.currentTime = 0;
+                 
+                 // Reset UI
+                 const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                 if (messageElement) {
+                     const playBtn = messageElement.querySelector('.voice-note-play-btn');
+                     const progressBar = messageElement.querySelector('.voice-note-progress-bar');
+                     
+                     playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                     playBtn.onclick = () => playVoiceNote(messageId, messageElement.querySelector('.voice-note-controls').getAttribute('data-audio'));
+                     
+                     if (progressBar) {
+                         progressBar.style.width = '0%';
+                     }
+                 }
+                 
+                 // Clean up
+                 window.currentPlayingAudio = null;
+                 window.currentPlayingMessageId = null;
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Failed to stop voice note:", error);
+             }
+         }
+
+         /**
+          * Stop all voice notes
+          */
+         function stopAllVoiceNotes() {
+             try {
+                 if (window.currentPlayingAudio) {
+                     window.currentPlayingAudio.pause();
+                     window.currentPlayingAudio.currentTime = 0;
+                     window.currentPlayingAudio = null;
+                 }
+                 
+                 if (window.currentPlayingMessageId) {
+                     const messageElement = document.querySelector(`[data-message-id="${window.currentPlayingMessageId}"]`);
+                     if (messageElement) {
+                         const playBtn = messageElement.querySelector('.voice-note-play-btn');
+                         const progressBar = messageElement.querySelector('.voice-note-progress-bar');
+                         
+                         playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                         
+                         if (progressBar) {
+                             progressBar.style.width = '0%';
+                         }
+                     }
+                     window.currentPlayingMessageId = null;
+                 }
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Failed to stop all voice notes:", error);
+             }
+         }
+
+         /**
+          * Show voice note settings panel
+          */
+         function showVoiceNoteSettings() {
+             let settingsPanel = document.getElementById('voiceNoteSettingsPanel');
+             
+             if (!settingsPanel) {
+                 settingsPanel = document.createElement('div');
+                 settingsPanel.id = 'voiceNoteSettingsPanel';
+                 settingsPanel.style.cssText = `
+                     position: fixed;
+                     top: 50%;
+                     left: 50%;
+                     transform: translate(-50%, -50%);
+                     background: var(--card-background);
+                     border: 1px solid var(--border-light);
+                     border-radius: 15px;
+                     padding: 25px;
+                     z-index: 1004;
+                     min-width: 350px;
+                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                 `;
+                 
+                 settingsPanel.innerHTML = `
+                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                         <h3 style="color: var(--white); margin: 0;">Voice Note Settings</h3>
+                         <button id="closeVoiceSettings" style="background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 18px;">
+                             <i class="fas fa-times"></i>
+                         </button>
+                     </div>
+                     
+                     <div style="margin-bottom: 15px;">
+                         <label style="color: var(--white); display: block; margin-bottom: 5px;">Maximum Duration:</label>
+                         <select id="maxDurationSelect" style="width: 100%; padding: 8px; border-radius: 8px; background: var(--input-background); color: var(--white); border: 1px solid var(--border-light);">
+                             <option value="60000">1 minute</option>
+                             <option value="300000" selected>5 minutes</option>
+                             <option value="600000">10 minutes</option>
+                             <option value="900000">15 minutes</option>
+                         </select>
+                     </div>
+                     
+                     <div style="margin-bottom: 15px;">
+                         <label style="color: var(--white); display: block; margin-bottom: 5px;">Audio Quality:</label>
+                         <select id="audioQualitySelect" style="width: 100%; padding: 8px; border-radius: 8px; background: var(--input-background); color: var(--white); border: 1px solid var(--border-light);">
+                             <option value="low">Low (Smaller file)</option>
+                             <option value="medium">Medium (Balanced)</option>
+                             <option value="high" selected>High (Best quality)</option>
+                         </select>
+                     </div>
+                     
+                     <div style="margin-bottom: 15px;">
+                         <label style="color: var(--white); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                             <input type="checkbox" id="autoSendCheckbox" style="margin: 0;">
+                             Auto-send after recording
+                         </label>
+                     </div>
+                     
+                     <div style="margin-bottom: 15px;">
+                         <label style="color: var(--white); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                             <input type="checkbox" id="noiseReductionCheckbox" checked style="margin: 0;">
+                             Enable noise reduction
+                         </label>
+                     </div>
+                     
+                     <div style="margin-bottom: 20px;">
+                         <label style="color: var(--white); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                             <input type="checkbox" id="echoCancellationCheckbox" checked style="margin: 0;">
+                             Enable echo cancellation
+                         </label>
+                     </div>
+                     
+                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                         <button id="resetVoiceSettings" style="background: rgba(255,255,255,0.1); color: var(--white); border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer;">
+                             Reset to Default
+                         </button>
+                         <button id="saveVoiceSettings" style="background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer;">
+                             Save Settings
+                         </button>
+                     </div>
+                 `;
+                 
+                 document.body.appendChild(settingsPanel);
+                 
+                 // Set up event listeners
+                 document.getElementById('closeVoiceSettings').addEventListener('click', hideVoiceNoteSettings);
+                 document.getElementById('saveVoiceSettings').addEventListener('click', saveVoiceNoteSettings);
+                 document.getElementById('resetVoiceSettings').addEventListener('click', resetVoiceNoteSettings);
+                 
+                 // Load current settings
+                 loadVoiceNoteSettings();
+             }
+             
+             settingsPanel.style.display = 'block';
+         }
+
+         /**
+          * Hide voice note settings panel
+          */
+         function hideVoiceNoteSettings() {
+             const settingsPanel = document.getElementById('voiceNoteSettingsPanel');
+             if (settingsPanel) {
+                 settingsPanel.style.display = 'none';
+             }
+         }
+
+         /**
+          * Load voice note settings from panel
+          */
+         function loadVoiceNoteSettings() {
+             const maxDurationSelect = document.getElementById('maxDurationSelect');
+             const audioQualitySelect = document.getElementById('audioQualitySelect');
+             const autoSendCheckbox = document.getElementById('autoSendCheckbox');
+             const noiseReductionCheckbox = document.getElementById('noiseReductionCheckbox');
+             const echoCancellationCheckbox = document.getElementById('echoCancellationCheckbox');
+             
+             if (maxDurationSelect) maxDurationSelect.value = voiceNoteSettings.maxDuration;
+             if (audioQualitySelect) audioQualitySelect.value = voiceNoteSettings.audioQuality;
+             if (autoSendCheckbox) autoSendCheckbox.checked = voiceNoteSettings.autoSend;
+             if (noiseReductionCheckbox) noiseReductionCheckbox.checked = voiceNoteSettings.noiseReduction;
+             if (echoCancellationCheckbox) echoCancellationCheckbox.checked = voiceNoteSettings.echoCancellation;
+         }
+
+         /**
+          * Save voice note settings from panel
+          */
+         function saveVoiceNoteSettings() {
+             const maxDurationSelect = document.getElementById('maxDurationSelect');
+             const audioQualitySelect = document.getElementById('audioQualitySelect');
+             const autoSendCheckbox = document.getElementById('autoSendCheckbox');
+             const noiseReductionCheckbox = document.getElementById('noiseReductionCheckbox');
+             const echoCancellationCheckbox = document.getElementById('echoCancellationCheckbox');
+             
+             voiceNoteSettings.maxDuration = parseInt(maxDurationSelect.value);
+             voiceNoteSettings.audioQuality = audioQualitySelect.value;
+             voiceNoteSettings.autoSend = autoSendCheckbox.checked;
+             voiceNoteSettings.noiseReduction = noiseReductionCheckbox.checked;
+             voiceNoteSettings.echoCancellation = echoCancellationCheckbox.checked;
+             
+             // Save to localStorage
+             localStorage.setItem('voiceNoteSettings', JSON.stringify(voiceNoteSettings));
+             
+             showMessageBox('Voice note settings saved!', 'success');
+             hideVoiceNoteSettings();
+         }
+
+         /**
+          * Reset voice note settings to default
+          */
+         function resetVoiceNoteSettings() {
+             voiceNoteSettings = {
+                 maxDuration: 5 * 60 * 1000,
+                 audioQuality: 'high',
+                 autoSend: false,
+                 showWaveform: true,
+                 noiseReduction: true,
+                 echoCancellation: true
+             };
+             
+             localStorage.removeItem('voiceNoteSettings');
+             loadVoiceNoteSettings();
+             showMessageBox('Voice note settings reset to default!', 'success');
+         }
+
+         /**
+          * Show voice note send confirmation dialog
+          */
+         function showVoiceNoteSendDialog(voiceNoteData) {
+             let sendDialog = document.getElementById('voiceNoteSendDialog');
+             
+             if (!sendDialog) {
+                 sendDialog = document.createElement('div');
+                 sendDialog.id = 'voiceNoteSendDialog';
+                 sendDialog.style.cssText = `
+                     position: fixed;
+                     top: 50%;
+                     left: 50%;
+                     transform: translate(-50%, -50%);
+                     background: var(--card-background);
+                     border: 1px solid var(--border-light);
+                     border-radius: 15px;
+                     padding: 25px;
+                     z-index: 1005;
+                     min-width: 300px;
+                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                 `;
+                 
+                 document.body.appendChild(sendDialog);
+             }
+             
+             const duration = voiceNoteData.durationText;
+             sendDialog.innerHTML = `
+                 <div style="text-align: center;">
+                     <h3 style="color: var(--white); margin-bottom: 15px;">Send Voice Note?</h3>
+                     <p style="color: var(--text-light); margin-bottom: 20px;">Duration: ${duration}</p>
+                     <div style="display: flex; gap: 10px; justify-content: center;">
+                         <button id="cancelVoiceNote" style="background: rgba(255,255,255,0.1); color: var(--white); border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer;">
+                             Cancel
+                         </button>
+                         <button id="sendVoiceNote" style="background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer;">
+                             Send
+                         </button>
+                     </div>
+                 </div>
+             `;
+             
+             // Set up event listeners
+             document.getElementById('cancelVoiceNote').addEventListener('click', () => {
+                 sendDialog.style.display = 'none';
+             });
+             
+             document.getElementById('sendVoiceNote').addEventListener('click', async () => {
+                 sendDialog.style.display = 'none';
+                 await sendVoiceNote(voiceNoteData);
+             });
+             
+             sendDialog.style.display = 'block';
+         }
 
          // --- WebRTC Call State Management ---
          let localStream = null;
