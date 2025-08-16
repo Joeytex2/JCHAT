@@ -2716,10 +2716,27 @@
                  try {
                      const userProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
                      await updateDoc(userProfileRef, {
-                         lastActivity: serverTimestamp()
+                         lastActivity: serverTimestamp(),
+                         isAuthenticated: true
                      });
+                     console.log("JCHAT_DEBUG: Updated user activity and authentication status");
                  } catch (error) {
                      console.error("JCHAT_ERROR: Error updating user activity:", error);
+                 }
+             }
+         }
+
+         // Function to set user as signed out
+         async function setUserSignedOut() {
+             if (currentUser) {
+                 try {
+                     const userProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                     await updateDoc(userProfileRef, {
+                         isAuthenticated: false
+                     });
+                     console.log("JCHAT_DEBUG: Set user as signed out");
+                 } catch (error) {
+                     console.error("JCHAT_ERROR: Error setting user as signed out:", error);
                  }
              }
          }
@@ -2762,7 +2779,15 @@
                  
                  showMessageBox("Connected to JCHAT! 🚀", 'success');
              } else {
-                 console.log("JCHAT_DEBUG: User not authenticated, signing in anonymously");
+                 console.log("JCHAT_DEBUG: User signed out");
+                 // Set the user as signed out in the database
+                 await setUserSignedOut();
+                 
+                 // Reset current user
+                 currentUser = null;
+                 isAuthReady = false;
+                 
+                 // Try to sign in anonymously
                  try {
                      await signInAnonymously(auth);
                  } catch (error) {
@@ -2782,6 +2807,7 @@
          let unsubscribeFriends = null; // For real-time friend updates
          let unsubscribeUsers = null; // For real-time user updates
          let userOnlineStatus = new Map(); // Track online status of users
+         let userAuthStatus = new Map(); // Track authentication status of users
 
          // Function to fetch friends from Firebase (exact same as Find_Friends.html's fetchFriendsForModal)
          async function fetchUserFriends() {
@@ -2876,18 +2902,23 @@
                      const userData = docSnap.data();
                      allUsersData.push({ userId: docSnap.id, ...userData });
                      
-                     // Update online status based on last activity
-                     if (userData.lastActivity) {
+                     // Update authentication status based on isAuthenticated field
+                     const isAuthenticated = userData.isAuthenticated === true;
+                     userAuthStatus.set(docSnap.id, isAuthenticated);
+                     
+                     // Update online status based on last activity (for authenticated users only)
+                     if (isAuthenticated && userData.lastActivity) {
                          const lastActivity = userData.lastActivity.toDate ? userData.lastActivity.toDate() : new Date(userData.lastActivity);
                          const now = new Date();
                          const timeDiff = now - lastActivity;
                          const isOnline = timeDiff < 5 * 60 * 1000; // 5 minutes threshold
                          userOnlineStatus.set(docSnap.id, isOnline);
                      } else {
-                         userOnlineStatus.set(docSnap.id, false); // Default to offline if no activity data
+                         userOnlineStatus.set(docSnap.id, false); // Offline if not authenticated or no activity
                      }
                  });
                  console.log(`JCHAT_DEBUG: Updated users list, now have ${allUsersData.length} users`);
+                 console.log(`JCHAT_DEBUG: Authentication status:`, Object.fromEntries(userAuthStatus));
                  
                  // Re-render friends list if modal is open (same as Find_Friends.html)
                  if (document.getElementById('selectFriendModal').classList.contains('active')) {
@@ -2920,13 +2951,17 @@
 
              const displayName = friend.visibility?.displayName !== false ? friend.username : 'Anonymous User';
              
-             // Get real online status from the tracking map
+             // Get real authentication status from the tracking map
+             const isAuthenticated = userAuthStatus.get(friend.userId) || false;
              const isOnline = userOnlineStatus.get(friend.userId) || false;
-             const statusColor = isOnline ? '#4CAF50' : '#f44336'; // Green if online, red if offline
+             
+             // Show green if authenticated and online, red if not authenticated or offline
+             const statusColor = (isAuthenticated && isOnline) ? '#4CAF50' : '#f44336';
+             const shouldAnimate = isAuthenticated && isOnline;
              
              friendDiv.innerHTML = `
                  <span class="friend-status">
-                     <i class="fas fa-circle" style="color: ${statusColor}; font-size: 8px; animation: ${isOnline ? 'pulse 2s infinite' : 'none'};"></i>
+                     <i class="fas fa-circle" style="color: ${statusColor}; font-size: 8px; animation: ${shouldAnimate ? 'pulse 2s infinite' : 'none'};"></i>
                  </span>
                  <span class="friend-name">${displayName}</span>
              `;
@@ -3071,7 +3106,10 @@
          });
 
          // Cleanup on page unload
-         window.addEventListener('beforeunload', () => {
+         window.addEventListener('beforeunload', async () => {
+             // Set user as signed out when leaving the page
+             await setUserSignedOut();
+             
              if (unsubscribeMessages) unsubscribeMessages();
              if (unsubscribeFriends) unsubscribeFriends();
              if (unsubscribeUsers) unsubscribeUsers();
