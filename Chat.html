@@ -2649,41 +2649,21 @@
          let recordingStartTime;
          let recordingInterval;
 
-         // --- Tone.js Synths for Notification Sounds ---
-         const successSynth = new Tone.Synth().toDestination();
-         const errorSynth = new Tone.Synth({
-             oscillator: { type: "sawtooth" }
-         }).toDestination();
-         const infoSynth = new Tone.Synth({
-             oscillator: { type: "triangle" }
-         }).toDestination();
+         // --- Notification Sound ---
+         // Using ne.mp3 for all notification sounds
 
          /**
-          * Plays notification sounds using ne.mp3 or Tone.js fallback
+          * Plays notification sound using ne.mp3
           */
          function playNotificationSound(type) {
              if (!notificationSoundEnabled) return;
 
              try {
-                 // Try to play ne.mp3 first
+                 // Play ne.mp3 for all notification types
                  const audio = new Audio('ne.mp3');
                  audio.volume = 0.6;
                  audio.play().catch(() => {
-                     // Fallback to Tone.js if ne.mp3 fails
-                     console.log("JCHAT_DEBUG: Using Tone.js fallback for notification sound");
-                     
-                     Tone.start(); // Ensure audio context is started
-                     if (type === 'success') {
-                         successSynth.triggerAttackRelease("C5", "8n");
-                     } else if (type === 'error') {
-                         errorSynth.triggerAttackRelease("C3", "8n");
-                     } else if (type === 'info') {
-                         infoSynth.triggerAttackRelease("E4", "16n");
-                     } else if (type === 'warning') {
-                         errorSynth.triggerAttackRelease("A3", "4n");
-                     } else if (type === 'message') {
-                         infoSynth.triggerAttackRelease("A4", "16n");
-                     }
+                     console.log("JCHAT_DEBUG: Failed to play notification sound");
                  });
              } catch (error) {
                  console.error("JCHAT_ERROR: Error playing notification sound:", error);
