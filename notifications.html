@@ -2278,8 +2278,26 @@
                     if (currentNotificationData && currentNotificationData.senderId) {
                         markNotificationAsRead(currentNotificationData.id);
                         hideNotificationOptions();
-                        // Navigate to Chat.html with partner ID for automatic friend selection
-                        window.location.href = `/Chat.html?partnerId=${currentNotificationData.senderId}`;
+                        
+                        // Build URL with partner ID and message information
+                        let chatUrl = `/Chat.html?partnerId=${currentNotificationData.senderId}`;
+                        
+                        // Add message information if this is a message notification
+                        if (currentNotificationData.type === 'message' && currentNotificationData.messageId) {
+                            chatUrl += `&messageId=${currentNotificationData.messageId}`;
+                            if (currentNotificationData.messageTimestamp) {
+                                // Convert timestamp to a format that can be passed in URL
+                                const timestamp = currentNotificationData.messageTimestamp;
+                                const timestampValue = timestamp.seconds ? timestamp.seconds : 
+                                                     (timestamp.toDate ? timestamp.toDate().getTime() : 
+                                                      (timestamp instanceof Date ? timestamp.getTime() : timestamp));
+                                chatUrl += `&messageTime=${timestampValue}`;
+                            }
+                        }
+                        
+                        // Navigate to Chat.html with all parameters
+                        window.location.href = chatUrl;
+                        console.log(`JCHAT_DEBUG: Navigating to chat with URL: ${chatUrl}`);
                     } else {
                         showMessageBox("Cannot send message: sender not found.", 'error');
                     }
@@ -2446,8 +2464,10 @@
          * @param {string} senderUsername - The username of the sender
          * @param {string} messageContent - The content of the message
          * @param {string} receiverId - The ID of the message receiver
+         * @param {string} messageId - The ID of the message (optional)
+         * @param {Object} messageTimestamp - The timestamp of the message (optional)
          */
-        async function createMessageNotification(senderId, senderUsername, messageContent, receiverId) {
+        async function createMessageNotification(senderId, senderUsername, messageContent, receiverId, messageId = null, messageTimestamp = null) {
             if (!receiverId || receiverId === senderId) return;
             
             try {
@@ -2461,11 +2481,13 @@
                     timestamp: serverTimestamp(),
                     read: false,
                     chatRoomId: getChatRoomId(senderId, receiverId),
-                    messagePreview: messageContent.substring(0, 100)
+                    messagePreview: messageContent.substring(0, 100),
+                    messageId: messageId, // Store the actual message ID
+                    messageTimestamp: messageTimestamp // Store the message timestamp
                 };
 
                 await addDoc(notificationsCollectionRef, notificationData);
-                console.log(`JCHAT_DEBUG: Created message notification for ${receiverId} from ${senderUsername}`);
+                console.log(`JCHAT_DEBUG: Created message notification for ${receiverId} from ${senderUsername} with message ID: ${messageId}`);
             } catch (error) {
                 console.error("JCHAT_ERROR: Error creating message notification:", error);
             }

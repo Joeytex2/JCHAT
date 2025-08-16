@@ -3352,7 +3352,9 @@
                          messageData.senderId,
                          senderUsername,
                          messageData.content,
-                         currentUser.uid
+                         currentUser.uid,
+                         messageId, // Pass the message ID
+                         messageData.timestamp // Pass the message timestamp
                      );
                  }
              }
@@ -3587,9 +3589,13 @@
          async function handleURLParameters() {
              const urlParams = new URLSearchParams(window.location.search);
              const partnerIdFromURL = urlParams.get('partnerId');
+             const messageIdFromURL = urlParams.get('messageId');
+             const messageTimeFromURL = urlParams.get('messageTime');
              
              if (partnerIdFromURL && partnerIdFromURL !== partnerId) {
                  console.log(`JCHAT_DEBUG: Found partnerId in URL: ${partnerIdFromURL}`);
+                 console.log(`JCHAT_DEBUG: Found messageId in URL: ${messageIdFromURL}`);
+                 console.log(`JCHAT_DEBUG: Found messageTime in URL: ${messageTimeFromURL}`);
                  
                  // Check if this user is a friend
                  if (currentUsersFriends.has(partnerIdFromURL)) {
@@ -3604,9 +3610,18 @@
                          // Load messages for this partner
                          await loadMessages();
                          
-                         // Clear the URL parameter
+                         // If we have message information, scroll to that specific message
+                         if (messageIdFromURL || messageTimeFromURL) {
+                             setTimeout(() => {
+                                 scrollToMessage(messageIdFromURL, messageTimeFromURL);
+                             }, 1000); // Wait for messages to load
+                         }
+                         
+                         // Clear the URL parameters
                          const newURL = new URL(window.location);
                          newURL.searchParams.delete('partnerId');
+                         newURL.searchParams.delete('messageId');
+                         newURL.searchParams.delete('messageTime');
                          window.history.replaceState({}, '', newURL);
                          
                          showMessageBox(`💬 Now chatting with ${friendData.username}`, 'success');
@@ -3620,6 +3635,72 @@
                      showMessageBox('User is not in your friends list. Add them as a friend first.', 'warning');
                  }
              }
+         }
+
+         // Function to scroll to a specific message
+         function scrollToMessage(messageId, messageTime) {
+             console.log(`JCHAT_DEBUG: Attempting to scroll to message ID: ${messageId}, Time: ${messageTime}`);
+             
+             if (messageId) {
+                 // Try to find message by ID first
+                 const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                 if (messageElement) {
+                     messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                     
+                     // Highlight the message briefly
+                     messageElement.style.backgroundColor = 'rgba(0, 213, 255, 0.2)';
+                     messageElement.style.border = '2px solid var(--accent-color)';
+                     messageElement.style.borderRadius = '12px';
+                     
+                     setTimeout(() => {
+                         messageElement.style.backgroundColor = '';
+                         messageElement.style.border = '';
+                         messageElement.style.borderRadius = '';
+                     }, 3000);
+                     
+                     console.log(`JCHAT_DEBUG: Scrolled to message with ID: ${messageId}`);
+                     return;
+                 }
+             }
+             
+             // If message ID not found, try to find by timestamp
+             if (messageTime) {
+                 const targetTime = parseInt(messageTime);
+                 const messageElements = document.querySelectorAll('.message-bubble');
+                 
+                 for (let i = messageElements.length - 1; i >= 0; i--) {
+                     const messageElement = messageElements[i];
+                     const timeElement = messageElement.querySelector('.message-time');
+                     
+                     if (timeElement) {
+                         const messageTimeText = timeElement.textContent;
+                         // Try to parse the time and compare
+                         const messageDate = new Date(messageTimeText);
+                         
+                         if (!isNaN(messageDate.getTime()) && Math.abs(messageDate.getTime() - targetTime) < 60000) { // Within 1 minute
+                             messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                             
+                             // Highlight the message briefly
+                             messageElement.style.backgroundColor = 'rgba(0, 213, 255, 0.2)';
+                             messageElement.style.border = '2px solid var(--accent-color)';
+                             messageElement.style.borderRadius = '12px';
+                             
+                             setTimeout(() => {
+                                 messageElement.style.backgroundColor = '';
+                                 messageElement.style.border = '';
+                                 messageElement.style.borderRadius = '';
+                             }, 3000);
+                             
+                             console.log(`JCHAT_DEBUG: Scrolled to message with timestamp: ${messageTimeText}`);
+                             return;
+                         }
+                     }
+                 }
+             }
+             
+             // If neither method worked, scroll to bottom
+             console.log(`JCHAT_DEBUG: Could not find specific message, scrolling to bottom`);
+             messagesArea.scrollTop = messagesArea.scrollHeight;
          }
 
          // Function to set up real-time friends and users listeners (exact same as Find_Friends.html)
