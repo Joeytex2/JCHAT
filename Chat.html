@@ -957,26 +957,51 @@
 
         /* Select Friend Modal Specific Styles */
         #selectFriendModal .modal-content {
-            background: var(--card-background);
-            border: 1px solid var(--border-light);
-            backdrop-filter: blur(10px);
+            background: #000000;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            backdrop-filter: blur(20px);
+            position: relative;
+            box-shadow: 0 0 30px rgba(255, 46, 146, 0.3), 0 0 30px rgba(0, 213, 255, 0.3);
+        }
+
+        #selectFriendModal .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--pink), var(--blue), var(--pink));
+            border-radius: inherit;
+            z-index: -1;
+            animation: modalGlowBorder 3s ease-in-out infinite;
+        }
+
+        @keyframes modalGlowBorder {
+            0% { background: linear-gradient(45deg, var(--pink), var(--blue), var(--pink)); }
+            50% { background: linear-gradient(45deg, var(--blue), var(--pink), var(--blue)); }
+            100% { background: linear-gradient(45deg, var(--pink), var(--blue), var(--pink)); }
         }
 
         #selectFriendModal .search-input {
             width: 100%;
             padding: 12px 15px;
             border-radius: 10px;
-            border: 1px solid var(--border-light);
-            background-color: var(--input-background);
+            border: 2px solid transparent;
+            background: #111111;
             color: var(--white);
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.2s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 46, 146, 0.2), 0 0 10px rgba(0, 213, 255, 0.2);
         }
 
         #selectFriendModal .search-input:focus {
-            border-color: var(--blue);
-            box-shadow: 0 0 0 2px rgba(0, 213, 255, 0.2);
+            border: 2px solid;
+            border-image: linear-gradient(45deg, var(--pink), var(--blue)) 1;
+            box-shadow: 0 0 20px rgba(255, 46, 146, 0.4), 0 0 20px rgba(0, 213, 255, 0.4);
+            background: #000000;
         }
 
         #selectFriendModal .search-input::placeholder {
@@ -997,19 +1022,48 @@
             gap: 12px;
             padding: 12px 15px;
             border-radius: 12px;
-            background-color: var(--input-background);
-            border: 1px solid var(--border-light);
+            background: #111111;
+            border: 2px solid transparent;
             margin-bottom: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             position: relative;
+            animation: friendItemGlow 2s ease-in-out infinite alternate;
+        }
+
+        #selectFriendModal .friend-item::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--pink), var(--blue), var(--pink));
+            border-radius: 12px;
+            z-index: -1;
+            opacity: 0.6;
+            animation: friendItemBorder 3s ease-in-out infinite;
+        }
+
+        @keyframes friendItemGlow {
+            0% { box-shadow: 0 0 15px rgba(255, 46, 146, 0.3), 0 0 15px rgba(0, 213, 255, 0.2); }
+            100% { box-shadow: 0 0 20px rgba(0, 213, 255, 0.3), 0 0 20px rgba(255, 46, 146, 0.2); }
+        }
+
+        @keyframes friendItemBorder {
+            0% { background: linear-gradient(45deg, var(--pink), var(--blue), var(--pink)); }
+            50% { background: linear-gradient(45deg, var(--blue), var(--pink), var(--blue)); }
+            100% { background: linear-gradient(45deg, var(--pink), var(--blue), var(--pink)); }
         }
 
         #selectFriendModal .friend-item:hover {
-            background: linear-gradient(135deg, rgba(0, 213, 255, 0.1), rgba(255, 46, 146, 0.1));
-            transform: translateY(-2px);
-            border-color: var(--blue);
-            box-shadow: 0 6px 20px rgba(0, 213, 255, 0.2);
+            background: #000000;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 25px rgba(255, 46, 146, 0.5), 0 0 25px rgba(0, 213, 255, 0.5);
+        }
+
+        #selectFriendModal .friend-item:hover::before {
+            opacity: 1;
         }
 
         #selectFriendModal .friend-item img,
@@ -1526,26 +1580,7 @@
                 }
             }
 
-            // Send on Enter
-            messageInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    const message = messageInput.value.trim();
-                    if (message) {
-                        console.log('JCHAT_DEBUG: Enter key pressed, sending message:', message);
-                        console.log('JCHAT_DEBUG: Partner ID:', partnerId);
-                        
-                        // Check if we have a selected friend and Firebase is available
-                        if (partnerId && partnerId !== 'demo-partner-123' && typeof sendMessage === 'function') {
-                            console.log('JCHAT_DEBUG: Using Firebase sendMessage for selected friend');
-                            sendMessage('text', message);
-                        } else {
-                            console.log('JCHAT_DEBUG: Using local message (no friend selected or Firebase not available)');
-                            sendLocalMessage(message);
-                        }
-                    }
-                }
-            });
+            // Enter key functionality removed - only send button works now
 
             // Send button click - Working implementation
             sendMessageBtn.addEventListener('click', (e) => {
@@ -2876,12 +2911,7 @@
                      newMessageInput.style.height = Math.min(newMessageInput.scrollHeight, 120) + 'px';
                  });
 
-                 newMessageInput.addEventListener('keypress', (e) => {
-                     if (e.key === 'Enter' && !e.shiftKey) {
-                         e.preventDefault();
-                         sendMessage('text', newMessageInput.value);
-                     }
-                 });
+                                 // Enter key functionality removed - only send button works now
              }
 
              // Sound toggle
