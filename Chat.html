@@ -1631,6 +1631,7 @@
         // Audio elements for sounds
         let notificationAudio = null;
         let ringtoneAudio = null;
+        let notificationSoundEnabled = true; // Global sound toggle variable
 
         function playNotificationSound(type = 'info') {
             if (!notificationSoundEnabled) return;
@@ -2093,37 +2094,104 @@
                 document.body.appendChild(lightbox);
             }
 
-            // Voice Note Recording with Visual Feedback
+            // Voice Note Recording with Real Audio Recording
             let isRecordingVoice = false;
-            document.getElementById('voiceNoteBtn').addEventListener('click', () => {
+            let mediaRecorder = null;
+            let audioChunks = [];
+            let recordingStartTime = null;
+            let recordingTimer = null;
+
+            document.getElementById('voiceNoteBtn').addEventListener('click', async () => {
                 const btn = document.getElementById('voiceNoteBtn');
                 
                 if (!isRecordingVoice) {
                     // Start recording
-                    isRecordingVoice = true;
-                    btn.classList.add('active');
-                    btn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
-                    btn.style.background = 'linear-gradient(135deg, #dc3545, #e94560)';
-                    
-                    showMessageBox('🎤 Recording voice note...', 'info', true);
-                    
-                    // Simulate recording for 5 seconds
-                    setTimeout(() => {
-                        if (isRecordingVoice) {
-                            document.getElementById('voiceNoteBtn').click();
-                        }
-                    }, 5000);
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        mediaRecorder = new MediaRecorder(stream);
+                        audioChunks = [];
+                        
+                        mediaRecorder.ondataavailable = (event) => {
+                            audioChunks.push(event.data);
+                        };
+                        
+                        mediaRecorder.onstop = () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                            const audioUrl = URL.createObjectURL(audioBlob);
+                            
+                            // Create audio element for playback
+                            const audioElement = document.createElement('audio');
+                            audioElement.controls = true;
+                            audioElement.src = audioUrl;
+                            audioElement.style.width = '100%';
+                            audioElement.style.marginTop = '10px';
+                            
+                            // Send voice note
+                            sendMessage('voice', `🎤 Voice message (${formatDuration(Math.floor((Date.now() - recordingStartTime) / 1000))})`);
+                            
+                            // Stop all tracks
+                            stream.getTracks().forEach(track => track.stop());
+                        };
+                        
+                        mediaRecorder.start();
+                        isRecordingVoice = true;
+                        recordingStartTime = Date.now();
+                        
+                        btn.classList.add('active');
+                        btn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+                        btn.style.background = 'linear-gradient(135deg, #dc3545, #e94560)';
+                        
+                        showMessageBox('🎤 Recording voice note...', 'info', true);
+                        
+                        // Start recording timer
+                        startRecordingTimer();
+                        
+                    } catch (error) {
+                        console.error('Error starting voice recording:', error);
+                        showMessageBox('❌ Microphone access denied. Please allow microphone permissions.', 'error');
+                    }
                 } else {
                     // Stop recording
+                    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                    
                     isRecordingVoice = false;
                     btn.classList.remove('active');
                     btn.innerHTML = '<i class="fas fa-microphone"></i> Voice Note';
                     btn.style.background = '';
                     
+                    // Stop recording timer
+                    if (recordingTimer) {
+                        clearInterval(recordingTimer);
+                        recordingTimer = null;
+                    }
+                    
                     showMessageBox('✅ Voice note recorded successfully!', 'success');
-                    sendMessage('voice', '🎤 Voice message (3.2s)');
                 }
             });
+
+            function startRecordingTimer() {
+                const btn = document.getElementById('voiceNoteBtn');
+                recordingTimer = setInterval(() => {
+                    if (isRecordingVoice && recordingStartTime) {
+                        const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+                        btn.innerHTML = `<i class="fas fa-stop"></i> Stop (${formatDuration(duration)})`;
+                        
+                        // Auto-stop after 5 minutes (300 seconds)
+                        if (duration >= 300) {
+                            document.getElementById('voiceNoteBtn').click();
+                            showMessageBox('⏰ Voice note recording stopped (5 minute limit)', 'info');
+                        }
+                    }
+                }, 1000);
+            }
+
+            function formatDuration(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
 
             // Comprehensive Emoji Picker with 350+ Emojis in Smart Categories
             let emojiPickerOpen = false;
@@ -4574,6 +4642,13 @@
              if (unsubscribeTyping) unsubscribeTyping();
              if (isRecording) {
                  mediaRecorder?.stop();
+             }
+             // Stop voice recording if active
+             if (isRecordingVoice && mediaRecorder && mediaRecorder.state !== 'inactive') {
+                 mediaRecorder.stop();
+             }
+             if (recordingTimer) {
+                 clearInterval(recordingTimer);
              }
              // Cleanup friend list listeners
              if (window.unsubscribeFriendListListeners) {
