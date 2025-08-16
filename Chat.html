@@ -2934,12 +2934,20 @@
              });
          }
 
-         // Function to create friend item HTML (clean design - only username and status)
+         // Function to create friend item HTML (with profile pictures)
          function createFriendItem(friend) {
              const friendDiv = document.createElement('div');
              friendDiv.className = 'friend-item';
              friendDiv.setAttribute('data-friend-id', friend.userId);
              friendDiv.setAttribute('data-friend-name', friend.username);
+
+             let profileImageHtml = '';
+             if (friend.profilePicId && friend.visibility?.profilePic !== false) {
+                 const imageUrl = getCloudinaryImageUrl(friend.profilePicId, "w_60,h_60,c_fill,g_face,r_max");
+                 profileImageHtml = `<img src="${imageUrl}" alt="${friend.username}'s Profile" class="friend-avatar" onerror="this.onerror=null;this.parentNode.innerHTML='<div class=\\"default-avatar\\"><i class=\\"fas fa-user-circle\\"></i></div>';">`;
+             } else {
+                 profileImageHtml = `<div class="default-avatar"><i class="fas fa-user-circle"></i></div>`;
+             }
 
              const displayName = friend.visibility?.displayName !== false ? friend.username : 'Anonymous User';
              
@@ -2952,6 +2960,7 @@
              const shouldAnimate = isAuthenticated && isOnline;
              
              friendDiv.innerHTML = `
+                 ${profileImageHtml}
                  <span class="friend-status">
                      <i class="fas fa-circle" style="color: ${statusColor}; font-size: 8px; animation: ${shouldAnimate ? 'pulse 2s infinite' : 'none'};"></i>
                  </span>
