@@ -1914,30 +1914,20 @@
                 }
             });
 
-            // Voice Note Recording with Full Features
-            let isRecordingVoice = false;
-            let voiceRecorder = null;
-            let voiceAudioChunks = [];
-            let voiceRecordingStartTime = null;
-            let voiceRecordingTimer = null;
-            let voiceRecordingDuration = 0;
+         // Voice Note Recording State (Global)
+         let isRecordingVoice = false;
+         let voiceRecorder = null;
+         let voiceAudioChunks = [];
+         let voiceRecordingStartTime = null;
+         let voiceRecordingTimer = null;
+         let voiceRecordingDuration = 0;
             
-            document.getElementById('voiceNoteBtn').addEventListener('click', async () => {
-                const btn = document.getElementById('voiceNoteBtn');
-                
-                if (!isRecordingVoice) {
-                    // Start recording
-                    await startVoiceRecording(btn);
-                } else {
-                    // Stop recording
-                    await stopVoiceRecording(btn);
-                }
-            });
+                     // Voice note button event listener will be set up in DOMContentLoaded
             
-                         /**
-              * Start voice recording with full features
-              */
-             async function startVoiceRecording(btn) {
+         /**
+          * Start voice recording with full features
+          */
+         async function startVoiceRecording(btn) {
                  try {
                      // Check if we have a selected friend
                      if (!partnerId) {
@@ -2036,10 +2026,10 @@
                 }
             }
             
-            /**
-             * Stop voice recording
-             */
-            async function stopVoiceRecording(btn) {
+                     /**
+          * Stop voice recording
+          */
+         async function stopVoiceRecording(btn) {
                 try {
                     if (voiceRecorder && voiceRecorder.state !== 'inactive') {
                         voiceRecorder.stop();
@@ -2074,10 +2064,10 @@
                 }
             }
             
-            /**
-             * Process recorded voice note
-             */
-            async function processVoiceRecording() {
+                     /**
+          * Process recorded voice note
+          */
+         async function processVoiceRecording() {
                 try {
                     if (voiceAudioChunks.length === 0) {
                         showMessageBox('No audio recorded', 'warning');
@@ -2121,20 +2111,20 @@
                 }
             }
             
-            /**
-             * Start voice recording timer
-             */
-            function startVoiceRecordingTimer() {
+                     /**
+          * Start voice recording timer
+          */
+         function startVoiceRecordingTimer() {
                 voiceRecordingTimer = setInterval(() => {
                     voiceRecordingDuration += 100;
                     updateVoiceRecordingTimer();
                 }, 100);
             }
             
-            /**
-             * Update voice recording timer display
-             */
-            function updateVoiceRecordingTimer() {
+                     /**
+          * Update voice recording timer display
+          */
+         function updateVoiceRecordingTimer() {
                 const duration = formatVoiceDuration(voiceRecordingDuration);
                 const recordingIndicator = document.getElementById('voiceRecordingIndicator');
                 if (recordingIndicator) {
@@ -2145,10 +2135,10 @@
                 }
             }
             
-            /**
-             * Format voice duration
-             */
-            function formatVoiceDuration(milliseconds) {
+                     /**
+          * Format voice duration
+          */
+         function formatVoiceDuration(milliseconds) {
                 const seconds = Math.floor(milliseconds / 1000);
                 const minutes = Math.floor(seconds / 60);
                 const remainingSeconds = seconds % 60;
@@ -2160,10 +2150,10 @@
                 }
             }
             
-            /**
-             * Show voice recording indicator
-             */
-            function showVoiceRecordingIndicator() {
+                     /**
+          * Show voice recording indicator
+          */
+         function showVoiceRecordingIndicator() {
                 let indicator = document.getElementById('voiceRecordingIndicator');
                 
                 if (!indicator) {
@@ -2198,20 +2188,20 @@
                 }
             }
             
-            /**
-             * Hide voice recording indicator
-             */
-            function hideVoiceRecordingIndicator() {
+                     /**
+          * Hide voice recording indicator
+          */
+         function hideVoiceRecordingIndicator() {
                 const indicator = document.getElementById('voiceRecordingIndicator');
                 if (indicator) {
                     indicator.style.display = 'none';
                 }
             }
             
-            /**
-             * Send voice note to Firebase
-             */
-            async function sendVoiceNote(voiceNoteData) {
+                     /**
+          * Send voice note to Firebase
+          */
+         async function sendVoiceNote(voiceNoteData) {
                 try {
                     // Convert blob to base64 for Firebase storage
                     const base64Audio = await blobToBase64(voiceNoteData.audioBlob);
@@ -2242,10 +2232,10 @@
                 }
             }
             
-                         /**
-              * Convert blob to base64
-              */
-             function blobToBase64(blob) {
+                     /**
+          * Convert blob to base64
+          */
+         function blobToBase64(blob) {
                  return new Promise((resolve, reject) => {
                      const reader = new FileReader();
                      reader.onload = () => resolve(reader.result);
@@ -2254,10 +2244,10 @@
                  });
              }
 
-             /**
-              * Voice Note Settings
-              */
-             let voiceNoteSettings = {
+         /**
+          * Voice Note Settings
+          */
+         let voiceNoteSettings = {
                  maxDuration: 5 * 60 * 1000, // 5 minutes
                  audioQuality: 'high', // 'low', 'medium', 'high'
                  autoSend: false, // Auto-send after recording
@@ -2266,15 +2256,15 @@
                  echoCancellation: true // Enable echo cancellation
              };
 
-             // Voice note settings button
-             document.getElementById('voiceNoteSettingsBtn').addEventListener('click', () => {
-                 showVoiceNoteSettings();
-             });
+         // Voice note settings button
+         document.getElementById('voiceNoteSettingsBtn').addEventListener('click', () => {
+             showVoiceNoteSettings();
+         });
 
-             /**
-              * Show voice note settings panel
-              */
-             function showVoiceNoteSettings() {
+         /**
+          * Show voice note settings panel
+          */
+         function showVoiceNoteSettings() {
                  let settingsPanel = document.getElementById('voiceNoteSettingsPanel');
                  
                  if (!settingsPanel) {
@@ -2367,20 +2357,20 @@
                  }
              }
 
-             /**
-              * Hide voice note settings panel
-              */
-             function hideVoiceNoteSettings() {
+         /**
+          * Hide voice note settings panel
+          */
+         function hideVoiceNoteSettings() {
                  const settingsPanel = document.getElementById('voiceNoteSettingsPanel');
                  if (settingsPanel) {
                      settingsPanel.style.display = 'none';
                  }
              }
 
-             /**
-              * Load voice note settings
-              */
-             function loadVoiceNoteSettings() {
+         /**
+          * Load voice note settings
+          */
+         function loadVoiceNoteSettings() {
                  const maxDurationSelect = document.getElementById('maxDurationSelect');
                  const audioQualitySelect = document.getElementById('audioQualitySelect');
                  const autoSendCheckbox = document.getElementById('autoSendCheckbox');
@@ -2394,10 +2384,10 @@
                  if (echoCancellationCheckbox) echoCancellationCheckbox.checked = voiceNoteSettings.echoCancellation;
              }
 
-             /**
-              * Save voice note settings
-              */
-             function saveVoiceNoteSettings() {
+         /**
+          * Save voice note settings
+          */
+         function saveVoiceNoteSettings() {
                  const maxDurationSelect = document.getElementById('maxDurationSelect');
                  const audioQualitySelect = document.getElementById('audioQualitySelect');
                  const autoSendCheckbox = document.getElementById('autoSendCheckbox');
@@ -2417,10 +2407,10 @@
                  hideVoiceNoteSettings();
              }
 
-             /**
-              * Reset voice note settings
-              */
-             function resetVoiceNoteSettings() {
+         /**
+          * Reset voice note settings
+          */
+         function resetVoiceNoteSettings() {
                  voiceNoteSettings = {
                      maxDuration: 5 * 60 * 1000,
                      audioQuality: 'high',
@@ -2435,18 +2425,18 @@
                  showMessageBox('Voice note settings reset to default', 'info');
              }
 
-             // Load settings from localStorage on page load
-             document.addEventListener('DOMContentLoaded', () => {
-                 const savedSettings = localStorage.getItem('voiceNoteSettings');
-                 if (savedSettings) {
-                     voiceNoteSettings = { ...voiceNoteSettings, ...JSON.parse(savedSettings) };
-                 }
-             });
+         // Load settings from localStorage on page load
+         document.addEventListener('DOMContentLoaded', () => {
+             const savedSettings = localStorage.getItem('voiceNoteSettings');
+             if (savedSettings) {
+                 voiceNoteSettings = { ...voiceNoteSettings, ...JSON.parse(savedSettings) };
+             }
+         });
 
-             /**
-              * Show voice note send confirmation dialog
-              */
-             function showVoiceNoteSendDialog(voiceNoteData) {
+         /**
+          * Show voice note send confirmation dialog
+          */
+         function showVoiceNoteSendDialog(voiceNoteData) {
                  let sendDialog = document.getElementById('voiceNoteSendDialog');
                  
                  if (!sendDialog) {
@@ -5171,6 +5161,18 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
 
          // Override existing button event listeners with Firebase functionality
          document.addEventListener('DOMContentLoaded', () => {
+             // Voice note button event listener
+             document.getElementById('voiceNoteBtn')?.addEventListener('click', async () => {
+                 const btn = document.getElementById('voiceNoteBtn');
+                 
+                 if (!isRecordingVoice) {
+                     // Start recording
+                     await startVoiceRecording(btn);
+                 } else {
+                     // Stop recording
+                     await stopVoiceRecording(btn);
+                 }
+             });
              // Override send message functionality
              const existingSendBtn = document.getElementById('sendMessageBtn');
              let currentMessageInput = document.getElementById('messageInput');
