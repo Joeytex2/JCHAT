@@ -2957,7 +2957,7 @@
          // Friend Selection Functions (moved from first script section)
          
          /**
-          * Fetches the current user's friends list from Firestore (same as Friends.html).
+          * Fetches the current user's friends list from Firestore (same as Find_Friends.html).
           */
          async function fetchUserFriends() {
              if (!currentUser) {
@@ -2969,15 +2969,24 @@
                  console.log("JCHAT_DEBUG: Fetching friends for user:", currentUser.uid);
                  const friends = [];
                  
-                 // Get friends from the same collection path as Friends.html (confirmed friends only)
-                 const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
-                 const friendsSnapshot = await getDocs(friendsCollectionRef);
+                 // Get friends from the same collection path as Find_Friends.html
+                 const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
+                 const friendsSnapshot = await getDocs(publicFriendsRef);
                  
-                 const friendIds = friendsSnapshot.docs.map(doc => doc.id); // Get just the friend UIDs
-                 console.log(`JCHAT_DEBUG: Found ${friendIds.length} confirmed friend relationships`);
+                 const friendIds = new Set();
+                 friendsSnapshot.forEach(docSnap => {
+                     const friendData = docSnap.data();
+                     if (friendData.user1Id === currentUser.uid) {
+                         friendIds.add(friendData.user2Id);
+                     } else if (friendData.user2Id === currentUser.uid) {
+                         friendIds.add(friendData.user1Id);
+                     }
+                 });
+                 
+                 console.log(`JCHAT_DEBUG: Found ${friendIds.size} friend relationships`);
 
-                 // Get detailed user data for each friend (same as Friends.html)
-                 if (friendIds.length > 0) {
+                 // Get detailed user data for each friend (same as Find_Friends.html)
+                 if (friendIds.size > 0) {
                      for (const friendId of friendIds) {
                          try {
                              const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
@@ -3024,7 +3033,7 @@
                      });
                  }
 
-                 console.log(`JCHAT_DEBUG: Successfully loaded ${friends.length} confirmed friends`);
+                 console.log(`JCHAT_DEBUG: Successfully loaded ${friends.length} real friends`);
                  
                  if (friends.length === 0) {
                      showMessageBox('👥 No friends found. Add friends from the Find Friends page!', 'info');
@@ -3033,7 +3042,7 @@
                  return friends;
                  
              } catch (error) {
-                 console.error("JCHAT_ERROR: Error fetching confirmed friends:", error);
+                 console.error("JCHAT_ERROR: Error fetching real friends:", error);
                  showMessageBox('❌ Failed to load friends. Please try again.', 'error');
                  return [];
              }
