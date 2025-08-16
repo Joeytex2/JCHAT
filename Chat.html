@@ -1994,70 +1994,7 @@
              }
          }
             
-                              /**
-          * Process recorded voice note
-          */
-         async function processVoiceRecording() {
-             try {
-                 console.log("JCHAT_DEBUG: Processing voice recording...");
-                 
-                 if (voiceAudioChunks.length === 0) {
-                     console.log("JCHAT_DEBUG: No audio chunks recorded");
-                     showMessageBox('No audio recorded', 'warning');
-                     return;
-                 }
-                 
-                 console.log("JCHAT_DEBUG: Audio chunks count:", voiceAudioChunks.length);
-                 
-                 // Create audio blob
-                 const audioBlob = new Blob(voiceAudioChunks, { type: 'audio/webm' });
-                 console.log("JCHAT_DEBUG: Audio blob created, size:", audioBlob.size);
-                 
-                 // Check if blob is too small (less than 1KB)
-                 if (audioBlob.size < 1024) {
-                     console.log("JCHAT_DEBUG: Audio blob too small, likely no audio recorded");
-                     showMessageBox('Recording too short, please try again', 'warning');
-                     return;
-                 }
-                 
-                 // Format duration
-                 const duration = formatVoiceDuration(voiceRecordingDuration);
-                 console.log("JCHAT_DEBUG: Recording duration:", duration);
-                 
-                 // Create voice note data
-                 const voiceNoteData = {
-                     audioBlob: audioBlob,
-                     duration: voiceRecordingDuration,
-                     durationText: duration,
-                     timestamp: Date.now(),
-                     senderId: currentUser.uid,
-                     senderName: currentUser.displayName || 'Unknown'
-                 };
-                 
-                 // Show success message
-                 showMessageBox(`✅ Voice note recorded (${duration})`, 'success');
-                 
-                 // Send voice note (auto-send if enabled)
-                 if (window.voiceNoteSettings.autoSend) {
-                     console.log("JCHAT_DEBUG: Auto-sending voice note");
-                     await sendVoiceNote(voiceNoteData);
-                 } else {
-                     console.log("JCHAT_DEBUG: Showing send confirmation dialog");
-                     // Show send confirmation dialog
-                     window.showVoiceNoteSendDialog(voiceNoteData);
-                 }
-                 
-                 // Reset recording state
-                 voiceAudioChunks = [];
-                 voiceRecordingDuration = 0;
-                 
-                 console.log("JCHAT_DEBUG: Voice recording processed successfully");
-                 
-             } catch (error) {
-                 console.error("JCHAT_ERROR: Failed to process voice recording:", error);
-                 showMessageBox('Failed to process voice note', 'error');
-             }
-         }
+         // Voice note functions are now defined in the Firebase module section
             
                      /**
           * Start voice recording timer
