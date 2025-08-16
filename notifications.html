@@ -2138,6 +2138,12 @@
                     read: false
                 });
 
+                // 6. Mark the current notification as read and close modal
+                if (currentNotificationData && currentNotificationData.id) {
+                    await markNotificationAsRead(currentNotificationData.id);
+                }
+                hideNotificationOptions();
+
                 showMessageBox("Friend request accepted! You are now friends.", 'success');
                 playNotificationSound('success');
             } catch (error) {
@@ -2194,6 +2200,12 @@
                 } else {
                     showMessageBox("Friend request not found or already processed.", 'warning');
                 }
+
+                // Mark the current notification as read and close modal
+                if (currentNotificationData && currentNotificationData.id) {
+                    await markNotificationAsRead(currentNotificationData.id);
+                }
+                hideNotificationOptions();
             } catch (error) {
                 console.error("JCHAT_ERROR: Error rejecting friend request:", error);
                 showMessageBox(`Failed to reject request: ${error.message}`, 'error');
