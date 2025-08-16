@@ -2837,7 +2837,7 @@
             // Function to fetch REAL friends from Firebase (no fake data)
             async function fetchUserFriends() {
                 // Ensure Firebase is properly initialized
-                if (typeof db === 'undefined' || typeof appId === 'undefined') {
+                if (typeof window.db === 'undefined' || typeof window.appId === 'undefined') {
                     console.log("JCHAT_DEBUG: Firebase not initialized - cannot fetch friends");
                     showMessageBox('❌ Database not available. Please refresh the page.', 'error');
                     return [];
@@ -2854,7 +2854,7 @@
                     const friends = [];
                     
                     // Get actual friends from Firebase friends collection
-                    const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
+                    const publicFriendsRef = collection(window.db, "artifacts", window.appId, "public", "data", "friends");
                     const friendsSnapshot = await getDocs(publicFriendsRef);
                     
                     const friendUserIds = new Set();
@@ -2874,7 +2874,7 @@
 
                     // Get detailed user data for each friend
                     if (friendUserIds.size > 0) {
-                        const publicUsersRef = collection(db, "artifacts", appId, "public", "data", "users");
+                        const publicUsersRef = collection(window.db, "artifacts", window.appId, "public", "data", "users");
                         const usersSnapshot = await getDocs(publicUsersRef);
                         
                         usersSnapshot.forEach(doc => {
@@ -3084,7 +3084,7 @@
                 }
 
                 // Check Firebase availability
-                if (typeof db === 'undefined' || typeof appId === 'undefined') {
+                if (typeof window.db === 'undefined' || typeof window.appId === 'undefined') {
                     showMessageBox('❌ Database not available. Please refresh the page.', 'error');
                     return;
                 }
@@ -3177,7 +3177,7 @@
              appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
              measurementId: "G-S6Z9GG0R9P"
          };
-         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+         window.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
          const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
          // Cloudinary Configuration
@@ -3189,7 +3189,7 @@
          // Initialize Firebase services
          const app = initializeApp(firebaseConfig);
          const auth = getAuth(app);
-         const db = getFirestore(app);
+         window.db = getFirestore(app);
          const storage = getStorage(app);
 
          // --- DOM Elements ---
@@ -3378,7 +3378,7 @@
           */
          async function fetchNotificationCount(userId) {
              try {
-                 const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
+                 const notificationsCollectionRef = collection(window.db, "artifacts", window.appId, "users", userId, "notifications");
                  const q = query(notificationsCollectionRef, orderBy("timestamp", "desc"));
                  const unsubscribe = onSnapshot(q, (snapshot) => {
                      const unreadCount = snapshot.docs.filter(doc => !doc.data().read).length;
@@ -3421,7 +3421,7 @@
 
              try {
                               const chatRoomId = getChatRoomId(window.currentUser.uid, partnerId);
-             const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
+             const messagesCollectionRef = collection(window.db, "artifacts", window.appId, "public", "data", "chats", chatRoomId, "messages");
 
              const messageData = {
                  senderId: window.currentUser.uid,
@@ -3458,7 +3458,7 @@
                  if (unsubscribeMessages) unsubscribeMessages();
 
                  const chatRoomId = getChatRoomId(window.currentUser.uid, partnerId);
-                 const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
+                 const messagesCollectionRef = collection(window.db, "artifacts", window.appId, "public", "data", "chats", chatRoomId, "messages");
                  const q = query(messagesCollectionRef, orderBy("timestamp"));
 
                  unsubscribeMessages = onSnapshot(q, (snapshot) => {
