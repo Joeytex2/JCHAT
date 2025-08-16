@@ -1506,20 +1506,23 @@
                 }
             });
 
-            // Send message function
-            function sendMessage() {
-                const message = messageInput.value.trim();
-                if (message) {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = 'message-bubble sent';
-                    messageDiv.innerHTML = `
-                        <div class="message-content">${message}</div>
-                        <div class="message-time">Just now</div>
-                    `;
-                    messagesArea.appendChild(messageDiv);
-                    messageInput.value = '';
-                    messageInput.style.height = 'auto';
-                    messagesArea.scrollTop = messagesArea.scrollHeight;
+            // Basic send message function (local)
+            function sendLocalMessage(message) {
+                console.log('JCHAT_DEBUG: Sending local message:', message);
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message-bubble sent';
+                messageDiv.innerHTML = `
+                    <div class="message-content">${message}</div>
+                    <div class="message-time">Just now</div>
+                `;
+                messagesArea.appendChild(messageDiv);
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+                
+                showMessageBox('Message sent!', 'success');
+                if (typeof playNotificationSound === 'function') {
+                    playNotificationSound('message');
                 }
             }
 
@@ -1527,18 +1530,16 @@
             messageInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    sendMessage();
+                    const message = messageInput.value.trim();
+                    if (message) {
+                        sendLocalMessage(message);
+                    }
                 }
             });
 
-            // Send button click - Enhanced with Firebase
+            // Send button click - Working implementation
             sendMessageBtn.addEventListener('click', () => {
                 console.log('JCHAT_DEBUG: Send button clicked');
-                
-                // Ensure button is enabled
-                sendMessageBtn.disabled = false;
-                sendMessageBtn.style.opacity = '1';
-                sendMessageBtn.style.cursor = 'pointer';
                 
                 // Get message content
                 const message = messageInput.value.trim();
@@ -1554,26 +1555,8 @@
                     sendMessageBtn.style.transform = 'scale(1)';
                 }, 150);
                 
-                if (typeof sendMessage === 'function') {
-                    console.log('JCHAT_DEBUG: Using Firebase sendMessage function');
-                    sendMessage('text', message);
-                } else {
-                    console.log('JCHAT_DEBUG: Using fallback send function');
-                    // Fallback to basic send
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = 'message-bubble sent';
-                    messageDiv.innerHTML = `
-                        <div class="message-content">${message}</div>
-                        <div class="message-time">Just now</div>
-                    `;
-                    messagesArea.appendChild(messageDiv);
-                    messageInput.value = '';
-                    messageInput.style.height = 'auto';
-                    messagesArea.scrollTop = messagesArea.scrollHeight;
-                    
-                    showMessageBox('Message sent!', 'success');
-                    playNotificationSound('message');
-                }
+                console.log('JCHAT_DEBUG: Sending message:', message);
+                sendLocalMessage(message);
             });
             
             // Ensure send button is properly initialized
@@ -1582,6 +1565,19 @@
             sendMessageBtn.style.cursor = 'not-allowed';
             sendMessageBtn.style.background = '#6b7280';
             console.log('JCHAT_DEBUG: Send button initialized and ready');
+            
+            // Test function for debugging
+            window.testSendButton = function() {
+                console.log('JCHAT_DEBUG: Testing send button...');
+                const testMessage = 'Test message ' + new Date().toLocaleTimeString();
+                messageInput.value = testMessage;
+                sendMessageBtn.disabled = false;
+                sendMessageBtn.style.opacity = '1';
+                sendMessageBtn.style.cursor = 'pointer';
+                sendMessageBtn.style.background = 'var(--composer-accent)';
+                console.log('JCHAT_DEBUG: Test message set:', testMessage);
+                console.log('JCHAT_DEBUG: Send button enabled:', !sendMessageBtn.disabled);
+            };
 
             // FULL INTERACTIVE FEATURES - ALL CLICKABLE AND FUNCTIONAL
 
