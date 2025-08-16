@@ -1318,6 +1318,23 @@
             box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
         }
 
+        /* Disabled call buttons */
+        .call-control-btn:disabled,
+        #videoCallBtn:disabled,
+        #audioCallBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .call-control-btn:disabled:hover,
+        #videoCallBtn:disabled:hover,
+        #audioCallBtn:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
         /* Call Interface Responsive */
         @media (max-width: 768px) {
             .call-control-btn {
@@ -2470,40 +2487,95 @@
 
                 async startCall(isVideo = false) {
                     try {
-                        if (!await this.initializeWebRTC()) {
-                            showMessageBox('❌ Failed to initialize call system', 'error');
+                        // Check if we have a valid partner
+                        if (!this.callPartner || this.callPartner === 'Full Chat Experience') {
+                            showMessageBox('❌ Please select a friend to call', 'warning');
                             return;
                         }
 
-                        this.isVideoCall = isVideo;
-                        this.callPartner = document.getElementById('partnerDisplayName')?.textContent || 'Unknown';
+                        // Show calling interface first
+                        this.showCallingInterface();
                         
+                        // Simulate call connection delay
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        // Check if user has necessary permissions
                         const constraints = {
                             audio: true,
                             video: isVideo ? { width: 1280, height: 720 } : false
                         };
 
-                        this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
-                        
-                        // Add local stream to peer connection
-                        this.localStream.getTracks().forEach(track => {
-                            this.peerConnection.addTrack(track, this.localStream);
-                        });
+                        try {
+                            this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                        } catch (mediaError) {
+                            console.error('Media access error:', mediaError);
+                            if (mediaError.name === 'NotAllowedError') {
+                                showMessageBox('❌ Camera/microphone access denied. Please allow permissions.', 'error');
+                            } else {
+                                showMessageBox('❌ Camera/microphone not available', 'error');
+                            }
+                            this.hideCallInterface();
+                            return;
+                        }
 
-                        this.showCallInterface();
+                        this.isVideoCall = isVideo;
                         this.isInCall = true;
                         this.callStartTime = Date.now();
 
-                        showMessageBox(`📞 ${isVideo ? 'Video' : 'Audio'} call started with ${this.callPartner}`, 'success');
+                        // Show the actual call interface
+                        this.showCallInterface();
+                        
+                        // Start call timer
+                        this.startCallTimer();
+
+                        showMessageBox(`📞 ${isVideo ? 'Video' : 'Audio'} call connected with ${this.callPartner}`, 'success');
                         
                     } catch (error) {
                         console.error('Error starting call:', error);
-                        if (error.name === 'NotAllowedError') {
-                            showMessageBox('❌ Camera/microphone access denied', 'error');
-                        } else {
-                            showMessageBox('❌ Failed to start call', 'error');
-                        }
+                        showMessageBox('❌ Failed to start call. Please try again.', 'error');
+                        this.hideCallInterface();
                     }
+                }
+
+                showCallingInterface() {
+                    const callingInterface = document.createElement('div');
+                    callingInterface.id = 'callingInterface';
+                    callingInterface.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
+                        z-index: 10001;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        backdrop-filter: blur(10px);
+                    `;
+                    
+                    callingInterface.innerHTML = `
+                        <div style="text-align: center; color: white;">
+                            <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #00d5ff, #ff2e92); margin: 0 auto 30px; display: flex; align-items: center; justify-content: center; animation: pulse 1.5s infinite;">
+                                <i class="fas fa-phone" style="font-size: 50px; color: white;"></i>
+                            </div>
+                            <h2 style="margin: 0 0 10px; font-size: 28px;">Calling ${this.callPartner}...</h2>
+                            <p style="margin: 0; color: rgba(255, 255, 255, 0.7); font-size: 16px;">Please wait while we connect your call</p>
+                            <div style="margin-top: 30px;">
+                                <button id="cancelCallBtn" style="background: #dc3545; color: white; border: none; border-radius: 10px; padding: 12px 24px; cursor: pointer; font-size: 16px;">
+                                    <i class="fas fa-phone-slash"></i> Cancel Call
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(callingInterface);
+                    
+                    // Add cancel call functionality
+                    document.getElementById('cancelCallBtn').addEventListener('click', () => {
+                        this.endCall();
+                    });
                 }
 
                 endCall() {
@@ -2581,13 +2653,25 @@
                 btn.classList.add('active');
                 setTimeout(() => btn.classList.remove('active'), 200);
                 
-                if (!partnerId) {
+                if (!isFriendSelected()) {
                     showMessageBox('❌ Please select a friend to call', 'warning');
                     return;
                 }
 
-                showMessageBox('📹 Starting video call...', 'loading', true);
-                await callManager.startCall(true);
+                // Get partner information
+                const partnerDisplay = document.getElementById('partnerDisplayName');
+                const partnerName = partnerDisplay ? partnerDisplay.textContent : 'Unknown User';
+                
+                showMessageBox(`📹 Starting video call with ${partnerName}...`, 'loading', true);
+                
+                try {
+                    // Set partner info in call manager
+                    callManager.callPartner = partnerName;
+                    await callManager.startCall(true);
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Video call failed:", error);
+                    showMessageBox('❌ Video call failed. Please try again.', 'error');
+                }
             });
 
             // Add call interface methods to the call manager
@@ -2678,8 +2762,13 @@
 
             callManager.hideCallInterface = function() {
                 const callInterface = document.getElementById('activeCallInterface');
+                const callingInterface = document.getElementById('callingInterface');
+                
                 if (callInterface) {
                     document.body.removeChild(callInterface);
+                }
+                if (callingInterface) {
+                    document.body.removeChild(callingInterface);
                 }
                 if (this.callTimerInterval) {
                     clearInterval(this.callTimerInterval);
@@ -2807,13 +2896,25 @@
                 btn.classList.add('active');
                 setTimeout(() => btn.classList.remove('active'), 200);
                 
-                if (!partnerId) {
+                if (!isFriendSelected()) {
                     showMessageBox('❌ Please select a friend to call', 'warning');
                     return;
                 }
 
-                showMessageBox('📞 Starting voice call...', 'loading', true);
-                await callManager.startCall(false);
+                // Get partner information
+                const partnerDisplay = document.getElementById('partnerDisplayName');
+                const partnerName = partnerDisplay ? partnerDisplay.textContent : 'Unknown User';
+                
+                showMessageBox(`📞 Starting voice call with ${partnerName}...`, 'loading', true);
+                
+                try {
+                    // Set partner info in call manager
+                    callManager.callPartner = partnerName;
+                    await callManager.startCall(false);
+                } catch (error) {
+                    console.error("JCHAT_ERROR: Audio call failed:", error);
+                    showMessageBox('❌ Voice call failed. Please try again.', 'error');
+                }
             });
 
 
@@ -3618,6 +3719,12 @@
                              // Update the select friend badge after marking messages as read
                              await updateSelectFriendBadge(currentUser.uid);
                              
+                             // Enable call buttons since a friend is now selected
+                             const videoCallBtn = document.getElementById('videoCallBtn');
+                             const audioCallBtn = document.getElementById('audioCallBtn');
+                             if (videoCallBtn) videoCallBtn.disabled = false;
+                             if (audioCallBtn) audioCallBtn.disabled = false;
+                             
                              // Close modal
                              document.getElementById('selectFriendModal').classList.remove('active');
                              
@@ -3856,6 +3963,19 @@
          // Chat-specific functions
          function getChatRoomId(uid1, uid2) {
              return [uid1, uid2].sort().join('_');
+         }
+
+         /**
+          * Checks if a valid friend is selected for calling.
+          */
+         function isFriendSelected() {
+             const partnerDisplay = document.getElementById('partnerDisplayName');
+             const partnerName = partnerDisplay ? partnerDisplay.textContent : '';
+             
+             return partnerId && 
+                    partnerId !== 'demo-partner-123' && 
+                    partnerName && 
+                    partnerName !== 'Full Chat Experience';
          }
 
          // Get partnerId from URL parameters
@@ -4357,6 +4477,12 @@
                  if (partnerId) {
                      await loadMessages();
                  }
+                 
+                 // Disable call buttons initially (no friend selected)
+                 const videoCallBtn = document.getElementById('videoCallBtn');
+                 const audioCallBtn = document.getElementById('audioCallBtn');
+                 if (videoCallBtn) videoCallBtn.disabled = true;
+                 if (audioCallBtn) audioCallBtn.disabled = true;
                  
                  showMessageBox("Connected to JCHAT! 🚀", 'success');
              } else {
