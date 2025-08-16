@@ -2561,13 +2561,18 @@
 
          // Enhanced message sending with Firebase
          async function sendMessage(type = 'text', content = '') {
+             console.log('JCHAT_DEBUG: sendMessage called with type:', type, 'content:', content);
+             
              if (!currentUser || !partnerId) {
                  showMessageBox("Please select a chat partner", 'warning');
                  return;
              }
 
              const message = content || messageInput.value.trim();
-             if (!message) return;
+             if (!message) {
+                 console.log('JCHAT_DEBUG: No message to send');
+                 return;
+             }
 
              try {
                  const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
@@ -2588,6 +2593,15 @@
                  if (messageInput) {
                      messageInput.value = '';
                      messageInput.style.height = 'auto';
+                 }
+
+                 // Visual feedback for send button
+                 const sendBtn = document.getElementById('sendMessageBtn');
+                 if (sendBtn) {
+                     sendBtn.style.transform = 'scale(0.95)';
+                     setTimeout(() => {
+                         sendBtn.style.transform = 'scale(1)';
+                     }, 150);
                  }
 
                  playNotificationSound('message');
@@ -2665,8 +2679,18 @@
                  const newSendBtn = existingSendBtn.cloneNode(true);
                  existingSendBtn.parentNode.replaceChild(newSendBtn, existingSendBtn);
                  
+                 // Ensure button is always enabled
+                 newSendBtn.disabled = false;
+                 newSendBtn.style.opacity = '1';
+                 newSendBtn.style.cursor = 'pointer';
+                 
                  // Add new listener
-                 newSendBtn.addEventListener('click', () => sendMessage('text', messageInput.value));
+                 newSendBtn.addEventListener('click', () => {
+                     console.log('JCHAT_DEBUG: Send button clicked');
+                     sendMessage('text', messageInput.value);
+                 });
+                 
+                 console.log('JCHAT_DEBUG: Send button activated and ready');
              }
 
              // Override message input
