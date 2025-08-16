@@ -1530,8 +1530,34 @@
                 }
             });
 
-            // Send button click
-            sendMessageBtn.addEventListener('click', sendMessage);
+            // Send button click - Enhanced with Firebase
+            sendMessageBtn.addEventListener('click', () => {
+                console.log('JCHAT_DEBUG: Send button clicked');
+                if (typeof sendMessage === 'function') {
+                    sendMessage('text', messageInput.value);
+                } else {
+                    // Fallback to basic send
+                    const message = messageInput.value.trim();
+                    if (message) {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message-bubble sent';
+                        messageDiv.innerHTML = `
+                            <div class="message-content">${message}</div>
+                            <div class="message-time">Just now</div>
+                        `;
+                        messagesArea.appendChild(messageDiv);
+                        messageInput.value = '';
+                        messageInput.style.height = 'auto';
+                        messagesArea.scrollTop = messagesArea.scrollHeight;
+                        
+                        // Visual feedback
+                        sendMessageBtn.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            sendMessageBtn.style.transform = 'scale(1)';
+                        }, 150);
+                    }
+                }
+            });
 
             // FULL INTERACTIVE FEATURES - ALL CLICKABLE AND FUNCTIONAL
 
@@ -3059,6 +3085,23 @@
              friendDiv.className = 'friend-item';
              friendDiv.setAttribute('data-friend-id', friend.userId);
              friendDiv.setAttribute('data-friend-name', friend.username);
+             
+             // Beautiful styling with sweet pink and blue gradient
+             friendDiv.style.cssText = `
+                 display: flex;
+                 align-items: center;
+                 padding: 15px;
+                 border-radius: 16px;
+                 cursor: pointer;
+                 transition: all 0.3s ease;
+                 background: linear-gradient(135deg, rgba(255, 105, 180, 0.1), rgba(0, 191, 255, 0.1));
+                 border: 2px solid transparent;
+                 background-clip: padding-box;
+                 margin-bottom: 10px;
+                 box-shadow: 0 4px 15px rgba(255, 105, 180, 0.1);
+                 position: relative;
+                 overflow: hidden;
+             `;
 
              let profileImageHtml = '';
              if (friend.profilePicId && friend.visibility?.profilePic !== false) {
@@ -3085,18 +3128,22 @@
                          <i class="fas fa-circle" style="color: ${statusColor}; font-size: 12px; animation: ${shouldAnimate ? 'pulse 2s infinite' : 'none'};"></i>
                      </div>
                  </div>
-                 <span class="friend-name" style="background: linear-gradient(135deg, #ff6b9d, #4ecdc4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 600; margin-left: 12px;">${displayName}</span>
+                 <span class="friend-name" style="background: linear-gradient(135deg, #ff69b4, #00bfff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; margin-left: 6px; font-size: 14px; text-shadow: 0 0 10px rgba(255, 105, 180, 0.3);">${displayName}</span>
              `;
 
-             // Add hover effects (same as Find_Friends.html)
+             // Enhanced hover effects with sweet pink and blue
              friendDiv.addEventListener('mouseenter', () => {
                  friendDiv.style.transform = 'translateY(-3px) scale(1.02)';
-                 friendDiv.style.boxShadow = '0 8px 25px rgba(0, 213, 255, 0.3)';
+                 friendDiv.style.boxShadow = '0 8px 25px rgba(255, 105, 180, 0.3)';
+                 friendDiv.style.background = 'linear-gradient(135deg, rgba(255, 105, 180, 0.2), rgba(0, 191, 255, 0.2))';
+                 friendDiv.style.border = '2px solid rgba(255, 105, 180, 0.3)';
              });
              
              friendDiv.addEventListener('mouseleave', () => {
                  friendDiv.style.transform = '';
-                 friendDiv.style.boxShadow = '';
+                 friendDiv.style.boxShadow = '0 4px 15px rgba(255, 105, 180, 0.1)';
+                 friendDiv.style.background = 'linear-gradient(135deg, rgba(255, 105, 180, 0.1), rgba(0, 191, 255, 0.1))';
+                 friendDiv.style.border = '2px solid transparent';
              });
 
              // Add click handler for the entire friend item
