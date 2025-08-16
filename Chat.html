@@ -1937,7 +1937,7 @@
 
             // Function to fetch friends from Firebase (using Find_Friends.html logic)
             async function fetchUserFriends() {
-                if (!currentUser) {
+                if (typeof currentUser === 'undefined' || !currentUser) {
                     console.log("JCHAT_DEBUG: No user logged in, cannot fetch friends.");
                     return [];
                 }
@@ -1997,9 +1997,9 @@
                     currentUsersFriends.clear();
                     snapshot.forEach(docSnap => {
                         const friendData = docSnap.data();
-                        if (friendData.user1Id === currentUser.uid) {
+                        if (typeof currentUser !== 'undefined' && currentUser && friendData.user1Id === currentUser.uid) {
                             currentUsersFriends.add(friendData.user2Id);
-                        } else if (friendData.user2Id === currentUser.uid) {
+                        } else if (typeof currentUser !== 'undefined' && currentUser && friendData.user2Id === currentUser.uid) {
                             currentUsersFriends.add(friendData.user1Id);
                         }
                     });
@@ -2209,7 +2209,7 @@
                     if (noFriendsElement) noFriendsElement.style.display = 'none';
                     
                     // Check if user is authenticated
-                    if (!currentUser) {
+                    if (typeof currentUser === 'undefined' || !currentUser) {
                         console.log('JCHAT_DEBUG: No user authenticated, showing warning');
                         showMessageBox('Please wait for authentication to complete...', 'warning');
                         if (loadingElement) loadingElement.style.display = 'none';
@@ -2677,6 +2677,12 @@
              if (!message) return;
 
              try {
+                 if (typeof currentUser === 'undefined' || !currentUser) {
+                     console.log("JCHAT_DEBUG: No user logged in, cannot send message");
+                     showMessageBox("Please wait for authentication to complete...", 'warning');
+                     return;
+                 }
+                 
                  const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
                  const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
 
@@ -2708,7 +2714,7 @@
 
          // Enhanced message loading with Firebase
          async function loadMessages() {
-             if (!currentUser || !partnerId) return;
+             if (typeof currentUser === 'undefined' || !currentUser || !partnerId) return;
 
              try {
                  // Unsubscribe previous listener
@@ -2746,7 +2752,7 @@
 
          function createMessageBubble(messageData, messageId) {
              const messageDiv = document.createElement('div');
-             const isSent = messageData.senderId === currentUser.uid;
+             const isSent = typeof currentUser !== 'undefined' && currentUser && messageData.senderId === currentUser.uid;
              messageDiv.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
              messageDiv.dataset.messageId = messageId;
 
