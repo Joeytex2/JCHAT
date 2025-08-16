@@ -1484,8 +1484,17 @@
 
         // Fallback playNotificationSound function for basic chat functionality
         function playNotificationSound(type) {
-            // Simple fallback - just log the sound type
-            console.log(`JCHAT_DEBUG: Playing notification sound: ${type}`);
+            try {
+                // Try to play ne.mp3 first
+                const audio = new Audio('ne.mp3');
+                audio.volume = 0.6;
+                audio.play().catch(() => {
+                    // Fallback to console log if ne.mp3 fails
+                    console.log(`JCHAT_DEBUG: Playing notification sound: ${type}`);
+                });
+            } catch (error) {
+                console.log(`JCHAT_DEBUG: Playing notification sound: ${type}`);
+            }
         }
 
         // Basic chat functionality
