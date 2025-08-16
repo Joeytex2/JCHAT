@@ -3249,41 +3249,102 @@
                      const friendItem = createFriendItem(friend);
                      
                      // Add click handler for friend selection
-                     friendItem.addEventListener('click', () => {
+                     friendItem.addEventListener('click', async () => {
                          const friendId = friend.userId;
                          const friendName = friend.username;
-                         const partnerDisplay = document.getElementById('partnerDisplayName');
+                         const friendProfilePicId = friend.profilePicId;
                          
-                         // Update partner display and global variable
-                         if (partnerDisplay) {
-                             partnerDisplay.textContent = friendName;
+                         try {
+                             // Show loading state
+                             showMessageBox(`🔄 Loading chat with ${friendName}...`, 'loading', true);
+                             
+                             // Update partner display and global variable
+                             const partnerDisplay = document.getElementById('partnerDisplayName');
+                             if (partnerDisplay) {
+                                 partnerDisplay.textContent = friendName;
+                             }
+                             
+                             // Update partner profile picture
+                             const partnerProfilePic = document.getElementById('partnerProfilePic');
+                             const partnerAvatarIcon = document.getElementById('partnerAvatarIcon');
+                             
+                             if (friendProfilePicId && friend.visibility?.profilePic !== false) {
+                                 const imageUrl = getCloudinaryImageUrl(friendProfilePicId, "w_40,h_40,c_fill,g_face,r_max");
+                                 if (partnerProfilePic) {
+                                     partnerProfilePic.src = imageUrl;
+                                     partnerProfilePic.style.display = 'block';
+                                     partnerProfilePic.onerror = () => {
+                                         partnerProfilePic.style.display = 'none';
+                                         if (partnerAvatarIcon) partnerAvatarIcon.style.display = 'flex';
+                                     };
+                                 }
+                                 if (partnerAvatarIcon) partnerAvatarIcon.style.display = 'none';
+                             } else {
+                                 if (partnerProfilePic) partnerProfilePic.style.display = 'none';
+                                 if (partnerAvatarIcon) partnerAvatarIcon.style.display = 'flex';
+                             }
+                             
+                             // Update header title
+                             const headerTitle = document.querySelector('.chat-header h2');
+                             if (headerTitle) {
+                                 headerTitle.textContent = `Chat with ${friendName}`;
+                             }
+                             
+                             // Set partner ID
+                             partnerId = friendId;
+                             
+                             // Close modal
+                             document.getElementById('selectFriendModal').classList.remove('active');
+                             
+                             // Clear search input
+                             const searchInput = document.getElementById('friendSearchInput');
+                             if (searchInput) {
+                                 searchInput.value = '';
+                             }
+                             
+                             // Clear existing messages and show loading
+                             const messagesArea = document.getElementById('messagesArea');
+                             if (messagesArea) {
+                                 // Keep only the typing indicator and welcome message
+                                 const existingMessages = messagesArea.querySelectorAll('.message-bubble');
+                                 existingMessages.forEach(msg => {
+                                     if (!msg.innerHTML.includes('Welcome to JCHAT') && !msg.classList.contains('typing-indicator')) {
+                                         msg.remove();
+                                     }
+                                 });
+                                 
+                                 // Add loading message
+                                 const loadingMsg = document.createElement('div');
+                                 loadingMsg.className = 'message-bubble received';
+                                 loadingMsg.innerHTML = `
+                                     <div class="message-content">
+                                         <i class="fas fa-spinner fa-spin"></i> Loading chat history...
+                                     </div>
+                                     <div class="message-time">Just now</div>
+                                 `;
+                                 messagesArea.appendChild(loadingMsg);
+                                 messagesArea.scrollTop = messagesArea.scrollHeight;
+                             }
+                             
+                             // Load messages for selected friend
+                             if (typeof loadMessages === 'function' && currentUser) {
+                                 await loadMessages();
+                             }
+                             
+                             // Remove loading message
+                             const loadingMsg = messagesArea?.querySelector('.message-bubble:last-child');
+                             if (loadingMsg && loadingMsg.innerHTML.includes('Loading chat history')) {
+                                 loadingMsg.remove();
+                             }
+                             
+                             showMessageBox(`💬 Now chatting with ${friendName}`, 'success');
+                             playNotificationSound('success');
+                             console.log(`JCHAT_DEBUG: Successfully loaded chat with friend ${friendId} (${friendName})`);
+                             
+                         } catch (error) {
+                             console.error("JCHAT_ERROR: Error loading chat:", error);
+                             showMessageBox(`❌ Failed to load chat with ${friendName}`, 'error');
                          }
-                         
-                         // Also update the header title
-                         const headerTitle = document.querySelector('.chat-header h2');
-                         if (headerTitle) {
-                             headerTitle.textContent = `Chat with ${friendName}`;
-                         }
-                         
-                         partnerId = friendId;
-                         
-                         // Close modal
-                         document.getElementById('selectFriendModal').classList.remove('active');
-                         
-                         // Clear search input
-                         const searchInput = document.getElementById('friendSearchInput');
-                         if (searchInput) {
-                             searchInput.value = '';
-                         }
-                         
-                         // Load messages for selected friend (if function exists)
-                         if (typeof loadMessages === 'function' && currentUser) {
-                             loadMessages();
-                         }
-                         
-                         showMessageBox(`💬 Now chatting with ${friendName}`, 'success');
-                         playNotificationSound('success');
-                         console.log(`JCHAT_DEBUG: Starting chat with friend ${friendId} (${friendName})`);
                      });
 
                      friendListContainer.insertBefore(friendItem, noFriendsMessage);
@@ -3519,21 +3580,33 @@
 
          // Enhanced message loading with Firebase
          async function loadMessages() {
-             if (!currentUser || !partnerId) return;
+             if (!currentUser || !partnerId) {
+                 console.log("JCHAT_DEBUG: Cannot load messages - missing user or partner");
+                 return;
+             }
 
              try {
+                 console.log(`JCHAT_DEBUG: Loading messages for chat with ${partnerId}`);
+                 
                  // Unsubscribe previous listener
-                 if (unsubscribeMessages) unsubscribeMessages();
+                 if (unsubscribeMessages) {
+                     unsubscribeMessages();
+                     unsubscribeMessages = null;
+                 }
 
                  const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
                  const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
-                 const q = query(messagesCollectionRef, orderBy("timestamp"));
+                 const q = query(messagesCollectionRef, orderBy("timestamp", "asc"));
 
                  unsubscribeMessages = onSnapshot(q, (snapshot) => {
-                     // Clear existing messages except welcome message
-                     const existingMessages = messagesArea.querySelectorAll('.message-bubble:not(.typing-indicator)');
+                     console.log(`JCHAT_DEBUG: Received ${snapshot.docs.length} messages from Firebase`);
+                     
+                     // Clear existing messages except welcome message and typing indicator
+                     const existingMessages = messagesArea.querySelectorAll('.message-bubble');
                      existingMessages.forEach(msg => {
-                         if (!msg.innerHTML.includes('Welcome to JCHAT Full Chat')) {
+                         if (!msg.innerHTML.includes('Welcome to JCHAT Full Chat') && 
+                             !msg.classList.contains('typing-indicator') &&
+                             !msg.innerHTML.includes('Loading chat history')) {
                              msg.remove();
                          }
                      });
@@ -3543,10 +3616,30 @@
                              const messageData = doc.data();
                              createMessageBubble(messageData, doc.id);
                          });
+                         
+                         console.log(`JCHAT_DEBUG: Loaded ${snapshot.docs.length} messages successfully`);
+                     } else {
+                         // Add "No messages yet" indicator
+                         const noMessagesDiv = document.createElement('div');
+                         noMessagesDiv.className = 'message-bubble received';
+                         noMessagesDiv.innerHTML = `
+                             <div class="message-content">
+                                 <i class="fas fa-comments"></i> No messages yet. Start the conversation!
+                             </div>
+                             <div class="message-time">Just now</div>
+                         `;
+                         messagesArea.appendChild(noMessagesDiv);
+                         console.log("JCHAT_DEBUG: No previous messages found");
                      }
 
                      // Scroll to bottom
-                     messagesArea.scrollTop = messagesArea.scrollHeight;
+                     setTimeout(() => {
+                         messagesArea.scrollTop = messagesArea.scrollHeight;
+                     }, 100);
+
+                 }, (error) => {
+                     console.error("JCHAT_ERROR: Firebase listener error:", error);
+                     showMessageBox("Failed to load chat history", 'error');
                  });
 
              } catch (error) {
