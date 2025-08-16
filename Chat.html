@@ -1653,6 +1653,10 @@
                         <i class="fas fa-bug" style="color: white; font-size: 14px;"></i>
                     </button>
                     
+                    <button id="manualVoiceNoteBtn" title="Manual Voice Note Test" style="background: linear-gradient(135deg, #4CAF50, #8BC34A); border: none; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 12px; color: white;">
+                        <i class="fas fa-microphone"></i> Manual
+                    </button>
+                    
                     <button id="emojiBtn" title="Add Emoji">
                         <i class="fas fa-laugh"></i> Emoji
                     </button>
@@ -1929,6 +1933,14 @@
          let voiceRecordingStartTime = null;
          let voiceRecordingTimer = null;
          let voiceRecordingDuration = 0;
+         
+         // Make voice note variables globally accessible
+         window.isRecordingVoice = isRecordingVoice;
+         window.voiceRecorder = voiceRecorder;
+         window.voiceAudioChunks = voiceAudioChunks;
+         window.voiceRecordingStartTime = voiceRecordingStartTime;
+         window.voiceRecordingDuration = voiceRecordingDuration;
+         window.voiceRecordingTimer = voiceRecordingTimer;
             
                      // Voice note button event listener will be set up in DOMContentLoaded
             
@@ -1936,9 +1948,11 @@
           * Start voice recording with full features
           */
          async function startVoiceRecording(btn) {
+                 console.log("JCHAT_DEBUG: startVoiceRecording called");
                  try {
                      // Check if we have a selected friend
                      if (!partnerId) {
+                         console.log("JCHAT_DEBUG: No partnerId selected");
                          showMessageBox('Please select a friend to send voice note to', 'warning');
                          return;
                      }
@@ -4308,6 +4322,36 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
 
          // Make voice note test function globally accessible
          window.testVoiceNote = testVoiceNote;
+         
+         // Fallback voice note button setup
+         function setupVoiceNoteButton() {
+             const voiceNoteBtn = document.getElementById('voiceNoteBtn');
+             if (voiceNoteBtn && !voiceNoteBtn.hasAttribute('data-listener-added')) {
+                 console.log("JCHAT_DEBUG: Setting up fallback voice note button listener");
+                 voiceNoteBtn.setAttribute('data-listener-added', 'true');
+                 
+                 voiceNoteBtn.addEventListener('click', async (e) => {
+                     e.preventDefault();
+                     e.stopPropagation();
+                     console.log("JCHAT_DEBUG: Fallback voice note button clicked");
+                     
+                     // Add visual feedback
+                     voiceNoteBtn.classList.add('active');
+                     setTimeout(() => voiceNoteBtn.classList.remove('active'), 200);
+                     
+                     if (!window.isRecordingVoice) {
+                         console.log("JCHAT_DEBUG: Starting voice recording via fallback...");
+                         await startVoiceRecording(voiceNoteBtn);
+                     } else {
+                         console.log("JCHAT_DEBUG: Stopping voice recording via fallback...");
+                         await stopVoiceRecording(voiceNoteBtn);
+                     }
+                 });
+             }
+         }
+         
+         // Make setup function globally accessible
+         window.setupVoiceNoteButton = setupVoiceNoteButton;
 
          /**
           * Set up camera filter functionality and camera switching
@@ -5425,16 +5469,41 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
          // Override existing button event listeners with Firebase functionality
          document.addEventListener('DOMContentLoaded', () => {
              // Voice note button event listener
-             document.getElementById('voiceNoteBtn')?.addEventListener('click', async () => {
-                 const btn = document.getElementById('voiceNoteBtn');
-                 
-                 if (!isRecordingVoice) {
-                     // Start recording
-                     await startVoiceRecording(btn);
-                 } else {
-                     // Stop recording
-                     await stopVoiceRecording(btn);
-                 }
+             const voiceNoteBtn = document.getElementById('voiceNoteBtn');
+             if (voiceNoteBtn) {
+                 console.log("JCHAT_DEBUG: Voice note button found, adding event listener");
+                 voiceNoteBtn.addEventListener('click', async (e) => {
+                     e.preventDefault();
+                     e.stopPropagation();
+                     console.log("JCHAT_DEBUG: Voice note button clicked");
+                     
+                     // Add visual feedback
+                     voiceNoteBtn.classList.add('active');
+                     setTimeout(() => voiceNoteBtn.classList.remove('active'), 200);
+                     
+                     console.log("JCHAT_DEBUG: isRecordingVoice state:", isRecordingVoice);
+                     console.log("JCHAT_DEBUG: partnerId:", partnerId);
+                     
+                     if (!isRecordingVoice) {
+                         console.log("JCHAT_DEBUG: Starting voice recording...");
+                         // Start recording
+                         await startVoiceRecording(voiceNoteBtn);
+                     } else {
+                         console.log("JCHAT_DEBUG: Stopping voice recording...");
+                         // Stop recording
+                         await stopVoiceRecording(voiceNoteBtn);
+                     }
+                 });
+             } else {
+                 console.error("JCHAT_ERROR: Voice note button not found!");
+             }
+             
+             // Add a simple test to verify button functionality
+             console.log("JCHAT_DEBUG: Voice note button setup complete");
+             console.log("JCHAT_DEBUG: Available voice note functions:", {
+                 startVoiceRecording: typeof startVoiceRecording,
+                 stopVoiceRecording: typeof stopVoiceRecording,
+                 testVoiceNote: typeof testVoiceNote
              });
 
              // Test voice note button event listener
@@ -5444,6 +5513,29 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
                  setTimeout(() => btn.classList.remove('active'), 200);
                  
                  await testVoiceNote();
+             });
+             
+             // Manual voice note button event listener
+             document.getElementById('manualVoiceNoteBtn')?.addEventListener('click', async () => {
+                 const btn = document.getElementById('manualVoiceNoteBtn');
+                 btn.classList.add('active');
+                 setTimeout(() => btn.classList.remove('active'), 200);
+                 
+                 console.log("JCHAT_DEBUG: Manual voice note button clicked");
+                 
+                 // Force setup voice note button
+                 if (typeof setupVoiceNoteButton === 'function') {
+                     setupVoiceNoteButton();
+                 }
+                 
+                 // Try to start recording directly
+                 if (!window.isRecordingVoice) {
+                     console.log("JCHAT_DEBUG: Manual start recording...");
+                     await startVoiceRecording(document.getElementById('voiceNoteBtn'));
+                 } else {
+                     console.log("JCHAT_DEBUG: Manual stop recording...");
+                     await stopVoiceRecording(document.getElementById('voiceNoteBtn'));
+                 }
              });
              // Override send message functionality
              const existingSendBtn = document.getElementById('sendMessageBtn');
@@ -5522,6 +5614,11 @@ let currentCameraFacing = 'user'; // Track current camera facing mode
              // Set up call button listeners
              if (typeof setupCallButtonListeners === 'function') {
                  setupCallButtonListeners();
+             }
+             
+             // Set up fallback voice note button
+             if (typeof setupVoiceNoteButton === 'function') {
+                 setupVoiceNoteButton();
              }
          });
 
