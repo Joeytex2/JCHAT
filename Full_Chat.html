@@ -2836,30 +2836,17 @@
 
             // Function to fetch REAL friends from Firebase (same as Friends.html)
             async function fetchUserFriends() {
-                // Ensure Firebase is properly initialized
-                if (typeof window.db === 'undefined' || typeof window.appId === 'undefined') {
-                    console.log("JCHAT_DEBUG: Firebase not initialized - cannot fetch friends");
-                    showMessageBox('❌ Database not available. Please refresh the page.', 'error');
+                if (!currentUser) {
+                    console.log("JCHAT_DEBUG: No current user to fetch friends for.");
                     return [];
                 }
 
-                if (!window.currentUser || !window.currentUser.uid) {
-                    console.log("JCHAT_DEBUG: No authenticated user - cannot fetch friends");
-                    showMessageBox('❌ Please log in to view your friends', 'warning');
-                    return [];
-                }
-
-                try {
-                    console.log("JCHAT_DEBUG: Fetching user's real friends list...");
-                    console.log("JCHAT_DEBUG: window.db =", window.db);
-                    console.log("JCHAT_DEBUG: window.appId =", window.appId);
-                    console.log("JCHAT_DEBUG: window.currentUser.uid =", window.currentUser.uid);
-                    const friends = [];
-                    
-                    // Get friends from the same collection path as Friends.html
-                    const friendsCollectionRef = collection(window.db, "artifacts", window.appId, "users", window.currentUser.uid, "friends");
-                    console.log("JCHAT_DEBUG: friendsCollectionRef =", friendsCollectionRef);
-                    const friendsSnapshot = await getDocs(friendsCollectionRef);
+                console.log("JCHAT_DEBUG: Fetching friends for user:", currentUser.uid);
+                const friends = [];
+                
+                // Get friends from the same collection path as Friends.html
+                const friendsCollectionRef = collection(db, "artifacts", appId, "users", currentUser.uid, "friends");
+                const friendsSnapshot = await getDocs(friendsCollectionRef);
                     
                     const friendIds = friendsSnapshot.docs.map(doc => doc.id); // Get just the friend UIDs
                     console.log(`JCHAT_DEBUG: Found ${friendIds.length} friend relationships`);
@@ -2868,7 +2855,7 @@
                     if (friendIds.length > 0) {
                         for (const friendId of friendIds) {
                             try {
-                                const publicProfileDocRef = doc(window.db, "artifacts", window.appId, "public", "data", "users", friendId);
+                                const publicProfileDocRef = doc(db, "artifacts", appId, "public", "data", "users", friendId);
                                 const publicDocSnap = await getDoc(publicProfileDocRef);
                                 if (publicDocSnap.exists()) {
                                     const friendProfile = publicDocSnap.data();
@@ -3042,7 +3029,7 @@
                             }
                             
                             // Load messages for selected friend (if function exists)
-                            if (typeof loadMessages === 'function' && window.currentUser) {
+                            if (typeof loadMessages === 'function' && currentUser) {
                                 loadMessages();
                             }
                             
@@ -3087,18 +3074,12 @@
                 setTimeout(() => btn.style.transform = '', 150);
                 
                 // Check authentication first
-                if (!window.currentUser || !window.currentUser.uid) {
+                if (!currentUser || !currentUser.uid) {
                     showMessageBox('❌ Please log in to view your friends', 'warning');
                     // Try to trigger authentication
                     if (typeof initializeAuth === 'function') {
                         await initializeAuth();
                     }
-                    return;
-                }
-
-                // Check Firebase availability
-                if (typeof window.db === 'undefined' || typeof window.appId === 'undefined') {
-                    showMessageBox('❌ Database not available. Please refresh the page.', 'error');
                     return;
                 }
                 
@@ -3190,7 +3171,7 @@
              appId: "1:328479683167:web:276c0b7e8ea44dd2d6a1ea",
              measurementId: "G-S6Z9GG0R9P"
          };
-         window.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
          const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
          // Cloudinary Configuration
@@ -3202,12 +3183,8 @@
          // Initialize Firebase services
          const app = initializeApp(firebaseConfig);
          const auth = getAuth(app);
-         window.db = getFirestore(app);
+         const db = getFirestore(app);
          const storage = getStorage(app);
-         
-         console.log("JCHAT_DEBUG: Firebase initialized");
-         console.log("JCHAT_DEBUG: window.db =", window.db);
-         console.log("JCHAT_DEBUG: window.appId =", window.appId);
 
          // --- DOM Elements ---
          const headerProfilePic = document.getElementById('headerProfilePic');
@@ -3225,8 +3202,8 @@
          const messageInput = document.getElementById('messageInput');
          const sendMessageBtn = document.getElementById('sendMessageBtn');
 
-         // Global State - Make currentUser globally accessible
-         window.currentUser = null;
+         // Global State
+         let currentUser = null;
          let currentUserProfileData = null;
          let partnerId = null;
          let partnerProfileData = null;
@@ -3395,7 +3372,7 @@
           */
          async function fetchNotificationCount(userId) {
              try {
-                 const notificationsCollectionRef = collection(window.db, "artifacts", window.appId, "users", userId, "notifications");
+                 const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
                  const q = query(notificationsCollectionRef, orderBy("timestamp", "desc"));
                  const unsubscribe = onSnapshot(q, (snapshot) => {
                      const unreadCount = snapshot.docs.filter(doc => !doc.data().read).length;
@@ -3437,11 +3414,11 @@
              if (!message) return;
 
              try {
-                              const chatRoomId = getChatRoomId(window.currentUser.uid, partnerId);
-             const messagesCollectionRef = collection(window.db, "artifacts", window.appId, "public", "data", "chats", chatRoomId, "messages");
+                                               const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                 const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
 
-             const messageData = {
-                 senderId: window.currentUser.uid,
+                 const messageData = {
+                     senderId: currentUser.uid,
                      receiverId: partnerId,
                      type: type,
                      content: message,
@@ -3468,14 +3445,14 @@
 
          // Enhanced message loading with Firebase
          async function loadMessages() {
-             if (!window.currentUser || !partnerId) return;
+             if (!currentUser || !partnerId) return;
 
              try {
                  // Unsubscribe previous listener
                  if (unsubscribeMessages) unsubscribeMessages();
 
-                 const chatRoomId = getChatRoomId(window.currentUser.uid, partnerId);
-                 const messagesCollectionRef = collection(window.db, "artifacts", window.appId, "public", "data", "chats", chatRoomId, "messages");
+                 const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                 const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
                  const q = query(messagesCollectionRef, orderBy("timestamp"));
 
                  unsubscribeMessages = onSnapshot(q, (snapshot) => {
@@ -3506,7 +3483,7 @@
 
          function createMessageBubble(messageData, messageId) {
              const messageDiv = document.createElement('div');
-             const isSent = messageData.senderId === window.currentUser.uid;
+             const isSent = messageData.senderId === currentUser.uid;
              messageDiv.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
              messageDiv.dataset.messageId = messageId;
 
@@ -3584,7 +3561,7 @@
          onAuthStateChanged(auth, async (user) => {
              if (user) {
                  console.log("JCHAT_DEBUG: User authenticated:", user.uid);
-                 window.currentUser = user;
+                 currentUser = user;
                  
                  // Fetch and display header profile
                  await fetchAndDisplayHeaderProfile(user);
