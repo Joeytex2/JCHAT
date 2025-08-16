@@ -2324,7 +2324,7 @@
                 messageDiv.innerHTML = `
                     <div class="voice-message">
                         <div class="voice-controls">
-                            <button class="play-voice-btn" onclick="playVoiceNote(this, '${audioUrl}')">
+                            <button class="play-voice-btn" data-audio-url="${audioUrl}">
                                 <i class="fas fa-play"></i>
                             </button>
                             <div class="voice-info">
@@ -2343,12 +2343,19 @@
                     <div class="message-time">Just now</div>
                 `;
                 
+                // Add event listener to the play button
+                const playBtn = messageDiv.querySelector('.play-voice-btn');
+                playBtn.addEventListener('click', function() {
+                    const audioUrl = this.getAttribute('data-audio-url');
+                    playVoiceNote(this, audioUrl);
+                });
+                
                 messagesArea.appendChild(messageDiv);
                 messagesArea.scrollTop = messagesArea.scrollHeight;
             }
 
-            // Global function to play voice notes
-            window.playVoiceNote = function(button, audioUrl) {
+            // Function to play voice notes
+            function playVoiceNote(button, audioUrl) {
                 const icon = button.querySelector('i');
                 const audio = new Audio(audioUrl);
                 
@@ -2369,7 +2376,7 @@
                     icon.className = 'fas fa-play';
                     button.classList.remove('playing');
                 }
-            };
+            }
 
             // Comprehensive Emoji Picker with 350+ Emojis in Smart Categories
             let emojiPickerOpen = false;
