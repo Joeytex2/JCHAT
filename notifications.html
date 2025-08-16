@@ -2278,7 +2278,8 @@
                     if (currentNotificationData && currentNotificationData.senderId) {
                         markNotificationAsRead(currentNotificationData.id);
                         hideNotificationOptions();
-                        window.location.href = `/chat.html?partnerId=${currentNotificationData.senderId}`;
+                        // Navigate to Chat.html with partner ID for automatic friend selection
+                        window.location.href = `/Chat.html?partnerId=${currentNotificationData.senderId}`;
                     } else {
                         showMessageBox("Cannot send message: sender not found.", 'error');
                     }
@@ -2436,6 +2437,234 @@
             };
             return categoryNames[notificationType] || 'System';
         }
+
+        // --- Chat Integration Functions ---
+
+        /**
+         * Creates a notification for incoming messages (to be called from Chat.html)
+         * @param {string} senderId - The ID of the message sender
+         * @param {string} senderUsername - The username of the sender
+         * @param {string} messageContent - The content of the message
+         * @param {string} receiverId - The ID of the message receiver
+         */
+        async function createMessageNotification(senderId, senderUsername, messageContent, receiverId) {
+            if (!receiverId || receiverId === senderId) return;
+            
+            try {
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", receiverId, "notifications");
+                
+                const notificationData = {
+                    type: 'message',
+                    message: `New message from ${senderUsername}: ${messageContent.substring(0, 50)}${messageContent.length > 50 ? '...' : ''}`,
+                    senderId: senderId,
+                    senderUsername: senderUsername,
+                    timestamp: serverTimestamp(),
+                    read: false,
+                    chatRoomId: getChatRoomId(senderId, receiverId),
+                    messagePreview: messageContent.substring(0, 100)
+                };
+
+                await addDoc(notificationsCollectionRef, notificationData);
+                console.log(`JCHAT_DEBUG: Created message notification for ${receiverId} from ${senderUsername}`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error creating message notification:", error);
+            }
+        }
+
+        /**
+         * Creates a notification for friend requests
+         * @param {string} senderId - The ID of the friend request sender
+         * @param {string} senderUsername - The username of the sender
+         * @param {string} receiverId - The ID of the friend request receiver
+         */
+        async function createFriendRequestNotification(senderId, senderUsername, receiverId) {
+            if (!receiverId || receiverId === senderId) return;
+            
+            try {
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", receiverId, "notifications");
+                
+                const notificationData = {
+                    type: 'friend_request',
+                    message: `${senderUsername} sent you a friend request`,
+                    senderId: senderId,
+                    senderUsername: senderUsername,
+                    timestamp: serverTimestamp(),
+                    read: false
+                };
+
+                await addDoc(notificationsCollectionRef, notificationData);
+                console.log(`JCHAT_DEBUG: Created friend request notification for ${receiverId} from ${senderUsername}`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error creating friend request notification:", error);
+            }
+        }
+
+        /**
+         * Creates a notification for friend request responses
+         * @param {string} receiverId - The ID of the friend request sender (who gets notified)
+         * @param {string} responderId - The ID of the person who responded
+         * @param {string} responderUsername - The username of the responder
+         * @param {string} action - 'accepted' or 'rejected'
+         */
+        async function createFriendResponseNotification(receiverId, responderId, responderUsername, action) {
+            if (!receiverId || receiverId === responderId) return;
+            
+            try {
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", receiverId, "notifications");
+                
+                const notificationData = {
+                    type: action === 'accepted' ? 'friend_accepted' : 'friend_rejected',
+                    message: `${responderUsername} ${action} your friend request`,
+                    senderId: responderId,
+                    senderUsername: responderUsername,
+                    timestamp: serverTimestamp(),
+                    read: false
+                };
+
+                await addDoc(notificationsCollectionRef, notificationData);
+                console.log(`JCHAT_DEBUG: Created friend response notification for ${receiverId} from ${responderUsername}`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error creating friend response notification:", error);
+            }
+        }
+
+        /**
+         * Creates a notification for system events
+         * @param {string} userId - The ID of the user to notify
+         * @param {string} message - The system message
+         * @param {string} type - The type of system notification
+         */
+        async function createSystemNotification(userId, message, type = 'system') {
+            if (!userId) return;
+            
+            try {
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
+                
+                const notificationData = {
+                    type: type,
+                    message: message,
+                    timestamp: serverTimestamp(),
+                    read: false
+                };
+
+                await addDoc(notificationsCollectionRef, notificationData);
+                console.log(`JCHAT_DEBUG: Created system notification for ${userId}: ${message}`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error creating system notification:", error);
+            }
+        }
+
+        /**
+         * Creates a notification for coin rewards
+         * @param {string} userId - The ID of the user to notify
+         * @param {number} amount - The amount of coins earned
+         * @param {string} reason - The reason for earning coins
+         */
+        async function createCoinRewardNotification(userId, amount, reason) {
+            if (!userId) return;
+            
+            try {
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
+                
+                const notificationData = {
+                    type: 'coin_reward',
+                    message: `You earned ${amount} JCoins for ${reason}`,
+                    timestamp: serverTimestamp(),
+                    read: false,
+                    coinAmount: amount,
+                    reason: reason
+                };
+
+                await addDoc(notificationsCollectionRef, notificationData);
+                console.log(`JCHAT_DEBUG: Created coin reward notification for ${userId}: ${amount} coins for ${reason}`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error creating coin reward notification:", error);
+            }
+        }
+
+        /**
+         * Creates a notification for level ups
+         * @param {string} userId - The ID of the user to notify
+         * @param {number} newLevel - The new level achieved
+         */
+        async function createLevelUpNotification(userId, newLevel) {
+            if (!userId) return;
+            
+            try {
+                const notificationsCollectionRef = collection(db, "artifacts", appId, "users", userId, "notifications");
+                
+                const notificationData = {
+                    type: 'level_up',
+                    message: `Congratulations! You reached level ${newLevel}!`,
+                    timestamp: serverTimestamp(),
+                    read: false,
+                    newLevel: newLevel
+                };
+
+                await addDoc(notificationsCollectionRef, notificationData);
+                console.log(`JCHAT_DEBUG: Created level up notification for ${userId}: Level ${newLevel}`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error creating level up notification:", error);
+            }
+        }
+
+        /**
+         * Gets a chat room ID for two users (same as Chat.html)
+         * @param {string} user1Id - First user ID
+         * @param {string} user2Id - Second user ID
+         * @returns {string} Chat room ID
+         */
+        function getChatRoomId(user1Id, user2Id) {
+            return [user1Id, user2Id].sort().join('_');
+        }
+
+        /**
+         * Marks a notification as read
+         * @param {string} notificationId - The ID of the notification to mark as read
+         */
+        async function markNotificationAsReadById(notificationId) {
+            if (!currentUser || !notificationId) return;
+            
+            try {
+                const notificationRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
+                await updateDoc(notificationRef, {
+                    read: true,
+                    readAt: serverTimestamp()
+                });
+                console.log(`JCHAT_DEBUG: Marked notification ${notificationId} as read`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error marking notification as read:", error);
+            }
+        }
+
+        /**
+         * Deletes a specific notification
+         * @param {string} notificationId - The ID of the notification to delete
+         */
+        async function deleteNotificationById(notificationId) {
+            if (!currentUser || !notificationId) return;
+            
+            try {
+                const notificationRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
+                await deleteDoc(notificationRef);
+                console.log(`JCHAT_DEBUG: Deleted notification ${notificationId}`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Error deleting notification:", error);
+            }
+        }
+
+        // Make functions available globally for Chat.html to use
+        window.JCHATNotifications = {
+            createMessageNotification,
+            createFriendRequestNotification,
+            createFriendResponseNotification,
+            createSystemNotification,
+            createCoinRewardNotification,
+            createLevelUpNotification,
+            markNotificationAsReadById,
+            deleteNotificationById,
+            getChatRoomId
+        };
     </script>
 </body>
 </html>

@@ -3344,6 +3344,17 @@
              // Play notification sound for incoming messages only
              if (!isSent && notificationSoundEnabled) {
                  playNotificationSound('message');
+                 
+                 // Create notification for incoming messages
+                 if (window.JCHATNotifications && window.JCHATNotifications.createMessageNotification) {
+                     const senderUsername = messageData.senderUsername || 'Unknown User';
+                     window.JCHATNotifications.createMessageNotification(
+                         messageData.senderId,
+                         senderUsername,
+                         messageData.content,
+                         currentUser.uid
+                     );
+                 }
              }
              
              return messageDiv;
@@ -3493,6 +3504,9 @@
                      await loadMessages();
                  }
                  
+                 // Check for partnerId in URL parameters (from notifications)
+                 await handleURLParameters();
+                 
                  showMessageBox("Connected to JCHAT! 🚀", 'success');
              } else {
                  console.log("JCHAT_DEBUG: User signed out");
@@ -3566,6 +3580,45 @@
                  console.error("JCHAT_ERROR: Error fetching friends for modal:", error);
                  showMessageBox('Error loading friends list', 'error');
                  return [];
+             }
+         }
+
+         // Function to handle URL parameters (for notifications integration)
+         async function handleURLParameters() {
+             const urlParams = new URLSearchParams(window.location.search);
+             const partnerIdFromURL = urlParams.get('partnerId');
+             
+             if (partnerIdFromURL && partnerIdFromURL !== partnerId) {
+                 console.log(`JCHAT_DEBUG: Found partnerId in URL: ${partnerIdFromURL}`);
+                 
+                 // Check if this user is a friend
+                 if (currentUsersFriends.has(partnerIdFromURL)) {
+                     // Find the friend's data
+                     const friendData = allUsersData.find(user => user.userId === partnerIdFromURL);
+                     
+                     if (friendData) {
+                         // Set the partner
+                         partnerId = partnerIdFromURL;
+                         document.getElementById('partnerDisplayName').textContent = friendData.username || 'Friend';
+                         
+                         // Load messages for this partner
+                         await loadMessages();
+                         
+                         // Clear the URL parameter
+                         const newURL = new URL(window.location);
+                         newURL.searchParams.delete('partnerId');
+                         window.history.replaceState({}, '', newURL);
+                         
+                         showMessageBox(`💬 Now chatting with ${friendData.username}`, 'success');
+                         console.log(`JCHAT_DEBUG: Automatically selected friend from URL: ${friendData.username}`);
+                     } else {
+                         console.log(`JCHAT_DEBUG: Friend data not found for ${partnerIdFromURL}`);
+                         showMessageBox('Friend not found in your friends list', 'warning');
+                     }
+                 } else {
+                     console.log(`JCHAT_DEBUG: User ${partnerIdFromURL} is not in friends list`);
+                     showMessageBox('User is not in your friends list. Add them as a friend first.', 'warning');
+                 }
              }
          }
 
