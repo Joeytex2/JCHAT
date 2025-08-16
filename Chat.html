@@ -1929,7 +1929,13 @@
             let currentFriends = [];
             let filteredFriends = [];
 
-            // Function to fetch friends from Firebase (mirroring Find_Friends.html logic)
+            // Global variables to track friends (mirroring Find_Friends.html)
+            let currentUsersFriends = new Set(); // Stores friend UIDs
+            let allUsersData = []; // Stores all users data
+            let unsubscribeFriends = null;
+            let unsubscribeUsers = null;
+
+            // Function to fetch friends from Firebase (mirroring Find_Friends.html logic exactly)
             async function fetchUserFriends() {
                 if (!currentUser) {
                     console.log("JCHAT_DEBUG: No user logged in, cannot fetch friends.");
@@ -1938,49 +1944,93 @@
 
                 try {
                     console.log("JCHAT_DEBUG: Fetching user's friends list...");
+                    
+                    // Use the same approach as Find_Friends.html - get friends from the Set
                     const friends = [];
                     
-                    // Get confirmed friends from Firebase (same as Find_Friends.html)
-                    const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
-                    const friendsSnapshot = await getDocs(publicFriendsRef);
-                    
-                    const friendUserIds = new Set();
-                    friendsSnapshot.forEach(doc => {
-                        const friendData = doc.data();
-                        if (friendData.user1Id === currentUser.uid) {
-                            friendUserIds.add(friendData.user2Id);
-                        } else if (friendData.user2Id === currentUser.uid) {
-                            friendUserIds.add(friendData.user1Id);
+                    // Get user data for each friend from allUsersData (same as Find_Friends.html)
+                    allUsersData.forEach(user => {
+                        if (currentUsersFriends.has(user.userId)) {
+                            friends.push({
+                                userId: user.userId,
+                                username: user.username || `User_${user.userId.substring(0, 8)}`,
+                                profilePicId: user.profilePicId,
+                                visibility: user.visibility || {},
+                                bio: user.bio || "",
+                                location: user.location || ""
+                            });
                         }
                     });
 
-                    // Get user data for each friend (same as Find_Friends.html)
-                    if (friendUserIds.size > 0) {
-                        const publicUsersRef = collection(db, "artifacts", appId, "public", "data", "users");
-                        const usersSnapshot = await getDocs(publicUsersRef);
-                        
-                        usersSnapshot.forEach(doc => {
-                            if (friendUserIds.has(doc.id)) {
-                                const userData = doc.data();
-                                friends.push({
-                                    userId: doc.id,
-                                    username: userData.username || `User_${doc.id.substring(0, 8)}`,
-                                    profilePicId: userData.profilePicId,
-                                    visibility: userData.visibility || {},
-                                    bio: userData.bio || "",
-                                    location: userData.location || ""
-                                });
-                            }
-                        });
-                    }
-
-                    console.log(`JCHAT_DEBUG: Found ${friends.length} friends`);
+                    console.log(`JCHAT_DEBUG: Found ${friends.length} friends from ${allUsersData.length} total users`);
                     return friends;
                 } catch (error) {
                     console.error("JCHAT_ERROR: Error fetching friends:", error);
                     showMessageBox('Error loading friends list', 'error');
                     return [];
                 }
+            }
+
+            // Function to set up real-time friends and users listeners (mirroring Find_Friends.html)
+            function setupFriendsAndUsersListeners() {
+                if (!currentUser) return;
+                
+                console.log("JCHAT_DEBUG: Setting up real-time friends and users listeners...");
+                
+                // Unsubscribe previous listeners to prevent memory leaks
+                if (unsubscribeFriends) unsubscribeFriends();
+                if (unsubscribeUsers) unsubscribeUsers();
+
+                const publicUsersCollectionRef = collection(db, "artifacts", appId, "public", "data", "users");
+                const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
+
+                // Listen for changes in confirmed friends (same as Find_Friends.html)
+                unsubscribeFriends = onSnapshot(publicFriendsRef, (snapshot) => {
+                    currentUsersFriends.clear();
+                    snapshot.forEach(docSnap => {
+                        const friendData = docSnap.data();
+                        if (friendData.user1Id === currentUser.uid) {
+                            currentUsersFriends.add(friendData.user2Id);
+                        } else if (friendData.user2Id === currentUser.uid) {
+                            currentUsersFriends.add(friendData.user1Id);
+                        }
+                    });
+                    console.log(`JCHAT_DEBUG: Updated friends list, now have ${currentUsersFriends.size} friends`);
+                    
+                    // Re-render friends list if modal is open
+                    if (document.getElementById('selectFriendModal').classList.contains('active')) {
+                        fetchUserFriends().then(friends => {
+                            currentFriends = friends;
+                            filteredFriends = [...friends];
+                            renderFriendsList(filteredFriends);
+                        });
+                    }
+                }, (error) => {
+                    console.error("JCHAT_ERROR: Error fetching confirmed friends:", error);
+                    showMessageBox(`Error loading friends data: ${error.message}`, 'error');
+                });
+
+                // Listen for changes in the general public user list (same as Find_Friends.html)
+                unsubscribeUsers = onSnapshot(publicUsersCollectionRef, (snapshot) => {
+                    allUsersData = []; // Reset global users data
+                    snapshot.docs.forEach(docSnap => {
+                        const userData = docSnap.data();
+                        allUsersData.push({ userId: docSnap.id, ...userData });
+                    });
+                    console.log(`JCHAT_DEBUG: Updated users list, now have ${allUsersData.length} users`);
+                    
+                    // Re-render friends list if modal is open
+                    if (document.getElementById('selectFriendModal').classList.contains('active')) {
+                        fetchUserFriends().then(friends => {
+                            currentFriends = friends;
+                            filteredFriends = [...friends];
+                            renderFriendsList(filteredFriends);
+                        });
+                    }
+                }, (error) => {
+                    console.error("JCHAT_ERROR: Error fetching public users:", error);
+                    showMessageBox(`Error loading users: ${error.message}`, 'error');
+                });
             }
 
             // Function to create friend item HTML (mirroring Find_Friends.html styling)
@@ -2155,21 +2205,46 @@
                         return;
                     }
                     
-                    // Fetch friends data
-                    console.log('JCHAT_DEBUG: Fetching user friends...');
-                    currentFriends = await fetchUserFriends();
-                    filteredFriends = [...currentFriends];
-                    
-                    console.log(`JCHAT_DEBUG: Found ${currentFriends.length} friends`);
-                    
-                    // Hide loading and render friends list
-                    if (loadingElement) loadingElement.style.display = 'none';
-                    renderFriendsList(filteredFriends);
-                    
-                    if (currentFriends.length > 0) {
-                        showMessageBox('👥 Select a friend to chat with', 'info');
+                    // Check if listeners are set up
+                    if (allUsersData.length === 0) {
+                        console.log('JCHAT_DEBUG: Setting up listeners first...');
+                        setupFriendsAndUsersListeners();
+                        
+                        // Wait a bit for data to load
+                        setTimeout(async () => {
+                            console.log('JCHAT_DEBUG: Fetching user friends after setup...');
+                            currentFriends = await fetchUserFriends();
+                            filteredFriends = [...currentFriends];
+                            
+                            console.log(`JCHAT_DEBUG: Found ${currentFriends.length} friends`);
+                            
+                            // Hide loading and render friends list
+                            if (loadingElement) loadingElement.style.display = 'none';
+                            renderFriendsList(filteredFriends);
+                            
+                            if (currentFriends.length > 0) {
+                                showMessageBox('👥 Select a friend to chat with', 'info');
+                            } else {
+                                showMessageBox('👥 No friends found. Add friends from Find Friends page!', 'warning');
+                            }
+                        }, 1000);
                     } else {
-                        showMessageBox('👥 No friends found. Add friends from Find Friends page!', 'warning');
+                        // Fetch friends data directly
+                        console.log('JCHAT_DEBUG: Fetching user friends...');
+                        currentFriends = await fetchUserFriends();
+                        filteredFriends = [...currentFriends];
+                        
+                        console.log(`JCHAT_DEBUG: Found ${currentFriends.length} friends`);
+                        
+                        // Hide loading and render friends list
+                        if (loadingElement) loadingElement.style.display = 'none';
+                        renderFriendsList(filteredFriends);
+                        
+                        if (currentFriends.length > 0) {
+                            showMessageBox('👥 Select a friend to chat with', 'info');
+                        } else {
+                            showMessageBox('👥 No friends found. Add friends from Find Friends page!', 'warning');
+                        }
                     }
                 } catch (error) {
                     console.error('JCHAT_ERROR: Error in select friend handler:', error);
@@ -2755,8 +2830,8 @@
                  // Fetch notification count
                  await fetchNotificationCount(user.uid);
                  
-                 // Set up real-time friends listener
-                 setupFriendsListener();
+                 // Set up real-time friends and users listeners (mirroring Find_Friends.html)
+                 setupFriendsAndUsersListeners();
                  
                  // Load messages if partner is selected
                  if (partnerId) {
@@ -2775,32 +2850,13 @@
              }
          });
 
-         // Function to set up real-time friend listening
-         function setupFriendsListener() {
-             if (!currentUser) return;
-             
-             // Unsubscribe previous listener
-             if (unsubscribeFriends) unsubscribeFriends();
-             
-             const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
-             unsubscribeFriends = onSnapshot(publicFriendsRef, (snapshot) => {
-                 // Refresh friends list when friends change
-                 if (document.getElementById('selectFriendModal').classList.contains('active')) {
-                     fetchUserFriends().then(friends => {
-                         currentFriends = friends;
-                         filteredFriends = [...friends];
-                         renderFriendsList(filteredFriends);
-                     });
-                 }
-             }, (error) => {
-                 console.error("JCHAT_ERROR: Error listening to friends changes:", error);
-             });
-         }
+
 
          // Cleanup on page unload
          window.addEventListener('beforeunload', () => {
              if (unsubscribeMessages) unsubscribeMessages();
              if (unsubscribeFriends) unsubscribeFriends();
+             if (unsubscribeUsers) unsubscribeUsers();
              if (isRecording) {
                  mediaRecorder?.stop();
              }
