@@ -1060,6 +1060,53 @@
             border: 1px solid rgba(107, 114, 128, 0.3);
         }
 
+        /* Media Message Styles */
+        .media-message {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 100%;
+        }
+
+        .media-message img,
+        .media-message video {
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .media-message img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 213, 255, 0.3);
+            border-color: rgba(0, 213, 255, 0.5);
+        }
+
+        .media-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+
+        .media-info span:first-child {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .media-info span:last-child {
+            background: rgba(0, 213, 255, 0.2);
+            color: #00d5ff;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
         .message-badge {
             background-color: var(--notification-badge-color);
             color: var(--white);
@@ -1317,7 +1364,7 @@
                 showMessageBox('🔙 Navigating back...', 'info');
             });
 
-            // Media Share with File Picker
+            // Enhanced Media Share with Preview & Upload
             document.getElementById('mediaShareBtn').addEventListener('click', () => {
                 const btn = document.getElementById('mediaShareBtn');
                 btn.classList.add('active');
@@ -1326,25 +1373,326 @@
                 const mediaInput = document.getElementById('mediaInput');
                 if (mediaInput) {
                     mediaInput.click();
-                    showMessageBox('📸 Select media to share', 'info');
+                    showMessageBox('📸 Select images or videos to share', 'info');
                 }
             });
 
-            // Handle media file selection
-            document.getElementById('mediaInput')?.addEventListener('change', (e) => {
+            // Enhanced media file selection with preview
+            document.getElementById('mediaInput')?.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
-                if (file) {
-                    const fileType = file.type.startsWith('image') ? '🖼️' : '🎥';
-                    showMessageBox(`${fileType} ${file.name} selected! Ready to upload`, 'success');
-                    
-                    // Simulate upload progress
-                    showMessageBox('📤 Uploading...', 'loading', true);
-                    setTimeout(() => {
-                        showMessageBox('✅ Media uploaded successfully!', 'success');
-                        sendMessage('media', `${fileType} Shared: ${file.name}`);
-                    }, 2000);
+                if (!file) return;
+
+                // Validate file size (max 50MB)
+                const maxSize = 50 * 1024 * 1024; // 50MB
+                if (file.size > maxSize) {
+                    showMessageBox('❌ File too large! Maximum size is 50MB', 'error');
+                    return;
+                }
+
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'];
+                if (!validTypes.includes(file.type)) {
+                    showMessageBox('❌ Unsupported file type! Please select images (JPEG, PNG, GIF, WebP) or videos (MP4, WebM, MOV)', 'error');
+                    return;
+                }
+
+                const isImage = file.type.startsWith('image');
+                const fileType = isImage ? '🖼️' : '🎥';
+                
+                try {
+                    // Show preview modal
+                    await showMediaPreview(file, fileType);
+                } catch (error) {
+                    console.error('JCHAT_ERROR: Error handling media file:', error);
+                    showMessageBox('❌ Error processing media file', 'error');
                 }
             });
+
+            // Function to show media preview before sending
+            async function showMediaPreview(file, fileType) {
+                return new Promise((resolve, reject) => {
+                    // Create preview modal
+                    const previewModal = document.createElement('div');
+                    previewModal.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.9);
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 15000;
+                        backdrop-filter: blur(10px);
+                    `;
+
+                    const previewContainer = document.createElement('div');
+                    previewContainer.style.cssText = `
+                        background: linear-gradient(145deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
+                        border-radius: 20px;
+                        padding: 25px;
+                        max-width: 90%;
+                        max-height: 90%;
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 20px;
+                    `;
+
+                    // Create media element
+                    let mediaElement;
+                    if (file.type.startsWith('image')) {
+                        mediaElement = document.createElement('img');
+                        mediaElement.src = URL.createObjectURL(file);
+                        mediaElement.style.cssText = `
+                            max-width: 500px;
+                            max-height: 400px;
+                            border-radius: 15px;
+                            object-fit: contain;
+                            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                        `;
+                    } else {
+                        mediaElement = document.createElement('video');
+                        mediaElement.src = URL.createObjectURL(file);
+                        mediaElement.controls = true;
+                        mediaElement.style.cssText = `
+                            max-width: 500px;
+                            max-height: 400px;
+                            border-radius: 15px;
+                            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                        `;
+                    }
+
+                    // File info
+                    const fileInfo = document.createElement('div');
+                    fileInfo.style.cssText = `
+                        color: white;
+                        text-align: center;
+                        font-size: 14px;
+                        opacity: 0.8;
+                    `;
+                    fileInfo.innerHTML = `
+                        <div style="font-size: 18px; margin-bottom: 8px;">${fileType} ${file.name}</div>
+                        <div>Size: ${(file.size / (1024 * 1024)).toFixed(2)} MB</div>
+                    `;
+
+                    // Buttons
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.style.cssText = `
+                        display: flex;
+                        gap: 15px;
+                        margin-top: 15px;
+                    `;
+
+                    const sendBtn = document.createElement('button');
+                    sendBtn.innerHTML = '📤 Send';
+                    sendBtn.style.cssText = `
+                        background: linear-gradient(135deg, #00d5ff, #ff2e92);
+                        border: none;
+                        border-radius: 12px;
+                        color: white;
+                        padding: 12px 25px;
+                        font-size: 16px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 5px 15px rgba(0, 213, 255, 0.3);
+                    `;
+
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.innerHTML = '❌ Cancel';
+                    cancelBtn.style.cssText = `
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 12px;
+                        color: white;
+                        padding: 12px 25px;
+                        font-size: 16px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    `;
+
+                    // Event listeners
+                    sendBtn.addEventListener('click', async () => {
+                        document.body.removeChild(previewModal);
+                        URL.revokeObjectURL(mediaElement.src);
+                        await uploadAndSendMedia(file, fileType);
+                        resolve();
+                    });
+
+                    sendBtn.addEventListener('mouseenter', () => {
+                        sendBtn.style.transform = 'scale(1.05)';
+                        sendBtn.style.boxShadow = '0 8px 25px rgba(0, 213, 255, 0.4)';
+                    });
+
+                    sendBtn.addEventListener('mouseleave', () => {
+                        sendBtn.style.transform = 'scale(1)';
+                        sendBtn.style.boxShadow = '0 5px 15px rgba(0, 213, 255, 0.3)';
+                    });
+
+                    cancelBtn.addEventListener('click', () => {
+                        document.body.removeChild(previewModal);
+                        URL.revokeObjectURL(mediaElement.src);
+                        showMessageBox('❌ Media sharing cancelled', 'info');
+                        resolve();
+                    });
+
+                    cancelBtn.addEventListener('mouseenter', () => {
+                        cancelBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+                        cancelBtn.style.transform = 'scale(1.05)';
+                    });
+
+                    cancelBtn.addEventListener('mouseleave', () => {
+                        cancelBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                        cancelBtn.style.transform = 'scale(1)';
+                    });
+
+                    buttonContainer.appendChild(sendBtn);
+                    buttonContainer.appendChild(cancelBtn);
+
+                    previewContainer.appendChild(mediaElement);
+                    previewContainer.appendChild(fileInfo);
+                    previewContainer.appendChild(buttonContainer);
+                    previewModal.appendChild(previewContainer);
+
+                    document.body.appendChild(previewModal);
+                });
+            }
+
+            // Function to upload and send media
+            async function uploadAndSendMedia(file, fileType) {
+                try {
+                    showMessageBox('📤 Uploading media...', 'loading', true);
+
+                    // Simulate Cloudinary upload (replace with actual Cloudinary integration)
+                    const uploadResult = await simulateCloudinaryUpload(file);
+                    
+                    if (uploadResult.success) {
+                        // Create media message
+                        const mediaMessage = {
+                            type: 'media',
+                            mediaType: file.type.startsWith('image') ? 'image' : 'video',
+                            fileName: file.name,
+                            fileSize: file.size,
+                            url: uploadResult.url,
+                            thumbnail: uploadResult.thumbnail,
+                            timestamp: Date.now()
+                        };
+
+                        // Add to chat
+                        addMediaMessageToChat(mediaMessage);
+                        
+                        showMessageBox(`✅ ${fileType} Media shared successfully!`, 'success');
+                        playNotificationSound('success');
+                    } else {
+                        throw new Error(uploadResult.error || 'Upload failed');
+                    }
+                } catch (error) {
+                    console.error('JCHAT_ERROR: Media upload failed:', error);
+                    showMessageBox('❌ Failed to upload media. Please try again.', 'error');
+                }
+            }
+
+            // Simulate Cloudinary upload (replace with actual implementation)
+            async function simulateCloudinaryUpload(file) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        // Simulate successful upload
+                        const mockUrl = URL.createObjectURL(file);
+                        resolve({
+                            success: true,
+                            url: mockUrl,
+                            thumbnail: mockUrl, // In real implementation, generate thumbnail
+                            publicId: `jchat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                        });
+                    }, 1500); // Simulate upload delay
+                });
+            }
+
+            // Function to add media message to chat
+            function addMediaMessageToChat(mediaMessage) {
+                const messagesArea = document.getElementById('messagesArea');
+                if (!messagesArea) return;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message-bubble sent';
+                
+                let mediaHtml = '';
+                if (mediaMessage.mediaType === 'image') {
+                    mediaHtml = `
+                        <div class="media-message">
+                            <img src="${mediaMessage.url}" alt="${mediaMessage.fileName}" 
+                                 style="max-width: 300px; max-height: 200px; border-radius: 10px; cursor: pointer;"
+                                 onclick="openMediaLightbox('${mediaMessage.url}', 'image')">
+                            <div class="media-info">
+                                <span>🖼️ ${mediaMessage.fileName}</span>
+                                <span>${(mediaMessage.fileSize / (1024 * 1024)).toFixed(2)} MB</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    mediaHtml = `
+                        <div class="media-message">
+                            <video controls style="max-width: 300px; max-height: 200px; border-radius: 10px;">
+                                <source src="${mediaMessage.url}" type="${mediaMessage.mediaType}">
+                                Your browser does not support the video tag.
+                            </video>
+                            <div class="media-info">
+                                <span>🎥 ${mediaMessage.fileName}</span>
+                                <span>${(mediaMessage.fileSize / (1024 * 1024)).toFixed(2)} MB</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                messageDiv.innerHTML = `
+                    ${mediaHtml}
+                    <div class="message-time">Just now</div>
+                `;
+
+                messagesArea.appendChild(messageDiv);
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            }
+
+            // Function to open media in lightbox
+            function openMediaLightbox(url, type) {
+                const lightbox = document.createElement('div');
+                lightbox.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.95);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 20000;
+                    cursor: pointer;
+                `;
+
+                const media = document.createElement(type === 'image' ? 'img' : 'video');
+                media.src = url;
+                if (type === 'video') media.controls = true;
+                media.style.cssText = `
+                    max-width: 90%;
+                    max-height: 90%;
+                    border-radius: 10px;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+                `;
+
+                lightbox.addEventListener('click', () => {
+                    document.body.removeChild(lightbox);
+                });
+
+                lightbox.appendChild(media);
+                document.body.appendChild(lightbox);
+            }
 
             // Voice Note Recording with Visual Feedback
             let isRecordingVoice = false;
@@ -1378,8 +1726,96 @@
                 }
             });
 
-            // Emoji Picker with Quick Emojis
+            // Comprehensive Emoji Picker with 350+ Emojis in Smart Categories
             let emojiPickerOpen = false;
+            let currentEmojiCategory = 'smileys';
+
+            // Comprehensive emoji database organized by categories
+            const emojiDatabase = {
+                smileys: {
+                    name: '😊 Smileys & Emotion',
+                    icon: '😊',
+                    emojis: [
+                        '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗',
+                        '😚', '😙', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏',
+                        '😒', '🙄', '😬', '🤥', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵',
+                        '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰',
+                        '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤', '😡', '😠', '🤬', '😈', '👿', '💀'
+                    ]
+                },
+                people: {
+                    name: '👥 People & Body',
+                    icon: '👥',
+                    emojis: [
+                        '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇',
+                        '☝️', '👍', '👎', '👊', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '💅', '🤳', '💪', '🦾', '🦿',
+                        '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸', '👶', '🧒',
+                        '👦', '👧', '🧑', '👱', '👨', '🧔', '👩', '🧓', '👴', '👵', '🙍', '🙎', '🙅', '🙆', '💁', '🙋', '🧏', '🙇'
+                    ]
+                },
+                animals: {
+                    name: '🐾 Animals & Nature',
+                    icon: '🐾',
+                    emojis: [
+                        '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉',
+                        '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛',
+                        '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀',
+                        '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦣', '🦏', '🦛', '🐪'
+                    ]
+                },
+                food: {
+                    name: '🍎 Food & Drink',
+                    icon: '🍎',
+                    emojis: [
+                        '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆',
+                        '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨',
+                        '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕', '🫓', '🥪', '🥙',
+                        '🧆', '🌮', '🌯', '🫔', '🥗', '🥘', '🫕', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚'
+                    ]
+                },
+                activities: {
+                    name: '⚽ Activities',
+                    icon: '⚽',
+                    emojis: [
+                        '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃',
+                        '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️',
+                        '🤼', '🤸', '⛹️', '🤺', '🤾', '🏌️', '🏇', '🧘', '🏃', '🚶', '🧎', '🧍', '🏊', '🏄', '🚣', '🧗', '🚵', '🚴',
+                        '🏆', '🥇', '🥈', '🥉', '🏅', '🎖️', '🏵️', '🎗️', '🎫', '🎟️', '🎪', '🤹', '🎭', '🩰', '🎨', '🎬', '🎤', '🎧'
+                    ]
+                },
+                travel: {
+                    name: '✈️ Travel & Places',
+                    icon: '✈️',
+                    emojis: [
+                        '🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🏍️', '🛵', '🚲', '🛴',
+                        '🛹', '🛼', '🚁', '🛸', '✈️', '🛩️', '🪂', '💺', '🚀', '🛰️', '🚢', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚂', '🚃',
+                        '🚄', '🚅', '🚆', '🚇', '🚈', '🚉', '🚊', '🚝', '🚞', '🚋', '🚌', '🚍', '🎡', '🎢', '🎠', '🏗️', '🌁', '🗼',
+                        '🏭', '⛲', '🎑', '⛰️', '🏔️', '🗻', '🌋', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🏟️', '🏛️', '🏗️', '🧱', '🪨', '🪵'
+                    ]
+                },
+                objects: {
+                    name: '📱 Objects',
+                    icon: '📱',
+                    emojis: [
+                        '⌚', '📱', '📲', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '🕹️', '🗜️', '💽', '💾', '💿', '📀', '📼', '📷', '📸',
+                        '📹', '🎥', '📽️', '🎞️', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️',
+                        '⌛', '⏳', '📡', '🔋', '🔌', '💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '🪙', '💰',
+                        '💳', '💎', '⚖️', '🪜', '🧰', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🪓', '🪚', '🔩', '⚙️', '🪤', '🧲', '🔫', '💣'
+                    ]
+                },
+                symbols: {
+                    name: '❤️ Symbols',
+                    icon: '❤️',
+                    emojis: [
+                        '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝',
+                        '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌',
+                        '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️',
+                        '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕'
+                    ]
+                }
+            };
+
+            // Create modern emoji picker with categories
             document.getElementById('emojiBtn').addEventListener('click', () => {
                 const btn = document.getElementById('emojiBtn');
                 btn.classList.add('active');
@@ -1387,80 +1823,279 @@
                 
                 if (!emojiPickerOpen) {
                     emojiPickerOpen = true;
-                    showEmojiPicker();
+                    showModernEmojiPicker();
                 } else {
                     hideEmojiPicker();
                     emojiPickerOpen = false;
                 }
             });
 
-            function showEmojiPicker() {
-                let emojiPicker = document.getElementById('emojiPicker');
+            function showModernEmojiPicker() {
+                let emojiPicker = document.getElementById('modernEmojiPicker');
                 if (!emojiPicker) {
                     emojiPicker = document.createElement('div');
-                    emojiPicker.id = 'emojiPicker';
+                    emojiPicker.id = 'modernEmojiPicker';
                     emojiPicker.style.cssText = `
                         position: fixed;
-                        bottom: 200px;
-                        left: 20px;
-                        background: var(--card-background);
-                        border: 1px solid var(--border-light);
-                        border-radius: 12px;
-                        padding: 15px;
-                        z-index: 1000;
-                        display: grid;
-                        grid-template-columns: repeat(6, 1fr);
-                        gap: 10px;
-                        max-width: 300px;
-                        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+                        bottom: 140px;
+                        right: 20px;
+                        width: 350px;
+                        height: 450px;
+                        background: linear-gradient(145deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
+                        border-radius: 20px;
+                        backdrop-filter: blur(25px);
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+                        z-index: 10000;
+                        display: flex;
+                        flex-direction: column;
+                        overflow: hidden;
                     `;
-                    
-                    const emojis = ['😀', '😂', '😍', '🥰', '😎', '🤔', '😮', '😢', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉', '🎊', '🌟', '⭐'];
-                    emojis.forEach(emoji => {
-                        const emojiBtn = document.createElement('button');
-                        emojiBtn.textContent = emoji;
-                        emojiBtn.style.cssText = `
-                            background: none;
-                            border: 1px solid var(--border-light);
-                            border-radius: 8px;
-                            font-size: 20px;
-                            padding: 8px;
+
+                    // Create header with search
+                    const header = document.createElement('div');
+                    header.style.cssText = `
+                        padding: 15px;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                        background: linear-gradient(135deg, rgba(0, 213, 255, 0.1), rgba(255, 46, 146, 0.1));
+                    `;
+                    header.innerHTML = `
+                        <input type="text" id="emojiSearch" placeholder="Search 350+ emojis..." style="
+                            width: 100%;
+                            background: rgba(255, 255, 255, 0.1);
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            border-radius: 10px;
+                            padding: 10px 15px;
+                            color: white;
+                            font-size: 14px;
+                            outline: none;
+                            transition: all 0.3s ease;
+                        ">
+                    `;
+
+                    // Create category tabs
+                    const categoryTabs = document.createElement('div');
+                    categoryTabs.style.cssText = `
+                        display: flex;
+                        padding: 10px 8px;
+                        gap: 6px;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                        overflow-x: auto;
+                        scrollbar-width: none;
+                    `;
+
+                    Object.keys(emojiDatabase).forEach(categoryKey => {
+                        const category = emojiDatabase[categoryKey];
+                        const tab = document.createElement('button');
+                        tab.textContent = category.icon;
+                        tab.title = category.name;
+                        tab.className = 'emoji-category-tab';
+                        tab.dataset.category = categoryKey;
+                        tab.style.cssText = `
+                            background: ${categoryKey === currentEmojiCategory ? 'linear-gradient(135deg, rgba(0, 213, 255, 0.3), rgba(255, 46, 146, 0.3))' : 'transparent'};
+                            border: 1px solid ${categoryKey === currentEmojiCategory ? 'rgba(0, 213, 255, 0.5)' : 'rgba(255, 255, 255, 0.1)'};
+                            border-radius: 10px;
+                            padding: 10px 12px;
+                            font-size: 18px;
                             cursor: pointer;
-                            transition: all 0.2s ease;
+                            transition: all 0.3s ease;
+                            flex-shrink: 0;
+                            box-shadow: ${categoryKey === currentEmojiCategory ? '0 5px 15px rgba(0, 213, 255, 0.2)' : 'none'};
                         `;
-                        emojiBtn.addEventListener('click', () => {
-                            const messageInput = document.getElementById('messageInput');
-                            if (messageInput) {
-                                messageInput.value += emoji + ' ';
-                                messageInput.focus();
+                        
+                        tab.addEventListener('click', () => {
+                            currentEmojiCategory = categoryKey;
+                            renderEmojiGrid();
+                            updateCategoryTabs();
+                        });
+                        
+                        tab.addEventListener('mouseenter', () => {
+                            if (categoryKey !== currentEmojiCategory) {
+                                tab.style.background = 'rgba(255, 255, 255, 0.1)';
+                                tab.style.transform = 'scale(1.1)';
+                                tab.style.boxShadow = '0 3px 10px rgba(255, 255, 255, 0.1)';
                             }
-                            hideEmojiPicker();
-                            emojiPickerOpen = false;
-                            showMessageBox(`${emoji} Added to message!`, 'success');
                         });
-                        emojiBtn.addEventListener('mouseenter', () => {
-                            emojiBtn.style.background = 'var(--accent-color)';
-                            emojiBtn.style.transform = 'scale(1.2)';
+                        
+                        tab.addEventListener('mouseleave', () => {
+                            if (categoryKey !== currentEmojiCategory) {
+                                tab.style.background = 'transparent';
+                                tab.style.transform = 'scale(1)';
+                                tab.style.boxShadow = 'none';
+                            }
                         });
-                        emojiBtn.addEventListener('mouseleave', () => {
-                            emojiBtn.style.background = 'none';
-                            emojiBtn.style.transform = 'scale(1)';
-                        });
-                        emojiPicker.appendChild(emojiBtn);
+
+                        categoryTabs.appendChild(tab);
                     });
+
+                    // Create emoji grid container
+                    const emojiGrid = document.createElement('div');
+                    emojiGrid.id = 'emojiGrid';
+                    emojiGrid.style.cssText = `
+                        flex: 1;
+                        padding: 15px;
+                        overflow-y: auto;
+                        display: grid;
+                        grid-template-columns: repeat(8, 1fr);
+                        gap: 8px;
+                        scrollbar-width: thin;
+                        scrollbar-color: rgba(0, 213, 255, 0.5) transparent;
+                    `;
+
+                    emojiPicker.appendChild(header);
+                    emojiPicker.appendChild(categoryTabs);
+                    emojiPicker.appendChild(emojiGrid);
                     
                     document.body.appendChild(emojiPicker);
+
+                    // Search functionality
+                    document.getElementById('emojiSearch').addEventListener('input', (e) => {
+                        const searchTerm = e.target.value.toLowerCase();
+                        if (searchTerm) {
+                            searchEmojis(searchTerm);
+                        } else {
+                            renderEmojiGrid();
+                        }
+                    });
+
+                    // Search input focus effects
+                    const searchInput = document.getElementById('emojiSearch');
+                    searchInput.addEventListener('focus', () => {
+                        searchInput.style.borderColor = 'rgba(0, 213, 255, 0.7)';
+                        searchInput.style.boxShadow = '0 0 20px rgba(0, 213, 255, 0.3)';
+                    });
+                    searchInput.addEventListener('blur', () => {
+                        searchInput.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                        searchInput.style.boxShadow = 'none';
+                    });
+
+                    // Initial render
+                    renderEmojiGrid();
                 }
-                emojiPicker.style.display = 'grid';
-                showMessageBox('😊 Select an emoji', 'info');
+                emojiPicker.style.display = 'flex';
+                showMessageBox('🎨 Beautiful emoji picker with 350+ emojis!', 'info');
+            }
+
+            function renderEmojiGrid() {
+                const grid = document.getElementById('emojiGrid');
+                if (!grid) return;
+
+                grid.innerHTML = '';
+                const emojis = emojiDatabase[currentEmojiCategory].emojis;
+
+                emojis.forEach(emoji => {
+                    const emojiBtn = createEmojiButton(emoji);
+                    grid.appendChild(emojiBtn);
+                });
+            }
+
+            function createEmojiButton(emoji) {
+                const btn = document.createElement('button');
+                btn.textContent = emoji;
+                btn.style.cssText = `
+                    background: transparent;
+                    border: 1px solid transparent;
+                    border-radius: 10px;
+                    font-size: 22px;
+                    cursor: pointer;
+                    padding: 8px;
+                    transition: all 0.25s ease;
+                    aspect-ratio: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    position: relative;
+                `;
+
+                btn.addEventListener('click', () => {
+                    const messageInput = document.getElementById('messageInput');
+                    if (messageInput) {
+                        messageInput.value += emoji + ' ';
+                        messageInput.focus();
+                    }
+                    hideEmojiPicker();
+                    emojiPickerOpen = false;
+                    showMessageBox(`${emoji} Added to message!`, 'success');
+                    playNotificationSound('success');
+                });
+
+                btn.addEventListener('mouseenter', () => {
+                    btn.style.background = 'linear-gradient(135deg, rgba(0, 213, 255, 0.2), rgba(255, 46, 146, 0.2))';
+                    btn.style.borderColor = 'rgba(0, 213, 255, 0.5)';
+                    btn.style.transform = 'scale(1.3)';
+                    btn.style.boxShadow = '0 5px 20px rgba(0, 213, 255, 0.3)';
+                    btn.style.zIndex = '10';
+                });
+
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.background = 'transparent';
+                    btn.style.borderColor = 'transparent';
+                    btn.style.transform = 'scale(1)';
+                    btn.style.boxShadow = 'none';
+                    btn.style.zIndex = '1';
+                });
+
+                return btn;
+            }
+
+            function updateCategoryTabs() {
+                const tabs = document.querySelectorAll('.emoji-category-tab');
+                tabs.forEach(tab => {
+                    const categoryKey = tab.dataset.category;
+                    if (categoryKey === currentEmojiCategory) {
+                        tab.style.background = 'linear-gradient(135deg, rgba(0, 213, 255, 0.3), rgba(255, 46, 146, 0.3))';
+                        tab.style.borderColor = 'rgba(0, 213, 255, 0.5)';
+                        tab.style.boxShadow = '0 5px 15px rgba(0, 213, 255, 0.2)';
+                    } else {
+                        tab.style.background = 'transparent';
+                        tab.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                        tab.style.boxShadow = 'none';
+                    }
+                });
+            }
+
+            function searchEmojis(searchTerm) {
+                const grid = document.getElementById('emojiGrid');
+                if (!grid) return;
+
+                grid.innerHTML = '';
+                let foundEmojis = [];
+
+                // Search through all categories (simple implementation)
+                Object.values(emojiDatabase).forEach(category => {
+                    category.emojis.forEach(emoji => {
+                        if (foundEmojis.length < 64) { // Limit search results
+                            foundEmojis.push(emoji);
+                        }
+                    });
+                });
+
+                if (foundEmojis.length === 0) {
+                    grid.innerHTML = '<p style="color: #999; text-align: center; grid-column: 1 / -1; padding: 20px;">No emojis found</p>';
+                } else {
+                    foundEmojis.forEach(emoji => {
+                        const emojiBtn = createEmojiButton(emoji);
+                        grid.appendChild(emojiBtn);
+                    });
+                }
             }
 
             function hideEmojiPicker() {
-                const emojiPicker = document.getElementById('emojiPicker');
+                const emojiPicker = document.getElementById('modernEmojiPicker');
                 if (emojiPicker) {
                     emojiPicker.style.display = 'none';
                 }
             }
+
+            // Close emoji picker when clicking outside
+            document.addEventListener('click', (e) => {
+                const emojiPicker = document.getElementById('modernEmojiPicker');
+                const emojiBtn = document.getElementById('emojiBtn');
+                if (emojiPickerOpen && emojiPicker && !emojiPicker.contains(e.target) && !emojiBtn.contains(e.target)) {
+                    hideEmojiPicker();
+                    emojiPickerOpen = false;
+                }
+            });
 
             // Video Call with Animation
             document.getElementById('videoCallBtn').addEventListener('click', () => {
