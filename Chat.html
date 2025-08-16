@@ -1935,7 +1935,7 @@
             let unsubscribeFriends = null;
             let unsubscribeUsers = null;
 
-            // Function to fetch friends from Firebase (mirroring Find_Friends.html exactly)
+            // Function to fetch friends from Firebase (exact same as Find_Friends.html's fetchFriendsForModal)
             async function fetchUserFriends() {
                 if (!isAuthReady || !currentUser) {
                     console.log("JCHAT_DEBUG: No user logged in, cannot fetch friends.");
@@ -1951,7 +1951,7 @@
                     console.log("JCHAT_DEBUG: Fetching friends for modal using Find_Friends.html logic...");
                     const friends = [];
                     
-                    // Use the same logic as Find_Friends.html - check currentUsersFriends Set
+                    // Use the exact same logic as Find_Friends.html - check currentUsersFriends Set
                     // This Set is populated by the real-time listener in setupFriendsAndUsersListeners()
                     allUsersData.forEach(user => {
                         if (currentUsersFriends.has(user.userId)) {
@@ -1979,7 +1979,7 @@
                 }
             }
 
-            // Function to set up real-time friends and users listeners (mirroring Find_Friends.html)
+            // Function to set up real-time friends and users listeners (exact same as Find_Friends.html)
             function setupFriendsAndUsersListeners() {
                 if (!isAuthReady || !currentUser) return;
                 
@@ -1992,7 +1992,7 @@
                 const publicUsersCollectionRef = collection(db, "artifacts", appId, "public", "data", "users");
                 const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
 
-                // Listen for changes in confirmed friends (same as Find_Friends.html)
+                // Listen for changes in confirmed friends (exact same as Find_Friends.html)
                 unsubscribeFriends = onSnapshot(publicFriendsRef, (snapshot) => {
                     currentUsersFriends.clear();
                     snapshot.forEach(docSnap => {
@@ -2005,7 +2005,7 @@
                     });
                     console.log(`JCHAT_DEBUG: Updated friends list, now have ${currentUsersFriends.size} friends`);
                     
-                    // Re-render friends list if modal is open
+                    // Re-render friends list if modal is open (same as Find_Friends.html)
                     if (document.getElementById('selectFriendModal').classList.contains('active')) {
                         fetchUserFriends().then(friends => {
                             currentFriends = friends;
@@ -2021,7 +2021,7 @@
                     showMessageBox(`Error loading friends data: ${error.message}`, 'error');
                 });
 
-                // Listen for changes in the general public user list (same as Find_Friends.html)
+                // Listen for changes in the general public user list (exact same as Find_Friends.html)
                 unsubscribeUsers = onSnapshot(publicUsersCollectionRef, (snapshot) => {
                     allUsersData = []; // Reset global users data
                     snapshot.docs.forEach(docSnap => {
@@ -2030,7 +2030,7 @@
                     });
                     console.log(`JCHAT_DEBUG: Updated users list, now have ${allUsersData.length} users`);
                     
-                    // Re-render friends list if modal is open
+                    // Re-render friends list if modal is open (same as Find_Friends.html)
                     if (document.getElementById('selectFriendModal').classList.contains('active')) {
                         fetchUserFriends().then(friends => {
                             currentFriends = friends;
