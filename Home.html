@@ -1666,6 +1666,100 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Premium Request Button */
+        .premium-request-btn {
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            color: #000;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 10px;
+        }
+
+        .premium-request-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .premium-request-btn i {
+            font-size: 1rem;
+        }
+
+        /* Premium Request Modal Styles */
+        .premium-tiers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .premium-tier-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .premium-tier-option:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .premium-tier-option.selected {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .tier-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tier-badge {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .tier-price {
+            color: var(--accent-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .tier-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+
+        .tier-features li {
+            padding: 0.25rem 0;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .tier-features li:before {
+            content: "✓";
+            color: var(--accent-color);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
         /* Custom Message Box Styles */
         #messageBox {
             position: fixed;
@@ -2427,6 +2521,12 @@
                         </div>
                     </div>
                 </div>
+                <!-- Premium Request Button -->
+                <button id="premiumRequestBtn" class="premium-request-btn" aria-label="Request Premium Access" style="display:none;">
+                    <i class="fas fa-crown"></i>
+                    <span>Get Premium</span>
+                </button>
+                
                 <!-- Profile Link with Picture and Name -->
                 <a href="./Profile.html" id="profileLink" aria-label="View Profile" style="display:flex;align-items:center;gap:8px;">
                     <img id="headerProfilePic" src="" alt="Profile Picture" loading="lazy" decoding="async" style="display:none;width:44px;height:44px;border-radius:50%;object-fit:cover;border:1px solid var(--border-light); box-shadow: 0 0 10px rgba(255,46,146,0.6), 0 0 10px rgba(0,213,255,0.6);">
@@ -2666,17 +2766,77 @@
         </div>
     </div>
 
-    <!-- Edit Post Modal -->
-    <div id="editPostModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editPostModalTitle">
-        <div class="modal-content">
-            <h3 id="editPostModalTitle">Edit Post</h3>
-            <div class="input-group">
-                <label for="editPostContent">Post Content:</label>
-                <textarea id="editPostContent" maxlength="500" aria-label="Edit Post Content"></textarea>
+                <!-- Premium Request Modal -->
+            <div id="premiumRequestModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="premiumRequestModalTitle" style="display:none;">
+                <div class="modal-content">
+                    <h3 id="premiumRequestModalTitle">🌟 Request Premium Access</h3>
+                    <p style="color:var(--text-light); margin-bottom: 1rem;">
+                        Choose your premium tier and submit your request. You'll be redirected to payment after submission.
+                    </p>
+                    
+                    <div class="premium-tiers">
+                        <div class="premium-tier-option" data-tier="premium">
+                            <div class="tier-header">
+                                <span class="tier-badge">🌟 Premium</span>
+                                <span class="tier-price">$9.99/month</span>
+                            </div>
+                            <ul class="tier-features">
+                                <li>Premium Badge</li>
+                                <li>Custom Themes</li>
+                                <li>Ad-free Experience</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="premium-tier-option" data-tier="vip">
+                            <div class="tier-header">
+                                <span class="tier-badge">💎 VIP</span>
+                                <span class="tier-price">$19.99/month</span>
+                            </div>
+                            <ul class="tier-features">
+                                <li>VIP Badge</li>
+                                <li>Priority Support</li>
+                                <li>Advanced Features</li>
+                                <li>All Premium Features</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="premium-tier-option" data-tier="elite">
+                            <div class="tier-header">
+                                <span class="tier-badge">👑 Elite</span>
+                                <span class="tier-price">$39.99/month</span>
+                            </div>
+                            <ul class="tier-features">
+                                <li>Elite Badge</li>
+                                <li>Exclusive Content</li>
+                                <li>Custom Features</li>
+                                <li>All VIP Features</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="premiumRequestMessage">Additional Message (Optional):</label>
+                        <textarea id="premiumRequestMessage" placeholder="Tell us why you want premium access..." maxlength="500"></textarea>
+                    </div>
+                    
+                    <div class="button-group" style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button id="cancelPremiumRequestBtn" class="modal-button cancel-button">Cancel</button>
+                        <button id="submitPremiumRequestBtn" class="modal-button confirm-button">Submit Request</button>
+                    </div>
+                </div>
             </div>
-            <div class="media-upload-area">
-                <label for="editPostMediaUpload" class="file-input-label" aria-label="Change Media for Post">
-                    <i class="fas fa-image"></i> Change Media
+
+            <!-- Edit Post Modal -->
+            <div id="editPostModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editPostModalTitle">
+                <div class="modal-content">
+                    <h3 id="editPostModalTitle">Edit Post</h3>
+                    <div class="input-group">
+                        <label for="editPostContent">Post Content:</label>
+                        <textarea id="editPostContent" maxlength="500" aria-label="Edit Post Content"></textarea>
+                    </div>
+                    <div class="media-upload-area">
+                        <label for="editPostMediaUpload" class="file-input-label" aria-label="Change Media for Post">
+                            <i class="fas fa-image"></i> Change Media
                 </label>
                 <input type="file" id="editPostMediaUpload" accept="image/*,video/*">
                 <img id="editMediaImagePreview" class="media-preview" src="" alt="Image Preview" loading="lazy" decoding="async" style="display: none;">
@@ -7744,6 +7904,196 @@
             window.addEventListener('resize', updateSmartScrollState);
             document.addEventListener('DOMContentLoaded', updateSmartScrollState);
         }
+
+        // --- PREMIUM REQUEST SYSTEM ---
+        console.log("JCHAT_DEBUG: Initializing Premium Request System...");
+
+        // Premium Request Variables
+        let selectedPremiumTier = null;
+        let premiumRequestModal = null;
+        let premiumRequestBtn = null;
+
+        // Initialize Premium Request System
+        function initializePremiumRequestSystem() {
+            premiumRequestModal = document.getElementById('premiumRequestModal');
+            premiumRequestBtn = document.getElementById('premiumRequestBtn');
+            
+            setupPremiumRequestEventListeners();
+            checkPremiumStatus();
+        }
+
+        // Setup Premium Request Event Listeners
+        function setupPremiumRequestEventListeners() {
+            // Premium Request Button
+            if (premiumRequestBtn) {
+                premiumRequestBtn.addEventListener('click', openPremiumRequestModal);
+            }
+
+            // Premium Request Modal
+            if (premiumRequestModal) {
+                // Tier selection
+                const tierOptions = premiumRequestModal.querySelectorAll('.premium-tier-option');
+                tierOptions.forEach(option => {
+                    option.addEventListener('click', () => selectPremiumTier(option));
+                });
+
+                // Modal buttons
+                const cancelBtn = document.getElementById('cancelPremiumRequestBtn');
+                const submitBtn = document.getElementById('submitPremiumRequestBtn');
+
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', closePremiumRequestModal);
+                }
+
+                if (submitBtn) {
+                    submitBtn.addEventListener('click', submitPremiumRequest);
+                }
+
+                // Close modal on outside click
+                premiumRequestModal.addEventListener('click', (event) => {
+                    if (event.target === premiumRequestModal) {
+                        closePremiumRequestModal();
+                    }
+                });
+            }
+        }
+
+        // Check Premium Status
+        async function checkPremiumStatus() {
+            if (!currentUser) return;
+
+            try {
+                const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid);
+                const userSnap = await getDoc(userRef);
+                
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+                    const hasPremium = userData.premiumStatus && userData.premiumExpiry;
+                    
+                    if (hasPremium) {
+                        const expiryDate = userData.premiumExpiry.toDate();
+                        const isExpired = expiryDate < new Date();
+                        
+                        if (!isExpired) {
+                            // User has active premium - hide request button
+                            if (premiumRequestBtn) {
+                                premiumRequestBtn.style.display = 'none';
+                            }
+                            return;
+                        }
+                    }
+                }
+                
+                // Show premium request button if user doesn't have active premium
+                if (premiumRequestBtn) {
+                    premiumRequestBtn.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error("JCHAT_ERROR: Failed to check premium status:", error);
+            }
+        }
+
+        // Open Premium Request Modal
+        function openPremiumRequestModal() {
+            if (!currentUser) {
+                showMessageBox('Please log in to request premium access.', 'warning');
+                return;
+            }
+
+            if (premiumRequestModal) {
+                premiumRequestModal.style.display = 'flex';
+                selectedPremiumTier = null;
+                
+                // Reset tier selection
+                const tierOptions = premiumRequestModal.querySelectorAll('.premium-tier-option');
+                tierOptions.forEach(option => option.classList.remove('selected'));
+            }
+        }
+
+        // Close Premium Request Modal
+        function closePremiumRequestModal() {
+            if (premiumRequestModal) {
+                premiumRequestModal.style.display = 'none';
+                selectedPremiumTier = null;
+                
+                // Clear message
+                const messageInput = document.getElementById('premiumRequestMessage');
+                if (messageInput) {
+                    messageInput.value = '';
+                }
+            }
+        }
+
+        // Select Premium Tier
+        function selectPremiumTier(option) {
+            const tierOptions = premiumRequestModal.querySelectorAll('.premium-tier-option');
+            tierOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            option.classList.add('selected');
+            selectedPremiumTier = option.dataset.tier;
+        }
+
+        // Submit Premium Request
+        async function submitPremiumRequest() {
+            if (!currentUser) {
+                showMessageBox('Please log in to submit a premium request.', 'warning');
+                return;
+            }
+
+            if (!selectedPremiumTier) {
+                showMessageBox('Please select a premium tier.', 'info');
+                return;
+            }
+
+            try {
+                showMessageBox('Submitting premium request...', 'loading', true);
+
+                const messageInput = document.getElementById('premiumRequestMessage');
+                const message = messageInput ? messageInput.value.trim() : '';
+
+                // Create premium request document
+                const requestData = {
+                    userId: currentUser.uid,
+                    username: currentUser.displayName || currentUser.email || 'Unknown User',
+                    tier: selectedPremiumTier,
+                    message: message,
+                    status: 'pending',
+                    timestamp: serverTimestamp()
+                };
+
+                // Add to Firestore
+                await addDoc(collection(db, 'artifacts', appId, 'premium_requests'), requestData);
+
+                // Close modal
+                closePremiumRequestModal();
+
+                // Redirect to payment
+                const prices = {
+                    premium: 9.99,
+                    vip: 19.99,
+                    elite: 39.99
+                };
+
+                const price = prices[selectedPremiumTier];
+                const paymentUrl = `/Wallet.html?premium=${selectedPremiumTier}&amount=${price}`;
+                
+                showMessageBox('Premium request submitted! Redirecting to payment...', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = paymentUrl;
+                }, 2000);
+
+                console.log(`JCHAT_DEBUG: Premium request submitted for tier ${selectedPremiumTier}`);
+            } catch (error) {
+                console.error("JCHAT_ERROR: Failed to submit premium request:", error);
+                showMessageBox(`Failed to submit request: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize Premium Request System when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initializePremiumRequestSystem();
+        });
     </script>
 </body>
 </html>
