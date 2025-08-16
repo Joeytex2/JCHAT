@@ -2607,6 +2607,30 @@
          };
 
          /**
+          * Check if browser supports required features for calls
+          */
+         function checkCallSupport() {
+             const issues = [];
+             
+             // Check for HTTPS
+             if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                 issues.push('HTTPS is required for camera/microphone access');
+             }
+             
+             // Check for getUserMedia support
+             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                 issues.push('Camera/microphone access not supported in this browser');
+             }
+             
+             // Check for WebRTC support
+             if (!window.RTCPeerConnection) {
+                 issues.push('WebRTC not supported in this browser');
+             }
+             
+             return issues;
+         }
+
+         /**
           * Initialize ringtone audio
           */
          function initializeRingtone() {
@@ -2638,13 +2662,48 @@
          }
 
          /**
-          * Get user media (audio/video)
+          * Get user media (audio/video) with comprehensive error handling
           */
          async function getUserMedia(constraints) {
              try {
-                 return await navigator.mediaDevices.getUserMedia(constraints);
+                 // Check if mediaDevices is supported
+                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                     throw new Error('Media devices not supported in this browser');
+                 }
+
+                 // Check if we're on HTTPS (required for getUserMedia)
+                 if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                     throw new Error('Camera and microphone access requires HTTPS. Please use HTTPS or localhost.');
+                 }
+
+                 console.log("JCHAT_DEBUG: Requesting media with constraints:", constraints);
+                 
+                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                 console.log("JCHAT_DEBUG: Successfully got user media");
+                 return stream;
+                 
              } catch (error) {
                  console.error("JCHAT_ERROR: Failed to get user media:", error);
+                 
+                 let errorMessage = 'Failed to access camera/microphone';
+                 
+                 if (error.name === 'NotAllowedError') {
+                     errorMessage = 'Camera/microphone access was denied. Please allow access and try again.';
+                 } else if (error.name === 'NotFoundError') {
+                     errorMessage = 'No camera or microphone found. Please check your device.';
+                 } else if (error.name === 'NotReadableError') {
+                     errorMessage = 'Camera or microphone is already in use by another application.';
+                 } else if (error.name === 'OverconstrainedError') {
+                     errorMessage = 'Camera or microphone does not meet the required constraints.';
+                 } else if (error.name === 'TypeError') {
+                     errorMessage = 'Invalid media constraints provided.';
+                 } else if (error.message.includes('HTTPS')) {
+                     errorMessage = error.message;
+                 } else {
+                     errorMessage = `Media access error: ${error.message}`;
+                 }
+                 
+                 showMessageBox(errorMessage, 'error');
                  throw error;
              }
          }
@@ -3095,18 +3154,49 @@
                  return;
              }
              
+             // Check browser support
+             const supportIssues = checkCallSupport();
+             if (supportIssues.length > 0) {
+                 const message = `Call not supported:\n${supportIssues.join('\n')}`;
+                 showMessageBox(message, 'error');
+                 return;
+             }
+             
              try {
                  callState = 'calling';
                  callType = callType;
                  callPartnerId = partnerId;
                  callPartnerName = document.getElementById('partnerDisplayName')?.textContent || 'Unknown';
                  
-                 // Get user media
-                 const constraints = callType === 'video' 
-                     ? { audio: true, video: true }
-                     : { audio: true, video: false };
+                 // Show initial message
+                 showMessageBox(`Preparing ${callType} call...`, 'loading', true);
                  
+                 // Get user media with better constraints
+                 const constraints = callType === 'video' 
+                     ? { 
+                         audio: { 
+                             echoCancellation: true,
+                             noiseSuppression: true,
+                             autoGainControl: true
+                         }, 
+                         video: { 
+                             width: { ideal: 1280 },
+                             height: { ideal: 720 },
+                             facingMode: 'user'
+                         } 
+                     }
+                     : { 
+                         audio: { 
+                             echoCancellation: true,
+                             noiseSuppression: true,
+                             autoGainControl: true
+                         }, 
+                         video: false 
+                     };
+                 
+                 console.log("JCHAT_DEBUG: Requesting media for call type:", callType);
                  localStream = await getUserMedia(constraints);
+                 console.log("JCHAT_DEBUG: Successfully got media stream");
                  
                  // Create peer connection
                  createPeerConnection();
@@ -3135,7 +3225,21 @@
                  
              } catch (error) {
                  console.error("JCHAT_ERROR: Failed to initiate call:", error);
-                 showMessageBox('Failed to initiate call', 'error');
+                 
+                 // Reset call state
+                 callState = 'idle';
+                 
+                 // Show specific error message
+                 if (error.name === 'NotAllowedError') {
+                     showMessageBox('Camera/microphone access denied. Please allow access in your browser settings and try again.', 'error');
+                 } else if (error.name === 'NotFoundError') {
+                     showMessageBox('No camera or microphone found. Please check your device and try again.', 'error');
+                 } else if (error.message.includes('HTTPS')) {
+                     showMessageBox(error.message, 'error');
+                 } else {
+                     showMessageBox(`Failed to initiate call: ${error.message}`, 'error');
+                 }
+                 
                  cleanupCall();
              }
          }
@@ -3192,6 +3296,35 @@
          
          // Make setupCallButtonListeners globally accessible
          window.setupCallButtonListeners = setupCallButtonListeners;
+         
+         // Add test function for debugging call setup
+         window.testCallSetup = async function() {
+             console.log("JCHAT_DEBUG: Testing call setup...");
+             
+             const supportIssues = checkCallSupport();
+             if (supportIssues.length > 0) {
+                 console.error("JCHAT_ERROR: Call support issues:", supportIssues);
+                 showMessageBox(`Call setup issues:\n${supportIssues.join('\n')}`, 'error');
+                 return;
+             }
+             
+             try {
+                 console.log("JCHAT_DEBUG: Testing audio access...");
+                 const audioStream = await getUserMedia({ audio: true, video: false });
+                 audioStream.getTracks().forEach(track => track.stop());
+                 console.log("JCHAT_DEBUG: Audio access successful");
+                 
+                 console.log("JCHAT_DEBUG: Testing video access...");
+                 const videoStream = await getUserMedia({ audio: true, video: true });
+                 videoStream.getTracks().forEach(track => track.stop());
+                 console.log("JCHAT_DEBUG: Video access successful");
+                 
+                 showMessageBox('Call setup test successful! Camera and microphone are working.', 'success');
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Call setup test failed:", error);
+                 showMessageBox(`Call setup test failed: ${error.message}`, 'error');
+             }
+         };
 
          /**
           * Show calling interface
