@@ -3114,19 +3114,25 @@
           * Renders the friends list in the modal.
           */
          function renderFriendsList(friends) {
+             console.log("JCHAT_DEBUG: renderFriendsList called with friends:", friends);
              const friendListContainer = document.getElementById('friendListContainer');
+             console.log("JCHAT_DEBUG: friendListContainer found:", friendListContainer);
              const noFriendsMessage = friendListContainer.querySelector('.no-friends-modal');
+             console.log("JCHAT_DEBUG: noFriendsMessage found:", noFriendsMessage);
              
              // Clear existing content except the no-friends message
              const existingItems = friendListContainer.querySelectorAll('.friend-item');
              existingItems.forEach(item => item.remove());
 
              if (friends.length === 0) {
+                 console.log("JCHAT_DEBUG: No friends found, showing no friends message");
                  noFriendsMessage.style.display = 'block';
                  noFriendsMessage.textContent = 'No friends found. Add friends from the Find Friends page.';
              } else {
+                 console.log("JCHAT_DEBUG: Found friends, creating friend items for:", friends.length, "friends");
                  noFriendsMessage.style.display = 'none';
                  friends.forEach(friend => {
+                     console.log("JCHAT_DEBUG: Creating friend item for:", friend.username);
                      const friendItem = createFriendItem(friend);
                      
                      // Add click handler for friend selection
@@ -3451,25 +3457,32 @@
              
              // Select Friend button click handler
              document.getElementById('selectFriendBtn')?.addEventListener('click', async () => {
+                 console.log("JCHAT_DEBUG: Select Friend button clicked");
                  const btn = document.getElementById('selectFriendBtn');
                  btn.style.transform = 'scale(0.95)';
                  setTimeout(() => btn.style.transform = '', 150);
                  
                  // Check authentication first
                  if (!currentUser || !currentUser.uid) {
+                     console.log("JCHAT_DEBUG: No current user found");
                      showMessageBox('❌ Please log in to view your friends', 'warning');
                      return;
                  }
+                 
+                 console.log("JCHAT_DEBUG: Current user found:", currentUser.uid);
                  
                  // Show loading state
                  showMessageBox('👥 Loading your friends...', 'loading', true);
                  
                  try {
+                     console.log("JCHAT_DEBUG: Starting to fetch friends...");
                      // Fetch REAL friends data only
                      currentFriends = await fetchUserFriends();
+                     console.log("JCHAT_DEBUG: Friends fetched:", currentFriends);
                      filteredFriends = [...currentFriends];
                      
                      // Render friends list
+                     console.log("JCHAT_DEBUG: Rendering friends list...");
                      renderFriendsList(filteredFriends);
                      
                      // Show modal
