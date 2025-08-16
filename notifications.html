@@ -2060,116 +2060,146 @@
         }
 
         /**
-         * Accepts a friend request.
-         * @param {string} notificationId - The ID of the friend request notification.
-         * @param {string} senderId - The ID of the user who sent the request.
-         * @param {string} senderUsername - The username of the user who sent the request.
-         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         * Accepts an incoming friend request.
+         * @param {string} senderId - The UID of the user who sent the request.
+         * @param {HTMLElement} buttonElement - The button that triggered the action.
          */
-        async function acceptFriendRequest(notificationId, senderId, senderUsername, buttonElement) {
-            if (!currentUser) {
-                showMessageBox("Authentication error. Cannot accept friend request.", 'error');
+        async function acceptFriendRequest(senderId, buttonElement) {
+            if (!currentUser || !currentUserProfileData) {
+                showMessageBox("You must be logged in to accept friend requests.", 'error');
                 return;
             }
 
-            toggleButtonLoading(buttonElement, true);
-            // Disable all action buttons in the modal during processing
-            document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = true);
+            const confirmed = await showCustomConfirm("Are you sure you want to accept this friend request?");
+            if (!confirmed) return;
 
-            showMessageBox(`Accepting friend request from ${senderUsername || 'user'}...`, 'loading', true);
+            toggleButtonLoading(buttonElement, true);
+            showMessageBox("Accepting friend request...", 'loading', true);
 
             try {
-                // 0. If already friends, just mark as read and exit
-                if (await isAlreadyFriends(currentUser.uid, senderId)) {
-                    await updateDoc(doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId), { read: true });
-                    await setFriendRequestStatus(senderId, currentUser.uid, 'accepted');
-                    showMessageBox(`You are already friends with ${senderUsername || 'this user'}.`, 'info');
-                    hideNotificationOptions();
+                const batch = writeBatch(db);
+
+                // 1. Find and update the friend request status to 'accepted'
+                const publicFriendRequestsRef = collection(db, "artifacts", appId, "public", "data", "friend_requests");
+                const q = query(publicFriendRequestsRef,
+                    where("senderId", "==", senderId),
+                    where("receiverId", "==", currentUser.uid),
+                    where("status", "==", "pending")
+                );
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    showMessageBox("Friend request not found or already processed.", 'warning');
+                    toggleButtonLoading(buttonElement, false);
                     return;
                 }
-
-                // 1-2. Create friendship docs in both directions
-                await ensureBidirectionalFriendship(currentUser.uid, senderId);
-
-                // 3. Mark the friend request notification as read
-                const notificationDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
-                await updateDoc(notificationDocRef, { read: true });
-
-                // 4. Update friendRequests status (if present)
-                await setFriendRequestStatus(senderId, currentUser.uid, 'accepted');
-
-                // 5. Send a "friend_accepted" notification back to the sender
-                await addDoc(collection(db, "artifacts", appId, "users", senderId, "notifications"), {
-                    type: 'friend_accepted',
-                    message: `${currentUserProfileData?.username || 'Someone'} accepted your friend request!`,
-                    senderId: currentUser.uid,
-                    recipientId: senderId,
-                    timestamp: serverTimestamp(),
-                    read: false,
-                    senderUsername: currentUserProfileData?.username || ''
+                const requestDoc = querySnapshot.docs[0];
+                batch.update(doc(db, "artifacts", appId, "public", "data", "friend_requests", requestDoc.id), {
+                    status: 'accepted',
+                    updatedAt: serverTimestamp()
                 });
 
-                showMessageBox(`You are now friends with ${senderUsername || 'this user'}!`, 'success');
-                hideNotificationOptions(); // Close modal on success
+                // 2. Create friendship record in public/data/friends
+                const friendshipId = getFriendshipId(currentUser.uid, senderId);
+                const publicFriendsRef = doc(db, "artifacts", appId, "public", "data", "friends", friendshipId);
+                batch.set(publicFriendsRef, {
+                    user1Id: currentUser.uid < senderId ? currentUser.uid : senderId,
+                    user2Id: currentUser.uid < senderId ? senderId : currentUser.uid,
+                    addedAt: serverTimestamp()
+                });
+
+                // 3. Update friendsCount for current user
+                const currentUserProfileRef = doc(db, "artifacts", appId, "users", currentUser.uid, "profiles", "user_profile");
+                batch.update(currentUserProfileRef, {
+                    friendsCount: (currentUserProfileData.friendsCount || 0) + 1,
+                    updatedAt: serverTimestamp()
+                });
+
+                // 4. Update friendsCount for sender (need to fetch their current count first)
+                const senderProfileRef = doc(db, "artifacts", appId, "users", senderId, "profiles", "user_profile");
+                const senderProfileSnap = await getDoc(senderProfileRef);
+                const senderCurrentFriendsCount = senderProfileSnap.exists() ? (senderProfileSnap.data().friendsCount || 0) : 0;
+                batch.update(senderProfileRef, {
+                    friendsCount: senderCurrentFriendsCount + 1,
+                    updatedAt: serverTimestamp()
+                });
+
+                // Commit the batch operations
+                await batch.commit();
+
+                // 5. Send notification to the sender (not part of batch)
+                const notificationRef = collection(db, "artifacts", appId, "users", senderId, "notifications");
+                await addDoc(notificationRef, {
+                    type: 'friend_accepted',
+                    message: `${currentUserProfileData.username} accepted your friend request!`,
+                    senderId: currentUser.uid,
+                    recipientId: senderId, // Required by security rules
+                    timestamp: serverTimestamp(),
+                    read: false
+                });
+
+                showMessageBox("Friend request accepted! You are now friends.", 'success');
+                playNotificationSound('success');
             } catch (error) {
                 console.error("JCHAT_ERROR: Error accepting friend request:", error);
-                showMessageBox(`Failed to accept friend request: ${error.message}`, 'error');
+                showMessageBox(`Failed to accept request: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(buttonElement, false);
-                document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = false);
             }
         }
 
         /**
-         * Rejects a friend request.
-         * @param {string} notificationId - The ID of the friend request notification.
-         * @param {string} senderId - The ID of the user who sent the request.
-         * @param {string} senderUsername - The username of the user who sent the request.
-         * @param {HTMLElement} buttonElement - The button element that triggered the action.
+         * Generates a consistent friendship ID for two users.
+         * @param {string} uid1 - The first user's UID.
+         * @param {string} uid2 - The second user's UID.
+         * @returns {string} The combined friendship ID.
          */
-        async function rejectFriendRequest(notificationId, senderId, senderUsername, buttonElement) {
+        function getFriendshipId(uid1, uid2) {
+            return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
+        }
+
+        /**
+         * Rejects an incoming friend request.
+         * @param {string} senderId - The UID of the user who sent the request.
+         * @param {HTMLElement} buttonElement - The button that triggered the action.
+         */
+        async function rejectFriendRequest(senderId, buttonElement) {
             if (!currentUser) {
-                showMessageBox("Authentication error. Cannot reject friend request.", 'error');
+                showMessageBox("You must be logged in to reject friend requests.", 'error');
                 return;
             }
 
+            const confirmed = await showCustomConfirm("Are you sure you want to reject this friend request?");
+            if (!confirmed) return;
+
             toggleButtonLoading(buttonElement, true);
-            // Disable all action buttons in the modal during processing
-            document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = true);
-
-            showMessageBox(`Rejecting friend request from ${senderUsername || 'user'}...`, 'loading', true);
-
-            const batch = writeBatch(db);
+            showMessageBox("Rejecting request...", 'loading', true);
 
             try {
-                // 1. Mark the friend request notification as read
-                const notificationDocRef = doc(db, "artifacts", appId, "users", currentUser.uid, "notifications", notificationId);
-                batch.update(notificationDocRef, { read: true });
+                const publicFriendRequestsRef = collection(db, "artifacts", appId, "public", "data", "friend_requests");
+                const q = query(publicFriendRequestsRef,
+                    where("senderId", "==", senderId),
+                    where("receiverId", "==", currentUser.uid),
+                    where("status", "==", "pending")
+                );
+                const querySnapshot = await getDocs(q);
 
-                // 1b. Update friendRequests status (if present)
-                await setFriendRequestStatus(senderId, currentUser.uid, 'rejected');
-
-                // 2. Optionally, send a "friend_rejected" notification back to the sender
-                await addDoc(collection(db, "artifacts", appId, "users", senderId, "notifications"), {
-                    type: 'friend_rejected',
-                    message: `${currentUserProfileData?.username || 'User'} rejected your friend request.`,
-                    senderId: currentUser.uid,
-                    recipientId: senderId,
-                    timestamp: serverTimestamp(),
-                    read: false,
-                    senderUsername: currentUserProfileData?.username || ''
-                });
-
-                await batch.commit();
-
-                showMessageBox(`Friend request from ${senderUsername || 'this user'} rejected.`, 'info');
-                hideNotificationOptions(); // Close modal on success
+                if (!querySnapshot.empty) {
+                    const requestDoc = querySnapshot.docs[0];
+                    // Delete the request document as per the rules
+                    await deleteDoc(doc(db, "artifacts", appId, "public", "data", "friend_requests", requestDoc.id));
+                    showMessageBox("Friend request rejected.", 'info');
+                    playNotificationSound('info');
+                } else {
+                    showMessageBox("Friend request not found or already processed.", 'warning');
+                }
             } catch (error) {
                 console.error("JCHAT_ERROR: Error rejecting friend request:", error);
-                showMessageBox(`Failed to reject friend request: ${error.message}`, 'error');
+                showMessageBox(`Failed to reject request: ${error.message}`, 'error');
+                playNotificationSound('error');
             } finally {
                 toggleButtonLoading(buttonElement, false);
-                document.querySelectorAll('#notificationOptionsModal .option-buttons button').forEach(btn => btn.disabled = false);
             }
         }
 
@@ -2326,7 +2356,7 @@
             if (acceptFriendRequestOptionBtn) {
                 acceptFriendRequestOptionBtn.addEventListener('click', () => {
                     if (currentNotificationData && currentNotificationData.type === 'friend_request' && currentNotificationData.senderId) {
-                        acceptFriendRequest(currentNotificationData.id, currentNotificationData.senderId, currentNotificationData.senderUsername, acceptFriendRequestOptionBtn);
+                        acceptFriendRequest(currentNotificationData.senderId, acceptFriendRequestOptionBtn);
                     } else {
                         showMessageBox("Invalid notification for accepting friend request.", 'error');
                     }
@@ -2336,7 +2366,7 @@
             if (rejectFriendRequestOptionBtn) {
                 rejectFriendRequestOptionBtn.addEventListener('click', () => {
                     if (currentNotificationData && currentNotificationData.type === 'friend_request' && currentNotificationData.senderId) {
-                        rejectFriendRequest(currentNotificationData.id, currentNotificationData.senderId, currentNotificationData.senderUsername, rejectFriendRequestOptionBtn);
+                        rejectFriendRequest(currentNotificationData.senderId, rejectFriendRequestOptionBtn);
                     } else {
                         showMessageBox("Invalid notification for rejecting friend request.", 'error');
                     }
