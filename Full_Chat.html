@@ -1107,6 +1107,55 @@
             font-weight: 500;
         }
 
+        /* Call Control Buttons */
+        .call-control-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .call-control-btn:hover {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            box-shadow: 0 8px 25px rgba(0, 213, 255, 0.3);
+        }
+
+        .call-control-btn.end-call {
+            background: linear-gradient(135deg, #dc3545, #e94560);
+        }
+
+        .call-control-btn.end-call:hover {
+            background: linear-gradient(135deg, #e94560, #dc3545);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+        }
+
+        /* Call Interface Responsive */
+        @media (max-width: 768px) {
+            .call-control-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 20px;
+            }
+            
+            #localVideo {
+                width: 150px !important;
+                height: 100px !important;
+                bottom: 10px !important;
+                right: 10px !important;
+            }
+        }
+
         .message-badge {
             background-color: var(--notification-badge-color);
             color: var(--white);
@@ -2192,125 +2241,404 @@
                 }
             });
 
-            // Video Call with Animation
-            document.getElementById('videoCallBtn').addEventListener('click', () => {
+            // Enhanced WebRTC Call System
+            class JChatCallManager {
+                constructor() {
+                    this.localStream = null;
+                    this.remoteStream = null;
+                    this.peerConnection = null;
+                    this.isInCall = false;
+                    this.isVideoCall = false;
+                    this.isMuted = false;
+                    this.isVideoOff = false;
+                    this.callPartner = null;
+                    this.ringtone = null;
+                    this.callStartTime = null;
+                }
+
+                async initializeWebRTC() {
+                    try {
+                        const configuration = {
+                            iceServers: [
+                                { urls: 'stun:stun.l.google.com:19302' },
+                                { urls: 'stun:stun1.l.google.com:19302' }
+                            ]
+                        };
+                        
+                        this.peerConnection = new RTCPeerConnection(configuration);
+                        
+                        this.peerConnection.onicecandidate = (event) => {
+                            if (event.candidate) {
+                                // In real implementation, send candidate to remote peer
+                                console.log('ICE candidate:', event.candidate);
+                            }
+                        };
+
+                        this.peerConnection.ontrack = (event) => {
+                            console.log('Received remote stream');
+                            this.remoteStream = event.streams[0];
+                            const remoteVideo = document.getElementById('remoteVideo');
+                            if (remoteVideo) {
+                                remoteVideo.srcObject = this.remoteStream;
+                            }
+                        };
+
+                        return true;
+                    } catch (error) {
+                        console.error('Error initializing WebRTC:', error);
+                        return false;
+                    }
+                }
+
+                async startCall(isVideo = false) {
+                    try {
+                        if (!await this.initializeWebRTC()) {
+                            showMessageBox('❌ Failed to initialize call system', 'error');
+                            return;
+                        }
+
+                        this.isVideoCall = isVideo;
+                        this.callPartner = document.getElementById('partnerDisplayName')?.textContent || 'Unknown';
+                        
+                        const constraints = {
+                            audio: true,
+                            video: isVideo ? { width: 1280, height: 720 } : false
+                        };
+
+                        this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                        
+                        // Add local stream to peer connection
+                        this.localStream.getTracks().forEach(track => {
+                            this.peerConnection.addTrack(track, this.localStream);
+                        });
+
+                        this.showCallInterface();
+                        this.isInCall = true;
+                        this.callStartTime = Date.now();
+
+                        showMessageBox(`📞 ${isVideo ? 'Video' : 'Audio'} call started with ${this.callPartner}`, 'success');
+                        
+                    } catch (error) {
+                        console.error('Error starting call:', error);
+                        if (error.name === 'NotAllowedError') {
+                            showMessageBox('❌ Camera/microphone access denied', 'error');
+                        } else {
+                            showMessageBox('❌ Failed to start call', 'error');
+                        }
+                    }
+                }
+
+                endCall() {
+                    try {
+                        if (this.localStream) {
+                            this.localStream.getTracks().forEach(track => track.stop());
+                        }
+                        
+                        if (this.peerConnection) {
+                            this.peerConnection.close();
+                        }
+
+                        this.hideCallInterface();
+                        this.resetCallState();
+                        
+                        const duration = this.callStartTime ? 
+                            Math.floor((Date.now() - this.callStartTime) / 1000) : 0;
+                        
+                        showMessageBox(`📞 Call ended (${this.formatDuration(duration)})`, 'info');
+                        
+                    } catch (error) {
+                        console.error('Error ending call:', error);
+                    }
+                }
+
+                toggleMute() {
+                    if (this.localStream) {
+                        const audioTrack = this.localStream.getAudioTracks()[0];
+                        if (audioTrack) {
+                            audioTrack.enabled = !audioTrack.enabled;
+                            this.isMuted = !audioTrack.enabled;
+                            this.updateCallControls();
+                            showMessageBox(`🎤 Microphone ${this.isMuted ? 'muted' : 'unmuted'}`, 'info');
+                        }
+                    }
+                }
+
+                toggleVideo() {
+                    if (this.localStream && this.isVideoCall) {
+                        const videoTrack = this.localStream.getVideoTracks()[0];
+                        if (videoTrack) {
+                            videoTrack.enabled = !videoTrack.enabled;
+                            this.isVideoOff = !videoTrack.enabled;
+                            this.updateCallControls();
+                            showMessageBox(`📹 Camera ${this.isVideoOff ? 'off' : 'on'}`, 'info');
+                        }
+                    }
+                }
+
+                formatDuration(seconds) {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${mins}:${secs.toString().padStart(2, '0')}`;
+                }
+
+                resetCallState() {
+                    this.localStream = null;
+                    this.remoteStream = null;
+                    this.peerConnection = null;
+                    this.isInCall = false;
+                    this.isVideoCall = false;
+                    this.isMuted = false;
+                    this.isVideoOff = false;
+                    this.callPartner = null;
+                    this.callStartTime = null;
+                }
+            }
+
+            // Initialize call manager
+            const callManager = new JChatCallManager();
+
+            // Video Call Handler
+            document.getElementById('videoCallBtn').addEventListener('click', async () => {
                 const btn = document.getElementById('videoCallBtn');
                 btn.classList.add('active');
                 setTimeout(() => btn.classList.remove('active'), 200);
                 
-                showMessageBox('📹 Initiating video call...', 'loading', true);
-                
-                setTimeout(() => {
-                    showVideoCallInterface();
-                }, 1500);
+                if (!partnerId) {
+                    showMessageBox('❌ Please select a friend to call', 'warning');
+                    return;
+                }
+
+                showMessageBox('📹 Starting video call...', 'loading', true);
+                await callManager.startCall(true);
             });
 
-            function showVideoCallInterface() {
+            // Add call interface methods to the call manager
+            callManager.showCallInterface = function() {
                 const callInterface = document.createElement('div');
+                callInterface.id = 'activeCallInterface';
                 callInterface.style.cssText = `
                     position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: var(--card-background);
-                    border: 1px solid var(--border-light);
-                    border-radius: 15px;
-                    padding: 30px;
-                    z-index: 1001;
-                    text-align: center;
-                    min-width: 300px;
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
+                    z-index: 10001;
+                    display: flex;
+                    flex-direction: column;
+                    backdrop-filter: blur(10px);
                 `;
+
+                const isVideo = this.isVideoCall;
                 
                 callInterface.innerHTML = `
-                    <div style="margin-bottom: 20px;">
-                        <i class="fas fa-video" style="font-size: 3rem; color: var(--blue); margin-bottom: 15px;"></i>
-                        <h3 style="color: var(--white); margin: 0;">Video Call</h3>
-                        <p style="color: var(--text-light); margin: 10px 0;">Connecting to ${document.getElementById('partnerDisplayName').textContent}...</p>
+                    <!-- Call Header -->
+                    <div style="padding: 20px; text-align: center; background: linear-gradient(135deg, rgba(0, 213, 255, 0.1), rgba(255, 46, 146, 0.1)); border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <h2 style="color: white; margin: 0; font-size: 24px;">${isVideo ? '📹 Video Call' : '📞 Voice Call'}</h2>
+                        <p style="color: rgba(255, 255, 255, 0.8); margin: 5px 0;">with ${this.callPartner}</p>
+                        <div id="callTimer" style="color: #00d5ff; font-size: 18px; font-weight: 600;">00:00</div>
                     </div>
-                    <div style="display: flex; gap: 15px; justify-content: center;">
-                        <button id="acceptCall" style="background: linear-gradient(135deg, #4CAF50, #8BC34A); color: white; border: none; border-radius: 50%; width: 60px; height: 60px; cursor: pointer;">
-                            <i class="fas fa-phone"></i>
+
+                    <!-- Video Area -->
+                    <div style="flex: 1; position: relative; display: flex; align-items: center; justify-content: center;">
+                        ${isVideo ? `
+                            <video id="remoteVideo" autoplay playsinline style="width: 100%; max-width: 800px; border-radius: 15px; background: #000;"></video>
+                            <video id="localVideo" autoplay playsinline muted style="
+                                position: absolute;
+                                bottom: 20px;
+                                right: 20px;
+                                width: 200px;
+                                height: 150px;
+                                border-radius: 10px;
+                                border: 2px solid rgba(255, 255, 255, 0.3);
+                                background: #000;
+                            "></video>
+                        ` : `
+                            <div style="text-align: center;">
+                                <div style="width: 200px; height: 200px; border-radius: 50%; background: linear-gradient(135deg, #00d5ff, #ff2e92); margin: 0 auto; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                                    <i class="fas fa-user" style="font-size: 80px; color: white;"></i>
+                                </div>
+                                <h3 style="color: white; margin: 0;">${this.callPartner}</h3>
+                                <p style="color: rgba(255, 255, 255, 0.7);">Voice call in progress</p>
+                            </div>
+                        `}
+                    </div>
+
+                    <!-- Call Controls -->
+                    <div style="padding: 30px; display: flex; justify-content: center; gap: 20px; background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 40, 0.8));">
+                        <button id="muteBtn" class="call-control-btn" title="Mute/Unmute">
+                            <i class="fas fa-microphone"></i>
                         </button>
-                        <button id="declineCall" style="background: linear-gradient(135deg, #dc3545, #e94560); color: white; border: none; border-radius: 50%; width: 60px; height: 60px; cursor: pointer;">
+                        ${isVideo ? `
+                            <button id="cameraBtn" class="call-control-btn" title="Camera On/Off">
+                                <i class="fas fa-video"></i>
+                            </button>
+                            <button id="screenShareBtn" class="call-control-btn" title="Share Screen">
+                                <i class="fas fa-desktop"></i>
+                            </button>
+                        ` : ''}
+                        <button id="endCallBtn" class="call-control-btn end-call" title="End Call">
                             <i class="fas fa-phone-slash"></i>
                         </button>
                     </div>
                 `;
-                
-                document.body.appendChild(callInterface);
-                
-                document.getElementById('acceptCall').addEventListener('click', () => {
-                    showMessageBox('📹 Video call started!', 'success');
-                    sendMessage('call', '📹 Video call started');
-                    document.body.removeChild(callInterface);
-                });
-                
-                document.getElementById('declineCall').addEventListener('click', () => {
-                    showMessageBox('❌ Video call declined', 'info');
-                    document.body.removeChild(callInterface);
-                });
-            }
 
-            // Audio Call with Animation
-            document.getElementById('audioCallBtn').addEventListener('click', () => {
+                document.body.appendChild(callInterface);
+
+                // Set local video source if video call
+                if (isVideo && this.localStream) {
+                    const localVideo = document.getElementById('localVideo');
+                    if (localVideo) {
+                        localVideo.srcObject = this.localStream;
+                    }
+                }
+
+                // Add event listeners
+                this.setupCallControls();
+                this.startCallTimer();
+            };
+
+            callManager.hideCallInterface = function() {
+                const callInterface = document.getElementById('activeCallInterface');
+                if (callInterface) {
+                    document.body.removeChild(callInterface);
+                }
+                if (this.callTimerInterval) {
+                    clearInterval(this.callTimerInterval);
+                }
+            };
+
+            callManager.setupCallControls = function() {
+                const muteBtn = document.getElementById('muteBtn');
+                const cameraBtn = document.getElementById('cameraBtn');
+                const screenShareBtn = document.getElementById('screenShareBtn');
+                const endCallBtn = document.getElementById('endCallBtn');
+
+                if (muteBtn) {
+                    muteBtn.addEventListener('click', () => this.toggleMute());
+                }
+
+                if (cameraBtn) {
+                    cameraBtn.addEventListener('click', () => this.toggleVideo());
+                }
+
+                if (screenShareBtn) {
+                    screenShareBtn.addEventListener('click', () => this.toggleScreenShare());
+                }
+
+                if (endCallBtn) {
+                    endCallBtn.addEventListener('click', () => this.endCall());
+                }
+            };
+
+            callManager.updateCallControls = function() {
+                const muteBtn = document.getElementById('muteBtn');
+                const cameraBtn = document.getElementById('cameraBtn');
+
+                if (muteBtn) {
+                    muteBtn.innerHTML = this.isMuted ? 
+                        '<i class="fas fa-microphone-slash"></i>' : 
+                        '<i class="fas fa-microphone"></i>';
+                    muteBtn.style.background = this.isMuted ? 
+                        'linear-gradient(135deg, #dc3545, #e94560)' : 
+                        'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))';
+                }
+
+                if (cameraBtn) {
+                    cameraBtn.innerHTML = this.isVideoOff ? 
+                        '<i class="fas fa-video-slash"></i>' : 
+                        '<i class="fas fa-video"></i>';
+                    cameraBtn.style.background = this.isVideoOff ? 
+                        'linear-gradient(135deg, #dc3545, #e94560)' : 
+                        'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))';
+                }
+            };
+
+            callManager.startCallTimer = function() {
+                this.callTimerInterval = setInterval(() => {
+                    if (this.callStartTime) {
+                        const elapsed = Math.floor((Date.now() - this.callStartTime) / 1000);
+                        const timer = document.getElementById('callTimer');
+                        if (timer) {
+                            timer.textContent = this.formatDuration(elapsed);
+                        }
+                    }
+                }, 1000);
+            };
+
+            callManager.toggleScreenShare = async function() {
+                try {
+                    if (this.isScreenSharing) {
+                        // Stop screen sharing, go back to camera
+                        const videoTrack = this.localStream.getVideoTracks()[0];
+                        if (videoTrack) {
+                            videoTrack.stop();
+                        }
+                        
+                        const newStream = await navigator.mediaDevices.getUserMedia({ 
+                            video: true, 
+                            audio: true 
+                        });
+                        
+                        const videoTrackNew = newStream.getVideoTracks()[0];
+                        const sender = this.peerConnection.getSenders().find(s => 
+                            s.track && s.track.kind === 'video'
+                        );
+                        
+                        if (sender) {
+                            await sender.replaceTrack(videoTrackNew);
+                        }
+                        
+                        this.localStream = newStream;
+                        document.getElementById('localVideo').srcObject = newStream;
+                        this.isScreenSharing = false;
+                        showMessageBox('📹 Camera resumed', 'info');
+                        
+                    } else {
+                        // Start screen sharing
+                        const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+                            video: true, 
+                            audio: true 
+                        });
+                        
+                        const videoTrack = screenStream.getVideoTracks()[0];
+                        const sender = this.peerConnection.getSenders().find(s => 
+                            s.track && s.track.kind === 'video'
+                        );
+                        
+                        if (sender) {
+                            await sender.replaceTrack(videoTrack);
+                        }
+                        
+                        videoTrack.onended = () => {
+                            this.toggleScreenShare(); // Auto-switch back when sharing ends
+                        };
+                        
+                        this.isScreenSharing = true;
+                        showMessageBox('🖥️ Screen sharing started', 'success');
+                    }
+                } catch (error) {
+                    console.error('Screen share error:', error);
+                    showMessageBox('❌ Screen sharing failed', 'error');
+                }
+            };
+
+            // Audio Call Handler
+            document.getElementById('audioCallBtn').addEventListener('click', async () => {
                 const btn = document.getElementById('audioCallBtn');
                 btn.classList.add('active');
                 setTimeout(() => btn.classList.remove('active'), 200);
                 
-                showMessageBox('📞 Initiating audio call...', 'loading', true);
-                
-                setTimeout(() => {
-                    showAudioCallInterface();
-                }, 1500);
+                if (!partnerId) {
+                    showMessageBox('❌ Please select a friend to call', 'warning');
+                    return;
+                }
+
+                showMessageBox('📞 Starting voice call...', 'loading', true);
+                await callManager.startCall(false);
             });
 
-            function showAudioCallInterface() {
-                const callInterface = document.createElement('div');
-                callInterface.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: var(--card-background);
-                    border: 1px solid var(--border-light);
-                    border-radius: 15px;
-                    padding: 30px;
-                    z-index: 1001;
-                    text-align: center;
-                    min-width: 300px;
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-                `;
-                
-                callInterface.innerHTML = `
-                    <div style="margin-bottom: 20px;">
-                        <i class="fas fa-phone" style="font-size: 3rem; color: var(--pink); margin-bottom: 15px;"></i>
-                        <h3 style="color: var(--white); margin: 0;">Audio Call</h3>
-                        <p style="color: var(--text-light); margin: 10px 0;">Calling ${document.getElementById('partnerDisplayName').textContent}...</p>
-                    </div>
-                    <div style="display: flex; gap: 15px; justify-content: center;">
-                        <button id="acceptAudioCall" style="background: linear-gradient(135deg, #4CAF50, #8BC34A); color: white; border: none; border-radius: 50%; width: 60px; height: 60px; cursor: pointer;">
-                            <i class="fas fa-phone"></i>
-                        </button>
-                        <button id="declineAudioCall" style="background: linear-gradient(135deg, #dc3545, #e94560); color: white; border: none; border-radius: 50%; width: 60px; height: 60px; cursor: pointer;">
-                            <i class="fas fa-phone-slash"></i>
-                        </button>
-                    </div>
-                `;
-                
-                document.body.appendChild(callInterface);
-                
-                document.getElementById('acceptAudioCall').addEventListener('click', () => {
-                    showMessageBox('📞 Audio call started!', 'success');
-                    sendMessage('call', '📞 Audio call started');
-                    document.body.removeChild(callInterface);
-                });
-                
-                document.getElementById('declineAudioCall').addEventListener('click', () => {
-                    showMessageBox('❌ Audio call declined', 'info');
-                    document.body.removeChild(callInterface);
-                });
-            }
+
 
             // Location Sharing with Map Interface
             document.getElementById('shareLocationBtn').addEventListener('click', () => {
