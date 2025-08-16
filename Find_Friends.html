@@ -2164,6 +2164,11 @@
                 return [];
             }
 
+            if (typeof currentUsersFriends === 'undefined' || !currentUsersFriends) {
+                console.log("JCHAT_DEBUG: currentUsersFriends not available yet, returning empty array");
+                return [];
+            }
+
             try {
                 console.log("JCHAT_DEBUG: Fetching friends for modal using Find_Friends.html logic...");
                 const friends = [];
@@ -2352,7 +2357,7 @@
                 }
                 
                 // Check if friends data is loaded
-                if (allUsersData.length === 0 || currentUsersFriends.size === 0) {
+                if (allUsersData.length === 0 || typeof currentUsersFriends === 'undefined' || currentUsersFriends.size === 0) {
                     console.log('JCHAT_DEBUG: Friends data not loaded yet, waiting...');
                     showMessageBox('Loading friends data...', 'info');
                     
@@ -2360,7 +2365,7 @@
                     let attempts = 0;
                     const maxAttempts = 10;
                     
-                    while ((allUsersData.length === 0 || currentUsersFriends.size === 0) && attempts < maxAttempts) {
+                    while ((allUsersData.length === 0 || typeof currentUsersFriends === 'undefined' || currentUsersFriends.size === 0) && attempts < maxAttempts) {
                         await new Promise(resolve => setTimeout(resolve, 500));
                         attempts++;
                         console.log(`JCHAT_DEBUG: Waiting for friends data... Attempt ${attempts}/${maxAttempts}`);
@@ -2458,7 +2463,7 @@
         // Function to update the friend badge count
         function updateFriendBadge() {
             const badge = document.getElementById('selectFriendBadge');
-            if (badge && currentUsersFriends) {
+            if (badge && typeof currentUsersFriends !== 'undefined' && currentUsersFriends) {
                 const friendCount = currentUsersFriends.size;
                 console.log(`JCHAT_DEBUG: Updating friend badge to ${friendCount}`);
                 if (friendCount > 0) {
@@ -2467,6 +2472,8 @@
                 } else {
                     badge.style.display = 'none';
                 }
+            } else {
+                console.log('JCHAT_DEBUG: currentUsersFriends not available yet for badge update');
             }
         }
 
@@ -2474,7 +2481,7 @@
         function setupBadgeUpdates() {
             // Update badge every 2 seconds to catch changes
             setInterval(() => {
-                if (currentUsersFriends) {
+                if (typeof currentUsersFriends !== 'undefined' && currentUsersFriends) {
                     updateFriendBadge();
                 }
             }, 2000);
