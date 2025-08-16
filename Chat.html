@@ -1937,7 +1937,7 @@
 
             // Function to fetch friends from Firebase (using Find_Friends.html logic)
             async function fetchUserFriends() {
-                if (!currentUser) {
+                if (typeof currentUser === 'undefined' || !currentUser) {
                     console.log("JCHAT_DEBUG: No user logged in, cannot fetch friends.");
                     return [];
                 }
@@ -1981,7 +1981,7 @@
 
             // Function to set up real-time friends and users listeners (mirroring Find_Friends.html)
             function setupFriendsAndUsersListeners() {
-                if (!currentUser) return;
+                if (typeof currentUser === 'undefined' || !currentUser) return;
                 
                 console.log("JCHAT_DEBUG: Setting up real-time friends and users listeners...");
                 
@@ -1997,9 +1997,9 @@
                     currentUsersFriends.clear();
                     snapshot.forEach(docSnap => {
                         const friendData = docSnap.data();
-                        if (friendData.user1Id === currentUser.uid) {
+                        if (typeof currentUser !== 'undefined' && currentUser && friendData.user1Id === currentUser.uid) {
                             currentUsersFriends.add(friendData.user2Id);
-                        } else if (friendData.user2Id === currentUser.uid) {
+                        } else if (typeof currentUser !== 'undefined' && currentUser && friendData.user2Id === currentUser.uid) {
                             currentUsersFriends.add(friendData.user1Id);
                         }
                     });
@@ -2209,7 +2209,7 @@
                     if (noFriendsElement) noFriendsElement.style.display = 'none';
                     
                     // Check if user is authenticated
-                    if (!currentUser) {
+                    if (typeof currentUser === 'undefined' || !currentUser) {
                         console.log('JCHAT_DEBUG: No user authenticated, showing warning');
                         showMessageBox('Please wait for authentication to complete...', 'warning');
                         if (loadingElement) loadingElement.style.display = 'none';
