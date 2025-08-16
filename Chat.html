@@ -580,6 +580,91 @@
             text-align: left;
         }
 
+        /* Voice Note Styles */
+        .voice-message {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .voice-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .play-voice-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #00d5ff, #ff2e92);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 213, 255, 0.3);
+        }
+
+        .play-voice-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 213, 255, 0.4);
+        }
+
+        .play-voice-btn.playing {
+            background: linear-gradient(135deg, #ff2e92, #00d5ff);
+            animation: pulse 1s infinite;
+        }
+
+        .voice-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .voice-duration {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .voice-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .voice-waveform {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            flex: 1;
+        }
+
+        .waveform-bar {
+            width: 3px;
+            height: 20px;
+            background: linear-gradient(135deg, #00d5ff, #ff2e92);
+            border-radius: 2px;
+            animation: waveform 2s ease-in-out infinite;
+        }
+
+        .waveform-bar:nth-child(1) { animation-delay: 0s; }
+        .waveform-bar:nth-child(2) { animation-delay: 0.2s; }
+        .waveform-bar:nth-child(3) { animation-delay: 0.4s; }
+        .waveform-bar:nth-child(4) { animation-delay: 0.6s; }
+        .waveform-bar:nth-child(5) { animation-delay: 0.8s; }
+
+        @keyframes waveform {
+            0%, 100% { height: 20px; }
+            50% { height: 40px; }
+        }
+
         /* Typing Indicator */
         .typing-indicator {
             display: flex;
@@ -2115,19 +2200,28 @@
                             audioChunks.push(event.data);
                         };
                         
-                        mediaRecorder.onstop = () => {
+                        mediaRecorder.onstop = async () => {
                             const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                            const audioUrl = URL.createObjectURL(audioBlob);
+                            const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
                             
-                            // Create audio element for playback
-                            const audioElement = document.createElement('audio');
-                            audioElement.controls = true;
-                            audioElement.src = audioUrl;
-                            audioElement.style.width = '100%';
-                            audioElement.style.marginTop = '10px';
-                            
-                            // Send voice note
-                            sendMessage('voice', `🎤 Voice message (${formatDuration(Math.floor((Date.now() - recordingStartTime) / 1000))})`);
+                            // Only send if recording is longer than 1 second
+                            if (duration >= 1) {
+                                try {
+                                    // Create a File object from the blob
+                                    const audioFile = new File([audioBlob], `voice_note_${Date.now()}.wav`, { type: 'audio/wav' });
+                                    
+                                    // Send the voice note as a media message
+                                    await sendVoiceNote(audioFile, duration);
+                                    
+                                    showMessageBox('✅ Voice note sent successfully!', 'success');
+                                    playNotificationSound('success');
+                                } catch (error) {
+                                    console.error('Error sending voice note:', error);
+                                    showMessageBox('❌ Failed to send voice note', 'error');
+                                }
+                            } else {
+                                showMessageBox('⚠️ Recording too short. Please record for at least 1 second.', 'warning');
+                            }
                             
                             // Stop all tracks
                             stream.getTracks().forEach(track => track.stop());
@@ -2192,6 +2286,90 @@
                 const secs = seconds % 60;
                 return `${mins}:${secs.toString().padStart(2, '0')}`;
             }
+
+            // Function to send voice note
+            async function sendVoiceNote(audioFile, duration) {
+                try {
+                    // Create voice note message
+                    const voiceNoteMessage = {
+                        type: 'voice',
+                        fileName: audioFile.name,
+                        fileSize: audioFile.size,
+                        duration: duration,
+                        timestamp: Date.now()
+                    };
+
+                    // Add voice note to chat interface
+                    addVoiceNoteToChat(audioFile, voiceNoteMessage);
+                    
+                    // Also send as a regular message for Firebase
+                    await sendMessage('voice', `🎤 Voice message (${formatDuration(duration)})`);
+                    
+                } catch (error) {
+                    console.error('Error in sendVoiceNote:', error);
+                    throw error;
+                }
+            }
+
+            // Function to add voice note to chat
+            function addVoiceNoteToChat(audioFile, voiceNoteMessage) {
+                const messagesArea = document.getElementById('messagesArea');
+                if (!messagesArea) return;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message-bubble sent';
+                
+                const audioUrl = URL.createObjectURL(audioFile);
+                
+                messageDiv.innerHTML = `
+                    <div class="voice-message">
+                        <div class="voice-controls">
+                            <button class="play-voice-btn" onclick="playVoiceNote(this, '${audioUrl}')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <div class="voice-info">
+                                <span class="voice-duration">${formatDuration(voiceNoteMessage.duration)}</span>
+                                <span class="voice-label">🎤 Voice message</span>
+                            </div>
+                        </div>
+                        <div class="voice-waveform">
+                            <div class="waveform-bar"></div>
+                            <div class="waveform-bar"></div>
+                            <div class="waveform-bar"></div>
+                            <div class="waveform-bar"></div>
+                            <div class="waveform-bar"></div>
+                        </div>
+                    </div>
+                    <div class="message-time">Just now</div>
+                `;
+                
+                messagesArea.appendChild(messageDiv);
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            }
+
+            // Global function to play voice notes
+            window.playVoiceNote = function(button, audioUrl) {
+                const icon = button.querySelector('i');
+                const audio = new Audio(audioUrl);
+                
+                if (icon.classList.contains('fa-play')) {
+                    // Start playing
+                    audio.play();
+                    icon.className = 'fas fa-pause';
+                    button.classList.add('playing');
+                    
+                    audio.onended = () => {
+                        icon.className = 'fas fa-play';
+                        button.classList.remove('playing');
+                    };
+                } else {
+                    // Stop playing
+                    audio.pause();
+                    audio.currentTime = 0;
+                    icon.className = 'fas fa-play';
+                    button.classList.remove('playing');
+                }
+            };
 
             // Comprehensive Emoji Picker with 350+ Emojis in Smart Categories
             let emojiPickerOpen = false;
@@ -2792,6 +2970,10 @@
                 btn.classList.add('active');
                 setTimeout(() => btn.classList.remove('active'), 200);
                 
+                console.log("JCHAT_DEBUG: Video call button clicked");
+                console.log("JCHAT_DEBUG: isFriendSelected():", isFriendSelected());
+                console.log("JCHAT_DEBUG: partnerId:", partnerId);
+                
                 if (!isFriendSelected()) {
                     showMessageBox('❌ Please select a friend to call', 'warning');
                     return;
@@ -2800,6 +2982,9 @@
                 // Get partner information
                 const partnerDisplay = document.getElementById('partnerDisplayName');
                 const partnerName = partnerDisplay ? partnerDisplay.textContent : 'Unknown User';
+                
+                console.log("JCHAT_DEBUG: Partner name:", partnerName);
+                console.log("JCHAT_DEBUG: Call manager:", callManager);
                 
                 showMessageBox(`📹 Starting video call with ${partnerName}...`, 'loading', true);
                 
@@ -3034,6 +3219,10 @@
                 btn.classList.add('active');
                 setTimeout(() => btn.classList.remove('active'), 200);
                 
+                console.log("JCHAT_DEBUG: Audio call button clicked");
+                console.log("JCHAT_DEBUG: isFriendSelected():", isFriendSelected());
+                console.log("JCHAT_DEBUG: partnerId:", partnerId);
+                
                 if (!isFriendSelected()) {
                     showMessageBox('❌ Please select a friend to call', 'warning');
                     return;
@@ -3042,6 +3231,9 @@
                 // Get partner information
                 const partnerDisplay = document.getElementById('partnerDisplayName');
                 const partnerName = partnerDisplay ? partnerDisplay.textContent : 'Unknown User';
+                
+                console.log("JCHAT_DEBUG: Partner name:", partnerName);
+                console.log("JCHAT_DEBUG: Call manager:", callManager);
                 
                 showMessageBox(`📞 Starting voice call with ${partnerName}...`, 'loading', true);
                 
