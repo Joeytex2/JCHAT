@@ -5,35 +5,636 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>JCHAT - Offline</title>
   <meta name="theme-color" content="#1a1a2e">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
   <style>
     :root {
-      --bg: #1a1a2e; --fg: #e0e0e0; --muted: #a0a0a0; --accent: #00d5ff; --accent2: #ff2e92;
+      --bg: #1a1a2e;
+      --fg: #e0e0e0;
+      --muted: #a0a0a0;
+      --accent: #00d5ff;
+      --accent2: #ff2e92;
+      --success: #4CAF50;
+      --warning: #FF9800;
+      --error: #f44336;
+      --card-bg: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
     }
-    html, body { height: 100%; margin: 0; }
-    body {
-      display: grid; place-items: center; background: radial-gradient(circle at 20% 20%, #16213e, transparent 200px), radial-gradient(circle at 80% 80%, #0f3460, transparent 200px), var(--bg);
-      color: var(--fg); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif;
-    }
-    .card {
-      width: min(560px, 92vw); padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04); backdrop-filter: blur(8px);
-    }
-    h1 { margin: 0 0 8px; font-size: 1.6rem; }
-    p { margin: 8px 0; color: var(--muted); }
-    .row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-    a.btn { text-decoration: none; color: white; background: linear-gradient(90deg, var(--accent), var(--accent2)); padding: 10px 14px; border-radius: 10px; display: inline-block; }
-    .hint { font-size: 0.9rem; margin-top: 10px; color: var(--muted); }
-  </style>
 
-    </head>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      background: 
+        radial-gradient(circle at 20% 20%, #16213e, transparent 200px),
+        radial-gradient(circle at 80% 80%, #0f3460, transparent 200px),
+        var(--bg);
+      color: var(--fg);
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: min(600px, 95vw);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .card {
+      padding: 32px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+
+    .status-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .status-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      animation: pulse 2s infinite;
+    }
+
+    .status-icon.offline {
+      background: linear-gradient(135deg, var(--error), #d32f2f);
+    }
+
+    .status-icon.connecting {
+      background: linear-gradient(135deg, var(--warning), #f57c00);
+      animation: spin 1s linear infinite;
+    }
+
+    .status-icon.online {
+      background: linear-gradient(135deg, var(--success), #388e3c);
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .status-text {
+      margin: 8px 0 20px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .network-info {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+
+    .network-info h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      color: var(--fg);
+    }
+
+    .network-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 8px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 12px;
+      text-decoration: none;
+      color: white;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 4px 15px rgba(0, 213, 255, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 213, 255, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+    }
+
+    .btn.secondary:hover {
+      background: rgba(255,255,255,0.15);
+      box-shadow: 0 6px 20px rgba(255,255,255,0.15);
+    }
+
+    .btn.retry {
+      background: linear-gradient(135deg, var(--warning), #f57c00);
+      box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    }
+
+    .btn.retry:hover {
+      box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .offline-features {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .offline-features h3 {
+      margin: 0 0 16px;
+      font-size: 1.1rem;
+      color: var(--fg);
+    }
+
+    .feature-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .feature-item i {
+      color: var(--success);
+      width: 16px;
+    }
+
+    .retry-section {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .retry-timer {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: var(--accent);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      background: var(--success);
+    }
+
+    .toast.error {
+      background: var(--error);
+    }
+
+    .toast.info {
+      background: var(--accent);
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 24px;
+      }
+      
+      .actions-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .network-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
 <body>
-  <div class="card" role="alert" aria-live="polite">
-    <h1>You are offline</h1>
-    <p>JCHAT can’t reach the network. Some content may be unavailable.</p>
-    <div class="row">
-      <a class="btn" href="/Home.html">Try Home</a>
+  <div class="container">
+    <div class="card" role="alert" aria-live="polite">
+      <div class="status-header">
+        <div class="status-icon offline" id="statusIcon">
+          <i class="fas fa-wifi-slash"></i>
+        </div>
+        <div>
+          <h1 id="statusTitle">You are offline</h1>
+          <p class="status-text" id="statusText">JCHAT can't reach the network. Some content may be unavailable.</p>
+        </div>
+      </div>
+
+      <div class="network-info" id="networkInfo" style="display: none;">
+        <h3><i class="fas fa-network-wired"></i> Network Status</h3>
+        <div class="network-stats">
+          <div class="stat-item">
+            <div class="stat-value" id="connectionType">-</div>
+            <div class="stat-label">Connection</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="signalStrength">-</div>
+            <div class="stat-label">Signal</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="lastSeen">-</div>
+            <div class="stat-label">Last Online</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-grid">
+        <a href="/Home.html" class="btn">
+          <i class="fas fa-home"></i>
+          Home
+        </a>
+        <a href="/Chat.html" class="btn secondary">
+          <i class="fas fa-comments"></i>
+          Chat
+        </a>
+        <a href="/Profile.html" class="btn secondary">
+          <i class="fas fa-user"></i>
+          Profile
+        </a>
+        <a href="/Settings.html" class="btn secondary">
+          <i class="fas fa-cog"></i>
+          Settings
+        </a>
+        <button class="btn retry" id="retryBtn" onclick="retryConnection()">
+          <i class="fas fa-sync-alt"></i>
+          Retry
+        </button>
+        <button class="btn secondary" onclick="showOfflineFeatures()">
+          <i class="fas fa-info-circle"></i>
+          Offline Info
+        </button>
+      </div>
+
+      <div class="offline-features" id="offlineFeatures" style="display: none;">
+        <h3><i class="fas fa-download"></i> Available Offline</h3>
+        <div class="feature-list">
+          <div class="feature-item">
+            <i class="fas fa-check"></i>
+            <span>View cached messages and conversations</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-check"></i>
+            <span>Compose and save message drafts</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-check"></i>
+            <span>Access your profile and settings</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-check"></i>
+            <span>View friend list and user profiles</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-check"></i>
+            <span>Automatic sync when back online</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="retry-section">
+        <p class="retry-timer" id="retryTimer">Auto-retry in <span id="retryCountdown">30</span> seconds</p>
+      </div>
     </div>
-    <p class="hint">This page is available offline. We’ll retry when you’re back online.</p>
   </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Global variables
+    let retryCountdown = 30;
+    let retryInterval;
+    let networkCheckInterval;
+    let isOnline = false;
+    let retryAttempts = 0;
+    const maxRetryAttempts = 5;
+
+    // DOM elements
+    const statusIcon = document.getElementById('statusIcon');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusText = document.getElementById('statusText');
+    const networkInfo = document.getElementById('networkInfo');
+    const retryBtn = document.getElementById('retryBtn');
+    const retryTimer = document.getElementById('retryTimer');
+    const retryCountdownEl = document.getElementById('retryCountdown');
+    const offlineFeatures = document.getElementById('offlineFeatures');
+    const toast = document.getElementById('toast');
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      checkNetworkStatus();
+      startRetryCountdown();
+      startNetworkMonitoring();
+      checkServiceWorker();
+      loadOfflineData();
+    });
+
+    // Network status monitoring
+    function checkNetworkStatus() {
+      if (navigator.onLine) {
+        setOnlineStatus();
+      } else {
+        setOfflineStatus();
+      }
+    }
+
+    function setOnlineStatus() {
+      isOnline = true;
+      statusIcon.className = 'status-icon online';
+      statusIcon.innerHTML = '<i class="fas fa-wifi"></i>';
+      statusTitle.textContent = 'Back Online!';
+      statusText.textContent = 'Connection restored. Syncing data...';
+      retryBtn.disabled = true;
+      retryTimer.style.display = 'none';
+      networkInfo.style.display = 'block';
+      
+      showToast('Connection restored!', 'success');
+      
+      // Redirect to home after a short delay
+      setTimeout(() => {
+        window.location.href = '/Home.html';
+      }, 2000);
+    }
+
+    function setOfflineStatus() {
+      isOnline = false;
+      statusIcon.className = 'status-icon offline';
+      statusIcon.innerHTML = '<i class="fas fa-wifi-slash"></i>';
+      statusTitle.textContent = 'You are offline';
+      statusText.textContent = 'JCHAT can\'t reach the network. Some content may be unavailable.';
+      retryBtn.disabled = false;
+      retryTimer.style.display = 'block';
+      networkInfo.style.display = 'none';
+    }
+
+    function setConnectingStatus() {
+      statusIcon.className = 'status-icon connecting';
+      statusIcon.innerHTML = '<i class="fas fa-sync-alt"></i>';
+      statusTitle.textContent = 'Connecting...';
+      statusText.textContent = 'Attempting to reconnect to JCHAT...';
+      retryBtn.disabled = true;
+    }
+
+    // Retry functionality
+    function retryConnection() {
+      if (retryAttempts >= maxRetryAttempts) {
+        showToast('Maximum retry attempts reached. Please check your connection.', 'error');
+        return;
+      }
+
+      retryAttempts++;
+      setConnectingStatus();
+      
+      // Simulate connection attempt
+      setTimeout(() => {
+        if (navigator.onLine) {
+          setOnlineStatus();
+          retryAttempts = 0;
+        } else {
+          setOfflineStatus();
+          showToast(`Connection failed. Attempt ${retryAttempts}/${maxRetryAttempts}`, 'error');
+        }
+      }, 2000);
+    }
+
+    function startRetryCountdown() {
+      retryInterval = setInterval(() => {
+        retryCountdown--;
+        retryCountdownEl.textContent = retryCountdown;
+        
+        if (retryCountdown <= 0) {
+          retryCountdown = 30;
+          if (!isOnline) {
+            retryConnection();
+          }
+        }
+      }, 1000);
+    }
+
+    // Network monitoring
+    function startNetworkMonitoring() {
+      window.addEventListener('online', () => {
+        checkNetworkStatus();
+      });
+
+      window.addEventListener('offline', () => {
+        checkNetworkStatus();
+      });
+
+      // Check network status every 5 seconds
+      networkCheckInterval = setInterval(() => {
+        if (navigator.onLine !== isOnline) {
+          checkNetworkStatus();
+        }
+      }, 5000);
+    }
+
+    // Service Worker integration
+    async function checkServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js');
+          console.log('Service Worker registered:', registration);
+        } catch (error) {
+          console.log('Service Worker registration failed:', error);
+        }
+      }
+    }
+
+    // Offline features
+    function showOfflineFeatures() {
+      if (offlineFeatures.style.display === 'none') {
+        offlineFeatures.style.display = 'block';
+        showToast('Offline features available', 'info');
+      } else {
+        offlineFeatures.style.display = 'none';
+      }
+    }
+
+    async function loadOfflineData() {
+      // Check for cached data
+      if ('caches' in window) {
+        try {
+          const cache = await caches.open('jchat-offline');
+          const keys = await cache.keys();
+          
+          if (keys.length > 0) {
+            showToast(`${keys.length} cached items available`, 'info');
+          }
+        } catch (error) {
+          console.log('Cache check failed:', error);
+        }
+      }
+    }
+
+    // Toast notifications
+    function showToast(message, type = 'info') {
+      toast.textContent = message;
+      toast.className = `toast ${type}`;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Network information
+    function updateNetworkInfo() {
+      if (navigator.connection) {
+        const connection = navigator.connection;
+        document.getElementById('connectionType').textContent = connection.effectiveType || 'Unknown';
+        document.getElementById('signalStrength').textContent = connection.downlink ? `${connection.downlink} Mbps` : 'Unknown';
+      }
+      
+      const lastSeen = localStorage.getItem('lastOnline');
+      if (lastSeen) {
+        const timeAgo = getTimeAgo(new Date(lastSeen));
+        document.getElementById('lastSeen').textContent = timeAgo;
+      }
+    }
+
+    function getTimeAgo(date) {
+      const now = new Date();
+      const diff = now - date;
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+
+      if (days > 0) return `${days}d ago`;
+      if (hours > 0) return `${hours}h ago`;
+      if (minutes > 0) return `${minutes}m ago`;
+      return 'Just now';
+    }
+
+    // Update last online time when going offline
+    window.addEventListener('beforeunload', () => {
+      localStorage.setItem('lastOnline', new Date().toISOString());
+    });
+
+    // Update network info periodically
+    setInterval(updateNetworkInfo, 10000);
+    updateNetworkInfo();
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      clearInterval(retryInterval);
+      clearInterval(networkCheckInterval);
+    });
+  </script>
 </body>
 </html>
