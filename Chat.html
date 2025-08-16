@@ -1937,7 +1937,7 @@
 
             // Function to fetch friends from Firebase (mirroring Find_Friends.html exactly)
             async function fetchUserFriends() {
-                if (!currentUser) {
+                if (!isAuthReady || !currentUser) {
                     console.log("JCHAT_DEBUG: No user logged in, cannot fetch friends.");
                     return [];
                 }
@@ -1981,7 +1981,7 @@
 
             // Function to set up real-time friends and users listeners (mirroring Find_Friends.html)
             function setupFriendsAndUsersListeners() {
-                if (!currentUser) return;
+                if (!isAuthReady || !currentUser) return;
                 
                 console.log("JCHAT_DEBUG: Setting up real-time friends and users listeners...");
                 
@@ -2209,8 +2209,8 @@
                     if (noFriendsElement) noFriendsElement.style.display = 'none';
                     
                     // Check if user is authenticated
-                    if (!currentUser) {
-                        console.log('JCHAT_DEBUG: No user authenticated, showing warning');
+                    if (!isAuthReady || !currentUser) {
+                        console.log('JCHAT_DEBUG: Authentication not ready yet');
                         showMessageBox('Please wait for authentication to complete...', 'warning');
                         if (loadingElement) loadingElement.style.display = 'none';
                         return;
@@ -2381,6 +2381,7 @@
          let unsubscribeMessages = null;
          let notificationSoundEnabled = true;
          let unsubscribeFriends = null; // For real-time friend updates
+         let isAuthReady = false; // Flag to track authentication state
 
          // Voice Note Recording State
          let mediaRecorder;
@@ -2825,6 +2826,7 @@
              if (user) {
                  console.log("JCHAT_DEBUG: User authenticated:", user.uid);
                  currentUser = user;
+                 isAuthReady = true; // Set authentication as ready
                  
                  // Fetch and display header profile
                  await fetchAndDisplayHeaderProfile(user);
