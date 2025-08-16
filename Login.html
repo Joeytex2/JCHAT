@@ -683,6 +683,18 @@
             font-size: 1.2rem;
         }
 
+        .github-login-button {
+            background: linear-gradient(135deg, #24292e, #586069);
+            border: 1px solid #24292e;
+        }
+
+        .github-login-button:hover {
+            background: linear-gradient(135deg, #2f363d, #6a737d);
+            border-color: #2f363d;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(36, 41, 46, 0.4);
+        }
+
         .button-text { display: block; }
         .loading .button-text { display: none; }
         @keyframes spin {
@@ -1122,6 +1134,9 @@
                 <button class="social-login-button" id="googleLoginButton">
                     <i class="fab fa-google"></i> Sign in with Google
                 </button>
+                <button class="social-login-button github-login-button" id="githubLoginButton">
+                    <i class="fab fa-github"></i> Sign in with GitHub
+                </button>
                 <p class="toggle-form-link" id="showRegisterLink">Don't have an account? Register here.</p>
             </form>
 
@@ -1153,6 +1168,9 @@
                 <div class="separator">OR</div>
                 <button class="social-login-button" id="googleRegisterButton">
                     <i class="fab fa-google"></i> Sign up with Google
+                </button>
+                <button class="social-login-button github-login-button" id="githubRegisterButton">
+                    <i class="fab fa-github"></i> Sign up with GitHub
                 </button>
                 <p class="toggle-form-link" id="showLoginLinkFromRegister">Already have an account? Login here.</p>
             </form>
@@ -1250,7 +1268,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         // Corrected import for Auth specific functions, including GoogleAuthProvider
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail, onAuthStateChanged, GoogleAuthProvider, GithubAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         // Correct Firestore imports
         import { getFirestore, doc, setDoc, collection, query, where, getDocs, runTransaction, serverTimestamp, increment, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -1271,6 +1289,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
+        const githubProvider = new GithubAuthProvider();
 
         // --- DOM Elements ---
         const welcomeScreen = document.getElementById('welcomeScreen');
@@ -1289,6 +1308,7 @@
         const loginPasswordInput = document.getElementById('loginPassword');
         const loginButton = document.getElementById('loginButton');
         const googleLoginButton = document.getElementById('googleLoginButton');
+        const githubLoginButton = document.getElementById('githubLoginButton');
         const showRegisterLink = document.getElementById('showRegisterLink');
         const showResetPasswordLink = document.getElementById('showResetPasswordLink');
 
