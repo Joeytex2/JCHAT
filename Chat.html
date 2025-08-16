@@ -3545,7 +3545,12 @@
                  throw new Error("No chat partner selected");
              }
 
+             // Get the current message input value
+             const messageInput = document.getElementById('messageInput');
              const message = content || (messageInput ? messageInput.value.trim() : '');
+             
+             console.log("JCHAT_DEBUG: Send message called with:", { type, content, message, hasMessageInput: !!messageInput });
+             
              if (!message) {
                  showMessageBox("Please type a message", 'warning');
                  throw new Error("Empty message");
@@ -3626,11 +3631,10 @@
                  unsubscribeMessages = onSnapshot(q, (snapshot) => {
                      console.log(`JCHAT_DEBUG: Received ${snapshot.docs.length} messages from Firebase`);
                      
-                     // Clear existing messages except welcome message and typing indicator
+                     // Clear ALL existing messages including welcome message when loading chat history
                      const existingMessages = messagesArea.querySelectorAll('.message-bubble');
                      existingMessages.forEach(msg => {
-                         if (!msg.innerHTML.includes('Welcome to JCHAT Full Chat') && 
-                             !msg.classList.contains('typing-indicator') &&
+                         if (!msg.classList.contains('typing-indicator') &&
                              !msg.innerHTML.includes('Loading chat history')) {
                              msg.remove();
                          }
@@ -3899,7 +3903,11 @@
                      btn.disabled = true;
                      
                      try {
-                         await sendMessage('text', messageInput?.value || '');
+                         // Get the current message input value
+                         const currentMessageInput = document.getElementById('messageInput');
+                         const messageContent = currentMessageInput ? currentMessageInput.value : '';
+                         
+                         await sendMessage('text', messageContent);
                          
                          // Success state
                          btn.innerHTML = '<i class="fas fa-check"></i>';
