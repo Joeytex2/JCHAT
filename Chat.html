@@ -2725,7 +2725,16 @@
                  await fetchNotificationCount(user.uid);
                  
                  // Set up real-time friends and users listeners (mirroring Find_Friends.html)
+                 console.log("JCHAT_DEBUG: Setting up friends and users listeners...");
                  setupFriendsAndUsersListeners();
+                 
+                 // Wait a bit for initial data to load
+                 setTimeout(() => {
+                     console.log("JCHAT_DEBUG: Initial data load check:");
+                     console.log("JCHAT_DEBUG: allUsersData length:", allUsersData.length);
+                     console.log("JCHAT_DEBUG: currentUsersFriends size:", currentUsersFriends.size);
+                     console.log("JCHAT_DEBUG: currentUsersFriends contents:", Array.from(currentUsersFriends));
+                 }, 2000);
                  
                  // Load messages if partner is selected
                  if (partnerId) {
@@ -3082,16 +3091,26 @@
                  // Check if friends data is loaded
                  if (allUsersData.length === 0 || typeof currentUsersFriends === 'undefined' || currentUsersFriends.size === 0) {
                      console.log('JCHAT_DEBUG: Friends data not loaded yet, waiting...');
+                     console.log('JCHAT_DEBUG: allUsersData length:', allUsersData.length);
+                     console.log('JCHAT_DEBUG: currentUsersFriends size:', currentUsersFriends.size);
                      showMessageBox('Loading friends data...', 'info');
                      
                      // Wait for data to load
                      let attempts = 0;
-                     const maxAttempts = 10;
+                     const maxAttempts = 20; // Increased attempts
                      
                      while ((allUsersData.length === 0 || typeof currentUsersFriends === 'undefined' || currentUsersFriends.size === 0) && attempts < maxAttempts) {
                          await new Promise(resolve => setTimeout(resolve, 500));
                          attempts++;
                          console.log(`JCHAT_DEBUG: Waiting for friends data... Attempt ${attempts}/${maxAttempts}`);
+                         console.log(`JCHAT_DEBUG: allUsersData length: ${allUsersData.length}, currentUsersFriends size: ${currentUsersFriends.size}`);
+                     }
+                     
+                     // If still no data after waiting, try to force refresh
+                     if (allUsersData.length === 0 || currentUsersFriends.size === 0) {
+                         console.log('JCHAT_DEBUG: Still no data after waiting, forcing refresh...');
+                         setupFriendsAndUsersListeners();
+                         await new Promise(resolve => setTimeout(resolve, 1000));
                      }
                  }
                  
@@ -3181,6 +3200,24 @@
                      console.log('Modal active after 1s:', modal.classList.contains('active'));
                  }, 1000);
              }
+         };
+
+         // Debug function to check friends data
+         window.debugFriends = function() {
+             console.log('JCHAT_DEBUG: === FRIENDS DATA DEBUG ===');
+             console.log('JCHAT_DEBUG: currentUser:', currentUser?.uid);
+             console.log('JCHAT_DEBUG: isAuthReady:', isAuthReady);
+             console.log('JCHAT_DEBUG: allUsersData length:', allUsersData.length);
+             console.log('JCHAT_DEBUG: currentUsersFriends size:', currentUsersFriends.size);
+             console.log('JCHAT_DEBUG: currentUsersFriends contents:', Array.from(currentUsersFriends));
+             console.log('JCHAT_DEBUG: allUsersData:', allUsersData);
+             
+             // Try to fetch friends manually
+             fetchUserFriends().then(friends => {
+                 console.log('JCHAT_DEBUG: fetchUserFriends result:', friends);
+             });
+             
+             console.log('JCHAT_DEBUG: === END FRIENDS DATA DEBUG ===');
          };
      </script>
 
