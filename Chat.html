@@ -1672,6 +1672,7 @@
             const messagesArea = document.getElementById('messagesArea');
 
             // Auto-resize textarea and manage send button state
+            let typingTimeout = null;
             messageInput.addEventListener('input', () => {
                 messageInput.style.height = 'auto';
                 messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
@@ -1688,6 +1689,22 @@
                     sendMessageBtn.style.opacity = '0.6';
                     sendMessageBtn.style.cursor = 'not-allowed';
                     sendMessageBtn.style.background = '#6b7280';
+                }
+                
+                // Handle typing status
+                if (partnerId && partnerId !== 'demo-partner-123') {
+                    // Set typing status to true
+                    setTypingStatus(partnerId, true);
+                    
+                    // Clear previous timeout
+                    if (typingTimeout) {
+                        clearTimeout(typingTimeout);
+                    }
+                    
+                    // Set typing to false after 3 seconds of no input
+                    typingTimeout = setTimeout(() => {
+                        setTypingStatus(partnerId, false);
+                    }, 3000);
                 }
             });
 
@@ -2909,6 +2926,7 @@
          // Global storage for message data and typing status
          const friendsMessageData = new Map();
          const typingStatus = new Map();
+         const typingUnsubscribers = new Map(); // Store typing listener unsubscribe functions
          const unreadCounts = new Map();
          const lastSeenData = new Map();
          const onlineStatus = new Map();
@@ -3002,23 +3020,47 @@
              }
          }
 
-         // Function to set typing status
-         function setTypingStatus(friendId, isTyping) {
-             typingStatus.set(friendId, isTyping);
+         // Function to set typing status with Firebase integration
+         async function setTypingStatus(friendId, isTyping) {
+             if (!currentUser || !friendId) return;
              
-             // Clear typing after 3 seconds if no update
-             if (isTyping) {
-                 setTimeout(() => {
-                     if (typingStatus.get(friendId) === isTyping) {
-                         typingStatus.set(friendId, false);
-                         updateFriendItemDisplay(friendId);
-                     }
-                 }, 3000);
-             }
-             
-             // Update UI if modal is open
-             if (document.getElementById('selectFriendModal').classList.contains('active')) {
-                 updateFriendItemDisplay(friendId);
+             try {
+                 const chatRoomId = getChatRoomId(currentUser.uid, friendId);
+                 const typingRef = doc(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "typing", currentUser.uid);
+                 
+                 if (isTyping) {
+                     // Set typing status in Firebase
+                     await setDoc(typingRef, {
+                         isTyping: true,
+                         timestamp: serverTimestamp(),
+                         userId: currentUser.uid,
+                         username: currentUser.displayName || 'User'
+                     });
+                 } else {
+                     // Remove typing status from Firebase
+                     await deleteDoc(typingRef);
+                 }
+                 
+                 // Update local state
+                 typingStatus.set(friendId, isTyping);
+                 
+                 // Clear typing after 3 seconds if no update
+                 if (isTyping) {
+                     setTimeout(() => {
+                         if (typingStatus.get(friendId) === isTyping) {
+                             setTypingStatus(friendId, false);
+                         }
+                     }, 3000);
+                 }
+                 
+                 // Update UI if modal is open
+                 if (document.getElementById('selectFriendModal').classList.contains('active')) {
+                     updateFriendItemDisplay(friendId);
+                 }
+                 
+                 console.log(`JCHAT_DEBUG: ${isTyping ? 'Started' : 'Stopped'} typing for ${friendId}`);
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error updating typing status:", error);
              }
          }
 
@@ -3202,6 +3244,11 @@
                  };
 
                  await addDoc(messagesCollectionRef, messageData);
+
+                 // Stop typing status when message is sent
+                 if (partnerId && partnerId !== 'demo-partner-123') {
+                     setTypingStatus(partnerId, false);
+                 }
 
                  if (messageInput) {
                      messageInput.value = '';
@@ -3594,6 +3641,100 @@
                  console.error("JCHAT_ERROR: Error fetching public users:", error);
                  showMessageBox(`Error loading users: ${error.message}`, 'error');
              });
+
+             // Set up typing status listeners for all friends
+             setupTypingStatusListeners();
+             
+             // Update typing listeners when friends list changes
+             currentUsersFriends.forEach(friendId => {
+                 if (!typingUnsubscribers.has(friendId)) {
+                     setupTypingListenerForFriend(friendId);
+                 }
+             });
+         }
+
+         // Function to set up typing status listeners for all friends
+         function setupTypingStatusListeners() {
+             if (!isAuthReady || !currentUser) return;
+             
+             console.log("JCHAT_DEBUG: Setting up typing status listeners...");
+             
+             // Clear existing typing status
+             typingStatus.clear();
+             
+             // Set up typing listeners for each friend
+             currentUsersFriends.forEach(friendId => {
+                 setupTypingListenerForFriend(friendId);
+             });
+         }
+
+         // Function to set up typing listener for a specific friend
+         function setupTypingListenerForFriend(friendId) {
+             if (!currentUser || !friendId) return;
+             
+             try {
+                 const chatRoomId = getChatRoomId(currentUser.uid, friendId);
+                 const typingCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "typing");
+                 
+                 // Listen for typing status changes
+                 const unsubscribeTyping = onSnapshot(typingCollectionRef, (snapshot) => {
+                     let isAnyoneTyping = false;
+                     let typingUsername = '';
+                     
+                     snapshot.forEach(docSnap => {
+                         const typingData = docSnap.data();
+                         // Only show typing if it's from the other user and recent (within 5 seconds)
+                         if (typingData.userId !== currentUser.uid && typingData.isTyping) {
+                             const typingTime = typingData.timestamp?.toDate ? typingData.timestamp.toDate() : new Date(typingData.timestamp);
+                             const now = new Date();
+                             const timeDiff = now - typingTime;
+                             
+                             if (timeDiff < 5000) { // 5 seconds threshold
+                                 isAnyoneTyping = true;
+                                 typingUsername = typingData.username || 'Someone';
+                             }
+                         }
+                     });
+                     
+                     // Update typing status
+                     typingStatus.set(friendId, isAnyoneTyping);
+                     
+                     // Update UI if modal is open
+                     if (document.getElementById('selectFriendModal').classList.contains('active')) {
+                         updateFriendItemDisplay(friendId);
+                     }
+                     
+                     // Update typing indicator in chat if this is the current partner
+                     if (partnerId === friendId) {
+                         updateChatTypingIndicator(isAnyoneTyping, typingUsername);
+                     }
+                     
+                     console.log(`JCHAT_DEBUG: Typing status for ${friendId}: ${isAnyoneTyping ? 'typing' : 'not typing'}`);
+                 }, (error) => {
+                     console.error(`JCHAT_ERROR: Error listening to typing status for ${friendId}:`, error);
+                 });
+                 
+                 // Store unsubscribe function
+                 typingUnsubscribers.set(friendId, unsubscribeTyping);
+                 
+             } catch (error) {
+                 console.error(`JCHAT_ERROR: Error setting up typing listener for ${friendId}:`, error);
+             }
+         }
+
+         // Function to update typing indicator in chat
+         function updateChatTypingIndicator(isTyping, username) {
+             const typingIndicator = document.getElementById('typingIndicator');
+             const typingUsername = document.getElementById('typingUsername');
+             
+             if (typingIndicator && typingUsername) {
+                 if (isTyping) {
+                     typingUsername.textContent = username;
+                     typingIndicator.classList.add('active');
+                 } else {
+                     typingIndicator.classList.remove('active');
+                 }
+             }
          }
 
          // Function to create friend item HTML (with profile pictures)
@@ -3796,9 +3937,17 @@
              // Set user as signed out when leaving the page
              await setUserSignedOut();
              
+             // Cleanup all listeners
              if (unsubscribeMessages) unsubscribeMessages();
              if (unsubscribeFriends) unsubscribeFriends();
              if (unsubscribeUsers) unsubscribeUsers();
+             
+             // Cleanup typing listeners
+             typingUnsubscribers.forEach(unsubscribe => {
+                 if (unsubscribe) unsubscribe();
+             });
+             typingUnsubscribers.clear();
+             
              if (isRecording) {
                  mediaRecorder?.stop();
              }
