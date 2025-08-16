@@ -2020,23 +2020,7 @@
                 }
             }
 
-            // Video Call with Real-time WebRTC
-            document.getElementById('videoCallBtn').addEventListener('click', () => {
-                const btn = document.getElementById('videoCallBtn');
-                btn.classList.add('active');
-                setTimeout(() => btn.classList.remove('active'), 200);
-                
-                initiateCall('video');
-            });
-
-            // Audio Call with Real-time WebRTC
-            document.getElementById('audioCallBtn').addEventListener('click', () => {
-                const btn = document.getElementById('audioCallBtn');
-                btn.classList.add('active');
-                setTimeout(() => btn.classList.remove('active'), 200);
-                
-                initiateCall('audio');
-            });
+            // Call button event listeners will be set up after call functions are defined
 
             // Location Sharing with Map Interface
             document.getElementById('shareLocationBtn').addEventListener('click', () => {
@@ -2561,6 +2545,12 @@
          let callTimeout = null;
          let callInterface = null;
          let unsubscribeCall = null;
+
+         // Make call state variables globally accessible
+         window.callState = callState;
+         window.callType = callType;
+         window.callPartnerId = callPartnerId;
+         window.callPartnerName = callPartnerName;
 
          // --- Notification Sound ---
          // Using ne.mp3 for all notification sounds
@@ -3149,6 +3139,59 @@
                  cleanupCall();
              }
          }
+
+         // Make call functions globally accessible
+         window.initiateCall = initiateCall;
+         window.acceptCall = acceptCall;
+         window.declineCall = declineCall;
+         window.endCall = endCall;
+         window.cleanupCall = cleanupCall;
+         window.playRingtone = playRingtone;
+         window.stopRingtone = stopRingtone;
+         window.getUserMedia = getUserMedia;
+         window.createPeerConnection = createPeerConnection;
+         window.sendCallSignal = sendCallSignal;
+         window.listenForCallSignals = listenForCallSignals;
+         window.handleCallSignal = handleCallSignal;
+         window.showIncomingCallInterface = showIncomingCallInterface;
+         window.showConnectedCallInterface = showConnectedCallInterface;
+         window.showCallingInterface = showCallingInterface;
+         window.hideCallInterface = hideCallInterface;
+
+         /**
+          * Set up call button event listeners
+          */
+         function setupCallButtonListeners() {
+             // Video Call with Real-time WebRTC
+             const videoCallBtn = document.getElementById('videoCallBtn');
+             if (videoCallBtn) {
+                 videoCallBtn.addEventListener('click', () => {
+                     const btn = document.getElementById('videoCallBtn');
+                     btn.classList.add('active');
+                     setTimeout(() => btn.classList.remove('active'), 200);
+                     
+                     initiateCall('video');
+                 });
+             }
+
+             // Audio Call with Real-time WebRTC
+             const audioCallBtn = document.getElementById('audioCallBtn');
+             if (audioCallBtn) {
+                 audioCallBtn.addEventListener('click', () => {
+                     const btn = document.getElementById('audioCallBtn');
+                     btn.classList.add('active');
+                     setTimeout(() => btn.classList.remove('active'), 200);
+                     
+                     initiateCall('audio');
+                 });
+             }
+         }
+
+         // Set up call button listeners
+         setupCallButtonListeners();
+         
+         // Make setupCallButtonListeners globally accessible
+         window.setupCallButtonListeners = setupCallButtonListeners;
 
          /**
           * Show calling interface
@@ -3940,6 +3983,11 @@
                  if (icon) {
                      icon.className = notificationSoundEnabled ? 'fas fa-volume-up active' : 'fas fa-volume-mute';
                  }
+             }
+
+             // Set up call button listeners
+             if (typeof setupCallButtonListeners === 'function') {
+                 setupCallButtonListeners();
              }
          });
 
