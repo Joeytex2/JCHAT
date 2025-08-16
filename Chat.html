@@ -1532,7 +1532,17 @@
                     e.preventDefault();
                     const message = messageInput.value.trim();
                     if (message) {
-                        sendLocalMessage(message);
+                        console.log('JCHAT_DEBUG: Enter key pressed, sending message:', message);
+                        console.log('JCHAT_DEBUG: Partner ID:', partnerId);
+                        
+                        // Check if we have a selected friend and Firebase is available
+                        if (partnerId && partnerId !== 'demo-partner-123' && typeof sendMessage === 'function') {
+                            console.log('JCHAT_DEBUG: Using Firebase sendMessage for selected friend');
+                            sendMessage('text', message);
+                        } else {
+                            console.log('JCHAT_DEBUG: Using local message (no friend selected or Firebase not available)');
+                            sendLocalMessage(message);
+                        }
                     }
                 }
             });
@@ -1556,7 +1566,17 @@
                 }, 150);
                 
                 console.log('JCHAT_DEBUG: Sending message:', message);
-                sendLocalMessage(message);
+                console.log('JCHAT_DEBUG: Current user:', currentUser);
+                console.log('JCHAT_DEBUG: Partner ID:', partnerId);
+                
+                // Check if we have a selected friend and Firebase is available
+                if (partnerId && partnerId !== 'demo-partner-123' && typeof sendMessage === 'function') {
+                    console.log('JCHAT_DEBUG: Using Firebase sendMessage for selected friend');
+                    sendMessage('text', message);
+                } else {
+                    console.log('JCHAT_DEBUG: Using local message (no friend selected or Firebase not available)');
+                    sendLocalMessage(message);
+                }
             });
             
             // Ensure send button is properly initialized
@@ -1577,6 +1597,19 @@
                 sendMessageBtn.style.background = 'var(--composer-accent)';
                 console.log('JCHAT_DEBUG: Test message set:', testMessage);
                 console.log('JCHAT_DEBUG: Send button enabled:', !sendMessageBtn.disabled);
+            };
+            
+            // Debug function to analyze current state
+            window.debugChatState = function() {
+                console.log('=== CHAT STATE DEBUG ===');
+                console.log('Current User:', currentUser);
+                console.log('Partner ID:', partnerId);
+                console.log('Partner Display Name:', document.getElementById('partnerDisplayName')?.textContent);
+                console.log('Firebase sendMessage available:', typeof sendMessage === 'function');
+                console.log('Message Input Value:', messageInput.value);
+                console.log('Send Button Disabled:', sendMessageBtn.disabled);
+                console.log('Send Button Opacity:', sendMessageBtn.style.opacity);
+                console.log('========================');
             };
 
             // FULL INTERACTIVE FEATURES - ALL CLICKABLE AND FUNCTIONAL
