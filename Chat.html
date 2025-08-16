@@ -1300,6 +1300,73 @@
     </main>
 
     <script>
+        // Fallback showMessageBox function for basic chat functionality
+        function showMessageBox(message, type, isPersistent = false, durationMs = 3000) {
+            // Create a simple message box if it doesn't exist
+            let messageBox = document.getElementById('messageBox');
+            if (!messageBox) {
+                messageBox = document.createElement('div');
+                messageBox.id = 'messageBox';
+                messageBox.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--card-background);
+                    color: var(--white);
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    border: 1px solid var(--border-light);
+                    z-index: 1002;
+                    transform: translateX(100%);
+                    transition: transform 0.3s ease;
+                    max-width: 300px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                `;
+                document.body.appendChild(messageBox);
+            }
+
+            if (messageBox.timeoutId) {
+                clearTimeout(messageBox.timeoutId);
+            }
+
+            messageBox.innerHTML = `<i id="messageBoxIcon"></i><span id="messageBoxText"></span>`;
+            const messageBoxIcon = messageBox.querySelector('#messageBoxIcon');
+            const messageBoxText = messageBox.querySelector('#messageBoxText');
+
+            messageBoxText.textContent = message;
+            messageBox.className = 'message-box show ' + type;
+
+            // Set icon based on type
+            if (type === 'success') {
+                messageBoxIcon.classList.add('fas', 'fa-check-circle');
+            } else if (type === 'error') {
+                messageBoxIcon.classList.add('fas', 'fa-times-circle');
+            } else if (type === 'info') {
+                messageBoxIcon.classList.add('fas', 'fa-info-circle');
+            } else if (type === 'warning') {
+                messageBoxIcon.classList.add('fas', 'fa-exclamation-triangle');
+            } else if (type === 'loading') {
+                messageBoxIcon.classList.add('fas', 'fa-spinner', 'fa-spin');
+            }
+
+            // Show message box
+            messageBox.style.transform = 'translateX(0)';
+
+            if (!isPersistent) {
+                messageBox.timeoutId = setTimeout(() => {
+                    messageBox.style.transform = 'translateX(100%)';
+                }, durationMs);
+            }
+        }
+
+        // Fallback playNotificationSound function for basic chat functionality
+        function playNotificationSound(type) {
+            // Simple fallback - just log the sound type
+            console.log(`JCHAT_DEBUG: Playing notification sound: ${type}`);
+        }
+
         // Basic chat functionality
         document.addEventListener('DOMContentLoaded', () => {
             const messageInput = document.getElementById('messageInput');
