@@ -1060,6 +1060,74 @@
             border: 1px solid rgba(107, 114, 128, 0.3);
         }
 
+        /* Enhanced Friend Item Layout */
+        .friend-avatar-container {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .friend-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .friend-info .friend-name {
+            font-weight: 600;
+            color: var(--white);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .friend-info .friend-status {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 500;
+            width: fit-content;
+        }
+
+        .friend-info .last-seen {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 400;
+        }
+
+        /* Online Indicator */
+        .online-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background: #22c55e;
+            border-radius: 50%;
+            border: 2px solid var(--background-main);
+            box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.5);
+        }
+
+        /* Responsive Friend List */
+        @media (max-width: 768px) {
+            .friend-item {
+                padding: 12px;
+                gap: 8px;
+            }
+            
+            .friend-avatar,
+            .default-avatar {
+                width: 35px !important;
+                height: 35px !important;
+            }
+            
+            .online-indicator {
+                width: 10px;
+                height: 10px;
+            }
+        }
+
         /* Media Message Styles */
         .media-message {
             display: flex;
@@ -2766,38 +2834,45 @@
                 return transformations ? `${baseUrl}${transformations}/${publicId}` : `${baseUrl}${publicId}`;
             }
 
-            // Function to fetch friends from Firebase (similar to Find_Friends.html)
+            // Function to fetch REAL friends from Firebase (no fake data)
             async function fetchUserFriends() {
-                // Check if Firebase variables are available
+                // Ensure Firebase is properly initialized
                 if (typeof db === 'undefined' || typeof appId === 'undefined') {
-                    console.log("JCHAT_DEBUG: Firebase not initialized yet, using demo friends");
-                    return getDemoFriends();
+                    console.log("JCHAT_DEBUG: Firebase not initialized - cannot fetch friends");
+                    showMessageBox('❌ Database not available. Please refresh the page.', 'error');
+                    return [];
                 }
 
-                if (!currentUser) {
-                    console.log("JCHAT_DEBUG: No user logged in, using demo friends");
-                    return getDemoFriends();
+                if (!currentUser || !currentUser.uid) {
+                    console.log("JCHAT_DEBUG: No authenticated user - cannot fetch friends");
+                    showMessageBox('❌ Please log in to view your friends', 'warning');
+                    return [];
                 }
 
                 try {
-                    console.log("JCHAT_DEBUG: Fetching user's friends list...");
+                    console.log("JCHAT_DEBUG: Fetching user's real friends list...");
                     const friends = [];
                     
-                    // Get friends from Firebase
+                    // Get actual friends from Firebase friends collection
                     const publicFriendsRef = collection(db, "artifacts", appId, "public", "data", "friends");
                     const friendsSnapshot = await getDocs(publicFriendsRef);
                     
                     const friendUserIds = new Set();
                     friendsSnapshot.forEach(doc => {
                         const friendData = doc.data();
-                        if (friendData.user1Id === currentUser.uid) {
-                            friendUserIds.add(friendData.user2Id);
-                        } else if (friendData.user2Id === currentUser.uid) {
-                            friendUserIds.add(friendData.user1Id);
+                        // Only include confirmed friendships
+                        if (friendData.status === 'accepted' || !friendData.status) {
+                            if (friendData.user1Id === currentUser.uid) {
+                                friendUserIds.add(friendData.user2Id);
+                            } else if (friendData.user2Id === currentUser.uid) {
+                                friendUserIds.add(friendData.user1Id);
+                            }
                         }
                     });
 
-                    // Get user data for each friend
+                    console.log(`JCHAT_DEBUG: Found ${friendUserIds.size} friend relationships`);
+
+                    // Get detailed user data for each friend
                     if (friendUserIds.size > 0) {
                         const publicUsersRef = collection(db, "artifacts", appId, "public", "data", "users");
                         const usersSnapshot = await getDocs(publicUsersRef);
@@ -2807,66 +2882,46 @@
                                 const userData = doc.data();
                                 friends.push({
                                     userId: doc.id,
-                                    username: userData.username || `User_${doc.id.substring(0, 8)}`,
+                                    username: userData.username || userData.displayName || `User_${doc.id.substring(0, 8)}`,
                                     profilePicId: userData.profilePicId,
-                                    visibility: userData.visibility || {}
+                                    visibility: userData.visibility || {},
+                                    isOnline: userData.isOnline || false,
+                                    lastSeen: userData.lastSeen || null
                                 });
                             }
                         });
+
+                        // Sort friends by online status and name
+                        friends.sort((a, b) => {
+                            if (a.isOnline && !b.isOnline) return -1;
+                            if (!a.isOnline && b.isOnline) return 1;
+                            return a.username.localeCompare(b.username);
+                        });
                     }
 
-                    console.log(`JCHAT_DEBUG: Found ${friends.length} friends from Firebase`);
-                    return friends.length > 0 ? friends : getDemoFriends();
+                    console.log(`JCHAT_DEBUG: Successfully loaded ${friends.length} real friends`);
+                    
+                    if (friends.length === 0) {
+                        showMessageBox('👥 No friends found. Add friends from the Find Friends page!', 'info');
+                    }
+                    
+                    return friends;
+                    
                 } catch (error) {
-                    console.error("JCHAT_ERROR: Error fetching friends:", error);
-                    showMessageBox('Error loading friends, showing demo data', 'warning');
-                    return getDemoFriends();
+                    console.error("JCHAT_ERROR: Error fetching real friends:", error);
+                    showMessageBox('❌ Failed to load friends. Please try again.', 'error');
+                    return [];
                 }
             }
 
-            // Function to provide demo friends when Firebase is not available
-            function getDemoFriends() {
-                return [
-                    {
-                        userId: 'demo-friend-1',
-                        username: 'Alice Johnson',
-                        profilePicId: null,
-                        visibility: { displayName: true, profilePic: true }
-                    },
-                    {
-                        userId: 'demo-friend-2', 
-                        username: 'Bob Smith',
-                        profilePicId: null,
-                        visibility: { displayName: true, profilePic: true }
-                    },
-                    {
-                        userId: 'demo-friend-3',
-                        username: 'Carol Williams',
-                        profilePicId: null,
-                        visibility: { displayName: true, profilePic: true }
-                    },
-                    {
-                        userId: 'demo-friend-4',
-                        username: 'David Brown',
-                        profilePicId: null,
-                        visibility: { displayName: true, profilePic: true }
-                    },
-                    {
-                        userId: 'demo-friend-5',
-                        username: 'Emma Davis',
-                        profilePicId: null,
-                        visibility: { displayName: true, profilePic: true }
-                    }
-                ];
-            }
-
-            // Function to create friend item HTML
+            // Function to create friend item HTML with real data
             function createFriendItem(friend) {
                 const friendDiv = document.createElement('div');
                 friendDiv.className = 'friend-item';
                 friendDiv.setAttribute('data-friend-id', friend.userId);
                 friendDiv.setAttribute('data-friend-name', friend.username);
 
+                // Profile image with proper error handling
                 let profileImageHtml = '';
                 if (friend.profilePicId && friend.visibility?.profilePic !== false) {
                     const imageUrl = getCloudinaryImageUrl(friend.profilePicId, "w_60,h_60,c_fill,g_face,r_max");
@@ -2875,12 +2930,45 @@
                     profileImageHtml = `<div class="default-avatar"><i class="fas fa-user-circle"></i></div>`;
                 }
 
+                // Display name with proper visibility handling
                 const displayName = friend.visibility?.displayName !== false ? friend.username : 'Anonymous User';
                 
+                // Real online status
+                const isOnline = friend.isOnline;
+                const statusClass = isOnline ? 'online' : 'offline';
+                const statusText = isOnline ? 'Online' : 'Offline';
+                
+                // Last seen time for offline users
+                let lastSeenText = '';
+                if (!isOnline && friend.lastSeen) {
+                    const lastSeen = new Date(friend.lastSeen);
+                    const now = new Date();
+                    const diff = now - lastSeen;
+                    const minutes = Math.floor(diff / 60000);
+                    const hours = Math.floor(minutes / 60);
+                    const days = Math.floor(hours / 24);
+                    
+                    if (days > 0) {
+                        lastSeenText = `Last seen ${days} day${days > 1 ? 's' : ''} ago`;
+                    } else if (hours > 0) {
+                        lastSeenText = `Last seen ${hours} hour${hours > 1 ? 's' : ''} ago`;
+                    } else if (minutes > 0) {
+                        lastSeenText = `Last seen ${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+                    } else {
+                        lastSeenText = 'Last seen recently';
+                    }
+                }
+                
                 friendDiv.innerHTML = `
-                    ${profileImageHtml}
-                    <span class="friend-name">${displayName}</span>
-                    <span class="friend-status online">Online</span>
+                    <div class="friend-avatar-container">
+                        ${profileImageHtml}
+                        ${isOnline ? '<div class="online-indicator"></div>' : ''}
+                    </div>
+                    <div class="friend-info">
+                        <span class="friend-name">${displayName}</span>
+                        <span class="friend-status ${statusClass}">${statusText}</span>
+                        ${lastSeenText ? `<span class="last-seen">${lastSeenText}</span>` : ''}
+                    </div>
                 `;
 
                 // Add hover effects
@@ -2979,29 +3067,50 @@
                 renderFriendsList(filteredFriends);
             }
 
-            // Select Friend button click handler
+            // Select Friend button click handler - REAL FRIENDS ONLY
             document.getElementById('selectFriendBtn')?.addEventListener('click', async () => {
                 const btn = document.getElementById('selectFriendBtn');
                 btn.style.transform = 'scale(0.95)';
                 setTimeout(() => btn.style.transform = '', 150);
                 
+                // Check authentication first
+                if (!currentUser || !currentUser.uid) {
+                    showMessageBox('❌ Please log in to view your friends', 'warning');
+                    // Try to trigger authentication
+                    if (typeof initializeAuth === 'function') {
+                        await initializeAuth();
+                    }
+                    return;
+                }
+
+                // Check Firebase availability
+                if (typeof db === 'undefined' || typeof appId === 'undefined') {
+                    showMessageBox('❌ Database not available. Please refresh the page.', 'error');
+                    return;
+                }
+                
                 // Show loading state
-                showMessageBox('👥 Loading friends...', 'info');
+                showMessageBox('👥 Loading your friends...', 'loading', true);
                 
-                // Fetch friends data
-                currentFriends = await fetchUserFriends();
-                filteredFriends = [...currentFriends];
-                
-                // Render friends list
-                renderFriendsList(filteredFriends);
-                
-                // Show modal
-                document.getElementById('selectFriendModal').classList.add('active');
-                
-                if (currentFriends.length > 0) {
-                    showMessageBox('👥 Select a friend to chat with', 'info');
-                } else {
-                    showMessageBox('👥 No friends found. Add friends first!', 'warning');
+                try {
+                    // Fetch REAL friends data only
+                    currentFriends = await fetchUserFriends();
+                    filteredFriends = [...currentFriends];
+                    
+                    // Render friends list
+                    renderFriendsList(filteredFriends);
+                    
+                    // Show modal
+                    document.getElementById('selectFriendModal').classList.add('active');
+                    
+                    if (currentFriends.length > 0) {
+                        showMessageBox(`👥 Found ${currentFriends.length} friend${currentFriends.length > 1 ? 's' : ''}. Select one to chat!`, 'success');
+                    } else {
+                        showMessageBox('👥 No friends yet. Add friends from the Find Friends page!', 'info');
+                    }
+                } catch (error) {
+                    console.error('JCHAT_ERROR: Error in friend selection:', error);
+                    showMessageBox('❌ Failed to load friends. Please try again.', 'error');
                 }
             });
 
