@@ -2651,12 +2651,34 @@
 
          // --- Notification Sound ---
          // Using ne.mp3 for all notification sounds
+         
+         // Notification cooldown system - prevents spam from same user
+         const notificationCooldowns = new Map(); // userId -> lastNotificationTime
+         const NOTIFICATION_COOLDOWN_MS = 3000; // 3 seconds cooldown per user
 
          /**
-          * Plays notification sound using ne.mp3
+          * Plays notification sound using ne.mp3 with user-based cooldown
+          * @param {string} type - Notification type
+          * @param {string} userId - User ID for cooldown tracking (optional)
           */
-         function playNotificationSound(type) {
+         function playNotificationSound(type, userId = null) {
              if (!notificationSoundEnabled) return;
+             
+             // For message notifications, check cooldown per user
+             if (type === 'message' && userId) {
+                 const now = Date.now();
+                 const lastNotification = notificationCooldowns.get(userId);
+                 
+                 // If we've played a notification for this user recently, skip it
+                 if (lastNotification && (now - lastNotification) < NOTIFICATION_COOLDOWN_MS) {
+                     console.log(`JCHAT_DEBUG: Skipping notification sound for user ${userId} (cooldown active)`);
+                     return;
+                 }
+                 
+                 // Update the last notification time for this user
+                 notificationCooldowns.set(userId, now);
+                 console.log(`JCHAT_DEBUG: Playing notification sound for user ${userId}`);
+             }
 
              try {
                  // Play ne.mp3 for all notification types
@@ -3323,7 +3345,7 @@
              
              // Play notification sound for incoming messages only
              if (!isSent && notificationSoundEnabled) {
-                 playNotificationSound('message');
+                 playNotificationSound('message', messageData.senderId);
                  
                  // Create notification for incoming messages
                  if (window.JCHATNotifications && window.JCHATNotifications.createMessageNotification) {
