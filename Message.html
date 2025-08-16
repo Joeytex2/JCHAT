@@ -1534,9 +1534,14 @@
             const sendMessageButton = document.getElementById('sendMessageButton');
 
             // Add event listeners for new chat area elements
-            sendMessageButton.addEventListener('click', () => sendMessage(messageInput, sendMessageButton));
+            sendMessageButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                sendMessage(messageInput, sendMessageButton);
+            });
             messageInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
+                    e.preventDefault();
                     sendMessage(messageInput, sendMessageButton);
                 }
             });
