@@ -2851,10 +2851,14 @@
 
                 try {
                     console.log("JCHAT_DEBUG: Fetching user's real friends list...");
+                    console.log("JCHAT_DEBUG: window.db =", window.db);
+                    console.log("JCHAT_DEBUG: window.appId =", window.appId);
+                    console.log("JCHAT_DEBUG: window.currentUser.uid =", window.currentUser.uid);
                     const friends = [];
                     
                     // Get friends from the same collection path as Friends.html
                     const friendsCollectionRef = collection(window.db, "artifacts", window.appId, "users", window.currentUser.uid, "friends");
+                    console.log("JCHAT_DEBUG: friendsCollectionRef =", friendsCollectionRef);
                     const friendsSnapshot = await getDocs(friendsCollectionRef);
                     
                     const friendIds = friendsSnapshot.docs.map(doc => doc.id); // Get just the friend UIDs
@@ -3200,6 +3204,10 @@
          const auth = getAuth(app);
          window.db = getFirestore(app);
          const storage = getStorage(app);
+         
+         console.log("JCHAT_DEBUG: Firebase initialized");
+         console.log("JCHAT_DEBUG: window.db =", window.db);
+         console.log("JCHAT_DEBUG: window.appId =", window.appId);
 
          // --- DOM Elements ---
          const headerProfilePic = document.getElementById('headerProfilePic');
