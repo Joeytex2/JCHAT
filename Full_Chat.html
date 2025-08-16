@@ -2834,7 +2834,7 @@
                 return transformations ? `${baseUrl}${transformations}/${publicId}` : `${baseUrl}${publicId}`;
             }
 
-            // Function to fetch REAL friends from Firebase (no fake data)
+            // Function to fetch REAL friends from Firebase (same as Friends.html)
             async function fetchUserFriends() {
                 // Ensure Firebase is properly initialized
                 if (typeof window.db === 'undefined' || typeof window.appId === 'undefined') {
@@ -2853,43 +2853,52 @@
                     console.log("JCHAT_DEBUG: Fetching user's real friends list...");
                     const friends = [];
                     
-                    // Get actual friends from Firebase friends collection
-                    const publicFriendsRef = collection(window.db, "artifacts", window.appId, "public", "data", "friends");
-                    const friendsSnapshot = await getDocs(publicFriendsRef);
+                    // Get friends from the same collection path as Friends.html
+                    const friendsCollectionRef = collection(window.db, "artifacts", window.appId, "users", window.currentUser.uid, "friends");
+                    const friendsSnapshot = await getDocs(friendsCollectionRef);
                     
-                    const friendUserIds = new Set();
-                    friendsSnapshot.forEach(doc => {
-                        const friendData = doc.data();
-                        // Only include confirmed friendships
-                        if (friendData.status === 'accepted' || !friendData.status) {
-                                                    if (friendData.user1Id === window.currentUser.uid) {
-                            friendUserIds.add(friendData.user2Id);
-                        } else if (friendData.user2Id === window.currentUser.uid) {
-                            friendUserIds.add(friendData.user1Id);
-                        }
-                        }
-                    });
+                    const friendIds = friendsSnapshot.docs.map(doc => doc.id); // Get just the friend UIDs
+                    console.log(`JCHAT_DEBUG: Found ${friendIds.length} friend relationships`);
 
-                    console.log(`JCHAT_DEBUG: Found ${friendUserIds.size} friend relationships`);
-
-                    // Get detailed user data for each friend
-                    if (friendUserIds.size > 0) {
-                        const publicUsersRef = collection(window.db, "artifacts", window.appId, "public", "data", "users");
-                        const usersSnapshot = await getDocs(publicUsersRef);
-                        
-                        usersSnapshot.forEach(doc => {
-                            if (friendUserIds.has(doc.id)) {
-                                const userData = doc.data();
+                    // Get detailed user data for each friend (same as Friends.html)
+                    if (friendIds.length > 0) {
+                        for (const friendId of friendIds) {
+                            try {
+                                const publicProfileDocRef = doc(window.db, "artifacts", window.appId, "public", "data", "users", friendId);
+                                const publicDocSnap = await getDoc(publicProfileDocRef);
+                                if (publicDocSnap.exists()) {
+                                    const friendProfile = publicDocSnap.data();
+                                    friends.push({
+                                        userId: friendId,
+                                        username: friendProfile.username || friendProfile.displayName || `User_${friendId.substring(0, 8)}`,
+                                        profilePicId: friendProfile.profilePicId,
+                                        visibility: friendProfile.visibility || {},
+                                        isOnline: friendProfile.isOnline || false,
+                                        lastSeen: friendProfile.lastSeen || null
+                                    });
+                                } else {
+                                    console.warn(`JCHAT_WARN: Public profile not found for friend ID: ${friendId}`);
+                                    friends.push({
+                                        userId: friendId,
+                                        username: `Unknown User (${friendId.substring(0, 8)})`,
+                                        profilePicId: null,
+                                        visibility: {},
+                                        isOnline: false,
+                                        lastSeen: null
+                                    });
+                                }
+                            } catch (error) {
+                                console.error(`JCHAT_ERROR: Error fetching public profile for friend ${friendId}:`, error);
                                 friends.push({
-                                    userId: doc.id,
-                                    username: userData.username || userData.displayName || `User_${doc.id.substring(0, 8)}`,
-                                    profilePicId: userData.profilePicId,
-                                    visibility: userData.visibility || {},
-                                    isOnline: userData.isOnline || false,
-                                    lastSeen: userData.lastSeen || null
+                                    userId: friendId,
+                                    username: `Error User (${friendId.substring(0, 8)})`,
+                                    profilePicId: null,
+                                    visibility: {},
+                                    isOnline: false,
+                                    lastSeen: null
                                 });
                             }
-                        });
+                        }
 
                         // Sort friends by online status and name
                         friends.sort((a, b) => {
