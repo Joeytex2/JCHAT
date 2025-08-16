@@ -1486,10 +1486,24 @@
             const sendMessageBtn = document.getElementById('sendMessageBtn');
             const messagesArea = document.getElementById('messagesArea');
 
-            // Auto-resize textarea
+            // Auto-resize textarea and manage send button state
             messageInput.addEventListener('input', () => {
                 messageInput.style.height = 'auto';
                 messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+                
+                // Enable/disable send button based on content
+                const message = messageInput.value.trim();
+                if (message) {
+                    sendMessageBtn.disabled = false;
+                    sendMessageBtn.style.opacity = '1';
+                    sendMessageBtn.style.cursor = 'pointer';
+                    sendMessageBtn.style.background = 'var(--composer-accent)';
+                } else {
+                    sendMessageBtn.disabled = true;
+                    sendMessageBtn.style.opacity = '0.6';
+                    sendMessageBtn.style.cursor = 'not-allowed';
+                    sendMessageBtn.style.background = '#6b7280';
+                }
             });
 
             // Send message function
@@ -1520,31 +1534,54 @@
             // Send button click - Enhanced with Firebase
             sendMessageBtn.addEventListener('click', () => {
                 console.log('JCHAT_DEBUG: Send button clicked');
+                
+                // Ensure button is enabled
+                sendMessageBtn.disabled = false;
+                sendMessageBtn.style.opacity = '1';
+                sendMessageBtn.style.cursor = 'pointer';
+                
+                // Get message content
+                const message = messageInput.value.trim();
+                if (!message) {
+                    console.log('JCHAT_DEBUG: No message to send');
+                    showMessageBox('Please type a message first', 'warning');
+                    return;
+                }
+                
+                // Visual feedback immediately
+                sendMessageBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    sendMessageBtn.style.transform = 'scale(1)';
+                }, 150);
+                
                 if (typeof sendMessage === 'function') {
-                    sendMessage('text', messageInput.value);
+                    console.log('JCHAT_DEBUG: Using Firebase sendMessage function');
+                    sendMessage('text', message);
                 } else {
+                    console.log('JCHAT_DEBUG: Using fallback send function');
                     // Fallback to basic send
-                    const message = messageInput.value.trim();
-                    if (message) {
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = 'message-bubble sent';
-                        messageDiv.innerHTML = `
-                            <div class="message-content">${message}</div>
-                            <div class="message-time">Just now</div>
-                        `;
-                        messagesArea.appendChild(messageDiv);
-                        messageInput.value = '';
-                        messageInput.style.height = 'auto';
-                        messagesArea.scrollTop = messagesArea.scrollHeight;
-                        
-                        // Visual feedback
-                        sendMessageBtn.style.transform = 'scale(0.95)';
-                        setTimeout(() => {
-                            sendMessageBtn.style.transform = 'scale(1)';
-                        }, 150);
-                    }
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message-bubble sent';
+                    messageDiv.innerHTML = `
+                        <div class="message-content">${message}</div>
+                        <div class="message-time">Just now</div>
+                    `;
+                    messagesArea.appendChild(messageDiv);
+                    messageInput.value = '';
+                    messageInput.style.height = 'auto';
+                    messagesArea.scrollTop = messagesArea.scrollHeight;
+                    
+                    showMessageBox('Message sent!', 'success');
+                    playNotificationSound('message');
                 }
             });
+            
+            // Ensure send button is properly initialized
+            sendMessageBtn.disabled = true; // Start disabled until user types
+            sendMessageBtn.style.opacity = '0.6';
+            sendMessageBtn.style.cursor = 'not-allowed';
+            sendMessageBtn.style.background = '#6b7280';
+            console.log('JCHAT_DEBUG: Send button initialized and ready');
 
             // FULL INTERACTIVE FEATURES - ALL CLICKABLE AND FUNCTIONAL
 
