@@ -1107,6 +1107,19 @@
             border-radius: 50%;
             border: 2px solid var(--background-main);
             box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            }
         }
 
         /* Responsive Friend List */
@@ -2957,7 +2970,7 @@
          // Friend Selection Functions (moved from first script section)
          
          /**
-          * Fetches the current user's friends list from Firestore (same as Find_Friends.html).
+          * Fetches the current user's friends list from Firestore with real-time online status.
           */
          async function fetchUserFriends() {
              if (!currentUser) {
@@ -2985,7 +2998,7 @@
                  
                  console.log(`JCHAT_DEBUG: Found ${friendIds.size} friend relationships`);
 
-                 // Get detailed user data for each friend (same as Find_Friends.html)
+                 // Get detailed user data for each friend with real-time online status
                  if (friendIds.size > 0) {
                      for (const friendId of friendIds) {
                          try {
@@ -2993,12 +3006,16 @@
                              const publicDocSnap = await getDoc(publicProfileDocRef);
                              if (publicDocSnap.exists()) {
                                  const friendProfile = publicDocSnap.data();
+                                 
+                                 // Check real-time online status
+                                 const isOnline = await checkUserOnlineStatus(friendId);
+                                 
                                  friends.push({
                                      userId: friendId,
                                      username: friendProfile.username || friendProfile.displayName || `User_${friendId.substring(0, 8)}`,
                                      profilePicId: friendProfile.profilePicId,
                                      visibility: friendProfile.visibility || {},
-                                     isOnline: friendProfile.isOnline || false,
+                                     isOnline: isOnline,
                                      lastSeen: friendProfile.lastSeen || null
                                  });
                              } else {
@@ -3045,6 +3062,61 @@
                  console.error("JCHAT_ERROR: Error fetching real friends:", error);
                  showMessageBox('❌ Failed to load friends. Please try again.', 'error');
                  return [];
+             }
+         }
+
+         /**
+          * Checks if a user is currently online by looking at their last activity.
+          */
+         async function checkUserOnlineStatus(userId) {
+             try {
+                 // Check user's online status in their profile
+                 const userProfileRef = doc(db, "artifacts", appId, "public", "data", "users", userId);
+                 const userProfileSnap = await getDoc(userProfileRef);
+                 
+                 if (userProfileSnap.exists()) {
+                     const userData = userProfileSnap.data();
+                     
+                     // Check if user has isOnline field and it's true
+                     if (userData.isOnline === true) {
+                         return true;
+                     }
+                     
+                     // Check lastSeen timestamp (consider online if last activity was within 5 minutes)
+                     if (userData.lastSeen) {
+                         const lastSeenTime = userData.lastSeen.toDate ? userData.lastSeen.toDate() : new Date(userData.lastSeen);
+                         const now = new Date();
+                         const timeDiff = now - lastSeenTime;
+                         const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+                         
+                         if (timeDiff < fiveMinutes) {
+                             return true;
+                         }
+                     }
+                 }
+                 
+                 return false;
+             } catch (error) {
+                 console.error(`JCHAT_ERROR: Error checking online status for ${userId}:`, error);
+                 return false;
+             }
+         }
+
+         /**
+          * Updates the current user's online status.
+          */
+         async function updateUserOnlineStatus(isOnline) {
+             if (!currentUser) return;
+             
+             try {
+                 const userProfileRef = doc(db, "artifacts", appId, "public", "data", "users", currentUser.uid);
+                 await updateDoc(userProfileRef, {
+                     isOnline: isOnline,
+                     lastSeen: serverTimestamp()
+                 });
+                 console.log(`JCHAT_DEBUG: Updated online status to ${isOnline}`);
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error updating online status:", error);
              }
          }
 
@@ -3591,6 +3663,9 @@
                  console.log("JCHAT_DEBUG: User authenticated:", user.uid);
                  currentUser = user;
                  
+                 // Set user as online
+                 await updateUserOnlineStatus(true);
+                 
                  // Fetch and display header profile
                  await fetchAndDisplayHeaderProfile(user);
                  
@@ -3619,6 +3694,19 @@
              if (unsubscribeMessages) unsubscribeMessages();
              if (isRecording) {
                  mediaRecorder?.stop();
+             }
+             // Set user as offline when leaving
+             if (currentUser) {
+                 updateUserOnlineStatus(false);
+             }
+         });
+
+         // Also set offline when page becomes hidden
+         document.addEventListener('visibilitychange', () => {
+             if (document.hidden && currentUser) {
+                 updateUserOnlineStatus(false);
+             } else if (!document.hidden && currentUser) {
+                 updateUserOnlineStatus(true);
              }
          });
 
