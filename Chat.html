@@ -2195,29 +2195,6 @@
                 btn.style.transform = 'scale(0.95)';
                 setTimeout(() => btn.style.transform = '', 150);
                 
-                // Show loading state on button if authentication not ready
-                if (!isAuthReady) {
-                    const originalContent = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                    btn.disabled = true;
-                    
-                    // Restore button after authentication is ready
-                    const checkAuth = setInterval(() => {
-                        if (isAuthReady) {
-                            btn.innerHTML = originalContent;
-                            btn.disabled = false;
-                            clearInterval(checkAuth);
-                        }
-                    }, 500);
-                    
-                    // Timeout after 10 seconds
-                    setTimeout(() => {
-                        clearInterval(checkAuth);
-                        btn.innerHTML = originalContent;
-                        btn.disabled = false;
-                    }, 10000);
-                }
-                
                 try {
                     // Show modal first
                     modal.classList.add('active');
@@ -2232,13 +2209,9 @@
                     if (noFriendsElement) noFriendsElement.style.display = 'none';
                     
                     // Check if user is authenticated
-                    if (!isAuthReady || typeof currentUser === 'undefined' || !currentUser) {
-                        console.log('JCHAT_DEBUG: Authentication not ready yet');
-                        if (!isAuthReady) {
-                            showMessageBox('🔄 Connecting to JCHAT... Please wait a moment', 'info');
-                        } else {
-                            showMessageBox('Please wait for authentication to complete...', 'warning');
-                        }
+                    if (typeof currentUser === 'undefined' || !currentUser) {
+                        console.log('JCHAT_DEBUG: No user authenticated, showing warning');
+                        showMessageBox('Please wait for authentication to complete...', 'warning');
                         if (loadingElement) loadingElement.style.display = 'none';
                         return;
                     }
@@ -2408,7 +2381,6 @@
          let unsubscribeMessages = null;
          let notificationSoundEnabled = true;
          let unsubscribeFriends = null; // For real-time friend updates
-         let isAuthReady = false; // Flag to track authentication state
 
          // Voice Note Recording State
          let mediaRecorder;
@@ -2859,7 +2831,6 @@
              if (user) {
                  console.log("JCHAT_DEBUG: User authenticated:", user.uid);
                  currentUser = user;
-                 isAuthReady = true; // Set authentication as ready
                  
                  // Fetch and display header profile
                  await fetchAndDisplayHeaderProfile(user);
@@ -2878,7 +2849,6 @@
                  showMessageBox("Connected to JCHAT! 🚀", 'success');
              } else {
                  console.log("JCHAT_DEBUG: User not authenticated, signing in anonymously");
-                 isAuthReady = false; // Reset authentication state
                  try {
                      await signInAnonymously(auth);
                  } catch (error) {
