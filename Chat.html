@@ -1553,39 +1553,8 @@
 
             // Enter key functionality removed - only send button works now
 
-            // Send button click - Working implementation
-            sendMessageBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('JCHAT_DEBUG: Send button clicked');
-                
-                // Get message content
-                const message = messageInput.value.trim();
-                if (!message) {
-                    console.log('JCHAT_DEBUG: No message to send');
-                    showMessageBox('Please type a message first', 'warning');
-                    return;
-                }
-                
-                // Visual feedback immediately
-                sendMessageBtn.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    sendMessageBtn.style.transform = 'scale(1)';
-                }, 150);
-                
-                console.log('JCHAT_DEBUG: Sending message:', message);
-                console.log('JCHAT_DEBUG: Current user:', currentUser);
-                console.log('JCHAT_DEBUG: Partner ID:', partnerId);
-                
-                // Check if we have a selected friend and Firebase is available
-                if (partnerId && partnerId !== 'demo-partner-123' && typeof sendMessage === 'function') {
-                    console.log('JCHAT_DEBUG: Using Firebase sendMessage for selected friend');
-                    sendMessage('text', message);
-                } else {
-                    console.log('JCHAT_DEBUG: Using local message (no friend selected or Firebase not available)');
-                    sendLocalMessage(message);
-                }
-            });
+            // Send button click handler - This will be overridden by Firebase implementation below
+            // The actual working implementation is in the DOMContentLoaded event listener at the bottom
             
             // Ensure send button is properly initialized
             sendMessageBtn.disabled = true; // Start disabled until user types
@@ -2851,6 +2820,8 @@
          document.addEventListener('DOMContentLoaded', () => {
              // Override send message functionality
              const existingSendBtn = document.getElementById('sendMessageBtn');
+             let currentMessageInput = document.getElementById('messageInput');
+             
              if (existingSendBtn) {
                  // Remove existing listeners by cloning
                  const newSendBtn = existingSendBtn.cloneNode(true);
@@ -2861,20 +2832,33 @@
                  newSendBtn.style.opacity = '1';
                  newSendBtn.style.cursor = 'pointer';
                  
-                 // Add new listener
-                 newSendBtn.addEventListener('click', () => {
-                     console.log('JCHAT_DEBUG: Send button clicked');
-                     sendMessage('text', messageInput.value);
+                 // Add new listener with proper error handling
+                 newSendBtn.addEventListener('click', (e) => {
+                     e.preventDefault();
+                     e.stopPropagation();
+                     console.log('JCHAT_DEBUG: Firebase send button clicked');
+                     
+                     // Get current message input (in case it was replaced)
+                     const msgInput = document.getElementById('messageInput');
+                     const message = msgInput ? msgInput.value.trim() : '';
+                     
+                     if (!message) {
+                         showMessageBox('Please type a message first', 'warning');
+                         return;
+                     }
+                     
+                     console.log('JCHAT_DEBUG: Sending message via Firebase:', message);
+                     sendMessage('text', message);
                  });
                  
-                 console.log('JCHAT_DEBUG: Send button activated and ready');
+                 console.log('JCHAT_DEBUG: Firebase send button activated and ready');
              }
 
              // Override message input
-             if (messageInput) {
+             if (currentMessageInput) {
                  // Remove existing listeners by cloning
-                 const newMessageInput = messageInput.cloneNode(true);
-                 messageInput.parentNode.replaceChild(newMessageInput, messageInput);
+                 const newMessageInput = currentMessageInput.cloneNode(true);
+                 currentMessageInput.parentNode.replaceChild(newMessageInput, currentMessageInput);
                  
                  // Add new listeners
                  newMessageInput.addEventListener('input', () => {
@@ -2882,7 +2866,7 @@
                      newMessageInput.style.height = Math.min(newMessageInput.scrollHeight, 120) + 'px';
                  });
 
-                                 // Enter key functionality removed - only send button works now
+                 // Enter key functionality removed - only send button works now
              }
 
              // Sound toggle
