@@ -3325,11 +3325,21 @@
                                  `;
                                  messagesArea.appendChild(loadingMsg);
                                  messagesArea.scrollTop = messagesArea.scrollHeight;
+                             } else {
+                                 console.error("JCHAT_ERROR: Messages area not found during friend selection");
                              }
                              
                              // Load messages for selected friend
                              if (typeof loadMessages === 'function' && currentUser) {
-                                 await loadMessages();
+                                 try {
+                                     await loadMessages();
+                                 } catch (error) {
+                                     console.error("JCHAT_ERROR: Error loading messages:", error);
+                                     showMessageBox("Failed to load chat history", 'error');
+                                 }
+                             } else {
+                                 console.error("JCHAT_ERROR: loadMessages function not available");
+                                 showMessageBox("Chat functionality not ready", 'error');
                              }
                              
                              // Remove loading message
@@ -3586,6 +3596,14 @@
                  return;
              }
 
+             // Get messages area element
+             const messagesArea = document.getElementById('messagesArea');
+             if (!messagesArea) {
+                 console.error("JCHAT_ERROR: Messages area element not found");
+                 showMessageBox("Chat interface not ready", 'error');
+                 return;
+             }
+
              try {
                  console.log(`JCHAT_DEBUG: Loading messages for chat with ${partnerId}`);
                  
@@ -3600,6 +3618,8 @@
                  }
 
                  const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                 console.log(`JCHAT_DEBUG: Chat room ID: ${chatRoomId}`);
+                 
                  const messagesCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "messages");
                  const q = query(messagesCollectionRef, orderBy("timestamp", "asc"));
 
@@ -3742,21 +3762,50 @@
          }
 
          function createMessageBubble(messageData, messageId) {
+             // Validate message data
+             if (!messageData || !messageData.content) {
+                 console.warn("JCHAT_WARN: Invalid message data received:", messageData);
+                 return null;
+             }
+
+             const messagesArea = document.getElementById('messagesArea');
+             if (!messagesArea) {
+                 console.error("JCHAT_ERROR: Messages area not found");
+                 return null;
+             }
+
              const messageDiv = document.createElement('div');
              const isSent = messageData.senderId === currentUser.uid;
              messageDiv.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
-             messageDiv.dataset.messageId = messageId;
+             messageDiv.dataset.messageId = messageId || 'unknown';
 
-             const timeString = messageData.timestamp ? 
-                 new Date(messageData.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 
-                 'Just now';
+             // Handle timestamp safely
+             let timeString = 'Just now';
+             if (messageData.timestamp) {
+                 try {
+                     if (messageData.timestamp.seconds) {
+                         timeString = new Date(messageData.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                     } else if (messageData.timestamp.toDate) {
+                         timeString = messageData.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                     } else if (messageData.timestamp instanceof Date) {
+                         timeString = messageData.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                     }
+                 } catch (error) {
+                     console.warn("JCHAT_WARN: Error parsing timestamp:", error);
+                     timeString = 'Just now';
+                 }
+             }
+
+             // Sanitize content to prevent XSS
+             const sanitizedContent = messageData.content.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
              messageDiv.innerHTML = `
-                 <div class="message-content">${messageData.content}</div>
+                 <div class="message-content">${sanitizedContent}</div>
                  <div class="message-time">${timeString}</div>
              `;
 
              messagesArea.appendChild(messageDiv);
+             console.log(`JCHAT_DEBUG: Created message bubble for ${isSent ? 'sent' : 'received'} message`);
              return messageDiv;
          }
 
