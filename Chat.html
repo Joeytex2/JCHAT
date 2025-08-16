@@ -2948,6 +2948,7 @@
          let partnerId = null;
          let partnerProfileData = null;
          let unsubscribeMessages = null;
+         let unsubscribeTyping = null;
          let notificationSoundEnabled = true;
          
          // Friend selection variables
@@ -3588,10 +3589,14 @@
              try {
                  console.log(`JCHAT_DEBUG: Loading messages for chat with ${partnerId}`);
                  
-                 // Unsubscribe previous listener
+                 // Unsubscribe previous listeners
                  if (unsubscribeMessages) {
                      unsubscribeMessages();
                      unsubscribeMessages = null;
+                 }
+                 if (unsubscribeTyping) {
+                     unsubscribeTyping();
+                     unsubscribeTyping = null;
                  }
 
                  const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
@@ -3642,9 +3647,97 @@
                      showMessageBox("Failed to load chat history", 'error');
                  });
 
+                 // Set up typing indicator listener
+                 setupTypingIndicator(chatRoomId);
+
              } catch (error) {
                  console.error("JCHAT_ERROR: Error loading messages:", error);
                  showMessageBox("Failed to load messages", 'error');
+             }
+         }
+
+         /**
+          * Sets up real-time typing indicator for the chat room.
+          */
+         function setupTypingIndicator(chatRoomId) {
+             try {
+                 const typingCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "typing");
+                 
+                 unsubscribeTyping = onSnapshot(typingCollectionRef, (snapshot) => {
+                     const typingUsers = [];
+                     snapshot.forEach(doc => {
+                         const typingData = doc.data();
+                         if (typingData.userId !== currentUser.uid && typingData.isTyping) {
+                             typingUsers.push(typingData);
+                         }
+                     });
+
+                     updateTypingIndicator(typingUsers);
+                 });
+
+                 console.log("JCHAT_DEBUG: Typing indicator listener set up");
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error setting up typing indicator:", error);
+             }
+         }
+
+         /**
+          * Updates the typing indicator display.
+          */
+         function updateTypingIndicator(typingUsers) {
+             const typingIndicator = document.getElementById('typingIndicator');
+             const typingUsername = document.getElementById('typingUsername');
+             
+             if (typingUsers.length > 0) {
+                 // Get the first typing user's name
+                 const typingUser = typingUsers[0];
+                 const username = typingUser.username || 'Someone';
+                 
+                 if (typingUsername) {
+                     typingUsername.textContent = username;
+                 }
+                 
+                 if (typingIndicator) {
+                     typingIndicator.style.display = 'flex';
+                     
+                     // Auto-hide typing indicator after 5 seconds
+                     clearTimeout(typingIndicator.hideTimeout);
+                     typingIndicator.hideTimeout = setTimeout(() => {
+                         typingIndicator.style.display = 'none';
+                     }, 5000);
+                 }
+                 
+                 console.log(`JCHAT_DEBUG: ${username} is typing`);
+             } else {
+                 if (typingIndicator) {
+                     typingIndicator.style.display = 'none';
+                 }
+             }
+         }
+
+         /**
+          * Sends typing status to Firebase.
+          */
+         async function sendTypingStatus(isTyping) {
+             if (!currentUser || !partnerId) return;
+             
+             try {
+                 const chatRoomId = getChatRoomId(currentUser.uid, partnerId);
+                 const typingCollectionRef = collection(db, "artifacts", appId, "public", "data", "chats", chatRoomId, "typing");
+                 const typingDocRef = doc(typingCollectionRef, currentUser.uid);
+                 
+                 if (isTyping) {
+                     await setDoc(typingDocRef, {
+                         userId: currentUser.uid,
+                         username: currentUserProfileData?.username || 'Unknown User',
+                         isTyping: true,
+                         timestamp: serverTimestamp()
+                     });
+                 } else {
+                     await deleteDoc(typingDocRef);
+                 }
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Error sending typing status:", error);
              }
          }
 
@@ -3785,6 +3878,9 @@
                  const newMessageInput = messageInput.cloneNode(true);
                  messageInput.parentNode.replaceChild(newMessageInput, messageInput);
                  
+                 // Typing status tracking
+                 let typingTimeout;
+                 
                  // Add enhanced listeners
                  newMessageInput.addEventListener('input', () => {
                      newMessageInput.style.height = 'auto';
@@ -3795,17 +3891,38 @@
                      if (sendBtn) {
                          sendBtn.disabled = !newMessageInput.value.trim();
                      }
+                     
+                     // Send typing status
+                     sendTypingStatus(true);
+                     
+                     // Clear previous timeout
+                     clearTimeout(typingTimeout);
+                     
+                     // Set timeout to stop typing status after 2 seconds of no input
+                     typingTimeout = setTimeout(() => {
+                         sendTypingStatus(false);
+                     }, 2000);
                  });
 
                  newMessageInput.addEventListener('keypress', async (e) => {
                      if (e.key === 'Enter' && !e.shiftKey) {
                          e.preventDefault();
                          
+                         // Stop typing status when sending
+                         sendTypingStatus(false);
+                         clearTimeout(typingTimeout);
+                         
                          const sendBtn = document.getElementById('sendMessageBtn');
                          if (sendBtn && !sendBtn.disabled) {
                              sendBtn.click();
                          }
                      }
+                 });
+                 
+                 // Stop typing when input loses focus
+                 newMessageInput.addEventListener('blur', () => {
+                     sendTypingStatus(false);
+                     clearTimeout(typingTimeout);
                  });
              }
 
@@ -3868,6 +3985,7 @@
          // Cleanup on page unload
          window.addEventListener('beforeunload', () => {
              if (unsubscribeMessages) unsubscribeMessages();
+             if (unsubscribeTyping) unsubscribeTyping();
              if (isRecording) {
                  mediaRecorder?.stop();
              }
@@ -3875,6 +3993,8 @@
              if (currentUser) {
                  updateUserOnlineStatus(false);
              }
+             // Stop typing status
+             sendTypingStatus(false);
          });
 
          // Also set offline when page becomes hidden
