@@ -2538,13 +2538,14 @@
          let callState = 'idle'; // 'idle', 'calling', 'incoming', 'connected', 'ended'
          let callType = null; // 'audio' or 'video'
          let callPartnerId = null;
-         let callPartnerName = null;
-         let localVideoElement = null;
-         let remoteVideoElement = null;
-         let ringtoneAudio = null;
-         let callTimeout = null;
-         let callInterface = null;
-         let unsubscribeCall = null;
+let callPartnerName = null;
+let localVideoElement = null;
+let remoteVideoElement = null;
+let ringtoneAudio = null;
+let callTimeout = null;
+let callInterface = null;
+let unsubscribeCall = null;
+let currentCameraFacing = 'user'; // Track current camera facing mode
 
          // Make call state variables globally accessible
          window.callState = callState;
@@ -2937,6 +2938,19 @@
              const iconClass = callType === 'video' ? 'fas fa-video' : 'fas fa-phone';
              const callTypeText = callType === 'video' ? 'Video Call' : 'Voice Call';
              
+             // Add camera switch button for video calls
+             let cameraSwitchButton = '';
+             if (callType === 'video') {
+                 const cameraText = currentCameraFacing === 'user' ? 'Front' : 'Back';
+                 cameraSwitchButton = `
+                     <div style="margin-top: 15px;">
+                         <button id="incomingSwitchCameraBtn" style="background: linear-gradient(135deg, #2196F3, #03A9F4); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 12px;">
+                             <i class="fas fa-sync-alt"></i> ${cameraText} Camera
+                         </button>
+                     </div>
+                 `;
+             }
+             
              callInterface.innerHTML = `
                  <div style="margin-bottom: 20px;">
                      <i class="${iconClass}" style="font-size: 3rem; color: var(--blue); margin-bottom: 15px;"></i>
@@ -2951,12 +2965,21 @@
                          <i class="fas fa-phone-slash"></i>
                      </button>
                  </div>
+                 ${cameraSwitchButton}
              `;
              
              document.body.appendChild(callInterface);
              
              document.getElementById('acceptCallBtn').addEventListener('click', acceptCall);
              document.getElementById('declineCallBtn').addEventListener('click', declineCall);
+             
+             // Set up incoming call camera switch button for video calls
+             if (callType === 'video') {
+                 const incomingSwitchBtn = document.getElementById('incomingSwitchCameraBtn');
+                 if (incomingSwitchBtn) {
+                     incomingSwitchBtn.addEventListener('click', switchCamera);
+                 }
+             }
          }
 
          /**
@@ -3005,8 +3028,9 @@
                  `;
                  
                  // Add camera filter controls
+                 const cameraText = currentCameraFacing === 'user' ? 'Front' : 'Back';
                  controlButtons = `
-                     <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
+                     <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap;">
                          <button id="filterNormalBtn" class="filter-btn active" style="background: linear-gradient(135deg, #4CAF50, #8BC34A); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 12px;">
                              <i class="fas fa-sun"></i> Normal
                          </button>
@@ -3018,6 +3042,9 @@
                          </button>
                          <button id="filterVintageBtn" class="filter-btn" style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 12px;">
                              <i class="fas fa-camera-retro"></i> Vintage
+                         </button>
+                         <button id="switchCameraBtn" style="background: linear-gradient(135deg, #2196F3, #03A9F4); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 12px;">
+                             <i class="fas fa-sync-alt"></i> ${cameraText} Camera
                          </button>
                      </div>
                  `;
@@ -3328,6 +3355,7 @@
          window.showConnectedCallInterface = showConnectedCallInterface;
          window.showCallingInterface = showCallingInterface;
          window.hideCallInterface = hideCallInterface;
+         window.switchCamera = switchCamera;
 
          /**
           * Set up call button event listeners
@@ -3365,17 +3393,19 @@
          window.setupCallButtonListeners = setupCallButtonListeners;
 
          /**
-          * Set up camera filter functionality
+          * Set up camera filter functionality and camera switching
           */
          function setupCameraFilters() {
              const filterButtons = document.querySelectorAll('.filter-btn');
              const localVideo = document.getElementById('localVideo');
+             const switchCameraBtn = document.getElementById('switchCameraBtn');
              
              if (!localVideo) return;
              
              // Remove existing filter styles
              localVideo.style.filter = '';
              
+             // Set up filter buttons
              filterButtons.forEach(btn => {
                  btn.addEventListener('click', () => {
                      // Remove active class from all buttons
@@ -3411,8 +3441,118 @@
                      console.log(`JCHAT_DEBUG: Applied ${filterType} filter to local video`);
                  });
              });
+             
+             // Set up camera switch button
+             if (switchCameraBtn) {
+                 switchCameraBtn.addEventListener('click', switchCamera);
+             }
          }
          
+         /**
+          * Switch between front and back camera
+          */
+         async function switchCamera() {
+             try {
+                 console.log("JCHAT_DEBUG: Switching camera from", currentCameraFacing);
+                 
+                 // Toggle camera facing mode
+                 currentCameraFacing = currentCameraFacing === 'user' ? 'environment' : 'user';
+                 
+                 // Stop current video track
+                 if (localStream) {
+                     const videoTrack = localStream.getVideoTracks()[0];
+                     if (videoTrack) {
+                         videoTrack.stop();
+                     }
+                 }
+                 
+                 // Get new video stream with different camera
+                 const constraints = {
+                     audio: {
+                         echoCancellation: true,
+                         noiseSuppression: true,
+                         autoGainControl: true
+                     },
+                     video: {
+                         width: { ideal: 1280 },
+                         height: { ideal: 720 },
+                         facingMode: currentCameraFacing
+                     }
+                 };
+                 
+                 console.log("JCHAT_DEBUG: Requesting new camera stream with facingMode:", currentCameraFacing);
+                 
+                 // Get new stream
+                 const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+                 
+                 // Replace video track in local stream
+                 const newVideoTrack = newStream.getVideoTracks()[0];
+                 const oldVideoTrack = localStream.getVideoTracks()[0];
+                 
+                 if (oldVideoTrack) {
+                     localStream.removeTrack(oldVideoTrack);
+                 }
+                 
+                 localStream.addTrack(newVideoTrack);
+                 
+                 // Update video elements
+                 const localVideo = document.getElementById('localVideo');
+                 const callingPreview = document.getElementById('callingPreview');
+                 
+                 if (localVideo) {
+                     localVideo.srcObject = localStream;
+                 }
+                 
+                 if (callingPreview) {
+                     callingPreview.srcObject = localStream;
+                 }
+                 
+                 // Update peer connection with new track
+                 if (peerConnection) {
+                     const senders = peerConnection.getSenders();
+                     const videoSender = senders.find(sender => sender.track && sender.track.kind === 'video');
+                     
+                     if (videoSender) {
+                         await videoSender.replaceTrack(newVideoTrack);
+                         console.log("JCHAT_DEBUG: Replaced video track in peer connection");
+                     }
+                 }
+                 
+                 // Stop the new stream (we only needed the track)
+                 newStream.getTracks().forEach(track => {
+                     if (track !== newVideoTrack) {
+                         track.stop();
+                     }
+                 });
+                 
+                 // Update button text to show current camera
+                 const switchCameraBtn = document.getElementById('switchCameraBtn');
+                 if (switchCameraBtn) {
+                     const cameraText = currentCameraFacing === 'user' ? 'Front' : 'Back';
+                     switchCameraBtn.innerHTML = `<i class="fas fa-sync-alt"></i> ${cameraText} Camera`;
+                 }
+                 
+                 console.log("JCHAT_DEBUG: Successfully switched to", currentCameraFacing, "camera");
+                 showMessageBox(`Switched to ${currentCameraFacing === 'user' ? 'front' : 'back'} camera`, 'success');
+                 
+             } catch (error) {
+                 console.error("JCHAT_ERROR: Failed to switch camera:", error);
+                 
+                 // Revert camera facing mode
+                 currentCameraFacing = currentCameraFacing === 'user' ? 'environment' : 'user';
+                 
+                 if (error.name === 'NotAllowedError') {
+                     showMessageBox('Camera access denied. Please allow camera access and try again.', 'error');
+                 } else if (error.name === 'NotFoundError') {
+                     showMessageBox('No camera found. Please check your device.', 'error');
+                 } else if (error.name === 'NotReadableError') {
+                     showMessageBox('Camera is in use by another application. Please close other apps using the camera.', 'error');
+                 } else {
+                     showMessageBox(`Failed to switch camera: ${error.message}`, 'error');
+                 }
+             }
+         }
+
          // Add test function for debugging call setup
          window.testCallSetup = async function() {
              console.log("JCHAT_DEBUG: Testing call setup...");
@@ -3471,12 +3611,16 @@
              // Add video preview for video calls
              let videoPreview = '';
              if (callType === 'video' && localStream) {
+                 const cameraText = currentCameraFacing === 'user' ? 'Front' : 'Back';
                  videoPreview = `
                      <div style="margin-bottom: 20px; position: relative;">
                          <video id="callingPreview" autoplay muted style="width: 200px; height: 150px; border-radius: 10px; background: #000; margin: 0 auto; display: block;"></video>
                          <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
                              <i class="fas fa-camera" style="color: white; font-size: 12px;"></i>
                          </div>
+                         <button id="previewSwitchCameraBtn" style="position: absolute; bottom: 10px; right: 10px; background: rgba(33, 150, 243, 0.8); color: white; border: none; border-radius: 15px; padding: 5px 10px; cursor: pointer; font-size: 10px;">
+                             <i class="fas fa-sync-alt"></i> ${cameraText}
+                         </button>
                      </div>
                  `;
              }
@@ -3502,6 +3646,12 @@
                  const previewVideo = document.getElementById('callingPreview');
                  if (previewVideo) {
                      previewVideo.srcObject = localStream;
+                 }
+                 
+                 // Set up preview camera switch button
+                 const previewSwitchBtn = document.getElementById('previewSwitchCameraBtn');
+                 if (previewSwitchBtn) {
+                     previewSwitchBtn.addEventListener('click', switchCamera);
                  }
              }
              
