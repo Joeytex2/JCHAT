@@ -760,6 +760,11 @@
             100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
         }
 
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         /* Animations */
         @keyframes fadeIn {
             from {
@@ -1165,25 +1170,13 @@
         }
 
         .friend-item .friend-status {
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 15px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
         }
 
-        .friend-item .friend-status.online {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
 
-        .friend-item .friend-status.offline {
-            background: rgba(107, 114, 128, 0.2);
-            color: #9ca3af;
-            border: 1px solid rgba(107, 114, 128, 0.3);
-        }
 
         /* Chat button styling for friend items (mirroring Find_Friends.html) */
         .friend-item .chat-btn {
@@ -2932,14 +2925,10 @@
              const statusColor = isOnline ? '#4CAF50' : '#f44336'; // Green if online, red if offline
              
              friendDiv.innerHTML = `
-                 ${profileImageHtml}
-                 <span class="friend-name">${displayName}</span>
                  <span class="friend-status">
-                     <i class="fas fa-circle" style="color: ${statusColor}; font-size: 8px;"></i>
+                     <i class="fas fa-circle" style="color: ${statusColor}; font-size: 8px; animation: ${isOnline ? 'pulse 2s infinite' : 'none'};"></i>
                  </span>
-                 <button class="chat-btn" data-friend-id="${friend.userId}" title="Start Chat">
-                     <i class="fas fa-comment"></i> Chat
-                 </button>
+                 <span class="friend-name">${displayName}</span>
              `;
 
              // Add hover effects (same as Find_Friends.html)
@@ -2953,35 +2942,32 @@
                  friendDiv.style.boxShadow = '';
              });
 
-             // Add click handler for chat button
-             const chatBtn = friendDiv.querySelector('.chat-btn');
-             if (chatBtn) {
-                 chatBtn.addEventListener('click', (e) => {
-                     e.preventDefault();
-                     e.stopPropagation();
-                     const friendId = friend.userId;
-                     const friendName = friend.username;
-                     
-                     // Update partner display and global variable
-                     document.getElementById('partnerDisplayName').textContent = friendName;
-                     partnerId = friendId;
-                     
-                     // Close modal
-                     document.getElementById('selectFriendModal').classList.remove('active');
-                     
-                     // Clear search input
-                     document.getElementById('friendSearchInput').value = '';
-                     
-                     // Load messages for selected friend
-                     if (currentUser) {
-                         loadMessages();
-                     }
-                     
-                     showMessageBox(`💬 Now chatting with ${friendName}`, 'success');
-                     playNotificationSound('success');
-                     console.log(`JCHAT_DEBUG: Starting chat with friend ${friendId} (${friendName})`);
-                 });
-             }
+             // Add click handler for the entire friend item
+             friendDiv.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 e.stopPropagation();
+                 const friendId = friend.userId;
+                 const friendName = friend.username;
+                 
+                 // Update partner display and global variable
+                 document.getElementById('partnerDisplayName').textContent = friendName;
+                 partnerId = friendId;
+                 
+                 // Close modal
+                 document.getElementById('selectFriendModal').classList.remove('active');
+                 
+                 // Clear search input
+                 document.getElementById('friendSearchInput').value = '';
+                 
+                 // Load messages for selected friend
+                 if (currentUser) {
+                     loadMessages();
+                 }
+                 
+                 showMessageBox(`💬 Now chatting with ${friendName}`, 'success');
+                 playNotificationSound('success');
+                 console.log(`JCHAT_DEBUG: Starting chat with friend ${friendId} (${friendName})`);
+             });
 
              return friendDiv;
          }
