@@ -21,47 +21,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
-        /* === CRITICAL: BODY SCROLL LOCK IMPLEMENTATION === */
-        /* This is the highest priority feature */
-        
-        /* Prevent all scrolling when scroll lock is active */
-        html.scroll-locked,
-        body.scroll-locked {
-            position: fixed !important;
-            overflow: hidden !important;
-            width: 100% !important;
-            height: 100% !important;
-            top: 0 !important;
-            left: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            touch-action: none !important;
-            overscroll-behavior: none !important;
-            -webkit-overflow-scrolling: auto !important;
-            -webkit-user-select: none !important;
-            user-select: none !important;
-            -ms-touch-action: none !important;
-        }
 
-        /* Additional scroll prevention for mobile */
-        html.scroll-locked *,
-        body.scroll-locked * {
-            overscroll-behavior: none !important;
-            -webkit-overflow-scrolling: auto !important;
-        }
 
-        /* Force prevent any element from causing scroll */
-        .scroll-locked {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100vh !important;
-            height: 100dvh !important;
-            overflow: hidden !important;
-            touch-action: none !important;
-            overscroll-behavior: none !important;
-        }
 
         /* Universal box-sizing for consistent layout */
         *, *::before, *::after {
@@ -147,7 +108,7 @@
                               radial-gradient(circle at bottom right, var(--background-gradient-2), transparent 150px);
             color: var(--white);
             transition: background-color 0.5s ease, color 0.5s ease;
-            /* Critical: Set up for scroll locking */
+
             position: relative;
             width: 100%;
             height: 100vh;
@@ -403,7 +364,7 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Chat Container - Critical for scroll lock */
+        /* Chat Container */
         .chat-container {
             position: fixed;
             top: 55px;
@@ -1130,7 +1091,7 @@
         }
     </style>
 </head>
-<body class="theme-dark-mode scroll-locked">
+<body class="theme-dark-mode">
 
     <header>
         <div class="header-content-wrapper">
@@ -1198,7 +1159,6 @@
                 <div class="message-bubble received">
                     <div class="message-content">
                         🚀 Welcome to JCHAT Full Chat! Features include:<br>
-                        • <strong>Body Scroll Lock</strong> (Highest Priority)<br>
                         • Media sharing (images/videos)<br>
                         • Voice notes with recording<br>
                         • Emoji picker<br>
@@ -1264,210 +1224,7 @@
         </div>
     </main>
 
-    <!-- CRITICAL: BODY SCROLL LOCK SCRIPT - HIGHEST PRIORITY -->
     <script>
-        // === CRITICAL: BODY SCROLL LOCK IMPLEMENTATION ===
-        // This is the most important feature and must be implemented first
-        
-        (function() {
-            console.log('JCHAT_DEBUG: Initializing comprehensive body scroll lock system');
-            
-            let scrollLockEnabled = false;
-            let originalScrollY = 0;
-            let scrollForceInterval = null;
-            
-            /**
-             * Comprehensive touch and scroll event prevention
-             */
-            function preventScroll(e) {
-                if (scrollLockEnabled) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    return false;
-                }
-            }
-            
-            function handleTouch(e) {
-                if (scrollLockEnabled) {
-                    // Allow touches within the messages area only
-                    const messagesArea = document.getElementById('messagesArea');
-                    const chatInput = document.getElementById('messageInput');
-                    
-                    if (messagesArea && messagesArea.contains(e.target)) {
-                        // Allow scrolling within messages area
-                        return true;
-                    }
-                    
-                    if (chatInput && chatInput.contains(e.target)) {
-                        // Allow interaction with chat input
-                        return true;
-                    }
-                    
-                    // Prevent all other touches
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    return false;
-                }
-            }
-            
-            /**
-             * Lock body scrolling with maximum force
-             */
-            function lockBodyScroll() {
-                if (scrollLockEnabled) return; // Already locked
-                
-                console.log('JCHAT_DEBUG: Activating maximum body scroll lock');
-                
-                // Store current scroll position
-                originalScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-                
-                // Add scroll lock classes to html and body
-                document.documentElement.classList.add('scroll-locked');
-                document.body.classList.add('scroll-locked');
-                
-                // Force styles on html and body with maximum specificity
-                const htmlStyles = {
-                    position: 'fixed',
-                    top: `-${originalScrollY}px`,
-                    left: '0',
-                    width: '100%',
-                    height: '100%',
-                    overflow: 'hidden',
-                    touchAction: 'none',
-                    overscrollBehavior: 'none',
-                    webkitOverflowScrolling: 'auto',
-                    webkitUserSelect: 'none',
-                    userSelect: 'none',
-                    msTouchAction: 'none'
-                };
-                
-                const bodyStyles = {
-                    position: 'fixed',
-                    top: `-${originalScrollY}px`,
-                    left: '0',
-                    width: '100%',
-                    height: '100%',
-                    overflow: 'hidden',
-                    touchAction: 'none',
-                    overscrollBehavior: 'none',
-                    webkitOverflowScrolling: 'auto',
-                    webkitUserSelect: 'none',
-                    userSelect: 'none',
-                    msTouchAction: 'none',
-                    margin: '0',
-                    padding: '0'
-                };
-                
-                // Apply styles to html element
-                Object.assign(document.documentElement.style, htmlStyles);
-                
-                // Apply styles to body element
-                Object.assign(document.body.style, bodyStyles);
-                
-                // Add comprehensive event listeners to prevent all scrolling
-                const eventOptions = { passive: false, capture: true };
-                
-                document.addEventListener('touchstart', handleTouch, eventOptions);
-                document.addEventListener('touchmove', handleTouch, eventOptions);
-                document.addEventListener('touchend', handleTouch, eventOptions);
-                document.addEventListener('touchcancel', handleTouch, eventOptions);
-                document.addEventListener('wheel', preventScroll, eventOptions);
-                document.addEventListener('scroll', preventScroll, eventOptions);
-                document.addEventListener('keydown', preventScroll, eventOptions);
-                
-                // Also prevent on window
-                window.addEventListener('scroll', preventScroll, eventOptions);
-                window.addEventListener('wheel', preventScroll, eventOptions);
-                window.addEventListener('touchmove', handleTouch, eventOptions);
-                window.addEventListener('touchstart', handleTouch, eventOptions);
-                
-                // Force scroll position to stay put with interval
-                scrollForceInterval = setInterval(() => {
-                    if (window.scrollY !== originalScrollY) {
-                        window.scrollTo(0, originalScrollY);
-                    }
-                    // Ensure body position stays fixed
-                    if (document.body.style.position !== 'fixed') {
-                        document.body.style.position = 'fixed';
-                        document.body.style.top = `-${originalScrollY}px`;
-                    }
-                }, 10);
-                
-                scrollLockEnabled = true;
-                console.log('JCHAT_DEBUG: Body scroll locked with maximum security');
-            }
-            
-            /**
-             * Unlock body scrolling
-             */
-            function unlockBodyScroll() {
-                if (!scrollLockEnabled) return; // Already unlocked
-                
-                console.log('JCHAT_DEBUG: Unlocking body scroll');
-                
-                // Clear the force scroll interval
-                if (scrollForceInterval) {
-                    clearInterval(scrollForceInterval);
-                    scrollForceInterval = null;
-                }
-                
-                // Remove comprehensive event listeners
-                const eventOptions = { capture: true };
-                
-                document.removeEventListener('touchstart', handleTouch, eventOptions);
-                document.removeEventListener('touchmove', handleTouch, eventOptions);
-                document.removeEventListener('touchend', handleTouch, eventOptions);
-                document.removeEventListener('touchcancel', handleTouch, eventOptions);
-                document.removeEventListener('wheel', preventScroll, eventOptions);
-                document.removeEventListener('scroll', preventScroll, eventOptions);
-                document.removeEventListener('keydown', preventScroll, eventOptions);
-                
-                window.removeEventListener('scroll', preventScroll, eventOptions);
-                window.removeEventListener('wheel', preventScroll, eventOptions);
-                window.removeEventListener('touchmove', handleTouch, eventOptions);
-                window.removeEventListener('touchstart', handleTouch, eventOptions);
-                
-                // Remove CSS classes
-                document.documentElement.classList.remove('scroll-locked');
-                document.body.classList.remove('scroll-locked');
-                
-                // Clear all forced styles
-                const stylesToClear = [
-                    'position', 'top', 'left', 'width', 'height', 'overflow',
-                    'touchAction', 'overscrollBehavior', 'webkitOverflowScrolling',
-                    'webkitUserSelect', 'userSelect', 'msTouchAction', 'margin', 'padding'
-                ];
-                
-                stylesToClear.forEach(prop => {
-                    document.documentElement.style[prop] = '';
-                    document.body.style[prop] = '';
-                });
-                
-                // Restore scroll position
-                window.scrollTo(0, originalScrollY);
-                
-                scrollLockEnabled = false;
-                console.log('JCHAT_DEBUG: Body scroll unlocked');
-            }
-            
-            // Expose functions globally for debugging
-            window.JCHATScrollLock = {
-                lock: lockBodyScroll,
-                unlock: unlockBodyScroll,
-                isLocked: () => scrollLockEnabled
-            };
-            
-            // Auto-unlock on page unload
-            window.addEventListener('beforeunload', unlockBodyScroll);
-            
-            // Initialize scroll lock immediately
-            lockBodyScroll();
-            
-            console.log('JCHAT_DEBUG: Body scroll lock system fully initialized and activated');
-        })();
-
         // Basic chat functionality
         document.addEventListener('DOMContentLoaded', () => {
             const messageInput = document.getElementById('messageInput');
@@ -1985,7 +1742,7 @@
                 }
             });
 
-                         console.log('🚀 JCHAT Full Chat initialized with MAXIMUM body scroll lock protection + Friends Selection + Reactions!');
+                         console.log('🚀 JCHAT Full Chat initialized with Friends Selection + Reactions!');
          });
      </script>
 
